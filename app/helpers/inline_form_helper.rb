@@ -1,4 +1,4 @@
-module InlineFormHelper
+module ActionView::Helpers::InlineFormsHelper
   # display the forms from an array of attributes
   def inline_form_display(object, attributes, action=:show)
     attributes = [ attributes ] if not attributes[0].is_a?(Array) # make sure we have an array of arrays

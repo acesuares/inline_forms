@@ -1,6 +1,6 @@
 module InlineForms
   extend ActiveSupport::Concern
-
+    
   module ClassMethods
     def find_by_tags()
       raise 'hello'
