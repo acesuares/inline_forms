@@ -33,6 +33,7 @@ Gem::Specification.new do |s|
     "app/views/inline_forms/index.html.erb",
     "app/views/inline_forms/new.html.erb",
     "app/views/layouts/inline_forms.rhtml",
+    "inline_forms.gemspec",
     "lib/inline_forms.rb",
     "test/helper.rb",
     "test/test_inline_forms.rb"
