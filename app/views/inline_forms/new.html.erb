@@ -1,0 +1,17 @@
+<% form_remote_tag :multipart => true,
+  :url => "/#{@Klass_pluralized}?field=#{@attribute.to_s}&form_element=#{@form_element}&values=#{@values}&sub_id=#{@sub_id}",
+  :update => @update_span || 'inline_form_list',
+  :html => { :class  => "edit_form" } do -%>
+  <div class="edit_form_field">
+    <%= inline_form_display(@object, @object.respond_to?(:field_list) ? @object.field_list : [ '', :name, :text ], :new) %>
+  </div>
+  <%= link_to_remote "nee",
+#  :url => "/#{@Klass_pluralized}/index?field=#{@attribute.to_s}&form_element=#{@form_element}&values=#{@values}&sub_id=#{@sub_id}",
+  :url => "/#{@Klass_pluralized}?layout=false",
+    :html => { :class  => "edit_form_cancel" },
+    :update => 'inline_form_list',
+    :method => :get -%>
+  <%= submit_tag "ok", :class => "edit_form_submit"-%>
+  <div style="clear: both;"></div>
+<% end -%>
+

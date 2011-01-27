@@ -15,8 +15,8 @@ Jeweler::Tasks.new do |gem|
   gem.name = "inline_forms"
   gem.homepage = "http://github.com/acesuares/inline_forms"
   gem.license = "MIT"
-  gem.summary = %Q{TODO: one-line summary of your gem}
-  gem.description = %Q{TODO: longer description of your gem}
+  gem.summary = %Q{Inline editing of forms.}
+  gem.description = %Q{Inline Forms aims to ease the setup of forms that provide inline editing. The field list can be specified in the model.}
   gem.email = "ace@suares.an"
   gem.authors = ["Ace Suares"]
   # Include your dependencies below. Runtime dependencies are required when using your gem,
