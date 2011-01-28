@@ -1,24 +1,10 @@
-raise 'hell'
- ;ak ;skdad
-
+puts 'loading inline_forms...'
 
 module InlineForms
-  extend ActiveSupport::Concern
-    
-  module ClassMethods
-    def find_by_tags()
-      raise 'hello'
-    end
-  end
-
-  module InstanceMethods
-    def snier()
-      raise 'mellow'
-    end
-  end 
-end
-
-class ActiveRecord::Base
-  include InlineForms
-end
-                                           
+  class InlineFormsEngine < Rails::Engine
+      initializer 'inline_forms.helper' do |app|
+            ActionView::Base.send :include, InlineFormsHelper
+                end
+                  end
+                  end
+# http://www.ruby-forum.com/topic/211017#927932
