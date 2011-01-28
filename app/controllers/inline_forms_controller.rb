@@ -1,23 +1,24 @@
 class InlineFormsController < ApplicationController
-  unloadable # see http://dev.rubyonrails.org/ticket/6001
+  #unloadable # see http://dev.rubyonrails.org/ticket/6001
   # == Generic controller for the inline_forms plugin.
   # === Usage
-  # If you have an Example class, then you can add a route like this:
-  # <tt>map.resources :examples, :controller => :inline_forms</tt>
-  # this will give you REST stuff without creating a sepearte examples_controller.rb
+  # If you have an Example class, make an ExampleController that is a subclass of InlineFormsController
+  # <tt>class ExampleController < InlineFormsController
+  # # add before filters if you want: before_filter :authenticate_user!, :only => :token
+  # # override methods or make your own, using @Klass instead of Example. 
+  # #  def index
+  # #   @objects=@Klass.all
+  # #  end
   # === How it works
-  # The getKlass before_filter extracts the classname from the request. So, '/examples/1' and
-  # '/examples?name=value' will result in @Klass being set to 'Example', which is the class.
+  # The getKlass before_filter extracts the class and puts it in @Klass
   # === Limited Access
   # the must_be_xhr_request before_filter is supposed to only perform the specific actions
-  # if the request is an XhttpRequest. There is not much use perming the actions outside of
+  # if the request is an XhttpRequest. There is not much use permitting the actions outside of
   # the XhttpRequest context (except action => :index). Of course, this is not a security measure.
   before_filter :getKlass
   before_filter :must_be_xhr_request, :except => :index
-  helper :inline_form
-  include InlineFormHelper
+  include InlineFormsHelper # this might also be included in you application_controller with helper :all but it's not needed
   layout false
-
   # :index shows a list of all objects from class Klass, with all attribute values linked to the 'edit' action.
   # Each field (attribute) is edited seperately (so you don't edit an entire object!)
   # The link to 'new' allows you to create a new record.
@@ -26,7 +27,7 @@ class InlineFormsController < ApplicationController
   #
   def index
     nolayout = params[:layout] == 'false' || false
-    @objects = @Klass.constantize.all
+    @objects = @Klass.all
     render( :layout => nolayout || 'inline_forms' )
   end
 
@@ -118,15 +119,13 @@ class InlineFormsController < ApplicationController
     redirect_to "/#{@Klass_pluralized}" if not request.xhr?
   end
 
-  # Get the classname from the request uri.
-  # /examples/1 => Example
-  # /examples?field=name => Example
-  #
+  # Get the class
   # Used in before_filter
   def getKlass #:doc:
-    @Klass = request.request_uri.split(/[\/?]/)[1].classify
-    @Klass_constantized = @Klass.constantize
-    @Klass_underscored = @Klass.underscore
-    @Klass_pluralized  = @Klass_underscored.pluralize
+    @Klass = self.controller_name.classify.constantize
+    #request.request_uri.split(/[\/?]/)[1].classify
+    #@Klass_constantized = @Klass.constantize
+    #@Klass_underscored = @Klass.underscore
+    #@Klass_pluralized  = @Klass_underscored.pluralize
   end
 end
