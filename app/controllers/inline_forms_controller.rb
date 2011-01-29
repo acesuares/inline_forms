@@ -5,7 +5,7 @@ class InlineFormsController < ApplicationController
   # If you have an Example class, make an ExampleController that is a subclass of InlineFormsController
   # <tt>class ExampleController < InlineFormsController
   # # add before filters if you want: before_filter :authenticate_user!, :only => :token
-  # # override methods or make your own, using @Klass instead of Example. 
+  # # override methods or make your own, using @Klass instead of Example.
   # #  def index
   # #   @objects=@Klass.all
   # #  end
@@ -26,9 +26,10 @@ class InlineFormsController < ApplicationController
   # GET /examples
   #
   def index
-    nolayout = params[:layout] == 'false' || false
+#    nolayout = params[:layout] == 'false' || false
     @objects = @Klass.all
-    render( :layout => nolayout || 'inline_forms' )
+#    render( :layout => nolayout || 'inline_forms' )
+render 'inline_forms/inline_forms'
   end
 
   # :show shows one field (attribute) from a record (object). It inludes the link to 'edit'
@@ -51,7 +52,7 @@ class InlineFormsController < ApplicationController
 
   # :new prepares a new object, updates the entire list of objects and replaces it with a new
   # empty form. After pressing OK or Cancel, the list of objects is retrieved in the same way as :index
-  # 
+  #
   # GET /examples/new
   def new
     @object = @Klass.constantize.new
