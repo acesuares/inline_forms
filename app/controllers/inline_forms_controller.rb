@@ -31,23 +31,7 @@ class InlineFormsController < ApplicationController
     end
   end
 
-  # :show shows one field (attribute) from a record (object). It inludes the link to 'edit'
-  #
-  # GET /examples/1?field=name&form_element=text
-  #
-#  def show
-#    @object = @Klass.constantize.find(params[:id])
-#    @field = params[:field]
-#    @form_element = params[:form_element]
-#    if @form_element == "associated"
-#      @sub_id = params[:sub_id]
-#      if @sub_id.to_i > 0
-#        @associated_record_id = @object.send(@field.singularize + "_ids").index(@sub_id.to_i)
-#        @associated_record = @object.send(@field)[@associated_record_id]
-#      end
-#    end
-#    render :inline => '<%= send("#{@form_element}_show", @object, @field, @values) %>'
-#  end
+  
 
   # :new prepares a new object, updates the entire list of objects and replaces it with a new
   # empty form. After pressing OK or Cancel, the list of objects is retrieved in the same way as :index
@@ -119,7 +103,29 @@ class InlineFormsController < ApplicationController
       format.js { render(:update) {|page| page.replace_html @update_span, :inline => '<%= send("#{@form_element.to_s}_show", @object, @field, @values) %>' }
       }
     end
-      
+  end
+
+  # :show shows one field (attribute) from a record (object). It inludes the link to 'edit'
+  #
+  # GET /examples/1?field=name&form_element=text
+  #
+  def show
+    @object = @Klass.find(params[:id])
+    @field = params[:field]
+    @form_element = params[:form_element]
+    if @form_element == "associated"
+      @sub_id = params[:sub_id]
+      if @sub_id.to_i > 0
+        @associated_record_id = @object.send(@field.singularize + "_ids").index(@sub_id.to_i)
+        @associated_record = @object.send(@field)[@associated_record_id]
+      end
+    end
+    @update_span = params[:update]
+    respond_to do |format|
+      # found this here: http://www.ruby-forum.com/topic/211467
+      format.js { render(:update) {|page| page.replace_html @update_span, :inline => '<%= send("#{@form_element}_show", @object, @field, @values) %>' }
+      }
+    end
   end
 
   # :destroy is not implemented

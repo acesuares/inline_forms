@@ -3,8 +3,10 @@
   <div class="edit_form_field">
     <%= inline_form_display(@object, @object.respond_to?(:inline_forms_field_list) ? @object.inline_forms_field_list : [ '', :name, :text ], :new) %>
   </div>
-  <%= link_to "nee", send(@Klass.to_s.underscore.pluralize + '_path',:update => @update_span), :remote => true,
-    :class  => "edit_form_cancel"  %>
+  <%= link_to( send(@Klass.to_s.underscore.pluralize + '_path',:update => @update_span || 'inline_form_list'), :remote => true,
+    :class  => "edit_form_cancel" ) do  %>
+    <input type="button" name="cancel" value="cancel" />
+<% end %>
   <%= submit_tag "ok", :class => "edit_form_submit"-%>
   <div style="clear: both;"></div>
 <% end -%>

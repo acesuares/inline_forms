@@ -27,27 +27,25 @@ module InlineFormsHelper
     when :new
       attributes.each do | name, attribute, form_element, values |
         #css_class_id = form_element == :associated ? "subform_#{attribute.to_s}_#{object.id}" : "field_#{attribute.to_s}_#{object.id}"
-        css_class_id = "field_#{attribute.to_s}_#{object.id}"
-        name_cell = content_tag :td, :valign=>'top' do
-          content_tag :div, :class=> "field_name field_#{attribute.to_s} form_element_#{form_element.to_s}" do
-            h(name)
+        if not form_element.to_sym == :associated
+          css_class_id = "field_#{attribute.to_s}_#{object.id}"
+          name_cell = content_tag :td, :valign=>'top' do
+            content_tag :div, :class=> "field_name field_#{attribute.to_s} form_element_#{form_element.to_s}" do
+              h(name)
+            end
           end
-        end
-        value_cell = content_tag :td, :valign=>'top' do
-          content_tag :div, :class=> "field_value field_#{attribute.to_s} form_element_#{form_element.to_s}" do
-            content_tag :span, :id => css_class_id do
-              if not form_element == :associated
+          value_cell = content_tag :td, :valign=>'top' do
+            content_tag :div, :class=> "field_value field_#{attribute.to_s} form_element_#{form_element.to_s}" do
+              content_tag :span, :id => css_class_id do
                 send("#{form_element.to_s}_edit", object, attribute, values)
-              else
-                #send("#{form_element.to_s}_show", object, attribute, values)
               end
             end
           end
+          out += content_tag :tr, name_cell + value_cell
         end
-        out += content_tag :tr, name_cell + value_cell
       end
-      return content_tag :table, raw(out), :cellspacing => 0, :cellpadding => 0
     end
+    return content_tag :table, raw(out), :cellspacing => 0, :cellpadding => 0
   end
   # display a list of objects
   def inline_form_display_list(objects, tag=:li)
@@ -71,7 +69,7 @@ module InlineFormsHelper
   end
   def dropdown_edit(object, attribute, values)
     object.send('build_' + attribute.to_s) unless object.send(attribute)
-    values = object.send(attribute).class.name.constantize.find(:all, :order => 'name ASC')
+    values = object.send(attribute).class.name.constantize.find(:all) # TODO bring order!
     # the leading underscore is to avoid name conflicts, like 'email' and 'email_type' will result in 'email' and 'email[email_type_id]' in the form!
     collection_select( ('_' + object.class.to_s.downcase).to_sym, attribute.to_s.foreign_key.to_sym, values, 'id', 'presentation', :selected => object.send(attribute).id)
   end
@@ -160,7 +158,7 @@ module InlineFormsHelper
   end
   def checklist_edit(object, attribute, values)
     object.send(attribute).build  if object.send(attribute).empty?
-    values = object.send(attribute).first.class.name.constantize.find(:all, :order => "name ASC")
+    values = object.send(attribute).first.class.name.constantize.find(:all) # TODO bring order
     out = '<div class="edit_form_checklist">'
     out << '<ul>'
     values.each do | item |
@@ -188,14 +186,13 @@ module InlineFormsHelper
       # if it's not a new record (sub_id > 0) then just update the list-element
       out << '<li>'
       out << link_to( @associated_record.title,
-        :url => { :action => 'edit',
-          :id => object.id,
+        send('edit_' + @Klass.to_s.underscore + '_path', object,
           :field => attribute,
           :sub_id => @sub_id,
           :form_element => this_method.reverse.sub(/.*_/,'').reverse,
-          :values => values },
+          :values => values,
+          :update => "field_#{attribute.singularize}_#{@sub_id.to_s}" ),
         :method => :get,
-        :update => "field_#{attribute.singularize}_#{@sub_id.to_s}",
         :remote => true )
       out << '</li>'
     else
@@ -206,15 +203,14 @@ module InlineFormsHelper
         object.send(attribute.pluralize).each do |m|
           out << "<span id='field_#{attribute.singularize}_#{m.id.to_s}'>"
           out << '<li>'
-          out << link_to( m.title,
-            :url => { :action => 'edit',
-              :id => object.id,
+          out << link_to( m.title, send('edit_' + @Klass.to_s.underscore + '_path',
+              object,
               :field => attribute,
               :sub_id => m.id,
               :form_element => this_method.sub(/_[a-z]+$/,''),
-              :values => values },
+              :values => values,
+              :update => "field_#{attribute.singularize}_#{m.id.to_s}" ),
             :method => :get,
-            :update => "field_#{attribute.singularize}_#{m.id.to_s}",
             :remote => true )
           out << '</li>'
           out << '</span>'
@@ -222,23 +218,22 @@ module InlineFormsHelper
       end
       # add a 'new' link for creating a new record
       out << '<li>'
-      out << link_to( 'new',
-        :url => { :action => 'edit',
-          :id => object.id,
+      out << link_to( 'new', send('edit_' + @Klass.to_s.underscore + '_path',
+          object,
           :field => attribute,
           :sub_id => 0,
           :form_element => this_method.sub(/_[a-z]+$/,''),
-          :values => values },
+          :values => values,
+          :update => "list_#{attribute}_#{object.id.to_s}" ),
         :method => :get,
-        :update => "list_#{attribute}_#{object.id.to_s}",
         :remote => true )
       out << '</li>'
       out << '</ul>' if @sub_id.nil?
     end
-    out
+    raw(out)
   end
   def associated_edit(object, attribute, values)
-    # @sub_id is the id of the assoicated record
+    # @sub_id is the id of the associated record
     if @sub_id.to_i > 0
       # only if @sub_id > 0, means we have a associated record
       @associated_record_id = object.send(attribute.singularize + "_ids").index(@sub_id.to_i)
@@ -248,9 +243,9 @@ module InlineFormsHelper
       # but if @sub_id = 0, then we are dealing with a new associated record
       # in that case, we .new a record, and the update_span is the whole <ul>
       @associated_record = attribute.singularize.capitalize.constantize.new
-      @update_span = "list_#{attribute}_#{object.id.to_s}"
+      @update_span = 'list_' + attribute.to_s + '_' + object.id.to_s
     end
-    render :partial => "subform"
+    render :partial => "inline_forms/subform"
   end
   def associated_update(object, attribute, values)
     return if object.id.nil?
@@ -262,10 +257,10 @@ module InlineFormsHelper
     else
       # create a new associated record
       @associated_record = object.send(attribute.to_sym).new
-      @update_span = 'list_#{attribute}_#{object.id.to_s}'
+      @update_span = 'list_' + attribute.to_s + '_' + object.id.to_s
     end
     # process the sub_form fields (attributes). These are declared in the model!
-    @associated_record.field_list.each do | @subform_description, @subform_field, @subform_element |
+    @associated_record.inline_forms_field_list.each do | @subform_description, @subform_field, @subform_element |
       # have no fear
       send("#{@subform_element}_update", @associated_record, @subform_field, nil)
     end

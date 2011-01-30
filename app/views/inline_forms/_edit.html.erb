@@ -4,20 +4,23 @@
   :form_element => @form_element,
   :values => @values,
   :sub_id => @sub_id ),
-  :method => :put,
+  :method => :put, # this is going to the update method!
 :multipart => true,
   :class  => "edit_form",
   :remote => true do -%>
   <div class="edit_form_field">
     <%= send("#{@form_element.to_s}_edit", @object, @field, @values) %>
   </div>
-  <%= link_to "nee", send(@Klass.to_s.underscore.pluralize + '_path', :update => @update_span || "field_#{@field}_#{@object.id.to_s}",
-    :field => @field,
-    :form_element => @form_element,
-    :values => @values,
-    :sub_id => @sub_id ),
-    :method => :get,
-    :class  => "edit_form_cancel" %>
+  <%= link_to( send( @Klass.to_s.underscore + '_path', :update => @update_span || "field_#{@field}_#{@object.id.to_s}",
+      :field => @field,
+      :form_element => @form_element,
+      :values => @values,
+      :sub_id => @sub_id ),
+    :method => :get, # this is going to the show method!
+    :class  => "edit_form_cancel",
+    :remote => true ) do %>
+    <input type="button" name="cancel" value="cancel" />
+  <% end %>
   <%= submit_tag "ok", :class => "edit_form_submit"-%>
   <div style="clear: both;"></div>
 <% end -%>

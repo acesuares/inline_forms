@@ -1,5 +1,5 @@
 <table cellpadding="0" cellspacing="0" class="subform">
-  <% @associated_record.field_list.each do | @subform_description, @subform_field, @subform_element, @values | %>
+  <% @associated_record.inline_forms_field_list.each do | @subform_description, @subform_field, @subform_element, @values | %>
     <tr>
       <td valign="top">
         <div class="subform_field-name">
