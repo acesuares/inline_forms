@@ -61,7 +61,7 @@ module InlineFormsHelper
   end
   # link for new item
   def inline_form_new_record(attribute, form_element, text='neeeeew', update_span='inline_form_list')
-    link_to text, new_valid_table_path(:update => update_span), :remote => true
+    link_to text, send('new_' + @Klass.to_s.underscore + '_path', :update => update_span), :remote => true
   end
 
   # dropdown
@@ -215,7 +215,7 @@ module InlineFormsHelper
               :values => values },
             :method => :get,
             :update => "field_#{attribute.singularize}_#{m.id.to_s}",
-          :remote => true )
+            :remote => true )
           out << '</li>'
           out << '</span>'
         end
@@ -231,7 +231,7 @@ module InlineFormsHelper
           :values => values },
         :method => :get,
         :update => "list_#{attribute}_#{object.id.to_s}",
-      :remote => true )
+        :remote => true )
       out << '</li>'
       out << '</ul>' if @sub_id.nil?
     end
@@ -239,7 +239,7 @@ module InlineFormsHelper
   end
   def associated_edit(object, attribute, values)
     # @sub_id is the id of the assoicated record
-   if @sub_id.to_i > 0
+    if @sub_id.to_i > 0
       # only if @sub_id > 0, means we have a associated record
       @associated_record_id = object.send(attribute.singularize + "_ids").index(@sub_id.to_i)
       @associated_record = object.send(attribute)[@associated_record_id]
@@ -293,20 +293,13 @@ module InlineFormsHelper
     attribute_value = h(attribute_value)
     spaces = attribute_value.length > 40 ? 0 : 40 - attribute_value.length
     attribute_value << "&nbsp;".html_safe * spaces
-    if @Klass == 'Index'
-    link_to raw(attribute_value),
-      :url => "/#{@Klass_pluralized}/edit/#{object.id}?field=#{attribute.to_s}&form_element=#{calling_method.sub(/_[a-z]+$/,'')}&values=#{values}",
-      :update => 'field_' + attribute.to_s + '_' + object.id.to_s,
-      :method => :get,
+    link_to raw(attribute_value), send('edit_' + @Klass.to_s.underscore + '_path',
+      object,
+      :field => attribute.to_s,
+      :form_element => calling_method.sub(/_[a-z]+$/,''),
+      :values => values,
+      :update => 'field_' + attribute.to_s + '_' + object.id.to_s ),
       :remote => true
-    else
-    link_to raw(attribute_value),
-      :url => "/#{@Klass_pluralized}/#{object.id}/edit?field=#{attribute.to_s}&form_element=#{calling_method.sub(/_[a-z]+$/,'')}&values=#{values}",
-      :update => 'field_' + attribute.to_s + '_' + object.id.to_s,
-      :method => :get,
-      :remote => true
-
-    end
   end
 end
 

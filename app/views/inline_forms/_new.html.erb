@@ -1,9 +1,9 @@
-<% form_tag  valid_tables_path( :update => @update_span || 'inline_form_list' ), 
+<% form_tag  send(@Klass.to_s.underscore.pluralize + '_path', :update => @update_span || 'inline_form_list' ),
   :multipart => true, :remote => true, :class  => "edit_form"  do -%>
   <div class="edit_form_field">
     <%= inline_form_display(@object, @object.respond_to?(:inline_forms_field_list) ? @object.inline_forms_field_list : [ '', :name, :text ], :new) %>
   </div>
-  <%= link_to "nee", valid_tables_path(:update => @update_span), :remote => true,
+  <%= link_to "nee", send(@Klass.to_s.underscore.pluralize + '_path',:update => @update_span), :remote => true,
     :class  => "edit_form_cancel"  %>
   <%= submit_tag "ok", :class => "edit_form_submit"-%>
   <div style="clear: both;"></div>

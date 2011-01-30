@@ -12,13 +12,8 @@ class InlineFormsController < ApplicationController
   # === How it works
   # The getKlass before_filter extracts the class and puts it in @Klass
   # === Limited Access
-  # the must_be_xhr_request before_filter is supposed to only perform the specific actions
-  # if the request is an XhttpRequest. There is not much use permitting the actions outside of
-  # the XhttpRequest context (except action => :index). Of course, this is not a security measure.
   before_filter :getKlass
-  #before_filter :must_be_xhr_request, :except => :index
   include InlineFormsHelper # this might also be included in you application_controller with helper :all but it's not needed
-  layout false
   # :index shows a list of all objects from class Klass, with all attribute values linked to the 'edit' action.
   # Each field (attribute) is edited seperately (so you don't edit an entire object!)
   # The link to 'new' allows you to create a new record.
@@ -34,26 +29,25 @@ class InlineFormsController < ApplicationController
       format.js { render(:update) {|page| page.replace_html update_span, :partial => 'inline_forms/index' }
       }
     end
-    
   end
 
   # :show shows one field (attribute) from a record (object). It inludes the link to 'edit'
   #
   # GET /examples/1?field=name&form_element=text
   #
-  def show
-    @object = @Klass.constantize.find(params[:id])
-    @field = params[:field]
-    @form_element = params[:form_element]
-    if @form_element == "associated"
-      @sub_id = params[:sub_id]
-      if @sub_id.to_i > 0
-        @associated_record_id = @object.send(@field.singularize + "_ids").index(@sub_id.to_i)
-        @associated_record = @object.send(@field)[@associated_record_id]
-      end
-    end
-    render :inline => '<%= send("#{@form_element}_show", @object, @field, @values) %>'
-  end
+#  def show
+#    @object = @Klass.constantize.find(params[:id])
+#    @field = params[:field]
+#    @form_element = params[:form_element]
+#    if @form_element == "associated"
+#      @sub_id = params[:sub_id]
+#      if @sub_id.to_i > 0
+#        @associated_record_id = @object.send(@field.singularize + "_ids").index(@sub_id.to_i)
+#        @associated_record = @object.send(@field)[@associated_record_id]
+#      end
+#    end
+#    render :inline => '<%= send("#{@form_element}_show", @object, @field, @values) %>'
+#  end
 
   # :new prepares a new object, updates the entire list of objects and replaces it with a new
   # empty form. After pressing OK or Cancel, the list of objects is retrieved in the same way as :index
@@ -74,11 +68,17 @@ class InlineFormsController < ApplicationController
   # GET /examples/1/edit
   #
   def edit
-    @object = @Klass.constantize.find(params[:id])
+    @object = @Klass.find(params[:id])
     @field = params[:field]
     @form_element = params[:form_element]
     @values = params[:values]
     @sub_id = params[:sub_id]
+    @update_span = params[:update]
+    respond_to do |format|
+      # found this here: http://www.ruby-forum.com/topic/211467
+      format.js { render(:update) {|page| page.replace_html @update_span, :partial => 'inline_forms/edit'}
+      }
+    end
   end
 
   # :create creates the object made with :new. It then presents the list of objects.
@@ -101,47 +101,53 @@ class InlineFormsController < ApplicationController
       }
     end
   end
-    # :update updates a specific field from an object.
-    #
-    # PUT /examples/1
-    #
-    def update
-      @object = @Klass.constantize.find(params[:id])
-      @field = params[:field]
-      @form_element = params[:form_element]
-      @values = params[:values]
-      @sub_id = params[:sub_id]
-      send("#{@form_element.to_s}_update", @object, @field, @values)
-      @object.save
-      render :inline => '<%= send("#{@form_element.to_s}_show", @object, @field, @values) %>'
+  # :update updates a specific field from an object.
+  #
+  # PUT /examples/1
+  #
+  def update
+    @object = @Klass.find(params[:id])
+    @field = params[:field]
+    @form_element = params[:form_element]
+    @values = params[:values]
+    @sub_id = params[:sub_id]
+    @update_span = params[:update]
+    send("#{@form_element.to_s}_update", @object, @field, @values)
+    @object.save
+    respond_to do |format|
+      # found this here: http://www.ruby-forum.com/topic/211467
+      format.js { render(:update) {|page| page.replace_html @update_span, :inline => '<%= send("#{@form_element.to_s}_show", @object, @field, @values) %>' }
+      }
     end
-
-    # :destroy is not implemented
-    # TODO implement a destroy method
-    #
-    # DELETE /examples/1
-    #
-    def destroy
-      #    @@Klass.constantize = @Klass.constantize.find(params[:id])
-      #    @@Klass.constantize.destroy
-      redirect_to(@Klass.constantizes_url)
-    end
-
-    private
-    # If it's not an XhttpRequest, redirect to the index page for this controller.
-    #
-    # Used in before_filter as a way to limit access to all actions (except :index)
-    def must_be_xhr_request #:doc:
-      redirect_to "/#{@Klass_pluralized}" if not request.xhr?
-    end
-
-    # Get the class
-    # Used in before_filter
-    def getKlass #:doc:
-      @Klass = self.controller_name.classify.constantize
-      #request.request_uri.split(/[\/?]/)[1].classify
-      #@Klass_constantized = @Klass.constantize
-      #@Klass_underscored = @Klass.underscore
-      #@Klass_pluralized  = @Klass_underscored.pluralize
-    end
+      
   end
+
+  # :destroy is not implemented
+  # TODO implement a destroy method
+  #
+  # DELETE /examples/1
+  #
+#  def destroy
+#    #    @@Klass.constantize = @Klass.constantize.find(params[:id])
+#    #    @@Klass.constantize.destroy
+#    redirect_to(@Klass.constantizes_url)
+#  end
+
+  private
+  # If it's not an XhttpRequest, redirect to the index page for this controller.
+  #
+  # Used in before_filter as a way to limit access to all actions (except :index)
+#  def must_be_xhr_request #:doc:
+#    redirect_to "/#{@Klass_pluralized}" if not request.xhr?
+#  end
+
+  # Get the class
+  # Used in before_filter
+  def getKlass #:doc:
+    @Klass = self.controller_name.classify.constantize
+    #request.request_uri.split(/[\/?]/)[1].classify
+    #@Klass_constantized = @Klass.constantize
+    #@Klass_underscored = @Klass.underscore
+    #@Klass_pluralized  = @Klass_underscored.pluralize
+  end
+end
