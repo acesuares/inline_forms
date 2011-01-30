@@ -16,7 +16,7 @@ class InlineFormsController < ApplicationController
   # if the request is an XhttpRequest. There is not much use permitting the actions outside of
   # the XhttpRequest context (except action => :index). Of course, this is not a security measure.
   before_filter :getKlass
-  before_filter :must_be_xhr_request, :except => :index
+  #before_filter :must_be_xhr_request, :except => :index
   include InlineFormsHelper # this might also be included in you application_controller with helper :all but it's not needed
   layout false
   # :index shows a list of all objects from class Klass, with all attribute values linked to the 'edit' action.
@@ -26,10 +26,10 @@ class InlineFormsController < ApplicationController
   # GET /examples
   #
   def index
-#    nolayout = params[:layout] == 'false' || false
+    #    nolayout = params[:layout] == 'false' || false
     @objects = @Klass.all
-#    render( :layout => nolayout || 'inline_forms' )
-render 'inline_forms/inline_forms'
+    #    render( :layout => nolayout || 'inline_forms' )
+    render 'inline_forms/index', :layout => 'inline_forms'
   end
 
   # :show shows one field (attribute) from a record (object). It inludes the link to 'edit'
@@ -55,7 +55,13 @@ render 'inline_forms/inline_forms'
   #
   # GET /examples/new
   def new
-    @object = @Klass.constantize.new
+    @object = @Klass.new
+    update_span = params[:update]
+    respond_to do |format|
+      # found this here: http://www.ruby-forum.com/topic/211467
+      format.js { render(:update) {|page| page.replace_html update_span, :partial => 'inline_forms/new'}
+      }
+    end
   end
 
   # :edit presents a form to edit one specific field from an object

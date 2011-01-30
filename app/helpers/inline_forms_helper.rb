@@ -1,4 +1,3 @@
-puts 'inline forms helper loaded'
 module InlineFormsHelper
   # display the forms from an array of attributes
   def inline_form_display(object, attributes, action=:show)
@@ -22,8 +21,9 @@ module InlineFormsHelper
           end
         end
         out += content_tag :tr, name_cell + value_cell
+        out += "\n"
       end
-      return content_tag :table, out, :cellspacing => 0, :cellpadding => 0
+      return content_tag :table, raw(out), :cellspacing => 0, :cellpadding => 0
     when :new
       attributes.each do | name, attribute, form_element, values |
         #css_class_id = form_element == :associated ? "subform_#{attribute.to_s}_#{object.id}" : "field_#{attribute.to_s}_#{object.id}"
@@ -46,7 +46,7 @@ module InlineFormsHelper
         end
         out += content_tag :tr, name_cell + value_cell
       end
-      return content_tag :table, out, :cellspacing => 0, :cellpadding => 0
+      return content_tag :table, raw(out), :cellspacing => 0, :cellpadding => 0
     end
   end
   # display a list of objects
@@ -54,22 +54,24 @@ module InlineFormsHelper
     t = ''
     objects.each do |object|
       t += content_tag tag do
-        inline_form_display object, object.respond_to?(:field_list) ? object.field_list : [ '', :name, :text ]
+        inline_form_display object, object.respond_to?(:inline_forms_field_list) ? object.inline_forms_field_list : [ '', :name, :text ]
       end
     end
-    return t
+    return raw(t)
   end
   # link for new item
-  def inline_form_new_record(attribute, form_element, text='new', update_span='inline_form_list')
-    link_to_remote( text,
-      :url => {
-        :action => :new,
-        :controller => @Klass_pluralized,
-        :field => attribute,
-        :form_element => form_element,
-        :update_span => update_span },
-      :method => :get,
-      :update => update_span )
+  def inline_form_new_record(attribute, form_element, text='neeeeew', update_span='inline_form_list')
+    link_to text, new_valid_table_path(:update => update_span), :remote => true
+
+#    
+#      :url => {
+#        :action => :new,
+#        :controller => @Klass_pluralized,
+#        :field => attribute,
+#        :form_element => form_element,
+#        :update_span => update_span },
+#      :method => :get,
+#      :update => update_span,
   end
 
   # dropdown
@@ -195,7 +197,7 @@ module InlineFormsHelper
     if @sub_id && @sub_id.to_i > 0
       # if it's not a new record (sub_id > 0) then just update the list-element
       out << '<li>'
-      out << link_to_remote( @associated_record.title,
+      out << link_to( @associated_record.title,
         :url => { :action => 'edit',
           :id => object.id,
           :field => attribute,
@@ -203,7 +205,8 @@ module InlineFormsHelper
           :form_element => this_method.reverse.sub(/.*_/,'').reverse,
           :values => values },
         :method => :get,
-        :update => "field_#{attribute.singularize}_#{@sub_id.to_s}" )
+        :update => "field_#{attribute.singularize}_#{@sub_id.to_s}",
+        :remote => true )
       out << '</li>'
     else
       # if it's a new record (sub_id == 0) then update the whole <ul> and redraw all list-elements
@@ -213,7 +216,7 @@ module InlineFormsHelper
         object.send(attribute.pluralize).each do |m|
           out << "<span id='field_#{attribute.singularize}_#{m.id.to_s}'>"
           out << '<li>'
-          out << link_to_remote( m.title,
+          out << link_to( m.title,
             :url => { :action => 'edit',
               :id => object.id,
               :field => attribute,
@@ -221,14 +224,15 @@ module InlineFormsHelper
               :form_element => this_method.sub(/_[a-z]+$/,''),
               :values => values },
             :method => :get,
-            :update => "field_#{attribute.singularize}_#{m.id.to_s}" )
+            :update => "field_#{attribute.singularize}_#{m.id.to_s}",
+          :remote => true )
           out << '</li>'
           out << '</span>'
         end
       end
       # add a 'new' link for creating a new record
       out << '<li>'
-      out << link_to_remote( 'new',
+      out << link_to( 'new',
         :url => { :action => 'edit',
           :id => object.id,
           :field => attribute,
@@ -236,7 +240,8 @@ module InlineFormsHelper
           :form_element => this_method.sub(/_[a-z]+$/,''),
           :values => values },
         :method => :get,
-        :update => "list_#{attribute}_#{object.id.to_s}" )
+        :update => "list_#{attribute}_#{object.id.to_s}",
+      :remote => true )
       out << '</li>'
       out << '</ul>' if @sub_id.nil?
     end
@@ -294,23 +299,22 @@ module InlineFormsHelper
   private
 
   # link_to_inline_edit
-  # Directly call Erb::Util.h because we sometimes call this from the controller!
-  # same with link_to_remote. We are using the @template stuff.
   def link_to_inline_edit(object, attribute, attribute_value, values)
-   #needed for h() and link_to_remote()
     attribute_value = h(attribute_value)
     spaces = attribute_value.length > 40 ? 0 : 40 - attribute_value.length
-    attribute_value << "&nbsp;" * spaces
+    attribute_value << "&nbsp;".html_safe * spaces
     if @Klass == 'Index'
-    link_to_remote attribute_value,
+    link_to raw(attribute_value),
       :url => "/#{@Klass_pluralized}/edit/#{object.id}?field=#{attribute.to_s}&form_element=#{calling_method.sub(/_[a-z]+$/,'')}&values=#{values}",
       :update => 'field_' + attribute.to_s + '_' + object.id.to_s,
-      :method => :get
+      :method => :get,
+      :remote => true
     else
-    link_to_remote attribute_value,
+    link_to raw(attribute_value),
       :url => "/#{@Klass_pluralized}/#{object.id}/edit?field=#{attribute.to_s}&form_element=#{calling_method.sub(/_[a-z]+$/,'')}&values=#{values}",
       :update => 'field_' + attribute.to_s + '_' + object.id.to_s,
-      :method => :get
+      :method => :get,
+      :remote => true
 
     end
   end
