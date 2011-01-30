@@ -1,0 +1,23 @@
+<% form_tag send(@Klass.to_s.underscore + '_path', :update => @update_span ,
+  #|| @form_element == "associated" ? @sub_id && @sub_id.to_i > 0 ? "field_#{@field.singularize}_#{@sub_id}" : "list_#{@field}_#{@object.id.to_s}" : "field_#{@field}_#{@object.id.to_s}",
+  :field => @field,
+  :form_element => @form_element,
+  :values => @values,
+  :sub_id => @sub_id ),
+  :method => :put,
+:multipart => true,
+  :class  => "edit_form",
+  :remote => true do -%>
+  <div class="edit_form_field">
+    <%= send("#{@form_element.to_s}_edit", @object, @field, @values) %>
+  </div>
+  <%= link_to "nee", send(@Klass.to_s.underscore.pluralize + '_path', :update => @update_span || "field_#{@field}_#{@object.id.to_s}",
+    :field => @field,
+    :form_element => @form_element,
+    :values => @values,
+    :sub_id => @sub_id ),
+    :method => :get,
+    :class  => "edit_form_cancel" %>
+  <%= submit_tag "ok", :class => "edit_form_submit"-%>
+  <div style="clear: both;"></div>
+<% end -%>
