@@ -26,10 +26,15 @@ class InlineFormsController < ApplicationController
   # GET /examples
   #
   def index
-    #    nolayout = params[:layout] == 'false' || false
     @objects = @Klass.all
-    #    render( :layout => nolayout || 'inline_forms' )
-    render 'inline_forms/index', :layout => 'inline_forms'
+    update_span = params[:update]
+    respond_to do |format|
+      # found this here: http://www.ruby-forum.com/topic/211467
+      format.html { render 'inline_forms/index', :layout => 'inline_forms' }
+      format.js { render(:update) {|page| page.replace_html update_span, :partial => 'inline_forms/index' }
+      }
+    end
+    
   end
 
   # :show shows one field (attribute) from a record (object). It inludes the link to 'edit'
@@ -56,10 +61,10 @@ class InlineFormsController < ApplicationController
   # GET /examples/new
   def new
     @object = @Klass.new
-    update_span = params[:update]
+    @update_span = params[:update]
     respond_to do |format|
       # found this here: http://www.ruby-forum.com/topic/211467
-      format.js { render(:update) {|page| page.replace_html update_span, :partial => 'inline_forms/new'}
+      format.js { render(:update) {|page| page.replace_html @update_span, :partial => 'inline_forms/new'}
       }
     end
   end
@@ -81,58 +86,62 @@ class InlineFormsController < ApplicationController
   # POST /examples
   #
   def create
-    object = @Klass.constantize.new
-    attributes = object.respond_to?(:field_list) ? object.field_list : [ '', :name, :text ] # sensible default
+    object = @Klass.new
+    @update_span = params[:update]
+    attributes = object.respond_to?(:inline_forms_field_list) ? object.inline_forms_field_list : [ '', :name, :text ] # sensible default
     attributes = [ attributes ] if not attributes[0].is_a?(Array) # make sure we have an array of arrays
     attributes.each do | name, attribute, form_element, values |
       send("#{form_element.to_s}_update", object, attribute, values)
     end
     object.save
-    @objects = @Klass.constantize.all
-    render( :action => :index )
+    @objects = @Klass.all
+    respond_to do |format|
+      # found this here: http://www.ruby-forum.com/topic/211467
+      format.js { render(:update) {|page| page.replace_html @update_span, :partial => 'inline_forms/index'}
+      }
+    end
   end
+    # :update updates a specific field from an object.
+    #
+    # PUT /examples/1
+    #
+    def update
+      @object = @Klass.constantize.find(params[:id])
+      @field = params[:field]
+      @form_element = params[:form_element]
+      @values = params[:values]
+      @sub_id = params[:sub_id]
+      send("#{@form_element.to_s}_update", @object, @field, @values)
+      @object.save
+      render :inline => '<%= send("#{@form_element.to_s}_show", @object, @field, @values) %>'
+    end
 
-  # :update updates a specific field from an object.
-  #
-  # PUT /examples/1
-  #
-  def update
-    @object = @Klass.constantize.find(params[:id])
-    @field = params[:field]
-    @form_element = params[:form_element]
-    @values = params[:values]
-    @sub_id = params[:sub_id]
-    send("#{@form_element.to_s}_update", @object, @field, @values)
-    @object.save
-    render :inline => '<%= send("#{@form_element.to_s}_show", @object, @field, @values) %>'
-  end
+    # :destroy is not implemented
+    # TODO implement a destroy method
+    #
+    # DELETE /examples/1
+    #
+    def destroy
+      #    @@Klass.constantize = @Klass.constantize.find(params[:id])
+      #    @@Klass.constantize.destroy
+      redirect_to(@Klass.constantizes_url)
+    end
 
-  # :destroy is not implemented
-  # TODO implement a destroy method
-  #
-  # DELETE /examples/1
-  #
-  def destroy
-    #    @@Klass.constantize = @Klass.constantize.find(params[:id])
-    #    @@Klass.constantize.destroy
-    redirect_to(@Klass.constantizes_url)
-  end
+    private
+    # If it's not an XhttpRequest, redirect to the index page for this controller.
+    #
+    # Used in before_filter as a way to limit access to all actions (except :index)
+    def must_be_xhr_request #:doc:
+      redirect_to "/#{@Klass_pluralized}" if not request.xhr?
+    end
 
-  private
-  # If it's not an XhttpRequest, redirect to the index page for this controller.
-  #
-  # Used in before_filter as a way to limit access to all actions (except :index)
-  def must_be_xhr_request #:doc:
-    redirect_to "/#{@Klass_pluralized}" if not request.xhr?
+    # Get the class
+    # Used in before_filter
+    def getKlass #:doc:
+      @Klass = self.controller_name.classify.constantize
+      #request.request_uri.split(/[\/?]/)[1].classify
+      #@Klass_constantized = @Klass.constantize
+      #@Klass_underscored = @Klass.underscore
+      #@Klass_pluralized  = @Klass_underscored.pluralize
+    end
   end
-
-  # Get the class
-  # Used in before_filter
-  def getKlass #:doc:
-    @Klass = self.controller_name.classify.constantize
-    #request.request_uri.split(/[\/?]/)[1].classify
-    #@Klass_constantized = @Klass.constantize
-    #@Klass_underscored = @Klass.underscore
-    #@Klass_pluralized  = @Klass_underscored.pluralize
-  end
-end

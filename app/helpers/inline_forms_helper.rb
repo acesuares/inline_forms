@@ -62,16 +62,6 @@ module InlineFormsHelper
   # link for new item
   def inline_form_new_record(attribute, form_element, text='neeeeew', update_span='inline_form_list')
     link_to text, new_valid_table_path(:update => update_span), :remote => true
-
-#    
-#      :url => {
-#        :action => :new,
-#        :controller => @Klass_pluralized,
-#        :field => attribute,
-#        :form_element => form_element,
-#        :update_span => update_span },
-#      :method => :get,
-#      :update => update_span,
   end
 
   # dropdown
