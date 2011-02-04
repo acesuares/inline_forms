@@ -1,4 +1,6 @@
 module InlineFormsHelper
+    InlineForms::MIGRATION_TYPE_CONVERSION_LIST[:date_select]=:date
+
   # date
   def date_show(object, attribute, values)
     link_to_inline_edit object, attribute, object.send(attribute), nil

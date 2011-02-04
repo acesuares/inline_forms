@@ -1,5 +1,6 @@
 module InlineFormsHelper
-  # text_field
+  InlineForms::MIGRATION_TYPE_CONVERSION_LIST[:text_field]=:string
+  # text
   def text_field_show(object, attribute, values)
     link_to_inline_edit object, attribute, object.send(attribute), nil
   end

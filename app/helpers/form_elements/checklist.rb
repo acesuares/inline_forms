@@ -1,4 +1,5 @@
 module InlineFormsHelper
+    InlineForms::MIGRATION_TYPE_CONVERSION_LIST[:checklist]=:references
   # checklist
   def checklist_show(object, attribute, values)
     out = '<ul class="checklist">'

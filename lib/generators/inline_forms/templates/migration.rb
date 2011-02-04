@@ -12,4 +12,3 @@ def self.down
   drop_table :<%= table_name %>
   end
 end
-#The types supported by Active Record are :primary_key, :string, :text, :integer, :float, :decimal, :datetime, :timestamp, :time, :date, :binary, :boolean

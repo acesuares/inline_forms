@@ -4,37 +4,32 @@ module InlineForms
     Rails::Generators::GeneratedAttribute.class_eval do
       def migration_type
         # convert our form_elements to real types for migration
-        case type
-          # normal types don't get converted
-          when :string, :text, :integer, :float, :decimal, :datetime, :timestamp, :time, :date, :binary, :boolean then type
-          # our types get converted
-          when :dropdown, :dropdown_with_values   then :integer
-          when :check_box, :boolean_with_values   then :boolean
-          when :date                      then :date
-          when :text_area                 then :text
-          else
-            :unknown # migration will fail, probably.
-        end
-       
+        # each helper adds to this list
+        # be aware that the standard list overwrites the customized list if we merge like this!
+        MIGRATION_TYPE_CONVERSION_LIST.merge(STANDARD_MIGRATION_COLUMN_TYPES)[type] || :unknown
       end
+
       def field_type
-        case type
-          # out types don't get converted
-          when :dropdown, :dropdown_with_values, :check_box, :boolean_with_values then type
-          when :integer, :float, :decimal then :text_field # who knows if they wanted a dropdown?
+        # convert standard types to one of ours
+        if MIGRATION_TYPE_CONVERSION_LIST.has_key?(type)
+          then type
+        else
+          case type
+          when :integer, :float, :decimal then :text_field
           when :time                      then :time_select
           when :datetime, :timestamp      then :datetime_select
           when :date                      then :date_select
           when :text                      then :text_area
           when :boolean                   then :check_box
           else
-            :unkown # form will fail to generatie, probably
+            :unknown
+          end
         end
       end
 
-   end
+    end
 
-    argument :attributes, :type => :array,  :banner => "field:type field:type"
+    argument :attributes, :type => :array,  :banner => "[name:form_element]..."
 
     source_root File.expand_path('../templates', __FILE__)
 

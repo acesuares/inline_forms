@@ -1,8 +1,53 @@
 Description:
-    Explain the generator
+    The first argument must be a Model. Next comes a list of name:form_element pairs that describe the model and it's database.
+    We will generate a model, a migration, a controller and a route. Please do check the migration and the model because they will likely need tweaking.
 
 Example:
-    rails generate inline_forms Thing
+    rails generate inline_forms Thing name:text_field description:text_area yesno:check_box gender:boolean_with_values
 
-    This will create:
-        what/will/it/create
+This will create:
+      create  app/models/thing.rb
+      create  app/controllers/things_controller.rb
+       route  resources :things
+      create  db/migrate/20110204074707_inline_forms_create_things.rb
+
+      app/models/thing.rb:
+        class Thing < ActiveRecord::Base
+          def presentation
+            #define your presentation here
+          end
+          def inline_forms_field_list
+            [
+                [ :string, 'name', :text_field ],
+                [ :text, 'description', :text_area ],
+                [ :boolean, 'yesno', :check_box ],
+                [ :boolean, 'gender', :boolean_with_values ],
+            ]
+         end
+        end
+
+        app/controllers/things_controller.rb
+            class ThingsController < InlineFormsController
+            end
+
+        config/routes.rb:
+            ...
+            resources :things
+            ...
+
+        db/migrate/20111015234500_inline_forms_create_things.rb
+            class InlineFormsCreateThings < ActiveRecord::Migration
+              def self.up
+                create_table :things do |t|
+                    t.string :name
+                    t.text :description
+                    t.boolean :yesno
+                    t.boolean :gender
+                    t.timestamps
+                end
+            end
+
+            def self.down
+              drop_table :things
+              end
+            end

@@ -1,4 +1,5 @@
 module InlineFormsHelper
+    InlineForms::MIGRATION_TYPE_CONVERSION_LIST[:associated]=:references
   # associated
   def associated_show(object, attribute, values)
     #show a list of records
