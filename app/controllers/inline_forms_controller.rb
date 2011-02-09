@@ -109,6 +109,7 @@ class InlineFormsController < ApplicationController
   #
   # GET /examples/1?field=name&form_element=text
   #
+  
   def show
     @object = @Klass.find(params[:id])
     @field = params[:field]
