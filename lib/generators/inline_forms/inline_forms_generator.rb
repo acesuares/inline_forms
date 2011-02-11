@@ -2,44 +2,56 @@ module InlineForms
   class InlineFormsGenerator < Rails::Generators::NamedBase
 
     Rails::Generators::GeneratedAttribute.class_eval do
+      # attributes are in the form name:type (f.i. price:integer)
+      # we want to extend the types to our list of types
+      # but some of the old types are still needed
+      # f.i. price:integer turns into a text_field
+      #
       def migration_type
-        # convert our form_elements to real types for migration
+        # convert any type into a migration type
         # each helper adds to this list
         # be aware that the standard list overwrites the customized list if we merge like this!
-        MIGRATION_TYPE_CONVERSION_LIST.merge(STANDARD_MIGRATION_COLUMN_TYPES)[type] || :unknown
+        SPECIAL_MIGRATION_TYPES.merge(DEFAULT_MIGRATION_TYPES).merge(RELATION_TYPES).merge(SPECIAL_RELATION_TYPES)[type] || :unknown
       end
 
       def field_type
         # convert standard types to one of ours
-        if MIGRATION_TYPE_CONVERSION_LIST.has_key?(type)
-          then type
-        else
-          case type
-          when :integer, :float, :decimal then :text_field
-          when :time                      then :time_select
-          when :datetime, :timestamp      then :datetime_select
-          when :date                      then :date_select
-          when :text                      then :text_area
-          when :boolean                   then :check_box
-          else
-            :unknown
-          end
-        end
+        SPECIAL_MIGRATION_TYPES.merge(RELATION_TYPES).merge(SPECIAL_RELATION_TYPES).has_key?(type) ? type : DEFAULT_FIELD_TYPES[type] || :unknown
+      end
+
+      def migration_name
+        # convert some to _id
+        ( relation? || field_type == :dropdown) ? name + '_id' : name
+      end
+
+      def belongs_to?
+        relation? || field_type == :dropdown
+      end
+      
+      def has_many?
+        field_type == :associated
+      end
+
+      def relation?
+        RELATION_TYPES.has_key?(field_type)
+      end
+
+      def special_relation?
+        SPECIAL_RELATION_TYPES.has_key?(field_type)
       end
 
     end
-
     argument :attributes, :type => :array,  :banner => "[name:form_element]..."
 
     source_root File.expand_path('../templates', __FILE__)
 
     def generate_model
       #copy_file "stylesheet.css", "public/stylesheets/#{file_name}.css"
-      template "model.rb", "app/models/#{model_file_name}.rb"
+      template "model.erb", "app/models/#{model_file_name}.rb"
     end
 
     def generate_controller
-      template "controller.rb", "app/controllers/#{controller_file_name}.rb"
+      template "controller.erb", "app/controllers/#{controller_file_name}.rb"
     end
 
     def generate_route
@@ -47,7 +59,7 @@ module InlineForms
     end
 
     def generate_migration
-      template "migration.rb", "db/migrate/#{time_stamp}_inline_forms_create_#{table_name}.rb"
+      template "migration.erb", "db/migrate/#{time_stamp}_inline_forms_create_#{table_name}.rb"
     end
 
     private

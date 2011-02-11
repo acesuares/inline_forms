@@ -1,8 +1,8 @@
 puts 'loading inline_forms...'
 
 module InlineForms
-  # put the standard types in the list. new form_elements in app/helpers/form_elelemnts add to this.
-  STANDARD_MIGRATION_COLUMN_TYPES = {
+  # convert type to migration_type
+  DEFAULT_MIGRATION_TYPES = {
     :string => :string,
     :text => :text,
     :integer => :integer,
@@ -15,7 +15,30 @@ module InlineForms
     :binary => :binary,
     :boolean => :boolean,
   }
-  MIGRATION_TYPE_CONVERSION_LIST = {}
+  # convert type to field_type
+  DEFAULT_FIELD_TYPES = {
+    :string => :text_field,
+    :text => :text_area,
+    :integer => :text_field,
+    :float => :text_field,
+    :decimal => :text_field,
+    :datetime => :datetime_select,
+    :timestamp => :datetime_select,
+    :time => :time_select,
+    :date => :date_select,
+    :binary => :text_field,
+    :boolean => :check_box,
+
+  }
+  # define this so the helpers can add to it
+  SPECIAL_MIGRATION_TYPES = {}
+  # experimental
+  RELATION_TYPES = {
+    :belongs_to => :integer,
+  }
+  SPECIAL_RELATION_TYPES = {
+    :associated => :associated,
+  }
   
   class InlineFormsEngine < Rails::Engine
     initializer 'inline_forms.helper' do |app|

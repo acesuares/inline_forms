@@ -1,5 +1,5 @@
 <% form_tag send(@Klass.to_s.underscore + '_path', :update => @update_span ,
-  #|| @form_element == "associated" ? @sub_id && @sub_id.to_i > 0 ? "field_#{@field.singularize}_#{@sub_id}" : "list_#{@field}_#{@object.id.to_s}" : "field_#{@field}_#{@object.id.to_s}",
+  #|| @form_element == "associated" ? @sub_id && @sub_id.to_i > 0 ? "field_#{@field.to_s.singularize}_#{@sub_id}" : "list_#{@field}_#{@object.id.to_s}" : "field_#{@field}_#{@object.id.to_s}",
   :field => @field,
   :form_element => @form_element,
   :values => @values,

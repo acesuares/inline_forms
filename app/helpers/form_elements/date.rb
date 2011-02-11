@@ -1,5 +1,5 @@
 module InlineFormsHelper
-    InlineForms::MIGRATION_TYPE_CONVERSION_LIST[:date_select]=:date
+    InlineForms::SPECIAL_MIGRATION_TYPES[:date_select]=:date
 
   # date
   def date_show(object, attribute, values)

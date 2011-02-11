@@ -117,7 +117,7 @@ class InlineFormsController < ApplicationController
     if @form_element == "associated"
       @sub_id = params[:sub_id]
       if @sub_id.to_i > 0
-        @associated_record_id = @object.send(@field.singularize + "_ids").index(@sub_id.to_i)
+        @associated_record_id = @object.send(@field.to_s.singularize + "_ids").index(@sub_id.to_i)
         @associated_record = @object.send(@field)[@associated_record_id]
       end
     end

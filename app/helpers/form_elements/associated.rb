@@ -1,5 +1,5 @@
 module InlineFormsHelper
-    InlineForms::MIGRATION_TYPE_CONVERSION_LIST[:associated]=:references
+    InlineForms::SPECIAL_MIGRATION_TYPES[:associated]=:references
   # associated
   def associated_show(object, attribute, values)
     #show a list of records
@@ -7,31 +7,31 @@ module InlineFormsHelper
     if @sub_id && @sub_id.to_i > 0
       # if it's not a new record (sub_id > 0) then just update the list-element
       out << '<li>'
-      out << link_to( @associated_record.title,
+      out << link_to( @associated_record.presentation,
         send('edit_' + @Klass.to_s.underscore + '_path', object,
           :field => attribute,
           :sub_id => @sub_id,
           :form_element => this_method.reverse.sub(/.*_/,'').reverse,
           :values => values,
-          :update => "field_#{attribute.singularize}_#{@sub_id.to_s}" ),
+          :update => "field_#{attribute.to_s.singularize}_#{@sub_id.to_s}" ),
         :method => :get,
         :remote => true )
       out << '</li>'
     else
       # if it's a new record (sub_id == 0) then update the whole <ul> and redraw all list-elements
       out << "<ul class='associated #{attribute}' id='list_#{attribute}_#{object.id.to_s}'>" if @sub_id.nil?
-      if not object.send(attribute.pluralize).empty?
+      if not object.send(attribute.to_s.pluralize).empty?
         # if there are things to show, show them
-        object.send(attribute.pluralize).each do |m|
-          out << "<span id='field_#{attribute.singularize}_#{m.id.to_s}'>"
+        object.send(attribute.to_s.pluralize).each do |m|
+          out << "<span id='field_#{attribute.to_s.singularize}_#{m.id.to_s}'>"
           out << '<li>'
-          out << link_to( m.title, send('edit_' + @Klass.to_s.underscore + '_path',
+          out << link_to( m.presentation, send('edit_' + @Klass.to_s.underscore + '_path',
               object,
               :field => attribute,
               :sub_id => m.id,
               :form_element => this_method.sub(/_[a-z]+$/,''),
               :values => values,
-              :update => "field_#{attribute.singularize}_#{m.id.to_s}" ),
+              :update => "field_#{attribute.to_s.singularize}_#{m.id.to_s}" ),
             :method => :get,
             :remote => true )
           out << '</li>'
@@ -58,13 +58,13 @@ module InlineFormsHelper
     # @sub_id is the id of the associated record
     if @sub_id.to_i > 0
       # only if @sub_id > 0, means we have a associated record
-      @associated_record_id = object.send(attribute.singularize + "_ids").index(@sub_id.to_i)
+      @associated_record_id = object.send(attribute.to_s.singularize + "_ids").index(@sub_id.to_i)
       @associated_record = object.send(attribute)[@associated_record_id]
-      @update_span = "field_#{attribute.singularize}_#{@sub_id.to_s}"
+      @update_span = "field_#{attribute.to_s.singularize}_#{@sub_id.to_s}"
     else
       # but if @sub_id = 0, then we are dealing with a new associated record
       # in that case, we .new a record, and the update_span is the whole <ul>
-      @associated_record = attribute.singularize.capitalize.constantize.new
+      @associated_record = attribute.to_s.singularize.capitalize.constantize.new
       @update_span = 'list_' + attribute.to_s + '_' + object.id.to_s
     end
     render :partial => "inline_forms/subform"
@@ -73,9 +73,9 @@ module InlineFormsHelper
     return if object.id.nil?
     if @sub_id.to_i > 0
       # get the existing associated record
-      @associated_record_id = object.send(attribute.singularize + "_ids").index(@sub_id.to_i)
+      @associated_record_id = object.send(attribute.to_s.singularize + "_ids").index(@sub_id.to_i)
       @associated_record = object.send(attribute)[@associated_record_id]
-      @update_span = "field_" + attribute.singularize + '_' + @sub_id.to_s
+      @update_span = "field_" + attribute.to_s.singularize + '_' + @sub_id.to_s
     else
       # create a new associated record
       @associated_record = object.send(attribute.to_sym).new

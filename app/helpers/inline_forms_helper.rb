@@ -74,7 +74,7 @@ module InlineFormsHelper
     t = ''
     objects.each do |object|
       t += content_tag tag do
-        inline_form object, object.respond_to?(:inline_forms_field_list) ? object.inline_forms_field_list : [ :name, 'name', 'text' ]
+        inline_form object, object.respond_to?(:inline_forms_field_list) ? object.inline_forms_field_list : [ :name, 'name', 'text_field' ]
       end
     end
     return raw(t)
