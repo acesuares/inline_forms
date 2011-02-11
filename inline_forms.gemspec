@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{inline_forms}
-  s.version = "0.5.3"
+  s.version = "0.6.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Ace Suares"]
-  s.date = %q{2011-02-08}
+  s.date = %q{2011-02-10}
   s.description = %q{Inline Forms aims to ease the setup of forms that provide inline editing. The field list can be specified in the model.}
   s.email = %q{ace@suares.an}
   s.extra_rdoc_files = [
@@ -47,9 +47,9 @@ Gem::Specification.new do |s|
     "inline_forms.gemspec",
     "lib/generators/inline_forms/USAGE",
     "lib/generators/inline_forms/inline_forms_generator.rb",
-    "lib/generators/inline_forms/templates/controller.rb",
-    "lib/generators/inline_forms/templates/migration.rb",
-    "lib/generators/inline_forms/templates/model.rb",
+    "lib/generators/inline_forms/templates/controller.erb",
+    "lib/generators/inline_forms/templates/migration.erb",
+    "lib/generators/inline_forms/templates/model.erb",
     "lib/inline_forms.rb",
     "test/helper.rb",
     "test/test_inline_forms.rb"
