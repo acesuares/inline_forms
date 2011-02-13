@@ -1,0 +1,78 @@
+/* 
+    Document   : inline_forms
+    Created on : Feb 13, 2011, 10:00:55 AM
+    Author     : ace
+    Description:
+        Purpose of the stylesheet follows.
+*/
+
+/* 
+   TODO customize this sample style
+   Syntax recommendation http://www.w3.org/TR/REC-CSS2/
+*/
+
+root { 
+    display: block;
+}
+body {
+    color: darkblue;
+    padding: 0;
+    margin: 0;
+}
+a { text-decoration: none;
+    background-color: lightgoldenrodyellow;
+}
+a:link, a:visited, a:hover,a:active {
+    color: darkblue;
+}
+h1 { border: 1px solid blue;
+     color: darkblue;
+}
+#inline_form_list { 
+    border: 1px solid green;
+    padding: 0;
+    margin: 0;
+    list-style-type: none;
+    background-color: lightgoldenrodyellow;
+}
+#inline_form_list li.inline_form_new_item {
+    padding: 0.5em;
+    font-size: 200%;
+}
+#inline_form_list li.inline_form_new_item a {
+}
+#inline_form_list li {
+    padding: 0 1em 1.5em 1em;
+}
+#inline_form_list li table {
+    border: 1px dotted darkcyan;
+}
+#inline_form_list li table tr {
+}
+#inline_form_list li table tr td { 
+        padding: 0.2em 0.5em 0.2em 0.2em;
+    border-bottom: 1px dotted lightgrey;
+}
+#inline_form_list div.field_name{
+    font-weight: bold;
+}
+#inline_form_list div.field_value{
+    padding-left: 1em;
+}
+#inline_form_list div.form_element_text_field {  }
+#inline_form_list div.form_element_associated ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+#inline_form_list div.form_element_associated li {
+        padding: 0em 0.5em 0.2em 0;
+
+}
+#inline_form_list div.form_element_associated li a {
+    padding: 0;
+    margin: 0;
+}
+
+#inline_form_list div.associated_new  { 
+}

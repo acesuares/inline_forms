@@ -20,6 +20,17 @@ module InlineFormsHelper
     else
       # if it's a new record (sub_id == 0) then update the whole <ul> and redraw all list-elements
       out << "<ul class='associated #{attribute}' id='list_#{attribute}_#{object.id.to_s}'>" if @sub_id.nil?
+      out << '<li class="associated_new">'
+      out << link_to( 'new', send('edit_' + @Klass.to_s.underscore + '_path',
+          object,
+          :field => attribute,
+          :sub_id => 0,
+          :form_element => this_method.sub(/_[a-z]+$/,''),
+          :values => values,
+          :update => "list_#{attribute}_#{object.id.to_s}" ),
+        :method => :get,
+        :remote => true )
+      out << '</li>'
       if not object.send(attribute.to_s.pluralize).empty?
         # if there are things to show, show them
         object.send(attribute.to_s.pluralize).each do |m|
@@ -39,17 +50,6 @@ module InlineFormsHelper
         end
       end
       # add a 'new' link for creating a new record
-      out << '<li>'
-      out << link_to( 'new', send('edit_' + @Klass.to_s.underscore + '_path',
-          object,
-          :field => attribute,
-          :sub_id => 0,
-          :form_element => this_method.sub(/_[a-z]+$/,''),
-          :values => values,
-          :update => "list_#{attribute}_#{object.id.to_s}" ),
-        :method => :get,
-        :remote => true )
-      out << '</li>'
       out << '</ul>' if @sub_id.nil?
     end
     raw(out)
