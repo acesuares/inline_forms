@@ -5,7 +5,7 @@
 
 Gem::Specification.new do |s|
   s.name = %q{inline_forms}
-  s.version = "0.6.4"
+  s.version = "0.6.5"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Ace Suares"]
@@ -47,6 +47,7 @@ Gem::Specification.new do |s|
     "inline_forms.gemspec",
     "lib/generators/inline_forms/USAGE",
     "lib/generators/inline_forms/inline_forms_generator.rb",
+    "lib/generators/inline_forms/templates/_inline_forms_tabs.html.erb",
     "lib/generators/inline_forms/templates/controller.erb",
     "lib/generators/inline_forms/templates/migration.erb",
     "lib/generators/inline_forms/templates/model.erb",
