@@ -10,7 +10,7 @@
   </head>
 <%#= calendar_date_select_includes "red" %>
   <body>
-    <h1><%= @Klass.to_s %></h1>
+ <%= render "/inline_forms_tabs" %>
     <ul id="inline_form_list">
       <%= yield %>
     </ul>

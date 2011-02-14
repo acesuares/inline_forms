@@ -76,3 +76,19 @@ h1 { border: 1px solid blue;
 
 #inline_form_list div.associated_new  { 
 }
+
+#tabs {
+    border-bottom: 2px solid darkcyan;
+}
+
+#tabs li {
+    display: inline-block;
+    border-left: 2px solid darkcyan;
+    padding: 0.2em;
+    margin: 0.1em;
+}
+
+#tabs .current {
+    font-weight: bold;
+    border: 2px solid red;
+}
