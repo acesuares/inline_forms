@@ -45,8 +45,11 @@ module InlineForms
 
     source_root File.expand_path('../templates', __FILE__)
 
+    def copy_stylesheet
+      copy_file File.expand_path('../../../../public/stylesheets', __FILE__) + "/inline_forms.css", "public/stylesheets/inline_forms.css" unless File.exists?('public/stylesheets/inline_forms.css')
+    end
+
     def generate_model
-      #copy_file "stylesheet.css", "public/stylesheets/#{file_name}.css"
       template "model.erb", "app/models/#{model_file_name}.rb"
     end
 

@@ -1,15 +1,16 @@
 class InlineFormsCreate<%= table_name.camelize %> < ActiveRecord::Migration
   def self.up
     create_table :<%= table_name %> do |t|
-  <% for attribute in attributes -%>
-<%= '#' if attribute.migration_type == :unknown || attribute.special_relation? -%>
-      t.<%= attribute.migration_type %> :<%= attribute.migration_name %>
-  <% end -%>
+<% for attribute in attributes -%>
+<%= ( attribute.migration_type == :unknown || attribute.special_relation? ) ? '#' : ' ' -%>
+<%= '     t.' + attribute.migration_type.to_s %> :<%= attribute.migration_name %>
+<% end -%>
       t.timestamps
     end
-end
-
-def self.down
-  drop_table :<%= table_name %>
   end
+
+  def self.down
+    drop_table :<%= table_name %>
+  end
+
 end

@@ -13,15 +13,15 @@ This will create:
 
       app/models/thing.rb:
         class Thing < ActiveRecord::Base
-          def presentation
+          def _presentation
             #define your presentation here
           end
           def inline_forms_field_list
             [
-                [ :string, 'name', :text_field ],
-                [ :text, 'description', :text_area ],
-                [ :boolean, 'yesno', :check_box ],
-                [ :boolean, 'gender', :boolean_with_values ],
+                [ :name, 'name', :text_field ],
+                [ :description, 'description', :text_area ],
+                [ :yesno, 'yesno', :check_box ],
+                [ :gender, 'gender', :boolean_with_values ],
             ]
          end
         end

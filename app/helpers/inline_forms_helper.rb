@@ -23,7 +23,7 @@ module InlineFormsHelper
 #      out += content_tag :tr, name_cell + value_cell
 #      out += "\n"
 #    else
-out << h(object.presentation)
+out << h(object._presentation)
       attributes.each do | attribute, name, form_element, values |
         #css_class_id = form_element == :associated ? "subform_#{attribute.to_s}_#{object.id}" : "field_#{attribute.to_s}_#{object.id}"
         css_class_id = "field_#{attribute.to_s}_#{object.id}"

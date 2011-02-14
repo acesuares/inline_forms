@@ -1,22 +1,24 @@
 class <%= name %> < ActiveRecord::Base
 
 <% for attribute in attributes -%>
-  <%= 'belongs_to :' + attribute.name if attribute.belongs_to? %>
-<% end %>
+<%= '  belongs_to :' + attribute.name + "\n" if attribute.belongs_to? -%>
+<% end -%>
 <% for attribute in attributes -%>
-  <%= 'has_many :' + attribute.name if attribute.has_many? %>
-<% end %>
+<%= '  has_many :' + attribute.name + "\n" if attribute.has_many? -%>
+<% end -%>
 
-  def presentation
-    'please define presentation!'
+  def _presentation
+<% for attribute in attributes -%>
+<%= '    "' + ( attribute.type.to_s || 'put your presentation here' ) + '"' + "\n" if attribute.name == '_presentation' -%>
+<% end -%>
   end
 
   def inline_forms_field_list
     [
-  <% for attribute in attributes -%>
-<%= '#'  if attribute.relation? -%>
-    <%= '[ :' + attribute.name + ', "' + attribute.name + '", :' + attribute.field_type.to_s + ' ], ' %>
-  <% end -%>
-  ]
+<% for attribute in attributes -%>
+<%= attribute.relation? ? '#' : ' ' -%>
+<%= '     [ :' + attribute.name + ', "' + attribute.name + '", :' + attribute.field_type.to_s + " ], \n" unless attribute.name == '_presentation' -%>
+<% end -%>
+    ]
   end
 end
