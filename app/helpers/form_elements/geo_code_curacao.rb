@@ -2,7 +2,7 @@ module InlineFormsHelper
     InlineForms::SPECIAL_MIGRATION_TYPES[:geo_code_curacao]=:string
   # geo_code_curacao
   def geo_code_curacao_show(object, attribute, values)
-    attribute_value = object.send(attribute).presentation rescue nil
+    attribute_value = object.send(attribute)._presentation rescue nil
     link_to_inline_edit object, attribute, attribute_value, nil
   end
   def geo_code_curacao_edit(object, attribute, values)

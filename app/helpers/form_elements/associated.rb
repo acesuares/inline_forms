@@ -7,7 +7,7 @@ module InlineFormsHelper
     if @sub_id && @sub_id.to_i > 0
       # if it's not a new record (sub_id > 0) then just update the list-element
       out << '<li>'
-      out << link_to( @associated_record.presentation,
+      out << link_to( @associated_record._presentation,
         send('edit_' + @Klass.to_s.underscore + '_path', object,
           :field => attribute,
           :sub_id => @sub_id,
@@ -36,7 +36,7 @@ module InlineFormsHelper
         object.send(attribute.to_s.pluralize).each do |m|
           out << "<span id='field_#{attribute.to_s.singularize}_#{m.id.to_s}'>"
           out << '<li>'
-          out << link_to( m.presentation, send('edit_' + @Klass.to_s.underscore + '_path',
+          out << link_to( m._presentation, send('edit_' + @Klass.to_s.underscore + '_path',
               object,
               :field => attribute,
               :sub_id => m.id,

@@ -122,10 +122,19 @@ class InlineFormsController < ApplicationController
       end
     end
     @update_span = params[:update]
-    respond_to do |format|
-      # found this here: http://www.ruby-forum.com/topic/211467
-      format.js { render(:update) {|page| page.replace_html @update_span, :inline => '<%= send("#{@form_element}_show", @object, @field, @values) %>' }
-      }
+    if @field.nil?
+      respond_to do |format|
+        @attributes = @object.respond_to?(:inline_forms_field_list) ? @object.inline_forms_field_list : [ :name, 'name', 'text_field' ]
+        # found this here: http://www.ruby-forum.com/topic/211467
+        format.js { render(:update) {|page| page.replace_html @update_span, :inline => '<%= send( "inline_forms_show_record", @object, @attributes) %>' }
+        }
+      end
+    else
+      respond_to do |format|
+        # found this here: http://www.ruby-forum.com/topic/211467
+        format.js { render(:update) {|page| page.replace_html @update_span, :inline => '<%= send("#{@form_element}_show", @object, @field, @values) %>' }
+        }
+      end
     end
   end
 
@@ -134,27 +143,16 @@ class InlineFormsController < ApplicationController
   #
   # DELETE /examples/1
   #
-#  def destroy
-#    #    @@Klass.constantize = @Klass.constantize.find(params[:id])
-#    #    @@Klass.constantize.destroy
-#    redirect_to(@Klass.constantizes_url)
-#  end
+  #  def destroy
+  #    #    @@Klass.constantize = @Klass.constantize.find(params[:id])
+  #    #    @@Klass.constantize.destroy
+  #    redirect_to(@Klass.constantizes_url)
+  #  end
 
   private
-  # If it's not an XhttpRequest, redirect to the index page for this controller.
-  #
-  # Used in before_filter as a way to limit access to all actions (except :index)
-#  def must_be_xhr_request #:doc:
-#    redirect_to "/#{@Klass_pluralized}" if not request.xhr?
-#  end
-
   # Get the class
   # Used in before_filter
   def getKlass #:doc:
     @Klass = self.controller_name.classify.constantize
-    #request.request_uri.split(/[\/?]/)[1].classify
-    #@Klass_constantized = @Klass.constantize
-    #@Klass_underscored = @Klass.underscore
-    #@Klass_pluralized  = @Klass_underscored.pluralize
   end
 end

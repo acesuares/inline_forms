@@ -5,44 +5,28 @@ Dir[INLINE_FORMS_PATH + "*.rb"].each do |form_element|
 end
 
 module InlineFormsHelper
-  def inline_form(object, attributes) #, collapsed=true)
+  def inline_forms_show_record(object, attributes)
     attributes = [ attributes ] if not attributes[0].is_a?(Array) # make sure we have an array of arrays
-    out = String.new #ugly as hell but that's how content_tag works...
-#    if collapsed
-#      then
-#      name_cell = content_tag :td, :valign=>'top' do
-#        content_tag :div, :class=> "field_name" do
-#          h(object.presentation)
-#        end
-#      end
-#      value_cell = content_tag :td, :valign=>'top' do
-#        content_tag :div, :class=> "field_value" do
-#          link_to 'edit', send( @Klass.to_s.underscore + '_path', object, :update => 'inline_form_list'), :remote => true
-#        end
-#      end
-#      out += content_tag :tr, name_cell + value_cell
-#      out += "\n"
-#    else
-out << h(object._presentation)
-      attributes.each do | attribute, name, form_element, values |
-        #css_class_id = form_element == :associated ? "subform_#{attribute.to_s}_#{object.id}" : "field_#{attribute.to_s}_#{object.id}"
-        css_class_id = "field_#{attribute.to_s}_#{object.id}"
-        name_cell = content_tag :td, :valign=>'top' do
-          content_tag :div, :class=> "field_name field_#{attribute.to_s} form_element_#{form_element.to_s}" do
-            h(name)
-          end
+    out = String.new
+    attributes.each do | attribute, name, form_element, values |
+      #css_class_id = form_element == :associated ? "subform_#{attribute.to_s}_#{object.id}" : "field_#{attribute.to_s}_#{object.id}"
+      css_class_id = "field_#{attribute.to_s}_#{object.id}"
+      name_cell = content_tag :td, :valign=>'top' do
+        content_tag :div, :class=> "field_name field_#{attribute.to_s} form_element_#{form_element.to_s}" do
+          h(name)
         end
-        value_cell = content_tag :td, :valign=>'top' do
-          content_tag :div, :class=> "field_value field_#{attribute.to_s} form_element_#{form_element.to_s}" do
-            content_tag :span, :id => css_class_id do
-              send("#{form_element.to_s}_show", object, attribute, values)
-            end
-          end
-        end
-        out += content_tag :tr, name_cell + value_cell
-        out += "\n"
       end
-#    end
+      value_cell = content_tag :td, :valign=>'top' do
+        content_tag :div, :class=> "field_value field_#{attribute.to_s} form_element_#{form_element.to_s}" do
+          content_tag :span, :id => css_class_id do
+            send("#{form_element.to_s}_show", object, attribute, values)
+          end
+        end
+      end
+      out += content_tag :tr, name_cell + value_cell
+      out += "\n"
+    end
+    #    end
     return content_tag :table, raw(out), :cellspacing => 0, :cellpadding => 0
   end
 
@@ -74,8 +58,10 @@ out << h(object._presentation)
   def inline_form_display_list(objects, tag=:li)
     t = ''
     objects.each do |object|
-      t += content_tag tag do
-        inline_form object, object.respond_to?(:inline_forms_field_list) ? object.inline_forms_field_list : [ :name, 'name', 'text_field' ]
+      css_class_id = @Klass.to_s.underscore + '_' + object.id.to_s
+      t += content_tag tag, :id => css_class_id do
+        #inline_forms_show_record object, object.respond_to?(:inline_forms_field_list) ? object.inline_forms_field_list : [ :name, 'name', 'text_field' ]
+        link_to( h( object._presentation ), send( @Klass.to_s.underscore + '_path', object, :update => css_class_id), :remote => true )
       end
     end
     return raw(t)
