@@ -88,6 +88,18 @@ module InlineFormsHelper
       :update => 'field_' + attribute.to_s + '_' + object.id.to_s ),
       :remote => true
   end
+
+  def link_to_inline_image_edit(object, attribute)
+    text= image_tag object.send(attribute.to_s).send('url', :thumb)
+
+    link_to text, send('edit_' + @Klass.to_s.underscore + '_path',
+      object,
+      :field => attribute.to_s,
+      :form_element => calling_method.sub(/_[a-z]+$/,''),
+      :update => 'field_' + attribute.to_s + '_' + object.id.to_s ),
+      :remote => true
+  end
+
 end
 
 # make the current method and the calling method available

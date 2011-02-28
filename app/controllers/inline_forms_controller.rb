@@ -21,7 +21,9 @@ class InlineFormsController < ApplicationController
   # GET /examples
   #
   def index
-    @objects = @Klass.all
+    #@objects = @Klass.all
+    @objects = @Klass.paginate :page => params[:page], :order => 'created_at DESC'
+
     update_span = params[:update]
     respond_to do |format|
       # found this here: http://www.ruby-forum.com/topic/211467
@@ -96,6 +98,7 @@ class InlineFormsController < ApplicationController
     @values = params[:values]
     @sub_id = params[:sub_id]
     @update_span = params[:update]
+    @values = params[@Klass.to_s.downcase][@field.to_sym]
     send("#{@form_element.to_s}_update", @object, @field, @values)
     @object.save
     respond_to do |format|
