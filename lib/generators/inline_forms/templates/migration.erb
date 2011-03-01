@@ -1,9 +1,17 @@
 class InlineFormsCreate<%= table_name.camelize %> < ActiveRecord::Migration
+
   def self.up
     create_table :<%= table_name %> do |t|
 <% for attribute in attributes -%>
+<% if attribute.migration_type == :image -%>
+<%= '      t.string    :' + attribute.migration_name + "_file_name" %>
+<%= '      t.string    :' + attribute.migration_name + "_content_type" %>
+<%= '      t.integer   :' + attribute.migration_name + "_file_size" %>
+<%= '      t.datetime  :' + attribute.migration_name + "_updated_at" %>
+<% else -%>
 <%= ( attribute.migration_type == :unknown || attribute.special_relation? ) ? '#' : ' ' -%>
 <%= '     t.' + attribute.migration_type.to_s %> :<%= attribute.migration_name %>
+<% end -%>
 <% end -%>
       t.timestamps
     end
