@@ -6,10 +6,9 @@ end
 
 module InlineFormsHelper
   def inline_forms_show_record(object, attributes)
-    attributes = [ attributes ] if not attributes[0].is_a?(Array) # make sure we have an array of arrays
+    attributes = [ attributes ] unless attributes[0].is_a?(Array) # make sure we have an array of arrays
     out = String.new
     attributes.each do | attribute, name, form_element, values |
-      #css_class_id = form_element == :associated ? "subform_#{attribute.to_s}_#{object.id}" : "field_#{attribute.to_s}_#{object.id}"
       css_class_id = "field_#{attribute.to_s}_#{object.id}"
       name_cell = content_tag :td, :valign=>'top' do
         content_tag :div, :class=> "field_name field_#{attribute.to_s} form_element_#{form_element.to_s}" do

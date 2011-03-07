@@ -2,14 +2,19 @@ module InlineFormsHelper
     InlineForms::SPECIAL_MIGRATION_TYPES[:date_select]=:date
 
   # date
-  def date_show(object, attribute, values)
+  def date_select_show(object, attribute, values)
     link_to_inline_edit object, attribute, object.send(attribute), nil
   end
-  def date_edit(object, attribute, values)
-    calendar_date_select_tag attribute, object[attribute], :year_range => 30.years.ago..5.years.from_now, :popup => :force
+  def date_select_edit(object, attribute, values)
+    out = text_field_tag attribute, object[attribute]
+    out << '<SCRIPT>'.html_safe
+    out << "$(function() { ".html_safe
+    out << '$("#'.html_safe + attribute.to_s.html_safe + '").datepicker();'.html_safe
+    out << '});'.html_safe
+    out << '</SCRIPT>'.html_safe
+    return out
   end
-  def date_update(object, attribute, values)
+  def date_select_update(object, attribute, values)
     object[attribute.to_sym] = params[attribute.to_sym]
   end
 end
-

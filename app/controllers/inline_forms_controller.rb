@@ -1,35 +1,40 @@
+# == Generic controller for the inline_forms plugin.
+# === Usage
+# If you have an Example class, make an ExampleController
+# that is a subclass of InlineFormsController
+#  class ExampleController < InlineFormsController
+#  end
+# That's it! It'll work. But please read about the InlineForms::InlineFormsGenerator first!
+#
+# You can override the methods in your ExampleController
+#  def index
+#    @objects=@Klass.all
+#  end
+#
+#
+# @objects holds the objects (in this case Examples)
+# and @Klass will be set to Example by the getKlass before filter.
+# 
+# === How it works
+# The getKlass before_filter extracts the class and puts it in @Klass
+#
+# @Klass is used in the InlineFormsHelper
+#
 class InlineFormsController < ApplicationController
-  #unloadable # see http://dev.rubyonrails.org/ticket/6001
-  # == Generic controller for the inline_forms plugin.
-  # === Usage
-  # If you have an Example class, make an ExampleController that is a subclass of InlineFormsController
-  # <tt>class ExampleController < InlineFormsController
-  # # add before filters if you want: before_filter :authenticate_user!, :only => :token
-  # # override methods or make your own, using @Klass instead of Example.
-  # #  def index
-  # #   @objects=@Klass.all
-  # #  end
-  # === How it works
-  # The getKlass before_filter extracts the class and puts it in @Klass
-  # === Limited Access
   before_filter :getKlass
-  include InlineFormsHelper # this might also be included in you application_controller with helper :all but it's not needed
-  # :index shows a list of all objects from class Klass, with all attribute values linked to the 'edit' action.
-  # Each field (attribute) is edited seperately (so you don't edit an entire object!)
+  include InlineFormsHelper
+
+  # shows a list of all objects from class @Klass, using will_paginate
+  #
   # The link to 'new' allows you to create a new record.
   #
-  # GET /examples
-  #
   def index
-    #@objects = @Klass.all
     @objects = @Klass.paginate :page => params[:page], :order => 'created_at DESC'
-
     update_span = params[:update]
     respond_to do |format|
       # found this here: http://www.ruby-forum.com/topic/211467
       format.html { render 'inline_forms/index', :layout => 'inline_forms' }
-      format.js { render(:update) {|page| page.replace_html update_span, :partial => 'inline_forms/index' }
-      }
+      format.js { render(:update) {|page| page.replace_html update_span, :partial => 'inline_forms/index' } }
     end
   end
 
@@ -98,7 +103,7 @@ class InlineFormsController < ApplicationController
     @values = params[:values]
     @sub_id = params[:sub_id]
     @update_span = params[:update]
-    @values = params[@Klass.to_s.downcase][@field.to_sym]
+    #@values = params[@Klass.to_s.downcase].is_a?(Array) ? params[@Klass.to_s.downcase][@field.to_sym] : nil
     send("#{@form_element.to_s}_update", @object, @field, @values)
     @object.save
     respond_to do |format|
@@ -133,6 +138,7 @@ class InlineFormsController < ApplicationController
         }
       end
     else
+      @values = params[:values]
       respond_to do |format|
         # found this here: http://www.ruby-forum.com/topic/211467
         format.js { render(:update) {|page| page.replace_html @update_span, :inline => '<%= send("#{@form_element}_show", @object, @field, @values) %>' }
@@ -153,8 +159,7 @@ class InlineFormsController < ApplicationController
   #  end
 
   private
-  # Get the class
-  # Used in before_filter
+  # Get the class from the controller name.
   def getKlass #:doc:
     @Klass = self.controller_name.classify.constantize
   end
