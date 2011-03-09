@@ -1,5 +1,5 @@
 module InlineFormsHelper
-    InlineForms::SPECIAL_MIGRATION_TYPES[:geo_code_curacao]=:string
+    InlineForms::SPECIAL_COLUMN_TYPES[:geo_code_curacao]=:string
   # geo_code_curacao
   def geo_code_curacao_show(object, attribute, values)
     attribute_value = object.send(attribute)._presentation rescue nil

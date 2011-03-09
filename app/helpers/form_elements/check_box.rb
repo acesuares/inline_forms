@@ -1,5 +1,5 @@
 module InlineFormsHelper
-    InlineForms::SPECIAL_MIGRATION_TYPES[:check_box]=:boolean
+    InlineForms::SPECIAL_COLUMN_TYPES[:check_box]=:boolean
   # boolean, bit unaptly named check_box
   def check_box_show(object, attribute, values)
     values ||= { 'false' => 'no', 'true' => 'yes' }

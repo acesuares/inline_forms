@@ -1,27 +1,7 @@
 class <%= name %> < ActiveRecord::Base
-
-<% for attribute in attributes -%>
-<%= '  belongs_to :' + attribute.name + "\n" if attribute.belongs_to? -%>
-<% end -%>
-<% for attribute in attributes -%>
-<%= '  has_many :' + attribute.name + "\n" if attribute.has_many? -%>
-<% end -%>
-<% for attribute in attributes -%>
-<%= "  has_attached_file :#{attribute.name}, :styles => { :medium => \"300x300>\", :thumb => \"100x100>\" }\n" if attribute.type == :image -%>
-<% end -%>
-
-  def _presentation
-<% for attribute in attributes -%>
-<%= '    "' + ( attribute.type.to_s || 'put your presentation here' ) + '"' + "\n" if attribute.name == '_presentation' -%>
-<% end -%>
-  end
-
-  def inline_forms_field_list
-    [
-<% for attribute in attributes -%>
-<%= attribute.relation? ? '#' : ' ' -%>
-<%= '     [ :' + attribute.name + ', "' + attribute.name + '", :' + attribute.field_type.to_s + " ], \n" unless attribute.name == '_presentation' -%>
-<% end -%>
-    ]
-  end
+<%= @belongs_to if @belongs_to.length > 1 -%>
+<%= @has_many if @belongs_to.length > 1 -%>
+<%= @has_attached_files if @belongs_to.length > 1 -%>
+<%= @presentation  if @belongs_to.length > 1 -%>
+<%= @inline_forms_field_list -%>
 end

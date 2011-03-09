@@ -1,5 +1,5 @@
 module InlineFormsHelper
-  InlineForms::SPECIAL_MIGRATION_TYPES[:image]=:image
+  InlineForms::SPECIAL_COLUMN_TYPES[:image]=:image
   # image via paperclip
   def image_show(object, attribute, values)
     link_to_inline_image_edit object, attribute

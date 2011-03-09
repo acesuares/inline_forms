@@ -1,5 +1,5 @@
 module InlineFormsHelper
-    InlineForms::SPECIAL_MIGRATION_TYPES[:text_area]=:text
+    InlineForms::SPECIAL_COLUMN_TYPES[:text_area]=:text
   # text_area
   def text_area_show(object, attribute, values)
     link_to_inline_edit object, attribute, object.send(attribute), nil

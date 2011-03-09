@@ -1,44 +1,59 @@
 module InlineForms
+  # == Usage
+  # This generator generates a migration, a model and a controller.
+  #
+  #  rails g inline_forms Model attribute:type [attribute:type ...] [options]
+  #
+  # Read more about the possible types below.
+  #
+  # = Overriding Rails::Generators::GeneratedAttribute
+  # When using a generator in the form
+  #  rails g example_generator Modelname attribute:type attribute:type ...
+  # an array with attributes and types is created for use in the generator.
+  #
+  # Rails::Generators::GeneratedAttribute creates, among others, a field_type.
+  # This field_type maps column types to form field helpers like text_field.
+  # We override it here to make our own.
+  #
   class InlineFormsGenerator < Rails::Generators::NamedBase
-
-    Rails::Generators::GeneratedAttribute.class_eval do
-      # attributes are in the form name:type (f.i. price:integer)
-      # we want to extend the types to our list of types
-      # but some of the old types are still needed
-      # f.i. price:integer turns into a text_field
+    Rails::Generators::GeneratedAttribute.class_eval do #:doc:
+      # Deducts the column_type for migrations from the type.
       #
-      def migration_type
-        # convert any type into a migration type
-        # each helper adds to this list
-        # be aware that the standard list overwrites the customized list if we merge like this!
-        SPECIAL_MIGRATION_TYPES.merge(DEFAULT_MIGRATION_TYPES).merge(RELATION_TYPES).merge(SPECIAL_RELATION_TYPES)[type] || :unknown
+      # We first merge the Special Column Types with the Default Column Types,
+      # which has the effect that the Default Column Types with the same key override
+      # the Special Column Types.
+      #
+      # If the type is not in the merged hash, then column_type defaults to :unknown
+      #
+      # You are advised to check you migrations for the :unknown, because either you made a
+      # typo in the generator command line or you need to add a Form Element!
+      #
+      def column_type
+        SPECIAL_COLUMN_TYPES.merge(DEFAULT_COLUMN_TYPES).merge(RELATIONS)[type] || :unknown
       end
 
+      # Override the field_type to include our special column types.
+      #
+      # If a type is not in the Special Column Type hash, then the default
+      # column type hash is used, and if that fails, the field_type
+      # will be :unknown. Make sure to check your models for the :unknown.
+      #
       def field_type
-        # convert standard types to one of ours
-        SPECIAL_MIGRATION_TYPES.merge(RELATION_TYPES).merge(SPECIAL_RELATION_TYPES).has_key?(type) ? type : DEFAULT_FIELD_TYPES[type] || :unknown
-      end
-
-      def migration_name
-        # convert some to _id
-        ( relation? || field_type == :dropdown) ? name + '_id' : name
-      end
-
-      def belongs_to?
-        relation? || field_type == :dropdown
+        SPECIAL_COLUMN_TYPES.merge(RELATIONS).has_key?(type) ? type : DEFAULT_COLUMN_TYPES[type] || :unknown
       end
       
+      def relation?
+        RELATIONS.has_key?(type) || special_relation?
+      end
+
+      def special_relation?
+        SPECIAL_RELATIONS.has_key?(type)
+      end
+
       def has_many?
         field_type == :associated
       end
 
-      def relation?
-        RELATION_TYPES.has_key?(field_type)
-      end
-
-      def special_relation?
-        SPECIAL_RELATION_TYPES.has_key?(field_type)
-      end
 
     end
     argument :attributes, :type => :array,  :banner => "[name:form_element]..."
@@ -50,6 +65,48 @@ module InlineForms
     end
 
     def generate_model
+      @belongs_to         = "\n"
+      @has_many           = "\n"
+      @has_attached_files = "\n"
+      @presentation       = "\n"
+      @inline_forms_field_list = String.new
+
+      for attribute in attributes
+        if attribute.column_type == :belongs_to || attribute.type == :belongs_to
+          @belongs_to << '  belongs_to :' + attribute.name + "\n"
+        end
+        if attribute.type == :has_many
+          @has_many << '  has_many :' + attribute.name + "\n"
+        end
+        if attribute.type == :image
+          @has_attached_files << "  has_attached_file :#{attribute.name},
+               :styles => { :medium => \"300x300>\", :thumb => \"100x100>\" }\n"
+        end
+        if attribute.name == '_presentation'
+          @presentation <<  "  def _presentation\n" +
+                            "    \"#{attribute.type.to_s}\"\n" +
+                            "  end\n" +
+                            "\n"
+        end
+        unless attribute.name == '_presentation' || attribute.relation?
+          attribute.field_type == :unknown ? commenter = '#' : commenter = ' '
+          @inline_forms_field_list << commenter +
+                                      '     [ :' +
+                                      attribute.name +
+                                      ', "' + attribute.name +
+                                      '", :' + attribute.field_type.to_s +
+                                      " ], \n"
+        end
+      end
+      unless @inline_forms_field_list.empty?
+        @inline_forms_field_list =  "\n" +
+                                    "  def inline_forms_field_list\n" +
+                                    "    [\n" +
+                                    @inline_forms_field_list +
+                                    "    ]\n" +
+                                    "  end\n" +
+                                    "\n"
+      end
       template "model.erb", "app/models/#{model_file_name}.rb"
     end
 
@@ -62,6 +119,26 @@ module InlineForms
     end
 
     def generate_migration
+      @columns = String.new
+
+      for attribute in attributes
+        if attribute.column_type == :image
+          @columns << '      t.string    :' + attribute.name + "_file_name\n"
+          @columns << '        t.string    :' + attribute.name + "_content_type\n"
+          @columns << '        t.integer   :' + attribute.name + "_file_size\n"
+          @columns << '        t.datetime  :' + attribute.name + "_updated_at\n"
+        else
+          unless attribute.name == '_presentation' || attribute.special_relation?
+            attribute.field_type == :unknown ? commenter = '#' : commenter = ' '
+            @columns << commenter +
+                        '     t.' +
+                        attribute.column_type.to_s +
+                        " :" +
+                        attribute.name +
+                        " \n"
+          end
+        end
+      end
       template "migration.erb", "db/migrate/#{time_stamp}_inline_forms_create_#{table_name}.rb"
     end
 

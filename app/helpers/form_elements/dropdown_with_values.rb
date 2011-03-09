@@ -1,5 +1,5 @@
 module InlineFormsHelper
-    InlineForms::SPECIAL_MIGRATION_TYPES[:dropdown_with_values]=:integer
+    InlineForms::SPECIAL_COLUMN_TYPES[:dropdown_with_values]=:integer
   # dropdown_with_values
   def dropdown_with_values_show(object, attribute, values)
     unless values.is_a?(Hash)

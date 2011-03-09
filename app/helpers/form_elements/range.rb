@@ -1,5 +1,5 @@
 module InlineFormsHelper
-    InlineForms::SPECIAL_MIGRATION_TYPES[:range]=:integer
+    InlineForms::SPECIAL_COLUMN_TYPES[:range]=:integer
   # range
   def range_show(object, attribute, values)
     link_to_inline_edit object, attribute, object.send(attribute), nil

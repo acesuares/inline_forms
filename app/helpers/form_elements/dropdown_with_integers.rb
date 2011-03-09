@@ -1,5 +1,5 @@
 module InlineFormsHelper
-    InlineForms::SPECIAL_MIGRATION_TYPES[:dropdown_with_integers]=:integer
+    InlineForms::SPECIAL_COLUMN_TYPES[:dropdown_with_integers]=:integer
   # dropdown_with_integers generates a dropdown menu
   # with the given list of integers as options
   #

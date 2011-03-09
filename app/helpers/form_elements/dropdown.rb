@@ -1,5 +1,5 @@
 module InlineFormsHelper
-  InlineForms::SPECIAL_MIGRATION_TYPES[:dropdown]=:integer
+  InlineForms::SPECIAL_COLUMN_TYPES[:dropdown]=:belongs_to
   # dropdown
   def dropdown_show(object, attribute, values)
     attribute_value = object.send(attribute)._presentation rescue  nil
