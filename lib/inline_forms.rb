@@ -81,23 +81,42 @@ module InlineForms
   # to the migration. (In fact AR will add t.integer :country_id). And
   # it will add
   #   [ :country, "country", :dropdown ],
-  # to the model.
+  # to the inline_forms_field_list in the model.
   #
   SPECIAL_COLUMN_TYPES = {}
-  # experimental
+  # When a column has the type of :references or :belongs_to, then
+  # there will be a line in the migration reflecting that, but not in the model.
+  # == Why?
+  # * Let's say we have a customer that has_many numbers.
+  # * Let's say that a number belongs_to a customer.
+  # * Let's say that every number has_one type_of_number (like 'private','gsm' etc.)
+  # * Let's say a type_of_number belongs_to a number.
+  #
+  # Wait a minute... thats sounds right... but it ain't!
+  #
+  # In fact, a type_of_number has_many numbers and a number belongs_to a type_of_number!
+  #
+  # In a form, it's quite logical to use a dropdown for type_of_number. So, in the generator, use
+  #  type_of_number:dropdown
+  # This creates the correct migration (t.integer :type_of_number_id) and the correct model.
+  # (It adds 'belongs_to :type_of_number' and adds a dropdown in the inline_forms_field_list)
+  #
+  # But, you also want to have a client_id in the migration, and a 'belongs_to :client' in the model.
+  # In such cases, you need to use :belongs_to, like this:
+  #  rails g inline_forms Example number:string type_of_number:dropdown client:belongs_to
+  #
   RELATIONS = {
     :belongs_to => :belongs_to,
     :references => :belongs_to,
   }
-  # experimental
+  # The stuff in this hash will add a line to the model, but little else.
   SPECIAL_RELATIONS = {
-    :has_many   => :has_many,
-    :associated => :associated,
+    :has_many                 => :has_many,
+    :has_one                  => :has_one,
+    :has_and_belongs_to_many  => :has_and_belongs_to_many,
+    :habtm                    => :has_and_belongs_to_many,
+    :associated               => :associated,
   }
-#    has_and_belongs_to_many :clients
-#	def <=>(other)
-#		self.name <=> other.name
-#  end
 
   # Declare as a Rails::Engine, see http://www.ruby-forum.com/topic/211017#927932
   class InlineFormsEngine < Rails::Engine

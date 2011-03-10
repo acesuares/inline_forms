@@ -29,7 +29,7 @@ module InlineForms
       # typo in the generator command line or you need to add a Form Element!
       #
       def column_type
-        SPECIAL_COLUMN_TYPES.merge(DEFAULT_COLUMN_TYPES).merge(RELATIONS)[type] || :unknown
+        SPECIAL_COLUMN_TYPES.merge(DEFAULT_COLUMN_TYPES).merge(RELATIONS).merge(SPECIAL_RELATIONS)[type] || :unknown
       end
 
       # Override the field_type to include our special column types.
@@ -39,15 +39,15 @@ module InlineForms
       # will be :unknown. Make sure to check your models for the :unknown.
       #
       def field_type
-        SPECIAL_COLUMN_TYPES.merge(RELATIONS).has_key?(type) ? type : DEFAULT_COLUMN_TYPES[type] || :unknown
+        SPECIAL_COLUMN_TYPES.merge(RELATIONS).has_key?(type) ? type : DEFAULT_FORM_ELEMENTS[type] || :unknown
       end
       
-      def relation?
-        RELATIONS.has_key?(type) || special_relation?
-      end
-
       def special_relation?
         SPECIAL_RELATIONS.has_key?(type)
+      end
+
+      def relation?
+        RELATIONS.has_key?(type) || special_relation?
       end
 
       def has_many?
@@ -65,20 +65,29 @@ module InlineForms
     end
 
     def generate_model
-      @belongs_to         = "\n"
-      @has_many           = "\n"
-      @has_attached_files = "\n"
-      @presentation       = "\n"
-      @inline_forms_field_list = String.new
+      @belongs_to               = "\n"
+      @has_many                 = "\n"
+      @has_one                  = "\n"
+      @habtm                    = "\n"
+      @has_attached_files       = "\n"
+      @presentation             = "\n"
+      @inline_forms_field_list  = String.new
 
       for attribute in attributes
-        if attribute.column_type == :belongs_to || attribute.type == :belongs_to
-          @belongs_to << '  belongs_to :' + attribute.name + "\n"
+        if attribute.column_type  == :belongs_to # :drop_down, :references and :belongs_to all end up with the column_type :belongs_to
+          @belongs_to << '  belongs_to :'         + attribute.name + "\n"
         end
-        if attribute.type == :has_many
-          @has_many << '  has_many :' + attribute.name + "\n"
+        if attribute.type         == :has_many
+          @has_many << '  has_many :'             + attribute.name + "\n"
         end
-        if attribute.type == :image
+        if attribute.type         == :has_one
+          @has_one << '  has_one :'               + attribute.name + "\n"
+        end
+        if attribute.type         == :habtm ||
+           attribute.type         == :has_and_belongs_to_many
+          @habtm << '  has_and_belongs_to_many :' + attribute.name + "\n"
+        end
+        if attribute.type         == :image
           @has_attached_files << "  has_attached_file :#{attribute.name},
                :styles => { :medium => \"300x300>\", :thumb => \"100x100>\" }\n"
         end

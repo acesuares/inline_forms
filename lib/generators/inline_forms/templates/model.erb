@@ -1,7 +1,9 @@
 class <%= name %> < ActiveRecord::Base
 <%= @belongs_to if @belongs_to.length > 1 -%>
-<%= @has_many if @belongs_to.length > 1 -%>
-<%= @has_attached_files if @belongs_to.length > 1 -%>
-<%= @presentation  if @belongs_to.length > 1 -%>
+<%= @has_many if @has_many.length > 1 -%>
+<%= @has_one if @has_one.length > 1 -%>
+<%= @habtm if @habtm.length > 1 -%>
+<%= @has_attached_files if @has_attached_files.length > 1 -%>
+<%= @presentation  if @presentation.length > 1 -%>
 <%= @inline_forms_field_list -%>
 end
