@@ -1,6 +1,17 @@
 = inline_forms
 
-Description goes here.
+Ever tired of setting up forms to manage your data? Inline Forms aims at quick and easy setup of models, migrations and controllers and providing a user-friendly interface.
+
+= Usage
+
+Look in the generator files for a hint about usage. In short:
+ rails g inline_forms Person first_name:string last_name:string age:dropdown_with_integers
+will create a model, a migration an a controller. In the model you would only have to add 
+values for the dropdown, or instance 12..45.
+In going to /persons you would see a nice form to add and edit persons.
+
+It's work in progress.
+
 
 == Contributing to inline_forms
  
