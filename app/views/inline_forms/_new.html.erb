@@ -1,9 +1,9 @@
-<% form_tag  send(@Klass.to_s.underscore.pluralize + '_path', :update => @update_span || 'inline_form_list' ),
+<% form_tag  send(@Klass.to_s.underscore.pluralize + '_path', :update => @update_span || 'inline_forms_list' ),
   :multipart => true, :remote => true, :class  => "edit_form"  do -%>
   <div class="edit_form_field">
-    <%= inline_form_display_new(@object, @object.respond_to?(:inline_forms_field_list) ? @object.inline_forms_field_list : [ :name, 'name', :text ] ) %>
+    <%= inline_forms_new_record @object %>
   </div>
-  <%= link_to( send(@Klass.to_s.underscore.pluralize + '_path',:update => @update_span || 'inline_form_list'), :remote => true,
+  <%= link_to( send(@Klass.to_s.underscore.pluralize + '_path',:update => @update_span || 'inline_forms_list'), :remote => true,
     :class  => "edit_form_cancel" ) do  %>
     <input type="button" name="cancel" value="cancel" />
 <% end %>

@@ -1,24 +1,31 @@
-INLINE_FORMS_PATH = File.dirname(__FILE__) + "/form_elements/"
-
-Dir[INLINE_FORMS_PATH + "*.rb"].each do |form_element|
-  require form_element
-end
-
 module InlineFormsHelper
-  def inline_forms_show_record(object, attributes)
-    attributes = [ attributes ] unless attributes[0].is_a?(Array) # make sure we have an array of arrays
+
+  # load form elements. Each element goes into a separate file
+  # and defines a _show, _edit and _update method.
+  #
+  INLINE_FORMS_PATH = File.dirname(__FILE__) + "/form_elements/"
+  Dir[INLINE_FORMS_PATH + "*.rb"].each do |form_element|
+    require form_element
+  end
+
+  # default inline forms attribute list, for models that don't have an inline_attribute_attribute_list defined.
+  INLINE_FORMS_DEFAULT_ATTRIBUTE_LIST = { :name => [ 'name', :text ] }
+
+  # show a record by iterating through its attribute list
+  def inline_forms_show_record(object, attributes=nil)
+    attributes ||= object.inline_forms_attribute_list
     out = String.new
-    attributes.each do | attribute, name, form_element, values |
-      css_class_id = "field_#{attribute.to_s}_#{object.id}"
+    attributes.each do | attribute, name, form_element |
+      css_class_id = "attribute_#{attribute}_#{object.id}"
       name_cell = content_tag :td, :valign=>'top' do
-        content_tag :div, :class=> "field_name field_#{attribute.to_s} form_element_#{form_element.to_s}" do
+        content_tag :div, :class=> "attribute_name attribute_#{attribute} form_element_#{form_element}" do
           h(name)
         end
       end
       value_cell = content_tag :td, :valign=>'top' do
-        content_tag :div, :class=> "field_value field_#{attribute.to_s} form_element_#{form_element.to_s}" do
+        content_tag :div, :class=> "attribute_value attribute_#{attribute} form_element_#{form_element}" do
           content_tag :span, :id => css_class_id do
-            send("#{form_element.to_s}_show", object, attribute, values)
+            send("#{form_element}_show", object, attribute)
           end
         end
       end
@@ -29,22 +36,25 @@ module InlineFormsHelper
     return content_tag :table, raw(out), :cellspacing => 0, :cellpadding => 0
   end
 
-  def inline_form_display_new(object, attributes)
-    attributes = [ attributes ] if not attributes[0].is_a?(Array) # make sure we have an array of arrays
-    out = String.new #ugly as hell but that's how content_tag works...
-    attributes.each do | attribute, name, form_element, values |
-      #css_class_id = form_element == :associated ? "subform_#{attribute.to_s}_#{object.id}" : "field_#{attribute.to_s}_#{object.id}"
+  # show the form for a new record
+  #
+  # associated records are NOT shown!
+  #
+  def inline_forms_new_record(object, attributes=nil)
+    attributes ||= object.inline_forms_attribute_list
+    out = String.new 
+    attributes.each do | attribute, name, form_element |
       if not form_element.to_sym == :associated
-        css_class_id = "field_#{attribute.to_s}_#{object.id}"
+        css_class_id = "attribute_#{attribute}_#{object.id}"
         name_cell = content_tag :td, :valign=>'top' do
-          content_tag :div, :class=> "field_name field_#{attribute.to_s} form_element_#{form_element.to_s}" do
+          content_tag :div, :class=> "attribute_name attribute_#{attribute} form_element_#{form_element}" do
             h(name)
           end
         end
         value_cell = content_tag :td, :valign=>'top' do
-          content_tag :div, :class=> "field_value field_#{attribute.to_s} form_element_#{form_element.to_s}" do
+          content_tag :div, :class=> "attribute_value attribute_#{attribute} form_element_#{form_element}" do
             content_tag :span, :id => css_class_id do
-              send("#{form_element.to_s}_edit", object, attribute, values)
+              send("#{form_element}_edit", object, attribute)
             end
           end
         end
@@ -53,50 +63,76 @@ module InlineFormsHelper
     end
     return content_tag :table, raw(out), :cellspacing => 0, :cellpadding => 0
   end
+
   # display a list of objects
-  def inline_form_display_list(objects, tag=:li)
-    t = ''
+  def inline_forms_list(objects, tag=:li)
+    t = String.new
     objects.each do |object|
       css_class_id = @Klass.to_s.underscore + '_' + object.id.to_s
       t += content_tag tag, :id => css_class_id do
-        #inline_forms_show_record object, object.respond_to?(:inline_forms_field_list) ? object.inline_forms_field_list : [ :name, 'name', 'text_field' ]
-        link_to( h( object._presentation ), send( @Klass.to_s.underscore + '_path', object, :update => css_class_id), :remote => true )
+        link_to h(object._presentation), 
+                send( @Klass.to_s.underscore + '_path', object, :update => css_class_id),
+                :remote => true
       end
     end
     return raw(t)
   end
+
   # link for new item
-  def inline_form_new_record(attribute, form_element, text='new', update_span='inline_form_list')
-    link_to text, send('new_' + @Klass.to_s.underscore + '_path', :update => update_span), :remote => true
+  def inline_forms_new_record_link(text='new', update_span='inline_forms_list')
+    link_to text, 
+            send('new_' + @Klass.to_s.underscore + '_path', :update => update_span),
+            :remote => true
   end
-
-
   
   private
 
   # link_to_inline_edit
-  def link_to_inline_edit(object, attribute, attribute_value, values)
+  def link_to_inline_edit(object, attribute, attribute_value)
     attribute_value = h(attribute_value)
     spaces = attribute_value.length > 40 ? 0 : 40 - attribute_value.length
     attribute_value << "&nbsp;".html_safe * spaces
-    link_to raw(attribute_value), send('edit_' + @Klass.to_s.underscore + '_path',
-      object,
-      :field => attribute.to_s,
-      :form_element => calling_method.sub(/_[a-z]+$/,''),
-      :values => values,
-      :update => 'field_' + attribute.to_s + '_' + object.id.to_s ),
-      :remote => true
+    link_to raw(attribute_value), 
+            send( 'edit_' + @Klass.to_s.underscore + '_path',
+                  object,
+                  :attribute => attribute.to_s,
+                  :form_element => calling_method.sub(/_[a-z]+$/,''),
+                  :update => "attribute_#{attribute}_#{object.id}" ),
+            :remote => true
   end
 
+  # link to inline image edit
   def link_to_inline_image_edit(object, attribute)
-    text= image_tag object.send(attribute.to_s).send('url', :thumb)
+    text= image_tag object.send(attribute).send('url', :thumb)
+    link_to text,
+            send('edit_' + @Klass.to_s.underscore + '_path',
+              object,
+              :attribute => attribute.to_s,
+              :form_element => calling_method.sub(/_[a-z]+$/,''),
+              :update => "attribute_#{attribute}_#{object.id}" ),
+            :remote => true
+  end
 
-    link_to text, send('edit_' + @Klass.to_s.underscore + '_path',
-      object,
-      :field => attribute.to_s,
-      :form_element => calling_method.sub(/_[a-z]+$/,''),
-      :update => 'field_' + attribute.to_s + '_' + object.id.to_s ),
-      :remote => true
+  # get the values for an attribute
+  #
+  # values should be a Hash { integer => string, ... }
+  #
+  # or a one-dimensional array of strings
+  #
+  # or a Range
+  #
+  def attribute_values(object, attribute)
+    values = object.inline_forms_attribute_list.assoc(attribute.to_sym)[3]
+    raise "No Values defined in #{@Klass}, #{attribute}" if values.nil?
+    unless values.is_a?(Hash)
+      temp = Array.new
+      values.to_a.each_index do |i|
+        temp << [ i, values.to_a[i] ]
+      end
+    values = temp.sort {|a,b| a[1]<=>b[1]}
+    end
+   logger.info values.inspect
+values
   end
 
 end

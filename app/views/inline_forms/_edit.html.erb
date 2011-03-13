@@ -1,20 +1,17 @@
 <% form_tag send(@Klass.to_s.underscore + '_path', :update => @update_span ,
-  #|| @form_element == "associated" ? @sub_id && @sub_id.to_i > 0 ? "field_#{@field.to_s.singularize}_#{@sub_id}" : "list_#{@field}_#{@object.id.to_s}" : "field_#{@field}_#{@object.id.to_s}",
-  :field => @field,
+  :attribute => @attribute,
   :form_element => @form_element,
-  :values => @values,
   :sub_id => @sub_id ),
   :method => :put, # this is going to the update method!
-:multipart => true,
+  :multipart => true,
   :class  => "edit_form",
   :remote => true do -%>
   <div class="edit_form_field">
-    <%= send("#{@form_element.to_s}_edit", @object, @field, @values) %>
+    <%= send("#{@form_element.to_s}_edit", @object, @attribute) %>
   </div>
-  <%= link_to( send( @Klass.to_s.underscore + '_path', :update => @update_span || "field_#{@field}_#{@object.id.to_s}",
-      :field => @field,
+  <%= link_to( send( @Klass.to_s.underscore + '_path', :update => @update_span || "field_#{@attribute}_#{@object.id.to_s}",
+      :attribute => @attribute,
       :form_element => @form_element,
-      :values => @values,
       :sub_id => @sub_id ),
     :method => :get, # this is going to the show method!
     :class  => "edit_form_cancel",

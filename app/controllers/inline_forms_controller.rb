@@ -54,15 +54,14 @@ class InlineFormsController < ApplicationController
     end
   end
 
-  # :edit presents a form to edit one specific field from an object
+  # :edit presents a form to edit one specific attribute from an object
   #
   # GET /examples/1/edit
   #
   def edit
     @object = @Klass.find(params[:id])
-    @field = params[:field]
+    @attribute = params[:attribute]
     @form_element = params[:form_element]
-    @values = params[:values]
     @sub_id = params[:sub_id]
     @update_span = params[:update]
     respond_to do |format|
@@ -79,69 +78,65 @@ class InlineFormsController < ApplicationController
   def create
     object = @Klass.new
     @update_span = params[:update]
-    attributes = object.respond_to?(:inline_forms_field_list) ? object.inline_forms_field_list : [ '', :name, :text ] # sensible default
-    attributes = [ attributes ] if not attributes[0].is_a?(Array) # make sure we have an array of arrays
-    attributes.each do | name, attribute, form_element, values |
-      send("#{form_element.to_s}_update", object, attribute, values)
+    attributes = object.inline_forms_attribute_list
+    attributes.each do | name, attribute, form_element |
+      send("#{form_element.to_s}_update", object, attribute)
     end
     object.save
-    @objects = @Klass.all
+    @objects = @Klass.paginate :page => params[:page], :order => 'created_at DESC'
     respond_to do |format|
       # found this here: http://www.ruby-forum.com/topic/211467
       format.js { render(:update) {|page| page.replace_html @update_span, :partial => 'inline_forms/index'}
       }
     end
   end
-  # :update updates a specific field from an object.
+  # :update updates a specific attribute from an object.
   #
   # PUT /examples/1
   #
   def update
     @object = @Klass.find(params[:id])
-    @field = params[:field]
+    @attribute = params[:attribute]
     @form_element = params[:form_element]
-    @values = params[:values]
     @sub_id = params[:sub_id]
     @update_span = params[:update]
-    #@values = params[@Klass.to_s.downcase].is_a?(Array) ? params[@Klass.to_s.downcase][@field.to_sym] : nil
-    send("#{@form_element.to_s}_update", @object, @field, @values)
+    send("#{@form_element.to_s}_update", @object, @attribute)
     @object.save
     respond_to do |format|
       # found this here: http://www.ruby-forum.com/topic/211467
-      format.js { render(:update) {|page| page.replace_html @update_span, :inline => '<%= send("#{@form_element.to_s}_show", @object, @field, @values) %>' }
+      format.js { render(:update) {|page| page.replace_html @update_span, :inline => '<%= send("#{@form_element.to_s}_show", @object, @attribute) %>' }
       }
     end
   end
 
-  # :show shows one field (attribute) from a record (object). It inludes the link to 'edit'
+  # :show shows one attribute (attribute) from a record (object). It inludes the link to 'edit'
   #
-  # GET /examples/1?field=name&form_element=text
+  # GET /examples/1?attribute=name&form_element=text
   #
   
   def show
     @object = @Klass.find(params[:id])
-    @field = params[:field]
+    @attribute = params[:attribute]
     @form_element = params[:form_element]
     if @form_element == "associated"
       @sub_id = params[:sub_id]
       if @sub_id.to_i > 0
-        @associated_record_id = @object.send(@field.to_s.singularize + "_ids").index(@sub_id.to_i)
-        @associated_record = @object.send(@field)[@associated_record_id]
+        @associated_record_id = @object.send(@attribute.to_s.singularize + "_ids").index(@sub_id.to_i)
+        @associated_record = @object.send(@attribute)[@associated_record_id]
       end
     end
     @update_span = params[:update]
-    if @field.nil?
+    if @attribute.nil?
       respond_to do |format|
-        @attributes = @object.respond_to?(:inline_forms_field_list) ? @object.inline_forms_field_list : [ :name, 'name', 'text_field' ]
+        @attributes = @object.inline_forms_attribute_list
         # found this here: http://www.ruby-forum.com/topic/211467
-        format.js { render(:update) {|page| page.replace_html @update_span, :inline => '<%= send( "inline_forms_show_record", @object, @attributes) %>' }
+        format.js { render(:update) {|page| page.replace_html @update_span, :inline => '<%= send( "inline_forms_show_record", @object) %>' }
         }
       end
     else
-      @values = params[:values]
       respond_to do |format|
         # found this here: http://www.ruby-forum.com/topic/211467
-        format.js { render(:update) {|page| page.replace_html @update_span, :inline => '<%= send("#{@form_element}_show", @object, @field, @values) %>' }
+        format.js { render(:update) {|page| page.replace_html @update_span, :inline => '<%= send("#{@form_element}_show", @object, @attribute) %>' }
         }
       end
     end

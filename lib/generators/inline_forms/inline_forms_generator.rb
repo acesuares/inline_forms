@@ -11,8 +11,8 @@ module InlineForms
   #  rails g example_generator Modelname attribute:type attribute:type ...
   # an array with attributes and types is created for use in the generator.
   #
-  # Rails::Generators::GeneratedAttribute creates, among others, a field_type.
-  # This field_type maps column types to form field helpers like text_field.
+  # Rails::Generators::GeneratedAttribute creates, among others, a attribute_type.
+  # This attribute_type maps column types to form attribute helpers like text_field.
   # We override it here to make our own.
   #
   class InlineFormsGenerator < Rails::Generators::NamedBase
@@ -32,13 +32,13 @@ module InlineForms
         SPECIAL_COLUMN_TYPES.merge(DEFAULT_COLUMN_TYPES).merge(RELATIONS).merge(SPECIAL_RELATIONS)[type] || :unknown
       end
 
-      # Override the field_type to include our special column types.
+      # Override the attribute_type to include our special column types.
       #
       # If a type is not in the Special Column Type hash, then the default
-      # column type hash is used, and if that fails, the field_type
+      # column type hash is used, and if that fails, the attribute_type
       # will be :unknown. Make sure to check your models for the :unknown.
       #
-      def field_type
+      def attribute_type
         SPECIAL_COLUMN_TYPES.merge(RELATIONS).has_key?(type) ? type : DEFAULT_FORM_ELEMENTS[type] || :unknown
       end
       
@@ -51,7 +51,7 @@ module InlineForms
       end
 
       def has_many?
-        field_type == :associated
+        attribute_type == :associated
       end
 
 
@@ -71,7 +71,7 @@ module InlineForms
       @habtm                    = "\n"
       @has_attached_files       = "\n"
       @presentation             = "\n"
-      @inline_forms_field_list  = String.new
+      @inline_forms_attribute_list  = String.new
 
       for attribute in attributes
         if attribute.column_type  == :belongs_to # :drop_down, :references and :belongs_to all end up with the column_type :belongs_to
@@ -98,20 +98,20 @@ module InlineForms
                             "\n"
         end
         unless attribute.name == '_presentation' || attribute.relation?
-          attribute.field_type == :unknown ? commenter = '#' : commenter = ' '
-          @inline_forms_field_list << commenter +
+          attribute.attribute_type == :unknown ? commenter = '#' : commenter = ' '
+          @inline_forms_attribute_list << commenter +
                                       '     [ :' +
                                       attribute.name +
-                                      ', "' + attribute.name +
-                                      '", :' + attribute.field_type.to_s +
+                                      ' , "' + attribute.name +
+                                      '", :' + attribute.attribute_type.to_s +
                                       " ], \n"
         end
       end
-      unless @inline_forms_field_list.empty?
-        @inline_forms_field_list =  "\n" +
-                                    "  def inline_forms_field_list\n" +
+      unless @inline_forms_attribute_list.empty?
+        @inline_forms_attribute_list =  "\n" +
+                                    "  def inline_forms_attribute_list\n" +
                                     "    [\n" +
-                                    @inline_forms_field_list +
+                                    @inline_forms_attribute_list +
                                     "    ]\n" +
                                     "  end\n" +
                                     "\n"
@@ -138,7 +138,7 @@ module InlineForms
           @columns << '        t.datetime  :' + attribute.name + "_updated_at\n"
         else
           unless attribute.name == '_presentation' || attribute.special_relation?
-            attribute.field_type == :unknown ? commenter = '#' : commenter = ' '
+            attribute.attribute_type == :unknown ? commenter = '#' : commenter = ' '
             @columns << commenter +
                         '     t.' +
                         attribute.column_type.to_s +

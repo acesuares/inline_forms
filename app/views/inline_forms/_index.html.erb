@@ -1,5 +1,6 @@
-<li class="inline_form_new_item">
-  <%= inline_form_new_record @field, @form_element  %>
+<li class="inline_forms_new_record">
+  <%= inline_forms_new_record_link %>
 </li>
-<%= inline_form_display_list(@objects) %>
-<%#= will_paginate @objects %>
+<%= inline_forms_list(@objects) %>
+<%= will_paginate @objects %>
+<%= page_entries_info @objects %>
