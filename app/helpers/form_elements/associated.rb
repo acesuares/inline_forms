@@ -1,9 +1,9 @@
-InlineForms::SPECIAL_COLUMN_TYPES[:associated]=:references
+InlineForms::SPECIAL_COLUMN_TYPES[:associated]=:no_migration
 
 # associated
 def associated_show(object, attribute)
   #show a list of records
-  out = ""
+  out = String.new
   if @sub_id && @sub_id.to_i > 0
     # if it's not a new record (sub_id > 0) then just update the list-element
     out << '<li>'
@@ -12,7 +12,6 @@ def associated_show(object, attribute)
         :attribute => attribute,
         :sub_id => @sub_id,
         :form_element => this_method.reverse.sub(/.*_/,'').reverse,
-        :values => values,
         :update => "attribute_#{attribute.to_s.singularize}_#{@sub_id.to_s}" ),
       :method => :get,
       :remote => true )
@@ -26,7 +25,6 @@ def associated_show(object, attribute)
         :attribute => attribute,
         :sub_id => 0,
         :form_element => this_method.sub(/_[a-z]+$/,''),
-        :values => values,
         :update => "list_#{attribute}_#{object.id.to_s}" ),
       :method => :get,
       :remote => true )
@@ -41,7 +39,6 @@ def associated_show(object, attribute)
             :attribute => attribute,
             :sub_id => m.id,
             :form_element => this_method.sub(/_[a-z]+$/,''),
-            :values => values,
             :update => "attribute_#{attribute.to_s.singularize}_#{m.id.to_s}" ),
           :method => :get,
           :remote => true )
