@@ -116,11 +116,11 @@ module InlineForms
 
   # The stuff in this hash will add a line to the model, but little else.
   SPECIAL_RELATIONS = {
-    :has_many                 => :has_many,
-    :has_one                  => :has_one,
-    :has_and_belongs_to_many  => :has_and_belongs_to_many,
-    :habtm                    => :has_and_belongs_to_many,
-    :associated               => :associated,
+    :has_many                 => :no_migration,
+    :has_one                  => :no_migration,
+    :has_and_belongs_to_many  => :no_migration,
+    :habtm                    => :no_migration,
+    :habtm_destroy            => :no_migration,
   }
 
   # Declare as a Rails::Engine, see http://www.ruby-forum.com/topic/211017#927932

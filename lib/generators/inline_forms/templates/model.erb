@@ -9,5 +9,6 @@ class <%= name %> < ActiveRecord::Base
 <%= @has_attached_files if @has_attached_files.length > 1 -%>
 <%= @presentation  if @presentation.length > 1 -%>
 <%= @inline_forms_attribute_list -%>
+<%= @order  if @order.length > 1 -%>
 
 end

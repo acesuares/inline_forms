@@ -50,8 +50,17 @@ module InlineForms
         RELATIONS.has_key?(type) || special_relation?
       end
 
-      def has_many?
-        attribute_type == :associated
+      def migration?
+        not ( relation? ||
+              column_type == :no_migration ||
+              name == "_presentation" ||
+              name == "_order" )
+      end
+
+      def attribute?
+        not ( name == '_presentation' ||
+              name == '_order' ||
+              relation? )
       end
 
 
@@ -71,20 +80,25 @@ module InlineForms
       @habtm                    = "\n"
       @has_attached_files       = "\n"
       @presentation             = "\n"
+      @order                    = "\n"
       @inline_forms_attribute_list  = String.new
 
       for attribute in attributes
         if attribute.column_type  == :belongs_to # :drop_down, :references and :belongs_to all end up with the column_type :belongs_to
           @belongs_to << '  belongs_to :'         + attribute.name + "\n"
         end
-        if attribute.type         == :has_many
-          @has_many << '  has_many :'             + attribute.name + "\n"
+        if attribute.type         == :has_many ||
+           attribute.type         == :has_many_destroy
+          @has_many << '  has_many :'             + attribute.name
+          @has_many << ', :dependent => :destroy' if attribute.type == :has_many_destroy
+          @has_many << "\n"
         end
         if attribute.type         == :has_one
           @has_one << '  has_one :'               + attribute.name + "\n"
         end
         if attribute.type         == :habtm ||
-           attribute.type         == :has_and_belongs_to_many
+           attribute.type         == :has_and_belongs_to_many ||
+           attribute.type         == :check_list
           @habtm << '  has_and_belongs_to_many :' + attribute.name + "\n"
         end
         if attribute.type         == :image
@@ -97,7 +111,13 @@ module InlineForms
                             "  end\n" +
                             "\n"
         end
-        unless attribute.name == '_presentation' || attribute.relation?
+        if attribute.name == '_order'
+          @order <<  "  def <=>(other)\n" +
+                            "    self.#{attribute.type} <=> other.#{attribute.type}\n" +
+                            "  end\n" +
+                            "\n"
+        end
+        if attribute.attribute?
           attribute.attribute_type == :unknown ? commenter = '#' : commenter = ' '
           @inline_forms_attribute_list << commenter +
                                       '     [ :' +
@@ -137,7 +157,7 @@ module InlineForms
           @columns << '        t.integer   :' + attribute.name + "_file_size\n"
           @columns << '        t.datetime  :' + attribute.name + "_updated_at\n"
         else
-          unless attribute.name == '_presentation' || attribute.special_relation?
+          if attribute.migration?
             attribute.attribute_type == :unknown ? commenter = '#' : commenter = ' '
             @columns << commenter +
                         '     t.' +

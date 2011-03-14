@@ -88,11 +88,11 @@ module InlineFormsHelper
   private
 
   # link_to_inline_edit
-  def link_to_inline_edit(object, attribute, attribute_value)
+  def link_to_inline_edit(object, attribute, attribute_value='')
     attribute_value = h(attribute_value)
     spaces = attribute_value.length > 40 ? 0 : 40 - attribute_value.length
     attribute_value << "&nbsp;".html_safe * spaces
-    link_to raw(attribute_value), 
+    link_to attribute_value,
             send( 'edit_' + @Klass.to_s.underscore + '_path',
                   object,
                   :attribute => attribute.to_s,
