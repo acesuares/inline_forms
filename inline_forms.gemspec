@@ -5,7 +5,7 @@
 
 Gem::Specification.new do |s|
   s.name = %q{inline_forms}
-  s.version = "0.8.0"
+  s.version = "0.8.1"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Ace Suares"]
@@ -27,7 +27,7 @@ Gem::Specification.new do |s|
     "app/controllers/inline_forms_controller.rb",
     "app/helpers/form_elements/associated.rb",
     "app/helpers/form_elements/check_box.rb",
-    "app/helpers/form_elements/checklist.rb",
+    "app/helpers/form_elements/check_list.rb",
     "app/helpers/form_elements/date.rb",
     "app/helpers/form_elements/dropdown.rb",
     "app/helpers/form_elements/dropdown_with_integers.rb",
