@@ -33,7 +33,7 @@ class InlineFormsController < ApplicationController
     update_span = params[:update]
     respond_to do |format|
       # found this here: http://www.ruby-forum.com/topic/211467
-      format.html { render 'inline_forms/index', :layout => 'inline_forms' }
+      format.html { render 'inline_forms/index', :layout => 'inline_forms' } unless @Klass.not_accessible_through_html?
       format.js { render(:update) {|page| page.replace_html update_span, :partial => 'inline_forms/index' } }
     end
   end

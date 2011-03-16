@@ -51,15 +51,19 @@ module InlineForms
       end
 
       def migration?
-        not ( relation? ||
-              column_type == :no_migration ||
-              name == "_presentation" ||
-              name == "_order" )
+        not ( column_type == :no_migration  ||
+              name == "_presentation"       ||
+              name == "_order"              ||
+              name == "_enabled"            ||
+              name == "_id"                 ||
+              relation? )
       end
 
       def attribute?
-        not ( name == '_presentation' ||
-              name == '_order' ||
+        not ( name == '_presentation'       ||
+              name == '_order'              ||
+              name == '_enabled'            ||
+              name == "_id"                 ||
               relation? )
       end
 
@@ -72,111 +76,134 @@ module InlineForms
     def copy_stylesheet
       copy_file File.expand_path('../../../../public/stylesheets', __FILE__) + "/inline_forms.css", "public/stylesheets/inline_forms.css" unless File.exists?('public/stylesheets/inline_forms.css')
     end
+    
+    # using flags.
+    def set_some_flags
+      @flag_not_accessible_through_html   = true
+      @flag_create_migration              = true
+      @flag_create_model                  = true
+      @create_id                          = true
+      for attribute in attributes
+        @flag_not_accessible_through_html = false if attribute.name == '_enabled'
+        @flag_create_migration            = false if attribute.name == '_no_migration'
+        @flag_create_model                = false if attribute.name == '_no_model'
+        @create_id                        = false if attribute.name == "_id" && attribute.type == :false
+      end
+      @flag_create_controller             = @flag_create_model
+      @flag_create_resource_route         = @flag_create_model
+    end
 
     def generate_model
-      @belongs_to               = "\n"
-      @has_many                 = "\n"
-      @has_one                  = "\n"
-      @habtm                    = "\n"
-      @has_attached_files       = "\n"
-      @presentation             = "\n"
-      @order                    = "\n"
-      @inline_forms_attribute_list  = String.new
+      if @flag_create_model
+        @belongs_to               = "\n"
+        @has_many                 = "\n"
+        @has_one                  = "\n"
+        @habtm                    = "\n"
+        @has_attached_files       = "\n"
+        @presentation             = "\n"
+        @order                    = "\n"
+        @inline_forms_attribute_list  = String.new
 
-      for attribute in attributes
-        if attribute.column_type  == :belongs_to # :drop_down, :references and :belongs_to all end up with the column_type :belongs_to
-          @belongs_to << '  belongs_to :'         + attribute.name + "\n"
-        end
-        if attribute.type         == :has_many ||
-           attribute.type         == :has_many_destroy
-          @has_many << '  has_many :'             + attribute.name
-          @has_many << ', :dependent => :destroy' if attribute.type == :has_many_destroy
-          @has_many << "\n"
-        end
-        if attribute.type         == :has_one
-          @has_one << '  has_one :'               + attribute.name + "\n"
-        end
-        if attribute.type         == :habtm ||
-           attribute.type         == :has_and_belongs_to_many ||
-           attribute.type         == :check_list
-          @habtm << '  has_and_belongs_to_many :' + attribute.name + "\n"
-        end
-        if attribute.type         == :image
-          @has_attached_files << "  has_attached_file :#{attribute.name},
-               :styles => { :medium => \"300x300>\", :thumb => \"100x100>\" }\n"
-        end
-        if attribute.name == '_presentation'
-          @presentation <<  "  def _presentation\n" +
-                            "    \"#{attribute.type.to_s}\"\n" +
-                            "  end\n" +
-                            "\n"
-        end
-        if attribute.name == '_order'
-          @order <<  "  def <=>(other)\n" +
-                            "    self.#{attribute.type} <=> other.#{attribute.type}\n" +
-                            "  end\n" +
-                            "\n"
-        end
-        if attribute.attribute?
-          attribute.attribute_type == :unknown ? commenter = '#' : commenter = ' '
-          @inline_forms_attribute_list << commenter +
-                                      '     [ :' +
-                                      attribute.name +
-                                      ' , "' + attribute.name +
-                                      '", :' + attribute.attribute_type.to_s +
-                                      " ], \n"
-        end
-      end
-      unless @inline_forms_attribute_list.empty?
-        @inline_forms_attribute_list =  "\n" +
-                                    "  def inline_forms_attribute_list\n" +
-                                    "    [\n" +
-                                    @inline_forms_attribute_list +
-                                    "    ]\n" +
-                                    "  end\n" +
-                                    "\n"
-      end
-      template "model.erb", "app/models/#{model_file_name}.rb"
-    end
-
-    def generate_controller
-      template "controller.erb", "app/controllers/#{controller_file_name}.rb"
-    end
-
-    def generate_route
-      route "resources :#{resource_name}"
-    end
-
-    def generate_migration
-      @columns = String.new
-
-      for attribute in attributes
-        if attribute.column_type == :image
-          @columns << '      t.string    :' + attribute.name + "_file_name\n"
-          @columns << '        t.string    :' + attribute.name + "_content_type\n"
-          @columns << '        t.integer   :' + attribute.name + "_file_size\n"
-          @columns << '        t.datetime  :' + attribute.name + "_updated_at\n"
-        else
-          if attribute.migration?
+        for attribute in attributes
+          if attribute.column_type  == :belongs_to # :drop_down, :references and :belongs_to all end up with the column_type :belongs_to
+            @belongs_to << '  belongs_to :'         + attribute.name + "\n"
+          end
+          if attribute.type         == :has_many ||
+             attribute.type         == :has_many_destroy
+            @has_many << '  has_many :'             + attribute.name
+            @has_many << ', :dependent => :destroy' if attribute.type == :has_many_destroy
+            @has_many << "\n"
+          end
+          if attribute.type         == :has_one
+            @has_one << '  has_one :'               + attribute.name + "\n"
+          end
+          if attribute.type         == :habtm ||
+             attribute.type         == :has_and_belongs_to_many ||
+             attribute.type         == :check_list
+            @habtm << '  has_and_belongs_to_many :' + attribute.name + "\n"
+          end
+          if attribute.type         == :image
+            @has_attached_files << "  has_attached_file :#{attribute.name},
+                 :styles => { :medium => \"300x300>\", :thumb => \"100x100>\" }\n"
+          end
+          if attribute.name == '_presentation'
+            @presentation <<  "  def _presentation\n" +
+                              "    \"#{attribute.type.to_s}\"\n" +
+                              "  end\n" +
+                              "\n"
+          end
+          if attribute.name == '_order'
+            @order <<  "  def <=>(other)\n" +
+                              "    self.#{attribute.type} <=> other.#{attribute.type}\n" +
+                              "  end\n" +
+                              "\n"
+          end
+          if attribute.attribute?
             attribute.attribute_type == :unknown ? commenter = '#' : commenter = ' '
-            @columns << commenter +
-                        '     t.' +
-                        attribute.column_type.to_s +
-                        " :" +
-                        attribute.name +
-                        " \n"
+            @inline_forms_attribute_list << commenter +
+                                        '     [ :' +
+                                        attribute.name +
+                                        ' , "' + attribute.name +
+                                        '", :' + attribute.attribute_type.to_s +
+                                        " ], \n"
           end
         end
+        unless @inline_forms_attribute_list.empty?
+          @inline_forms_attribute_list =  "\n" +
+                                      "  def inline_forms_attribute_list\n" +
+                                      "    [\n" +
+                                      @inline_forms_attribute_list +
+                                      "    ]\n" +
+                                      "  end\n" +
+                                      "\n"
+        end
+        template "model.erb", "app/models/#{model_file_name}.rb"
       end
-      template "migration.erb", "db/migrate/#{time_stamp}_inline_forms_create_#{table_name}.rb"
+    end
+
+    def generate_resource_route
+      route "resources :#{resource_name}" if @flag_create_resource_route
+    end 
+
+    def generate_migration
+      if @flag_create_migration
+        @columns = String.new
+
+        for attribute in attributes
+          if attribute.column_type == :image
+            @columns << '      t.string    :' + attribute.name + "_file_name\n"
+            @columns << '        t.string    :' + attribute.name + "_content_type\n"
+            @columns << '        t.integer   :' + attribute.name + "_file_size\n"
+            @columns << '        t.datetime  :' + attribute.name + "_updated_at\n"
+          else
+            if attribute.migration?
+              attribute.attribute_type == :unknown ? commenter = '#' : commenter = ' '
+              @columns << commenter +
+                          '     t.' +
+                          attribute.column_type.to_s +
+                          " :" +
+                          attribute.name +
+                          " \n"
+            end
+          end
+        end
+        template "migration.erb", "db/migrate/#{time_stamp}_inline_forms_create_#{table_name}.rb"
+      end
     end
 
     def add_tab
-      copy_file "_inline_forms_tabs.html.erb", "app/views/_inline_forms_tabs.html.erb" unless File.exists?('app/views/_inline_forms_tabs.html.erb')
-      inject_into_file "app/views/_inline_forms_tabs.html.erb",
-              "  <%= tab.#{name.underscore} '#{name}', #{name.pluralize.underscore + '_path'} %>\n",
-              :after => "<% tabs_tag :open_tabs => { :id => \"tabs\" } do |tab| %>\n"
+      unless @flag_not_accessible_through_html
+        copy_file "_inline_forms_tabs.html.erb", "app/views/_inline_forms_tabs.html.erb" unless File.exists?('app/views/_inline_forms_tabs.html.erb')
+        inject_into_file "app/views/_inline_forms_tabs.html.erb",
+                "  <%= tab.#{name.underscore} '#{name}', #{name.pluralize.underscore + '_path'} %>\n",
+                :after => "<% tabs_tag :open_tabs => { :id => \"tabs\" } do |tab| %>\n"
+      end
     end
+
+    def generate_controller
+      template "controller.erb", "app/controllers/#{controller_file_name}.rb" if @flag_create_controller
+    end 
+
 
     private
     def model_file_name

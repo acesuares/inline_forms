@@ -11,4 +11,8 @@ class <%= name %> < ActiveRecord::Base
 <%= @inline_forms_attribute_list -%>
 <%= @order  if @order.length > 1 -%>
 
+  def self.not_accessible_through_html?
+    <%= @flag_not_accessible_through_html %>
+  end
+
 end

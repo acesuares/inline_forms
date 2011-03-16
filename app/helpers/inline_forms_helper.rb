@@ -42,7 +42,8 @@ module InlineFormsHelper
   #
   def inline_forms_new_record(object, attributes=nil)
     attributes ||= object.inline_forms_attribute_list
-    out = String.new 
+    out = String.new
+    logger.info attributes.inspect
     attributes.each do | attribute, name, form_element |
       if not form_element.to_sym == :associated
         css_class_id = "attribute_#{attribute}_#{object.id}"
@@ -61,6 +62,7 @@ module InlineFormsHelper
         out += content_tag :tr, name_cell + value_cell
       end
     end
+    logger.info "return"
     return content_tag :table, raw(out), :cellspacing => 0, :cellpadding => 0
   end
 
