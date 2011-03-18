@@ -43,9 +43,8 @@ module InlineFormsHelper
   def inline_forms_new_record(object, attributes=nil)
     attributes ||= object.inline_forms_attribute_list
     out = String.new
-    logger.info attributes.inspect
     attributes.each do | attribute, name, form_element |
-      if not form_element.to_sym == :associated
+      unless form_element.to_sym == :associated #|| form_element.to_sym == :check_list
         css_class_id = "attribute_#{attribute}_#{object.id}"
         name_cell = content_tag :td, :valign=>'top' do
           content_tag :div, :class=> "attribute_name attribute_#{attribute} form_element_#{form_element}" do
@@ -62,7 +61,6 @@ module InlineFormsHelper
         out += content_tag :tr, name_cell + value_cell
       end
     end
-    logger.info "return"
     return content_tag :table, raw(out), :cellspacing => 0, :cellpadding => 0
   end
 
@@ -73,8 +71,8 @@ module InlineFormsHelper
       css_class_id = @Klass.to_s.underscore + '_' + object.id.to_s
       t += content_tag tag, :id => css_class_id do
         link_to h(object._presentation), 
-                send( @Klass.to_s.underscore + '_path', object, :update => css_class_id),
-                :remote => true
+          send( @Klass.to_s.underscore + '_path', object, :update => css_class_id),
+          :remote => true
       end
     end
     return raw(t)
@@ -83,8 +81,8 @@ module InlineFormsHelper
   # link for new item
   def inline_forms_new_record_link(text='new', update_span='inline_forms_list')
     link_to text, 
-            send('new_' + @Klass.to_s.underscore + '_path', :update => update_span),
-            :remote => true
+      send('new_' + @Klass.to_s.underscore + '_path', :update => update_span),
+      :remote => true
   end
   
   private
@@ -95,24 +93,24 @@ module InlineFormsHelper
     spaces = attribute_value.length > 40 ? 0 : 40 - attribute_value.length
     attribute_value << "&nbsp;".html_safe * spaces
     link_to attribute_value,
-            send( 'edit_' + @Klass.to_s.underscore + '_path',
-                  object,
-                  :attribute => attribute.to_s,
-                  :form_element => calling_method.sub(/_[a-z]+$/,''),
-                  :update => "attribute_#{attribute}_#{object.id}" ),
-            :remote => true
+      send( 'edit_' + @Klass.to_s.underscore + '_path',
+      object,
+      :attribute => attribute.to_s,
+      :form_element => calling_method.sub(/_[a-z]+$/,''),
+      :update => "attribute_#{attribute}_#{object.id}" ),
+      :remote => true
   end
 
   # link to inline image edit
   def link_to_inline_image_edit(object, attribute)
     text= image_tag object.send(attribute).send('url', :thumb)
     link_to text,
-            send('edit_' + @Klass.to_s.underscore + '_path',
-              object,
-              :attribute => attribute.to_s,
-              :form_element => calling_method.sub(/_[a-z]+$/,''),
-              :update => "attribute_#{attribute}_#{object.id}" ),
-            :remote => true
+      send('edit_' + @Klass.to_s.underscore + '_path',
+      object,
+      :attribute => attribute.to_s,
+      :form_element => calling_method.sub(/_[a-z]+$/,''),
+      :update => "attribute_#{attribute}_#{object.id}" ),
+      :remote => true
   end
 
   # get the values for an attribute
@@ -131,10 +129,9 @@ module InlineFormsHelper
       values.to_a.each_index do |i|
         temp << [ i, values.to_a[i] ]
       end
-    values = temp.sort {|a,b| a[1]<=>b[1]}
+      values = temp.sort {|a,b| a[1]<=>b[1]}
     end
-   logger.info values.inspect
-values
+    values
   end
 
 end

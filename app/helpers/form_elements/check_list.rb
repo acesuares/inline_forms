@@ -20,7 +20,7 @@ def check_list_edit(object, attribute)
   out << '<ul>'
   values.each do | item |
     out << '<li>'
-    out << check_box_tag( attribute + '[' + item.id.to_s + ']', 1, object.send(attribute.singularize + "_ids").include?(item.id) )
+    out << check_box_tag( attribute.to_s + '[' + item.id.to_s + ']', 1, object.send(attribute.to_s.singularize + "_ids").include?(item.id) )
     out << '<div class="edit_form_checklist_text">'
     out << h(item._presentation)
     out << '</div>'
