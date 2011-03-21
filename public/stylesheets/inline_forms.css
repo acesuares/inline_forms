@@ -28,53 +28,100 @@ a:link, a:visited, a:hover,a:active {
 h1 { border: 1px solid blue;
      color: darkblue;
 }
-#inline_form_list { 
+#inline_forms_list {
     border: 1px solid green;
     padding: 0;
     margin: 0;
     list-style-type: none;
     background-color: lightgoldenrodyellow;
 }
-#inline_form_list li.inline_form_new_item {
+#inline_forms_list li.inline_forms_new_record_link {
     padding: 0.5em;
     font-size: 200%;
 }
-#inline_form_list li.inline_form_new_item a {
+#inline_forms_list li.inline_forms_new_record_link a {
 }
-#inline_form_list li {
-    padding: 0 1em 1.5em 1em;
+#inline_forms_list li {
+    padding: 0 1em 0.5em 1em;
 }
-#inline_form_list li table {
+#inline_forms_list li table {
     border: 1px dotted darkcyan;
 }
-#inline_form_list li table tr {
+#inline_forms_list li table tr {
 }
-#inline_form_list li table tr td { 
-        padding: 0.2em 0.5em 0.2em 0.2em;
+#inline_forms_list li table tr td {
+    padding: 0.2em 0.5em 0.2em 0.2em;
     border-bottom: 1px dotted lightgrey;
 }
-#inline_form_list div.field_name{
+#inline_forms_list div.attribute_name{
     font-weight: bold;
 }
-#inline_form_list div.field_value{
+#inline_forms_list div.attribute_value{
     padding-left: 1em;
 }
-#inline_form_list div.form_element_text_field {  }
-#inline_form_list div.form_element_associated ul {
+#inline_forms_list div.form_element_text_attribute {  }
+#inline_forms_list div.form_element_associated ul {
     list-style-type: none;
     padding: 0;
     margin: 0;
 }
-#inline_form_list div.form_element_associated li {
-        padding: 0em 0.5em 0.2em 0;
+#inline_forms_list div.form_element_associated li {
+    padding: 0em 0.5em 0.2em 0;
 
 }
-#inline_form_list div.form_element_associated li a {
+#inline_forms_list div.form_element_associated li a {
     padding: 0;
     margin: 0;
 }
 
-#inline_form_list div.associated_new  { 
+#inline_forms_list div.associated_new  {
+}
+
+.attribute_text_area {
+    width: 80em;
+    height: 4em;
+}
+
+#description attribute_text_area {
+    width: 80em;
+    height: 8em;
+}
+
+.edit_form_checklist ul {
+    list-style-type: none;
+}
+
+ul.checklist {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+
+ul.checklist li {
+    margin: 0;
+    padding: 0;
+}
+
+
+.edit_form_checklist ul {
+    margin: 0;
+    padding: 0;
+}
+
+
+#inline_forms_list .edit_form_checklist ul li {
+    margin: 0;
+    padding: 0 0 0.3em 0;
+}
+
+.edit_form_checklist ul li .edit_form_checklist_text {
+    float: left;
+    padding: 0 0 0 0.2em;
+}
+
+.edit_form_checklist ul li input {
+    float: left;
+    padding: 0;
 }
 
 #tabs {
