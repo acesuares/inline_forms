@@ -8,7 +8,11 @@
       </td>
       <td valign="top">
         <div class="subform_field-value">
-          <%= send("#{@subform_element}_edit", @associated_record, @subform_field.to_s) %>
+          <% if @subform_element == :associated -%>
+            <%= inline_forms_list @associated_record.send(@subform_field) %>
+          <% else %>
+            <%= send("#{@subform_element}_edit", @associated_record, @subform_field.to_s) %>
+          <% end %>
         </div>
       </td>
     </tr>

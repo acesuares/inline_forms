@@ -100,8 +100,10 @@ class InlineFormsController < ApplicationController
     @form_element = params[:form_element]
     @sub_id = params[:sub_id]
     @update_span = params[:update]
+    logger.info @form_element.to_s
     send("#{@form_element.to_s}_update", @object, @attribute)
     @object.save
+    logger.info "after"
     respond_to do |format|
       # found this here: http://www.ruby-forum.com/topic/211467
       format.js { render(:update) {|page| page.replace_html @update_span, :inline => '<%= send("#{@form_element.to_s}_show", @object, @attribute) %>' }
@@ -118,6 +120,7 @@ class InlineFormsController < ApplicationController
     @object = @Klass.find(params[:id])
     @attribute = params[:attribute]
     @form_element = params[:form_element]
+    close = params[:close] || false
     if @form_element == "associated"
       @sub_id = params[:sub_id]
       if @sub_id.to_i > 0
@@ -130,8 +133,11 @@ class InlineFormsController < ApplicationController
       respond_to do |format|
         @attributes = @object.inline_forms_attribute_list
         # found this here: http://www.ruby-forum.com/topic/211467
-        format.js { render(:update) {|page| page.replace_html @update_span, :inline => '<%= send( "inline_forms_show_record", @object) %>' }
-        }
+        if close
+          format.js { render(:update) {|page| page.replace_html @update_span, :inline => '<%= link_to h(@object._presentation), send(@object.class.to_s.underscore + "_path", @object, :update => @update_span), :remote => true %>' } }
+        else
+          format.js { render(:update) {|page| page.replace_html @update_span, :inline => '<%= send( "inline_forms_show_record", @object) %>' } }
+        end
       end
     else
       respond_to do |format|

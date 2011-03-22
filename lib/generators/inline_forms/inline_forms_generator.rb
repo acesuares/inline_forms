@@ -55,8 +55,7 @@ module InlineForms
               name == "_presentation"       ||
               name == "_order"              ||
               name == "_enabled"            ||
-              name == "_id"                 ||
-              relation? )
+              name == "_id" )
       end
 
       def attribute?

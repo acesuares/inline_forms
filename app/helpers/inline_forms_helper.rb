@@ -15,8 +15,13 @@ module InlineFormsHelper
   def inline_forms_show_record(object, attributes=nil)
     attributes ||= object.inline_forms_attribute_list
     out = String.new
+    css_class_id = object.class.to_s.underscore + '_' + object.id.to_s
+    close_link = link_to h(object._presentation + " - CLOSE "),
+                    send( object.class.to_s.underscore + '_path', object, :update => css_class_id, :close => true ),
+                    :remote => true
+    out << close_link
     attributes.each do | attribute, name, form_element |
-      css_class_id = "attribute_#{attribute}_#{object.id}"
+      css_class_id = "#{object.class.to_s.underscore}_#{object.id}_#{attribute}"
       name_cell = content_tag :td, :valign=>'top' do
         content_tag :div, :class=> "attribute_name attribute_#{attribute} form_element_#{form_element}" do
           h(name)
@@ -44,7 +49,7 @@ module InlineFormsHelper
     attributes ||= object.inline_forms_attribute_list
     out = String.new
     attributes.each do | attribute, name, form_element |
-      unless form_element.to_sym == :associated #|| form_element.to_sym == :check_list
+      unless form_element.to_sym == :associated 
         css_class_id = "attribute_#{attribute}_#{object.id}"
         name_cell = content_tag :td, :valign=>'top' do
           content_tag :div, :class=> "attribute_name attribute_#{attribute} form_element_#{form_element}" do
@@ -64,14 +69,28 @@ module InlineFormsHelper
     return content_tag :table, raw(out), :cellspacing => 0, :cellpadding => 0
   end
 
-  # display a list of objects
+#  # display a list of objects
+#  def inline_forms_list(objects, tag=:li)
+#    t = String.new
+#    objects.each do |object|
+#      css_class_id = @Klass.to_s.underscore + '_' + object.id.to_s
+#      t += content_tag tag, :id => css_class_id do
+#        link_to h(object._presentation),
+#          send( @Klass.to_s.underscore + '_path', object, :update => css_class_id),
+#          :remote => true
+#      end
+#    end
+#    return raw(t)
+#  end
+
+  # display a list of objects without links
   def inline_forms_list(objects, tag=:li)
     t = String.new
     objects.each do |object|
-      css_class_id = @Klass.to_s.underscore + '_' + object.id.to_s
+      css_class_id = object.class.to_s.underscore + '_' + object.id.to_s
       t += content_tag tag, :id => css_class_id do
-        link_to h(object._presentation), 
-          send( @Klass.to_s.underscore + '_path', object, :update => css_class_id),
+        link_to h(object._presentation),
+          send( object.class.to_s.underscore + '_path', object, :update => css_class_id),
           :remote => true
       end
     end
@@ -92,12 +111,13 @@ module InlineFormsHelper
     attribute_value = h(attribute_value)
     spaces = attribute_value.length > 40 ? 0 : 40 - attribute_value.length
     attribute_value << "&nbsp;".html_safe * spaces
+    css_class_id = "#{object.class.to_s.underscore}_#{object.id}_#{attribute}"
     link_to attribute_value,
-      send( 'edit_' + @Klass.to_s.underscore + '_path',
+      send( 'edit_' + object.class.to_s.underscore + '_path',
       object,
       :attribute => attribute.to_s,
       :form_element => calling_method.sub(/_[a-z]+$/,''),
-      :update => "attribute_#{attribute}_#{object.id}" ),
+      :update => css_class_id ),
       :remote => true
   end
 
