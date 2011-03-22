@@ -8,11 +8,13 @@
     <%= javascript_include_tag :defaults, 'jquery.form', 'jquery.remotipart' %>
     <%= yield(:head) %>
   </head>
-<%#= calendar_date_select_includes "red" %>
   <body>
+ <%= render "inline_forms/header" %>
  <%= render "/inline_forms_tabs" %>
+    <div id="main">
     <ul id="inline_forms_list">
       <%= yield %>
     </ul>
+    </div>
   </body>
 </html>

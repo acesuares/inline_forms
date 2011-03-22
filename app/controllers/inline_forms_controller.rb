@@ -80,9 +80,13 @@ class InlineFormsController < ApplicationController
     @update_span = params[:update]
     attributes = object.inline_forms_attribute_list
     attributes.each do | name, attribute, form_element |
-      send("#{form_element.to_s}_update", object, attribute)
+      send("#{form_element.to_s}_update", object, attribute) unless form_element == :associated
     end
-    object.save
+    if object.save
+      flash[:notice] = "Successfully created product."
+    else
+      flash[:error] = "NOT Successfully created product."
+    end
     @objects = @Klass.paginate :page => params[:page], :order => 'created_at DESC'
     respond_to do |format|
       # found this here: http://www.ruby-forum.com/topic/211467

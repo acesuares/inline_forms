@@ -13,13 +13,20 @@ module InlineFormsHelper
 
   # show a record by iterating through its attribute list
   def inline_forms_show_record(object, attributes=nil)
-    attributes ||= object.inline_forms_attribute_list
     out = String.new
-    css_class_id = object.class.to_s.underscore + '_' + object.id.to_s
-    close_link = link_to h(object._presentation + " - CLOSE "),
-                    send( object.class.to_s.underscore + '_path', object, :update => css_class_id, :close => true ),
-                    :remote => true
-    out << close_link
+    name_cell = content_tag :th, :valign=>'top' do
+      content_tag :div, :class=> "object_presentation" do
+        h(object._presentation)
+      end
+    end
+    value_cell = content_tag :th, :valign=>'top' do
+      content_tag :div, :class=> "close_link" do
+        close_link(object)
+      end
+    end
+    out += content_tag :tr, name_cell + value_cell
+    out << "\n"
+    attributes ||= object.inline_forms_attribute_list
     attributes.each do | attribute, name, form_element |
       css_class_id = "#{object.class.to_s.underscore}_#{object.id}_#{attribute}"
       name_cell = content_tag :td, :valign=>'top' do
@@ -49,7 +56,7 @@ module InlineFormsHelper
     attributes ||= object.inline_forms_attribute_list
     out = String.new
     attributes.each do | attribute, name, form_element |
-      unless form_element.to_sym == :associated 
+      unless form_element.to_sym == :associated
         css_class_id = "attribute_#{attribute}_#{object.id}"
         name_cell = content_tag :td, :valign=>'top' do
           content_tag :div, :class=> "attribute_name attribute_#{attribute} form_element_#{form_element}" do
@@ -69,42 +76,42 @@ module InlineFormsHelper
     return content_tag :table, raw(out), :cellspacing => 0, :cellpadding => 0
   end
 
-#  # display a list of objects
-#  def inline_forms_list(objects, tag=:li)
-#    t = String.new
-#    objects.each do |object|
-#      css_class_id = @Klass.to_s.underscore + '_' + object.id.to_s
-#      t += content_tag tag, :id => css_class_id do
-#        link_to h(object._presentation),
-#          send( @Klass.to_s.underscore + '_path', object, :update => css_class_id),
-#          :remote => true
-#      end
-#    end
-#    return raw(t)
-#  end
-
-  # display a list of objects without links
+  # display a list of objects
   def inline_forms_list(objects, tag=:li)
     t = String.new
     objects.each do |object|
       css_class_id = object.class.to_s.underscore + '_' + object.id.to_s
-      t += content_tag tag, :id => css_class_id do
+      t += content_tag tag, :id => css_class_id, :class => cycle("odd", "even") do
         link_to h(object._presentation),
           send( object.class.to_s.underscore + '_path', object, :update => css_class_id),
           :remote => true
       end
     end
-    return raw(t)
+    t = content_tag :ul, :class => "inline_forms_list" do
+      t.html_safe
+    end
+    return t
   end
 
   # link for new item
   def inline_forms_new_record_link(text='new', update_span='inline_forms_list')
-    link_to text, 
+    link_to text,
       send('new_' + @Klass.to_s.underscore + '_path', :update => update_span),
       :remote => true
   end
   
   private
+
+  # close icon
+  def close_link( object )
+    link_to image_tag(  'css/close.png',
+      :class => "close_icon" ),
+      send( object.class.to_s.underscore + '_path',
+      object,
+      :update => object.class.to_s.underscore + '_' + object.id.to_s,
+      :close => true ),
+      :remote => true
+  end
 
   # link_to_inline_edit
   def link_to_inline_edit(object, attribute, attribute_value='')
