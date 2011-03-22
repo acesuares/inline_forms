@@ -5,7 +5,7 @@
 
 Gem::Specification.new do |s|
   s.name = %q{inline_forms}
-  s.version = "0.8.5"
+  s.version = "0.8.6"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Ace Suares"]
@@ -34,6 +34,7 @@ Gem::Specification.new do |s|
     "app/helpers/form_elements/dropdown_with_values.rb",
     "app/helpers/form_elements/geo_code_curacao.rb",
     "app/helpers/form_elements/image.rb",
+    "app/helpers/form_elements/question_list.rb",
     "app/helpers/form_elements/scale_with_integers.rb",
     "app/helpers/form_elements/scale_with_values.rb",
     "app/helpers/form_elements/text_area.rb",
