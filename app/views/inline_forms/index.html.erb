@@ -1,7 +1,0 @@
-<% flash.each do |key, value| %>
-  <div id="flash" class="flash <%= key %>"><%= value %></div>
-<% end %>
-
-<%= inline_forms_list(@objects, @Klass.to_s.pluralize) %>
-<%= will_paginate @objects %>
-<div id="paginate_info"><%= page_entries_info @objects %></div>

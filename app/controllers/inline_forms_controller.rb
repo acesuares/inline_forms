@@ -29,16 +29,21 @@ class InlineFormsController < ApplicationController
   # The link to 'new' allows you to create a new record.
   #
   def index
-    @objects = @Klass.paginate :page => params[:page], :order => 'created_at DESC'
     update_span = params[:update]
+    @parent_class = params[:parent_class]
+    if @parent_class.nil?
+      @objects = @Klass.paginate :page => params[:page], :order => 'created_at DESC'
+    else
+      @parent_id = params[:parent_id]
+      @objects = @Klass.paginate :page => params[:page], :order => 'created_at DESC', :conditions => [ "#{@parent_class.foreign_key} = ?", @parent_id ]
+    end
+
     respond_to do |format|
       # found this here: http://www.ruby-forum.com/topic/211467
-      format.html { render 'inline_forms/index', :layout => 'inline_forms' } unless @Klass.not_accessible_through_html?
-      format.js { render(:update) {|page| page.replace_html update_span, :partial => 'inline_forms/index' } }
+      format.html { render 'inline_forms/_list', :layout => 'inline_forms' } unless @Klass.not_accessible_through_html?
+      format.js { render(:update) {|page| page.replace_html update_span, :partial => 'inline_forms/list' } }
     end
   end
-
-  
 
   # :new prepares a new object, updates the entire list of objects and replaces it with a new
   # empty form. After pressing OK or Cancel, the list of objects is retrieved in the same way as :index
@@ -47,6 +52,11 @@ class InlineFormsController < ApplicationController
   def new
     @object = @Klass.new
     @update_span = params[:update]
+    @parent_class = params[:parent_class]
+    unless @parent_class.nil?
+      @parent_id = params[:parent_id]
+      @object[@parent_class.foreign_key] = @parent_id
+    end
     respond_to do |format|
       # found this here: http://www.ruby-forum.com/topic/211467
       format.js { render(:update) {|page| page.replace_html @update_span, :partial => 'inline_forms/new'}
@@ -78,19 +88,26 @@ class InlineFormsController < ApplicationController
   def create
     object = @Klass.new
     @update_span = params[:update]
+    # update each field of the record
     attributes = object.inline_forms_attribute_list
     attributes.each do | name, attribute, form_element |
       send("#{form_element.to_s}_update", object, attribute) unless form_element == :associated
     end
     if object.save
-      flash[:success] = "Successfully created #{object.class.to_s.downcase}."
+      flash.now[:success] = "Successfully created #{object.class.to_s.downcase}."
     else
-      flash[:error] = "Failed to create #{object.class.to_s.downcase}."
+      flash.now[:error] = "Failed to create #{object.class.to_s.downcase}."
     end
-    @objects = @Klass.paginate :page => params[:page], :order => 'created_at DESC'
+    @parent_class = params[:parent_class]
+    if @parent_class.nil?
+      @objects = @Klass.paginate :page => params[:page], :order => 'created_at DESC'
+    else
+      @parent_id = params[:parent_id]
+      @objects = @Klass.paginate :page => params[:page], :order => 'created_at DESC', :conditions => [ "#{@parent_class.foreign_key} = ?", @parent_id ]
+    end
     respond_to do |format|
       # found this here: http://www.ruby-forum.com/topic/211467
-      format.js { render(:update) {|page| page.replace_html @update_span, :partial => 'inline_forms/index'}
+      format.js { render(:update) {|page| page.replace_html @update_span, :partial => 'inline_forms/list'}
       }
     end
   end
@@ -104,10 +121,8 @@ class InlineFormsController < ApplicationController
     @form_element = params[:form_element]
     @sub_id = params[:sub_id]
     @update_span = params[:update]
-    logger.info @form_element.to_s
     send("#{@form_element.to_s}_update", @object, @attribute)
     @object.save
-    logger.info "after"
     respond_to do |format|
       # found this here: http://www.ruby-forum.com/topic/211467
       format.js { render(:update) {|page| page.replace_html @update_span, :inline => '<%= send("#{@form_element.to_s}_show", @object, @attribute) %>' }
@@ -138,16 +153,28 @@ class InlineFormsController < ApplicationController
         @attributes = @object.inline_forms_attribute_list
         # found this here: http://www.ruby-forum.com/topic/211467
         if close
-          format.js { render(:update) {|page| page.replace_html @update_span, :inline => '<%= link_to h(@object._presentation), send(@object.class.to_s.underscore + "_path", @object, :update => @update_span), :remote => true %>' } }
+          format.js do
+            render(:update) do |page|
+              page.replace_html @update_span, :inline => '<%= link_to h(@object._presentation), send(@object.class.to_s.underscore + "_path", @object, :update => @update_span), :remote => true %>'
+            end
+          end
         else
-          format.js { render(:update) {|page| page.replace_html @update_span, :inline => '<%= send( "inline_forms_show_record", @object) %>' } }
+          format.js do
+            render(:update) do |page|
+              page.replace_html @update_span, :partial => 'inline_forms/show'
+            end
+          end
+          #          format.js { render(:update) {|page| page.replace_html @update_span, :inline => '<%= send( "inline_forms_show_record", @object) %>' } }
         end
       end
     else
       respond_to do |format|
         # found this here: http://www.ruby-forum.com/topic/211467
-        format.js { render(:update) {|page| page.replace_html @update_span, :inline => '<%= send("#{@form_element}_show", @object, @attribute) %>' }
-        }
+        format.js do
+          render(:update) do |page|
+            page.replace_html @update_span, :inline => '<%= send("#{@form_element}_show", @object, @attribute) %>'
+          end
+        end
       end
     end
   end

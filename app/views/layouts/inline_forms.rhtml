@@ -9,12 +9,8 @@
     <%= yield(:head) %>
   </head>
   <body>
- <%= render "inline_forms/header" %>
- <%= render "/inline_forms_tabs" %>
-    <div id="main">
-    <ul id="inline_forms_list">
+    <%= render "inline_forms/header" %>
+    <%= render "/inline_forms_tabs" %>
       <%= yield %>
-    </ul>
-    </div>
   </body>
 </html>

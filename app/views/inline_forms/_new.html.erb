@@ -1,12 +1,47 @@
-<% form_tag  send(@Klass.to_s.underscore.pluralize + '_path', :update => @update_span || 'inline_forms_list' ),
+<li>
+<% form_tag  send(@Klass.to_s.underscore.pluralize + '_path', :update => @update_span,
+                                                              :parent_class => @parent_class,
+                                                              :parent_id => @parent_id ),
   :multipart => true, :remote => true, :class  => "edit_form"  do -%>
   <div class="edit_form_field">
-    <%= inline_forms_new_record @object %>
+    <table cellspacing="0" cellpadding="0">
+      <tr>
+        <th colspan="2" valign="top">
+          <div class="object_presentation" >
+            Add a new <%= @object.class.to_s.singularize.downcase -%>
+          </div>
+        </th>
+      </tr>
+      <% attributes ||= @object.inline_forms_attribute_list -%>
+      <% attributes.each do | attribute, name, form_element | -%>
+        <% unless form_element.to_sym == :associated -%>
+          <% css_class_id = "attribute_#{attribute}_#{@object.id}" -%>
+          <tr>
+            <td valign="top">
+              <div class='<%= "attribute_name attribute_#{attribute} form_element_#{form_element}" -%>' >
+                <%= h(name) -%>
+              </div>
+            </td>
+            <td valign="top">
+              <div class='<%= "attribute_value attribute_#{attribute} form_element_#{form_element}" -%>' >
+                <span id="<%= css_class_id -%>" >
+                  <%= send("#{form_element}_edit", @object, attribute) -%>
+                </span>
+              </div>
+            </td>
+          </tr>
+        <% end -%>
+      <% end -%>
+    </table>
   </div>
-  <%= link_to( send(@Klass.to_s.underscore.pluralize + '_path',:update => @update_span || 'inline_forms_list'), :remote => true,
+  <%= link_to( send(@Klass.to_s.underscore.pluralize + '_path', :update => @update_span,
+                                                                :parent_class => @parent_class,
+                                                                :parent_id => @parent_id ),
+    :remote => true,
     :class  => "edit_form_cancel" ) do  %>
     <input type="button" name="cancel" value="cancel" />
-<% end %>
+  <% end %>
   <%= submit_tag "ok", :class => "edit_form_submit"-%>
   <div style="clear: both;"></div>
-<% end -%>
+<% end %>
+</li>

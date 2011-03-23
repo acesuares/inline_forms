@@ -1,0 +1,39 @@
+<table cellspacing="0" cellpadding="0">
+  <tr>
+    <th valign="top">
+      <div class="object_presentation" >
+        <%= h(@object._presentation) -%>
+      </div>
+    </th>
+    <th valign="top">
+      <div class="close_link" >
+        <%= close_link(@object) -%>
+      </div>
+    </th>
+  </tr>
+  <% attributes ||= @object.inline_forms_attribute_list -%>
+  <% attributes.each do | attribute, name, form_element | -%>
+    <% css_class_id = "#{@object.class.to_s.underscore}_#{@object.id}_#{attribute}" -%>
+    <tr>
+      <td valign="top">
+        <div class='<%= "attribute_name attribute_#{attribute} form_element_#{form_element}" -%>' >
+          <%= h(name) -%>
+        </div>
+      </td>
+      <td valign="top">
+        <div class='<%= "attribute_value attribute_#{attribute} form_element_#{form_element}" -%>' >
+          <span id="<%= css_class_id -%>" >
+            <% if form_element == :associated -%>
+              <%= render  :partial => "inline_forms/list",
+                          :locals => {  :parent_class => @object.class,
+                                        :parent_id    => @object.id,
+                                        :attribute    => attribute } %>
+            <% else -%>
+              <%= send("#{form_element}_show", @object, attribute) -%>
+            <% end -%>
+          </span>
+        </div>
+      </td>
+    </tr>
+  <% end -%>
+</table>

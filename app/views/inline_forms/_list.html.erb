@@ -1,0 +1,70 @@
+<% flash.each do |key, value| %>
+  <div id="flash" class="flash <%= key %>"><%= value %></div>
+<% end %>
+
+<!-- purpose: list objects. we come here from #index and from #new.
+If we come here for the 'first' time, we dont' have parents; its just a list of objects.
+But if we come here because we are called from the show partial, then we have to deal wits some parent object.
+Unfortaunatlly, the way :locals work, these are local variables, like object, but if we come from a controller,
+they are @object. We need this magic here to rewrite all the @variables to variables. Ugh. -->
+
+<% ul_needed = true %>
+<% if not defined?(parent_class)  %>
+  <%   # we didn't come here via _show.html.erb %>
+  <%  if @parent_class.nil? %>
+    <% # the controller didn't give us a parent_class, this means we are here for the 'first' time  %>
+    <% # we have to rely on the @Klass set in the controller %>
+    <% update_span = @Klass.to_s.pluralize.downcase + '_list'  %>
+    <% human_readable_class = @Klass.to_s.humanize.downcase  %>
+    <% path_to_new = "new_#{@Klass.to_s.singularize.underscore}_path" %>
+    <% parent_class = nil %>
+    <% parent_id = nil  %>
+    <% objects = @objects %>
+  <% else %>
+    <% # the controller gave us an @parent_class, so ... %>
+    <% attribute = @Klass.to_s.underscore.pluralize %>
+    <% update_span = "#{@parent_class.to_s.underscore}_#{@parent_id}_#{attribute}_list" -%>
+    <% human_readable_class= attribute.to_s.singularize.humanize.downcase %>
+    <% path_to_new='new_' + attribute.to_s.underscore.singularize + '_path' %>
+    <% parent_class=@parent_class %>
+    <% parent_id=@parent_id %>
+    <% objects = @objects %>
+    <% ul_needed = false %>
+  <% end %>
+<% else %>
+  <% # here we come from _show %>
+  <% update_span = "#{parent_class.to_s.underscore}_#{parent_id}_#{attribute}_list" -%>
+  <% human_readable_class = attribute.to_s.singularize.humanize.downcase %>
+  <% path_to_new='new_' + attribute.to_s.singularize + '_path' %>
+  <% objects = parent_class.find(parent_id).send(attribute) %>
+<% end %>
+
+<% if ul_needed %>
+  <ul id="<%= update_span -%>" class="inline_forms_list">
+  <% end %>
+  <!--  # link to new -->
+  <li class="new_record_link">
+    <%= link_to "Add a new #{human_readable_class}",
+      send(path_to_new, :update       => update_span,
+      :parent_class => parent_class,
+      :parent_id    => parent_id ),
+      :remote => true -%>
+  </li>
+  <!--  # list of objects -->
+  <% for object in objects %>
+    <% if parent_class.nil?  %>
+      <% css_class_id = object.class.to_s.underscore + '_' + object.id.to_s -%>
+      <% path_to_object = object.class.to_s.underscore + '_path' %>
+    <% else %>
+      <% css_class_id = parent_class.to_s.underscore + '_' + parent_id.to_s + '_' + attribute.to_s.singularize.underscore + "_" + object.id.to_s -%>
+      <% path_to_object = attribute.to_s.singularize.underscore + "_path" %>
+    <% end %>
+    <li id="<%= css_class_id -%>" class="<%= cycle('odd', 'even') -%>" >
+      <%= link_to h(object._presentation),
+        send( path_to_object, object, :update => css_class_id),
+        :remote => true -%>
+    </li>
+  <% end -%>
+  <% if ul_needed %>
+  </ul>
+<% end %>
