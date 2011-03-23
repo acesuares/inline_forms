@@ -86,8 +86,9 @@ module InlineForms
   #   :country => [ "country", :dropdown ],
   # to the inline_forms_attribute_list in the model.
   #
-  SPECIAL_COLUMN_TYPES = {}
-
+  SPECIAL_COLUMN_TYPES = {
+    :associated => :no_migration
+  }
   # When a column has the type of :references or :belongs_to, then
   # there will be a line in the migration reflecting that, but not in the model.
   # == Why?

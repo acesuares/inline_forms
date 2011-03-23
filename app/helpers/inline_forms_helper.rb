@@ -37,7 +37,11 @@ module InlineFormsHelper
       value_cell = content_tag :td, :valign=>'top' do
         content_tag :div, :class=> "attribute_value attribute_#{attribute} form_element_#{form_element}" do
           content_tag :span, :id => css_class_id do
-            send("#{form_element}_show", object, attribute)
+            if form_element == :associated
+              inline_forms_list(object.send(attribute.to_s.pluralize), attribute )
+            else
+              send("#{form_element}_show", object, attribute)
+            end
           end
         end
       end
@@ -53,8 +57,16 @@ module InlineFormsHelper
   # associated records are NOT shown!
   #
   def inline_forms_new_record(object, attributes=nil)
-    attributes ||= object.inline_forms_attribute_list
     out = String.new
+    out += content_tag :tr do
+      content_tag :th, :colspan => 2, :valign=>'top' do
+        content_tag :div, :class=> "object_presentation" do
+          "New #{object.class.to_s}"
+        end
+      end
+    end
+    out << "\n"
+    attributes ||= object.inline_forms_attribute_list
     attributes.each do | attribute, name, form_element |
       unless form_element.to_sym == :associated
         css_class_id = "attribute_#{attribute}_#{object.id}"
@@ -77,29 +89,30 @@ module InlineFormsHelper
   end
 
   # display a list of objects
-  def inline_forms_list(objects, tag=:li)
+  def inline_forms_list(objects, attribute )
     t = String.new
+    # link to new
+    update_span = attribute.to_s.underscore + '_list'
+    t += content_tag :li, :class => "new_record_link_li" do
+      link_to "New",
+        send('new_' + attribute.to_s.singularize.underscore + '_path', :update => update_span),
+        :remote => true
+    end
+    # list of objects
     objects.each do |object|
       css_class_id = object.class.to_s.underscore + '_' + object.id.to_s
-      t += content_tag tag, :id => css_class_id, :class => cycle("odd", "even") do
+      t += content_tag :li, :id => css_class_id, :class => cycle("odd", "even") do
         link_to h(object._presentation),
           send( object.class.to_s.underscore + '_path', object, :update => css_class_id),
           :remote => true
       end
     end
-    t = content_tag :ul, :class => "inline_forms_list" do
+    t = content_tag :ul, :id => update_span, :class => "inline_forms_list" do
       t.html_safe
     end
     return t
   end
 
-  # link for new item
-  def inline_forms_new_record_link(text='new', update_span='inline_forms_list')
-    link_to text,
-      send('new_' + @Klass.to_s.underscore + '_path', :update => update_span),
-      :remote => true
-  end
-  
   private
 
   # close icon

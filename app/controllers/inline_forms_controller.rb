@@ -83,9 +83,9 @@ class InlineFormsController < ApplicationController
       send("#{form_element.to_s}_update", object, attribute) unless form_element == :associated
     end
     if object.save
-      flash[:success] = "Successfully created product."
+      flash[:success] = "Successfully created #{object.class.to_s.downcase}."
     else
-      flash[:error] = "NOT Successfully created product."
+      flash[:error] = "Failed to create #{object.class.to_s.downcase}."
     end
     @objects = @Klass.paginate :page => params[:page], :order => 'created_at DESC'
     respond_to do |format|
