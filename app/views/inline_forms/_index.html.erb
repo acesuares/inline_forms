@@ -3,8 +3,8 @@
 <% end %>
 
 <li class="inline_forms_new_record">
-  <%= inline_forms_new_record_link %>hello
+  <%= inline_forms_new_record_link %>
 </li>
 <%= inline_forms_list(@objects) %>
 <%= will_paginate @objects %>
-<%= page_entries_info @objects %>
+<div id="paginate_info"><%= page_entries_info @objects %></div>

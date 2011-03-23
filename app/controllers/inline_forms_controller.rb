@@ -83,7 +83,7 @@ class InlineFormsController < ApplicationController
       send("#{form_element.to_s}_update", object, attribute) unless form_element == :associated
     end
     if object.save
-      flash[:notice] = "Successfully created product."
+      flash[:success] = "Successfully created product."
     else
       flash[:error] = "NOT Successfully created product."
     end
