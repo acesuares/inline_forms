@@ -5,7 +5,7 @@
 
 Gem::Specification.new do |s|
   s.name = %q{inline_forms}
-  s.version = "0.9.1"
+  s.version = "0.9.2"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Ace Suares"]
@@ -25,7 +25,6 @@ Gem::Specification.new do |s|
     "Rakefile",
     "VERSION",
     "app/controllers/inline_forms_controller.rb",
-    "app/helpers/form_elements/associated.rb",
     "app/helpers/form_elements/check_box.rb",
     "app/helpers/form_elements/check_list.rb",
     "app/helpers/form_elements/date.rb",
@@ -45,7 +44,6 @@ Gem::Specification.new do |s|
     "app/views/inline_forms/_header.html.erb",
     "app/views/inline_forms/_index.html.erb",
     "app/views/inline_forms/_new.html.erb",
-    "app/views/inline_forms/_subform.html.erb",
     "app/views/inline_forms/index.html.erb",
     "app/views/layouts/inline_forms.rhtml",
     "inline_forms.gemspec",
