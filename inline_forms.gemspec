@@ -5,7 +5,7 @@
 
 Gem::Specification.new do |s|
   s.name = %q{inline_forms}
-  s.version = "0.9.2"
+  s.version = "0.9.3"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Ace Suares"]
@@ -42,9 +42,9 @@ Gem::Specification.new do |s|
     "app/models/geo_code_curacao.rb",
     "app/views/inline_forms/_edit.html.erb",
     "app/views/inline_forms/_header.html.erb",
-    "app/views/inline_forms/_index.html.erb",
+    "app/views/inline_forms/_list.html.erb",
     "app/views/inline_forms/_new.html.erb",
-    "app/views/inline_forms/index.html.erb",
+    "app/views/inline_forms/_show.html.erb",
     "app/views/layouts/inline_forms.rhtml",
     "inline_forms.gemspec",
     "lib/generators/inline_forms/USAGE",
