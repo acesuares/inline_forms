@@ -176,6 +176,18 @@ ul.checklist li {
     margin: 0.4em 1em 0.4em 1em;
 }
 
+#title {
+    float: left;
+}
+
+#logout {
+    float:right;
+}
+
+#logout a {
+    color: white;
+}
+
 #tabs {
     background-color: #F9EBAE;
     -moz-border-radius: 5px;

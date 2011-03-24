@@ -10,13 +10,13 @@ module InlineFormsHelper
 
   private
 
-  # close icon
-  def close_link( object )
+  # close link
+  def close_link( object, update_span )
     link_to image_tag(  'css/close.png',
       :class => "close_icon" ),
       send( object.class.to_s.underscore + '_path',
       object,
-      :update => object.class.to_s.underscore + '_' + object.id.to_s,
+      :update => update_span,
       :close => true ),
       :remote => true
   end
