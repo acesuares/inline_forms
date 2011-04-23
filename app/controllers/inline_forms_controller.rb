@@ -90,13 +90,13 @@ class InlineFormsController < ApplicationController
     @update_span = params[:update]
     # update each field of the record
     attributes = object.inline_forms_attribute_list
-    attributes.each do | name, attribute, form_element |
+    attributes.each do | attribute, name, form_element |
       send("#{form_element.to_s}_update", object, attribute) unless form_element == :associated
     end
     if object.save
-      flash.now[:success] = "Successfully created #{object.class.to_s.downcase}."
+      flash.now[:success] = "Successfully created #{object.class.to_s.underscore}."
     else
-      flash.now[:error] = "Failed to create #{object.class.to_s.downcase}."
+      flash.now[:error] = "Failed to create #{object.class.to_s.underscore}."
     end
     @parent_class = params[:parent_class]
     if @parent_class.nil?

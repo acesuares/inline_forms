@@ -6,7 +6,7 @@ def image_show(object, attribute)
 end
 
 def image_edit(object, attribute)
-  file_attribute object.class.to_s.downcase, attribute
+  file_attribute object.class.to_s.underscore, attribute
 end
 
 def image_update(object, attribute)

@@ -24,11 +24,13 @@
         <div class='<%= "attribute_value attribute_#{attribute} form_element_#{form_element}" -%>' >
           <span id="<%= css_class_id -%>" >
             <% if form_element == :associated -%>
+            <% logger.info 'aso' %>
               <%= render  :partial => "inline_forms/list",
                           :locals => {  :parent_class => @object.class,
                                         :parent_id    => @object.id,
                                         :attribute    => attribute } %>
             <% else -%>
+            <% logger.info 'noaso' %>
               <%= send("#{form_element}_show", @object, attribute) -%>
             <% end -%>
           </span>
