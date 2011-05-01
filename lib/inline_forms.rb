@@ -36,8 +36,8 @@ module InlineForms
     :date       => :date,
     :binary     => :binary,
     :boolean    => :boolean,
-  # :references => :belongs_to,
-  # :belongs_to => :belongs_to,
+    # :references => :belongs_to,
+    # :belongs_to => :belongs_to,
   }
 
   # For each Default Column Type, we need to specify a Form Element for use in form creation.
