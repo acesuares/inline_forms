@@ -43,13 +43,7 @@ they are @object. We need this magic here to rewrite all the @variables to varia
   <ul id="<%= update_span -%>" class="inline_forms_list">
   <% end %>
   <!--  # link to new -->
-  <li class="new_record_link">
-    <%= link_to "Add a new #{human_readable_class}",
-      send(path_to_new, :update       => update_span,
-      :parent_class => parent_class,
-      :parent_id    => parent_id ),
-      :remote => true -%>
-  </li>
+  <%= link_to_new_record("Add a new #{human_readable_class}", objects.first.class.name, path_to_new, update_span, parent_class, parent_id) -%>
   <!--  # list of objects -->
   <% for object in objects %>
     <% if parent_class.nil?  %>

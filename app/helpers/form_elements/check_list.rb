@@ -15,7 +15,11 @@ end
 
 def check_list_edit(object, attribute)
   object.send(attribute).build  if object.send(attribute).empty?
-  values = object.send(attribute).first.class.name.constantize.find(:all) # TODO bring order
+  if cancan_enabled?
+    values = object.send(attribute).first.class.name.constantize.accessible_by(current_ability) # TODO bring order!
+  else
+    values = object.send(attribute).first.class.name.constantize.all # TODO bring order!
+  end
   out = '<div class="edit_form_checklist">'
   out << '<ul>'
   values.each do | item |
@@ -34,6 +38,6 @@ end
 
 def check_list_update(object, attribute)
   params[attribute] ||= {}
-  object.send(attribute.singularize + '_ids=', params[attribute].keys)
+  object.send(attribute.to_s.singularize + '_ids=', params[attribute].keys)
 end
 

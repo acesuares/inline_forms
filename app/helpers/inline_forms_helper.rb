@@ -1,5 +1,4 @@
 module InlineFormsHelper
-
   # load form elements. Each element goes into a separate file
   # and defines a _show, _edit and _update method.
   #
@@ -27,6 +26,7 @@ module InlineFormsHelper
     spaces = attribute_value.length > 40 ? 0 : 40 - attribute_value.length
     attribute_value << "&nbsp;".html_safe * spaces
     css_class_id = "#{object.class.to_s.underscore}_#{object.id}_#{attribute}"
+    if cancan_disabled? || ( can? :update, object )
     link_to attribute_value,
       send( 'edit_' + object.class.to_s.underscore + '_path',
       object,
@@ -34,6 +34,9 @@ module InlineFormsHelper
       :form_element => calling_method.sub(/_[a-z]+$/,''),
       :update => css_class_id ),
       :remote => true
+    else
+    attribute_value
+    end
   end
 
   # link to inline image edit
@@ -47,6 +50,16 @@ module InlineFormsHelper
       :update => "attribute_#{attribute}_#{object.id}" ),
       :remote => true
   end
+
+  def link_to_new_record(text, model, path_to_new, update_span, parent_class, parent_id)
+    out = ""
+    out << "<li class='new_record_link'>"
+    out << (link_to text, send(path_to_new, :update => update_span, :parent_class => parent_class, :parent_id => parent_id ), :remote => true)
+    out << "</li>"
+    ""
+    raw out if cancan_disabled? || ( can? :create, model.constantize )
+  end
+
 
   # get the values for an attribute
   #

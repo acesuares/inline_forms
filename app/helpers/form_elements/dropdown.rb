@@ -8,7 +8,11 @@ end
 
 def dropdown_edit(object, attribute)
   object.send('build_' + attribute.to_s) unless object.send(attribute)
-  values = object.send(attribute).class.name.constantize.find(:all) # TODO bring order!
+  if cancan_enabled?
+    values = object.send(attribute).class.name.constantize.accessible_by(current_ability) # TODO bring order!
+  else
+    values = object.send(attribute).class.name.constantize.all # TODO bring order!
+  end
   # the leading underscore is to avoid name conflicts, like 'email' and 'email_type' will result in 'email' and 'email[email_type_id]' in the form!
   collection_select( ('_' + object.class.to_s.underscore).to_sym, attribute.to_s.foreign_key.to_sym, values, 'id', '_presentation', :selected => object.send(attribute).id)
 end

@@ -22,6 +22,27 @@
 #
 class InlineFormsController < ApplicationController
   before_filter :getKlass
+
+  def self.cancan_enabled?
+    begin
+      ::Ability && true
+    rescue NameError
+      false
+    end
+  end
+
+  def cancan_enabled?
+    self.class.cancan_enabled?
+  end
+
+  def cancan_disabled?
+    ! self.class.cancan_enabled?
+  end
+
+  helper_method :cancan_disabled?, :cancan_enabled?
+
+  load_and_authorize_resource if cancan_enabled?
+
   include InlineFormsHelper
 
   # shows a list of all objects from class @Klass, using will_paginate
@@ -31,11 +52,12 @@ class InlineFormsController < ApplicationController
   def index
     update_span = params[:update]
     @parent_class = params[:parent_class]
-    if @parent_class.nil?
-      @objects = @Klass.paginate :page => params[:page], :order => 'created_at DESC'
+    @parent_id = params[:parent_id]
+    @parent_class.nil? ? conditions = [] : conditions =  [ "#{@parent_class.foreign_key} = ?", @parent_id ]
+    if cancan_enabled?
+      @objects = @Klass.accessible_by(current_ability).paginate :page => params[:page], :order => 'created_at DESC', :conditions => conditions
     else
-      @parent_id = params[:parent_id]
-      @objects = @Klass.paginate :page => params[:page], :order => 'created_at DESC', :conditions => [ "#{@parent_class.foreign_key} = ?", @parent_id ]
+      @objects = @Klass.paginate :page => params[:page], :order => 'created_at DESC', :conditions => conditions
     end
 
     respond_to do |format|
@@ -99,12 +121,14 @@ class InlineFormsController < ApplicationController
       flash.now[:error] = "Failed to create #{object.class.to_s.underscore}."
     end
     @parent_class = params[:parent_class]
-    if @parent_class.nil?
-      @objects = @Klass.paginate :page => params[:page], :order => 'created_at DESC'
+    @parent_id = params[:parent_id]
+    @parent_class.nil? ? conditions = [] : conditions =  [ "#{@parent_class.foreign_key} = ?", @parent_id ]
+    if cancan_enabled?
+      @objects = @Klass.accessible_by(current_ability).paginate :page => params[:page], :order => 'created_at DESC', :conditions => conditions
     else
-      @parent_id = params[:parent_id]
-      @objects = @Klass.paginate :page => params[:page], :order => 'created_at DESC', :conditions => [ "#{@parent_class.foreign_key} = ?", @parent_id ]
+      @objects = @Klass.paginate :page => params[:page], :order => 'created_at DESC', :conditions => conditions
     end
+
     respond_to do |format|
       # found this here: http://www.ruby-forum.com/topic/211467
       format.js { render(:update) {|page| page.replace_html @update_span, :partial => 'inline_forms/list'}
@@ -190,9 +214,11 @@ class InlineFormsController < ApplicationController
   #    redirect_to(@Klass.constantizes_url)
   #  end
 
+
   private
   # Get the class from the controller name.
   def getKlass #:doc:
     @Klass = self.controller_name.classify.constantize
   end
+
 end
