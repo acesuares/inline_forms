@@ -55,9 +55,9 @@ class InlineFormsController < ApplicationController
     @parent_id = params[:parent_id]
     @parent_class.nil? ? conditions = [] : conditions =  [ "#{@parent_class.foreign_key} = ?", @parent_id ]
     if cancan_enabled?
-      @objects = @Klass.accessible_by(current_ability).paginate :page => params[:page], :order => 'created_at DESC', :conditions => conditions
+      @objects = @Klass.accessible_by(current_ability).order(@Klass.order_by_clause).paginate :page => params[:page], :conditions => conditions
     else
-      @objects = @Klass.paginate :page => params[:page], :order => 'created_at DESC', :conditions => conditions
+      @objects = @Klass.order(@Klass.order_by_clause).paginate :page => params[:page], :conditions => conditions
     end
 
     respond_to do |format|
@@ -124,9 +124,9 @@ class InlineFormsController < ApplicationController
     @parent_id = params[:parent_id]
     @parent_class.nil? ? conditions = [] : conditions =  [ "#{@parent_class.foreign_key} = ?", @parent_id ]
     if cancan_enabled?
-      @objects = @Klass.accessible_by(current_ability).paginate :page => params[:page], :order => 'created_at DESC', :conditions => conditions
+      @objects = @Klass.accessible_by(current_ability).order(@Klass.order_by_clause).paginate :page => params[:page], :conditions => conditions
     else
-      @objects = @Klass.paginate :page => params[:page], :order => 'created_at DESC', :conditions => conditions
+      @objects = @Klass.order(@Klass.order_by_clause).paginate :page => params[:page], :conditions => conditions
     end
 
     respond_to do |format|

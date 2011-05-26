@@ -16,9 +16,9 @@ end
 def check_list_edit(object, attribute)
   object.send(attribute).build  if object.send(attribute).empty?
   if cancan_enabled?
-    values = object.send(attribute).first.class.name.constantize.accessible_by(current_ability) # TODO bring order!
+    values = object.send(attribute).first.class.name.constantize.accessible_by(current_ability).order(@Klass.order_by_clause)
   else
-    values = object.send(attribute).first.class.name.constantize.all # TODO bring order!
+    values = object.send(attribute).first.class.name.constantize.order(@Klass.order_by_clause)
   end
   out = '<div class="edit_form_checklist">'
   out << '<ul>'

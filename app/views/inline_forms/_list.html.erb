@@ -36,7 +36,14 @@ they are @object. We need this magic here to rewrite all the @variables to varia
   <% update_span = "#{parent_class.to_s.underscore}_#{parent_id}_#{attribute}_list" -%>
   <% human_readable_class = attribute.to_s.singularize.humanize.downcase %>
   <% path_to_new='new_' + attribute.to_s.singularize + '_path' %>
-  <% objects = parent_class.find(parent_id).send(attribute) %>
+  <% conditions =  [ "#{parent_class.name.foreign_key} = ?", parent_id ] %>
+
+  <% if cancan_enabled? %>
+    <% objects = parent_class.find(parent_id).send(attribute).accessible_by(current_ability).order(@Klass.order_by_clause).paginate  :page => params[:page], :conditions => conditions %>
+  <% else %>
+    <% objects = parent_class.find(parent_id).send(attribute).order(@Klass.order_by_clause).paginate :page => params[:page], :conditions => conditions %>
+  <% end %>
+
 <% end %>
 
 <% if ul_needed %>
@@ -59,6 +66,8 @@ they are @object. We need this magic here to rewrite all the @variables to varia
         :remote => true -%>
     </li>
   <% end -%>
+    <%= logger.info "*************" + objects.first.class.name %>
+<%= will_paginate objects, :params => {:update => "#{parent_class.to_s.underscore}_#{parent_id}_#{attribute}", "data-remote" => true }  %>
   <% if ul_needed %>
   </ul>
 <% end %>
