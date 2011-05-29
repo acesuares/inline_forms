@@ -53,6 +53,7 @@ class InlineFormsController < ApplicationController
     update_span = params[:update]
     @parent_class = params[:parent_class]
     @parent_id = params[:parent_id]
+    @ul_needed = params[:ul_needed]
     @parent_class.nil? ? conditions = [] : conditions =  [ "#{@parent_class.foreign_key} = ?", @parent_id ]
     if cancan_enabled?
       @objects = @Klass.accessible_by(current_ability).order(@Klass.order_by_clause).paginate :page => params[:page], :conditions => conditions
