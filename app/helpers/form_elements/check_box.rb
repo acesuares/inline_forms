@@ -1,7 +1,7 @@
 InlineForms::SPECIAL_COLUMN_TYPES[:check_box]=:boolean
 # boolean, bit unaptly named check_box
 def check_box_show(object, attribute)
-  values ||= { 'false' => 'no', 'true' => 'yes' }
+  values = attribute_values(object, attribute)
   link_to_inline_edit object, attribute, values[object.send(attribute).to_s]
 end
 
