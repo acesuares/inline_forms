@@ -39,9 +39,9 @@ they are @object. We need this magic here to rewrite all the @variables to varia
   <% conditions =  [ "#{parent_class.name.foreign_key} = ?", parent_id ] %>
 
   <% if cancan_enabled? %>
-    <% objects = parent_class.find(parent_id).send(attribute).accessible_by(current_ability).order(@Klass.order_by_clause).paginate  :page => params[:page], :conditions => conditions %>
+    <% objects = parent_class.find(parent_id).send(attribute).accessible_by(current_ability).order(attribute.to_s.singularize.camelcase.constantize.order_by_clause).paginate  :page => params[:page], :conditions => conditions %>
   <% else %>
-    <% objects = parent_class.find(parent_id).send(attribute).order(@Klass.order_by_clause).paginate :page => params[:page], :conditions => conditions %>
+    <% objects = parent_class.find(parent_id).send(attribute).order(attribute.to_s.singularize.camelcase.constantize.order_by_clause).paginate :page => params[:page], :conditions => conditions %>
   <% end %>
 
 <% end %>

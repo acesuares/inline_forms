@@ -111,19 +111,19 @@ class InlineFormsController < ApplicationController
   def create
     object = @Klass.new
     @update_span = params[:update]
-    # update each field of the record
     attributes = object.inline_forms_attribute_list
     attributes.each do | attribute, name, form_element |
       send("#{form_element.to_s}_update", object, attribute) unless form_element == :associated
     end
+    @parent_class = params[:parent_class]
+    @parent_id = params[:parent_id]
+    @parent_class.nil? ? conditions = [] : conditions =  [ "#{@parent_class.foreign_key} = ?", @parent_id ]
+    object[@parent_class.foreign_key] = @parent_id unless @parent_class.nil?
     if object.save
       flash.now[:success] = "Successfully created #{object.class.to_s.underscore}."
     else
       flash.now[:error] = "Failed to create #{object.class.to_s.underscore}."
     end
-    @parent_class = params[:parent_class]
-    @parent_id = params[:parent_id]
-    @parent_class.nil? ? conditions = [] : conditions =  [ "#{@parent_class.foreign_key} = ?", @parent_id ]
     if cancan_enabled?
       @objects = @Klass.accessible_by(current_ability).order(@Klass.order_by_clause).paginate :page => params[:page], :conditions => conditions
     else
