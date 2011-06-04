@@ -70,9 +70,20 @@ module InlineFormsHelper
   # or a Range
   #
   def attribute_values(object, attribute)
+    # if we have a range 1..6  will result in [[0,1],[1,2],[2,3],...,[5,6]]
+    # or range -3..3 will result in [[0,-3],[1,-2],[2,-1],...,[6,3]]
+    # if we have an array ['a','d','b'] will result in [[0,'a'],[2,'b'],[1,'d']] (sorted on value)
+    # if we have a hash { 0=>'a', 2=>'b', 3=>'d' } will result in [[0,'a'],[2,'b'],[3,'d']] (it will keep the index and sort on the index)
+    # TODO work this out better!
     values = object.inline_forms_attribute_list.assoc(attribute.to_sym)[3]
     raise "No Values defined in #{@Klass}, #{attribute}" if values.nil?
-    unless values.is_a?(Hash)
+    if values.is_a?(Hash)
+      temp = Array.new
+      values.to_a.each do |k,v|
+        temp << [ k, v ]
+      end
+      values = temp.sort {|a,b| a[0]<=>b[0]}
+    else
       temp = Array.new
       values.to_a.each_index do |i|
         temp << [ i, values.to_a[i] ]

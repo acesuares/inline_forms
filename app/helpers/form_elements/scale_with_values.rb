@@ -6,7 +6,7 @@ InlineForms::SPECIAL_COLUMN_TYPES[:scale_with_values]=:integer
 # values must be a hash { integer => string, ... } or an one-dimensional array of strings
 def scale_with_values_show(object, attribute)
   values = attribute_values(object, attribute)
-  link_to_inline_edit object, attribute, values[object.send(attribute)]
+  link_to_inline_edit object, attribute, values[object.send(attribute)][1]
 end
 
 def scale_with_values_edit(object, attribute)
