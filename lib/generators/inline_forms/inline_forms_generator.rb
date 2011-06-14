@@ -150,7 +150,7 @@ module InlineForms
         unless @inline_forms_attribute_list.empty?
           @inline_forms_attribute_list =  "\n" +
                                       "  def inline_forms_attribute_list\n" +
-                                      "    [\n" +
+                                      "    @inline_forms_attribute_list ||= [\n" +
                                       @inline_forms_attribute_list +
                                       "    ]\n" +
                                       "  end\n" +
