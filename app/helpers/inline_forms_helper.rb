@@ -57,7 +57,7 @@ module InlineFormsHelper
     out << (link_to text, send(path_to_new, :update => update_span, :parent_class => parent_class, :parent_id => parent_id ), :remote => true)
     out << "</li>"
     ""
-    raw out if cancan_disabled? || ( can? :create, model.constantize )
+    raw out if cancan_disabled? || ( can? :manage, parent_class.nil? ? Client : parent_class.find(parent_id) )
   end
 
 
