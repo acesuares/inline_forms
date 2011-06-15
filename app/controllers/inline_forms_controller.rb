@@ -54,13 +54,16 @@ class InlineFormsController < ApplicationController
     @parent_class = params[:parent_class]
     @parent_id = params[:parent_id]
     @ul_needed = params[:ul_needed]
-    @parent_class.nil? ? conditions = ["name like ?", "%#{params[:search]}%" ] : conditions =  [ "name like ? AND #{@parent_class.foreign_key} = ?", "%#{params[:search]}%" , @parent_id ]
+    if @Klass.new.respond_to? :name
+      @parent_class.nil? ? conditions = ["name like ?", "%#{params[:search]}%" ] : conditions =  [ "name like ? AND #{@parent_class.foreign_key} = ?", "%#{params[:search]}%" , @parent_id ]
+    else
+      @parent_class.nil? ? conditions = [] : conditions =  [ "#{@parent_class.foreign_key} = ?", @parent_id ]
+    end
     if cancan_enabled?
       @objects = @Klass.accessible_by(current_ability).order(@Klass.order_by_clause).paginate :page => params[:page], :conditions => conditions
     else
       @objects = @Klass.order(@Klass.order_by_clause).paginate :page => params[:page], :conditions => conditions
     end
-
     respond_to do |format|
       # found this here: http://www.ruby-forum.com/topic/211467
       format.html { render 'inline_forms/_list', :layout => 'inline_forms' } unless @Klass.not_accessible_through_html?
@@ -117,7 +120,11 @@ class InlineFormsController < ApplicationController
     end
     @parent_class = params[:parent_class]
     @parent_id = params[:parent_id]
-    @parent_class.nil? ? conditions = ["name like ?", "%#{params[:search]}%" ] : conditions =  [ "name like ? AND #{@parent_class.foreign_key} = ?", "%#{params[:search]}%" , @parent_id ]
+    if object.respond_to? :name
+      @parent_class.nil? ? conditions = ["name like ?", "%#{params[:search]}%" ] : conditions =  [ "name like ? AND #{@parent_class.foreign_key} = ?", "%#{params[:search]}%" , @parent_id ]
+    else
+      @parent_class.nil? ? conditions = [] : conditions =  [ "#{@parent_class.foreign_key} = ?", @parent_id ]
+    end
     object[@parent_class.foreign_key] = @parent_id unless @parent_class.nil?
     if object.save
       flash.now[:success] = "Successfully created #{object.class.to_s.underscore}."
