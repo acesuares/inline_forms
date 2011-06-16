@@ -4,6 +4,7 @@ def text_area_show(object, attribute)
   if defined? Ckeditor
     link_to_inline_edit object,
       attribute,
+      '<div class="ckeditor_area">'.html_safe +
       ckeditor_textarea(
         object.class,
         attribute,
@@ -17,7 +18,9 @@ def text_area_show(object, attribute)
           :resize_enabled => "false",
           :toolbarCanCollapse => "false"
         }
-      )
+    ) +
+      '<img class="glass_plate" src="images/glass_plate.gif" />'.html_safe +
+      '</div>'.html_safe
   else
     link_to_inline_edit object, attribute, object[attribute]
   end

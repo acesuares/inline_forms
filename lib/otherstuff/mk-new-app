@@ -1,0 +1,24 @@
+#/bin/bash
+APPNAME=$1
+echo "working directory is now `pwd`"
+rails new $APPNAME
+cat database.yml | sed "s/APPNAME/$APPNAME/g" > $APPNAME/config/database.yml
+cp -v Gemfile $APPNAME
+cd $APPNAME
+echo "working directory is now `pwd`"
+bundle install
+#echo devise:install
+#rails g devise:install
+#echo devise User
+#rails g devise User
+echo generator for jquery...
+rails g jquery:install --ui -f
+echo generator for remotipart...
+rails g remotipart -f
+cd public/javascripts
+echo "working directory is now `pwd`"
+rm -v rails.js
+wget --no-check-certificate https://github.com/malsup/form/raw/master/jquery.form.js
+wget --no-check-certificate https://github.com/JangoSteve/jquery-ujs/raw/remotipart-2-compatible/src/rails.js
+cd -
+echo "working directory is now `pwd`"

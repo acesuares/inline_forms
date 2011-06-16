@@ -323,3 +323,19 @@ ul.checklist li {
     padding: 0.7em;
     margin-bottom: 0.5em;
 }
+
+.ckeditor_area {
+    position: relative;
+}
+
+.ckeditor_area .glass_plate {
+    position: absolute;
+    top: -1px;
+    width: 100%;
+    height: 232px;
+    border: 0;
+}
+
+.ckeditor_area .cke_top, .ckeditor_area .cke_bottom, .ckeditor_area .cke_border {
+    display: none;
+}

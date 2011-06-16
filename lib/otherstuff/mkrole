@@ -1,0 +1,7 @@
+rails g inline_forms Role \
+        name:string \
+        active:check_box \
+        _enabled:yes \
+        _presentation:'#{name}' \
+        _order:name -f
+
