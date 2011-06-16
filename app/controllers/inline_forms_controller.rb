@@ -54,11 +54,9 @@ class InlineFormsController < ApplicationController
     @parent_class = params[:parent_class]
     @parent_id = params[:parent_id]
     @ul_needed = params[:ul_needed]
-    if @Klass.new.respond_to? :name
-      @parent_class.nil? ? conditions = ["name like ?", "%#{params[:search]}%" ] : conditions =  [ "name like ? AND #{@parent_class.foreign_key} = ?", "%#{params[:search]}%" , @parent_id ]
-    else
-      @parent_class.nil? ? conditions = [] : conditions =  [ "#{@parent_class.foreign_key} = ?", @parent_id ]
-    end
+    # if the parent_class is not nill, we are in associated list and we don't search there.
+    # also, make sure the Model that you want to do a search on has a :name attribute. TODO
+    @parent_class.nil? ? conditions = ["name like ?", "%#{params[:search]}%" ] : conditions =  [ "#{@parent_class.foreign_key} = ?", @parent_id ]
     if cancan_enabled?
       @objects = @Klass.accessible_by(current_ability).order(@Klass.order_by_clause).paginate :page => params[:page], :conditions => conditions
     else
@@ -120,11 +118,8 @@ class InlineFormsController < ApplicationController
     end
     @parent_class = params[:parent_class]
     @parent_id = params[:parent_id]
-    if object.respond_to? :name
-      @parent_class.nil? ? conditions = ["name like ?", "%#{params[:search]}%" ] : conditions =  [ "name like ? AND #{@parent_class.foreign_key} = ?", "%#{params[:search]}%" , @parent_id ]
-    else
-      @parent_class.nil? ? conditions = [] : conditions =  [ "#{@parent_class.foreign_key} = ?", @parent_id ]
-    end
+    # for the logic behind the :conditions see the #index method.
+    @parent_class.nil? ? conditions = ["name like ?", "%#{params[:search]}%" ] : conditions =  [ "#{@parent_class.foreign_key} = ?", @parent_id ]
     object[@parent_class.foreign_key] = @parent_id unless @parent_class.nil?
     if object.save
       flash.now[:success] = "Successfully created #{object.class.to_s.underscore}."
