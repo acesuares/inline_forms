@@ -124,7 +124,10 @@ class InlineFormsController < ApplicationController
     if object.save
       flash.now[:success] = "Successfully created #{object.class.to_s.underscore}."
     else
-      flash.now[:error] = "Failed to create #{object.class.to_s.underscore}."
+      flash.now[:error] = "Failed to create #{object.class.to_s.underscore}.".html_safe
+      object.errors.each do |e|
+        flash.now[:error] << '<br />'.html_safe + e[0].to_s + ": " + e[1]
+      end
     end
     if cancan_enabled?
       @objects = @Klass.accessible_by(current_ability).order(@Klass.order_by_clause).paginate :page => params[:page], :conditions => conditions

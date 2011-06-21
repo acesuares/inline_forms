@@ -31,7 +31,7 @@ def text_area_edit(object, attribute)
     ckeditor_textarea(
       object.class,
       attribute,
-      :value => object[attribute],
+      :value => object.nil? ? "" : object[attribute],
       :id => "textarea_#{object.class.name.underscore}_#{object.id}_#{attribute.to_s}",
       :width => '100%',
       :height => '200px',
