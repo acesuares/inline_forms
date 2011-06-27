@@ -27,29 +27,29 @@ module InlineFormsHelper
     attribute_value << "&nbsp;".html_safe * spaces
     css_class_id = "#{object.class.to_s.underscore}_#{object.id}_#{attribute}"
     if cancan_disabled? || ( can? :update, object )
-    link_to attribute_value,
-      send( 'edit_' + object.class.to_s.underscore + '_path',
-      object,
-      :attribute => attribute.to_s,
-      :form_element => calling_method.sub(/_[a-z]+$/,''),
-      :update => css_class_id ),
-      :remote => true
+      link_to attribute_value,
+        send( 'edit_' + object.class.to_s.underscore + '_path',
+        object,
+        :attribute => attribute.to_s,
+        :form_element => calling_method.sub(/_[a-z]+$/,''),
+        :update => css_class_id ),
+        :remote => true
     else
-    attribute_value
+      attribute_value
     end
   end
 
   # link to inline image edit
-  def link_to_inline_image_edit(object, attribute)
-    text= image_tag object.send(attribute).send('url', :thumb)
-    link_to text,
-      send('edit_' + @Klass.to_s.underscore + '_path',
-      object,
-      :attribute => attribute.to_s,
-      :form_element => calling_method.sub(/_[a-z]+$/,''),
-      :update => "attribute_#{attribute}_#{object.id}" ),
-      :remote => true
-  end
+  #  def link_to_inline_image_edit(object, attribute)
+  #    text= image_tag object.send(attribute).send('url', :thumb)
+  #    link_to text,
+  #      send('edit_' + @Klass.to_s.underscore + '_path',
+  #      object,
+  #      :attribute => attribute.to_s,
+  #      :form_element => calling_method.sub(/_[a-z]+$/,''),
+  #      :update => "attribute_#{attribute}_#{object.id}" ),
+  #      :remote => true
+  #  end
 
   def link_to_new_record(text, model, path_to_new, update_span, parent_class, parent_id)
     out = ""
@@ -57,9 +57,16 @@ module InlineFormsHelper
     out << (link_to text, send(path_to_new, :update => update_span, :parent_class => parent_class, :parent_id => parent_id ), :remote => true)
     out << "</li>"
     ""
-    raw out if cancan_disabled? || ( can? :manage, parent_class.nil? ? Client : parent_class.find(parent_id) )
+    if cancan_enabled?
+      if can?(:manage, model.constantize)
+        if parent_class.nil?
+          raw out
+        else
+          raw out if can?(:update, parent_class.find(parent_id))
+        end
+      end
+    end
   end
-
 
   # get the values for an attribute
   #

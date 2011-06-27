@@ -25,6 +25,8 @@
   <body>
     <%= render "inline_forms/header" %>
     <%= render "/inline_forms_tabs" %>
-    <%= yield %>
+    <div id="inline_forms_main_list">
+      <%= yield %>
+    </div>
   </body>
 </html>

@@ -6,10 +6,11 @@ def datetime_select_show(object, attribute)
 end
 
 def datetime_select_edit(object, attribute)
-  out = text_field_tag attribute, object[attribute]
+  css_id = 'datepicker_' + object.class.to_s.underscore + '_' + object.id.to_s + '_' + attribute
+  out = text_field_tag attribute, object[attribute], :id => css_id
   out << '<SCRIPT>'.html_safe
   out << "$(function() { ".html_safe
-  out << '$("#'.html_safe + attribute.to_s.html_safe + '").datepicker();'.html_safe
+  out << '$("#'.html_safe + css_id.html_safe + '").datepicker();'.html_safe
   out << '});'.html_safe
   out << '</SCRIPT>'.html_safe
   return out

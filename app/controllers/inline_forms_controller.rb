@@ -123,22 +123,26 @@ class InlineFormsController < ApplicationController
     object[@parent_class.foreign_key] = @parent_id unless @parent_class.nil?
     if object.save
       flash.now[:success] = "Successfully created #{object.class.to_s.underscore}."
+      if cancan_enabled?
+        @objects = @Klass.accessible_by(current_ability).order(@Klass.order_by_clause).paginate :page => params[:page], :conditions => conditions
+      else
+        @objects = @Klass.order(@Klass.order_by_clause).paginate :page => params[:page], :conditions => conditions
+      end
+      respond_to do |format|
+        # found this here: http://www.ruby-forum.com/topic/211467
+        format.js { render(:update) {|page| page.replace_html @update_span, :partial => 'inline_forms/list'}
+        }
+      end
     else
       flash.now[:error] = "Failed to create #{object.class.to_s.underscore}.".html_safe
       object.errors.each do |e|
         flash.now[:error] << '<br />'.html_safe + e[0].to_s + ": " + e[1]
       end
-    end
-    if cancan_enabled?
-      @objects = @Klass.accessible_by(current_ability).order(@Klass.order_by_clause).paginate :page => params[:page], :conditions => conditions
-    else
-      @objects = @Klass.order(@Klass.order_by_clause).paginate :page => params[:page], :conditions => conditions
-    end
-
-    respond_to do |format|
-      # found this here: http://www.ruby-forum.com/topic/211467
-      format.js { render(:update) {|page| page.replace_html @update_span, :partial => 'inline_forms/list'}
-      }
+      respond_to do |format|
+        @object = object
+        format.js { render(:update) {|page| page.replace_html @update_span, :partial => 'inline_forms/new'}
+        }
+      end
     end
   end
   # :update updates a specific attribute from an object.

@@ -1,5 +1,9 @@
 <% flash.each do |key, value| %>
   <div id="flash" class="flash <%= key %>"><%= value %></div>
+  <script type="text/javascript">
+    $(function() { $("#flash").delay(1000).fadeToggle('2000'); } );
+  </script>
+
 <% end %>
 
 <!-- purpose: list objects. we come here from #index and from #new.
@@ -26,7 +30,7 @@ they are @object. We need this magic here to rewrite all the @variables to varia
     <% update_span = "#{@parent_class.to_s.underscore}_#{@parent_id}_#{attribute}_list" -%>
     <% human_readable_class= attribute.to_s.singularize.humanize.downcase %>
     <% path_to_new='new_' + attribute.to_s.underscore.singularize + '_path' %>
-    <% parent_class=@parent_class %>
+    <% parent_class=@parent_class.constantize %>
     <% parent_id=@parent_id %>
     <% objects = @objects %>
     <% ul_needed = false unless @ul_needed %>
@@ -66,11 +70,14 @@ they are @object. We need this magic here to rewrite all the @variables to varia
         :remote => true -%>
     </li>
   <% end -%>
-  <%  if parent_id.nil? -%>
-    <%= will_paginate objects -%>
-  <% else %>
-    <%= will_paginate objects, :ajax => true, :params => {:controller => attribute, :action => :index, :id => nil, :parent_class => parent_class, :parent_id => parent_id, :update => "#{parent_class.to_s.underscore}_#{parent_id}_#{attribute}", :ul_needed => true  } -%>
-  <% end %>
+  <!--  # pagination -->
+  <li class="even">
+    <%  if parent_id.nil? -%>
+      <%= will_paginate objects -%>
+    <% else %>
+      <%= will_paginate objects, :ajax => true, :params => {:controller => attribute, :action => :index, :id => nil, :parent_class => parent_class, :parent_id => parent_id, :update => "#{parent_class.to_s.underscore}_#{parent_id}_#{attribute}", :ul_needed => true  } -%>
+    <% end %>
+  </li>
   <% if ul_needed %>
   </ul>
 <% end %>
