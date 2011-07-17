@@ -65,6 +65,8 @@ module InlineFormsHelper
           raw out if can?(:update, parent_class.find(parent_id))
         end
       end
+    else
+      raw out
     end
   end
 
