@@ -58,7 +58,7 @@ module InlineFormsHelper
     out << "</li>"
     ""
     if cancan_enabled?
-      if can?(:manage, model.constantize)
+      if can?(:create, model.constantize)
         if parent_class.nil?
           raw out
         else
