@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{inline_forms}
-  s.version = "0.9.22"
+  s.version = "0.9.23"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Ace Suares"]
-  s.date = %q{2011-07-17}
+  s.date = %q{2011-07-31}
   s.description = %q{Inline Forms aims to ease the setup of forms that provide inline editing. The field list can be specified in the model.}
   s.email = %q{ace@suares.an}
   s.extra_rdoc_files = [
@@ -35,6 +35,7 @@ Gem::Specification.new do |s|
     "app/helpers/form_elements/geo_code_curacao.rb",
     "app/helpers/form_elements/image.rb",
     "app/helpers/form_elements/info.rb",
+    "app/helpers/form_elements/infoadmin.rb",
     "app/helpers/form_elements/question_list.rb",
     "app/helpers/form_elements/scale_with_integers.rb",
     "app/helpers/form_elements/scale_with_values.rb",
