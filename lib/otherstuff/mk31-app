@@ -1,0 +1,15 @@
+#/bin/bash
+APPNAME=$1
+echo "working directory is now `pwd`"
+rails new $APPNAME
+cat database.yml | sed "s/APPNAME/$APPNAME/g" > $APPNAME/config/database.yml
+cp -v Gemfile $APPNAME
+cd $APPNAME
+echo "working directory is now `pwd`"
+bundle install
+echo devise:install
+rails g devise:install
+echo devise User
+rails g devise User
+echo ckeditor:install
+rails g ckeditor:install

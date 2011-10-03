@@ -4,8 +4,8 @@
   <head>
     <title><%= h(yield(:title) || "xyxyxyx") %></title>
     <%= csrf_meta_tag %>
-    <%= stylesheet_link_tag 'inline_forms', 'jquery-ui-sunny' %>
-    <%= javascript_include_tag :defaults, 'jquery.form', 'jquery.remotipart', :ckeditor %>
+    <%= stylesheet_link_tag 'inline_forms' %>
+    <%= javascript_include_tag 'application' %>
     <%= yield(:head) %>
     <script>
       $.datepicker.setDefaults({

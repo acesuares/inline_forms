@@ -5,21 +5,20 @@ def text_area_show(object, attribute)
     link_to_inline_edit object,
       attribute,
       '<div class="ckeditor_area">'.html_safe +
-      ckeditor_textarea(
-        object.class,
-        attribute,
-        :value => object[attribute],
-        :id => "textarea_#{object.class.name.underscore}_#{object.id}_#{attribute.to_s}",
-        :width => '100%',
-        :ckeditor_options => {
-          :height => '200px',
-          :toolbar => "None",
-          :readOnly => "true",
-          :resize_enabled => "false",
-          :toolbarCanCollapse => "false"
-        }
+      cktext_area_tag(
+      attribute,
+      object[attribute],
+      :input_html => { :id => "textarea_#{object.class.name.underscore}_#{object.id}_#{attribute.to_s}",
+        :width => '100%' },
+      :height => '200px',
+      :toolbar => "None",
+      :readOnly => "true",
+      :resize_enabled => "false",
+      :toolbarCanCollapse => "false"
     ) +
-      '<img class="glass_plate" src="images/glass_plate.gif" />'.html_safe +
+      image_tag(  'glass_plate.gif',
+      :class => "glass_plate",
+      :title => '' ) +
       '</div>'.html_safe
   else
     link_to_inline_edit object, attribute, object[attribute]
@@ -28,14 +27,12 @@ end
 
 def text_area_edit(object, attribute)
   if defined? Ckeditor
-    ckeditor_textarea(
-      object.class,
+    cktext_area_tag(
       attribute,
-      :value => object[attribute],
-      :id => "textarea_#{object.class.name.underscore}_#{object.id}_#{attribute.to_s}",
-      :width => '100%',
-      :height => '200px',
-      :name => attribute
+      object[attribute],
+      :input_html => { :id => "textarea_#{object.class.name.underscore}_#{object.id}_#{attribute.to_s}",
+        :width => '100%'},
+      :height => '200px'
     )
   else
     text_area_tag attribute, object[attribute], :class => 'attribute_text_area'

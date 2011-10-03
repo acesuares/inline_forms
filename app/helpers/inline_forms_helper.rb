@@ -11,8 +11,9 @@ module InlineFormsHelper
 
   # close link
   def close_link( object, update_span )
-    link_to image_tag(  'css/close.png',
-      :class => "close_icon" ),
+    link_to image_tag(  'close.png',
+      :class => "close_icon",
+      :title => 'close' ),
       send( object.class.to_s.underscore + '_path',
       object,
       :update => update_span,

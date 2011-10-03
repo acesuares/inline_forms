@@ -64,9 +64,8 @@ class InlineFormsController < ApplicationController
       @objects = @Klass.order(@Klass.order_by_clause).paginate :page => params[:page], :per_page => @PER_PAGE || 12, :conditions => conditions
     end
     respond_to do |format|
-      # found this here: http://www.ruby-forum.com/topic/211467
       format.html { render 'inline_forms/_list', :layout => 'inline_forms' } unless @Klass.not_accessible_through_html?
-      format.js { render(:update) {|page| page.replace_html update_span, :partial => 'inline_forms/list' } }
+      format.js { }
     end
   end
 
@@ -83,9 +82,7 @@ class InlineFormsController < ApplicationController
       @object[@parent_class.foreign_key] = @parent_id
     end
     respond_to do |format|
-      # found this here: http://www.ruby-forum.com/topic/211467
-      format.js { render(:update) {|page| page.replace_html @update_span, :partial => 'inline_forms/new'}
-      }
+      format.js { }
     end
   end
 
@@ -100,9 +97,7 @@ class InlineFormsController < ApplicationController
     @sub_id = params[:sub_id]
     @update_span = params[:update]
     respond_to do |format|
-      # found this here: http://www.ruby-forum.com/topic/211467
-      format.js { render(:update) {|page| page.replace_html @update_span, :partial => 'inline_forms/edit'}
-      }
+      format.js { }
     end
   end
 
@@ -131,9 +126,7 @@ class InlineFormsController < ApplicationController
         @objects = @Klass.order(@Klass.order_by_clause).paginate :page => params[:page], :per_page => @PER_PAGE || 12, :conditions => conditions
       end
       respond_to do |format|
-        # found this here: http://www.ruby-forum.com/topic/211467
-        format.js { render(:update) {|page| page.replace_html @update_span, :partial => 'inline_forms/list'}
-        }
+        format.js { render :list }
       end
     else
       flash.now[:error] = "Failed to create #{object.class.to_s.underscore}.".html_safe
@@ -142,8 +135,7 @@ class InlineFormsController < ApplicationController
       end
       respond_to do |format|
         @object = object
-        format.js { render(:update) {|page| page.replace_html @update_span, :partial => 'inline_forms/new'}
-        }
+        format.js { render :new}
       end
     end
   end
@@ -160,9 +152,7 @@ class InlineFormsController < ApplicationController
     send("#{@form_element.to_s}_update", @object, @attribute)
     @object.save
     respond_to do |format|
-      # found this here: http://www.ruby-forum.com/topic/211467
-      format.js { render(:update) {|page| page.replace_html @update_span, :inline => '<%= send("#{@form_element.to_s}_show", @object, @attribute) %>' }
-      }
+      format.js { }
     end
   end
 
@@ -187,30 +177,15 @@ class InlineFormsController < ApplicationController
     if @attribute.nil?
       respond_to do |format|
         @attributes = @object.inline_forms_attribute_list
-        # found this here: http://www.ruby-forum.com/topic/211467
         if close
-          format.js do
-            render(:update) do |page|
-              page.replace_html @update_span, :inline => '<%= link_to h(@object._presentation), send(@object.class.to_s.underscore + "_path", @object, :update => @update_span), :remote => true %>'
-            end
-          end
+          format.js { render :close }
         else
-          format.js do
-            render(:update) do |page|
-              page.replace_html @update_span, :partial => 'inline_forms/show'
-            end
-          end
-          #          format.js { render(:update) {|page| page.replace_html @update_span, :inline => '<%= send( "inline_forms_show_record", @object) %>' } }
+          format.js { }
         end
       end
     else
       respond_to do |format|
-        # found this here: http://www.ruby-forum.com/topic/211467
-        format.js do
-          render(:update) do |page|
-            page.replace_html @update_span, :inline => '<%= send("#{@form_element}_show", @object, @attribute) %>'
-          end
-        end
+        format.js { render :show_element }
       end
     end
   end
