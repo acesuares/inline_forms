@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{inline_forms}
-  s.version = "0.9.24"
+  s.version = "0.9.25"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Ace Suares"]
-  s.date = %q{2011-09-27}
+  s.date = %q{2011-10-03}
   s.description = %q{Inline Forms aims to ease the setup of forms that provide inline editing. The field list can be specified in the model.}
   s.email = %q{ace@suares.an}
   s.extra_rdoc_files = [
@@ -49,7 +49,14 @@ Gem::Specification.new do |s|
     "app/views/inline_forms/_list.html.erb",
     "app/views/inline_forms/_new.html.erb",
     "app/views/inline_forms/_show.html.erb",
-    "app/views/layouts/inline_forms.rhtml",
+    "app/views/inline_forms/close.js.erb",
+    "app/views/inline_forms/edit.js.erb",
+    "app/views/inline_forms/list.js.erb",
+    "app/views/inline_forms/new.js.erb",
+    "app/views/inline_forms/show.js.erb",
+    "app/views/inline_forms/show_element.js.erb",
+    "app/views/inline_forms/update.js.erb",
+    "app/views/layouts/inline_forms.html.erb",
     "inline_forms.gemspec",
     "lib/generators/inline_forms/USAGE",
     "lib/generators/inline_forms/inline_forms_generator.rb",
@@ -64,6 +71,7 @@ Gem::Specification.new do |s|
     "lib/otherstuff/diffie",
     "lib/otherstuff/mk-ice-ts",
     "lib/otherstuff/mk-new-app",
+    "lib/otherstuff/mk31-app",
     "lib/otherstuff/mkrole",
     "lib/otherstuff/roles_users.sql",
     "public/images/css/close.png",
