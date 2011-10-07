@@ -1,7 +1,6 @@
 InlineForms::SPECIAL_COLUMN_TYPES[:file_field]=:string
 
 def file_field_show(object, attribute)
-  puts "tets#{attribute}"
   link_to_inline_edit object, attribute, 'xxx' #image_tag( object.send(attribute).send(:url) )
 end
 

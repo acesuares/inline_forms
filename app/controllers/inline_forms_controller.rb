@@ -151,7 +151,7 @@ class InlineFormsController < ApplicationController
       @update_span = params[:update]
       send("#{@form_element.to_s}_update", @object, @attribute)
       @object.save
-      puts "Requested #{request.format}"
+      #puts "Requested #{request.format}"
       respond_to do |format|
         format.js { }
       end
