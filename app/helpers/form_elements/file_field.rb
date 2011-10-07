@@ -1,7 +1,8 @@
 InlineForms::SPECIAL_COLUMN_TYPES[:file_field]=:string
 
 def file_field_show(object, attribute)
-  link_to_inline_edit object, attribute, object.send(attribute).url
+  puts "tets#{attribute}"
+  link_to_inline_edit object, attribute, 'xxx' #image_tag( object.send(attribute).send(:url) )
 end
 
 def file_field_edit(object, attribute)
@@ -9,6 +10,6 @@ def file_field_edit(object, attribute)
 end
 
 def file_field_update(object, attribute)
-  object[attribute.to_sym] = params[attribute.to_sym]
+  object.send(attribute + '=', params[attribute.to_sym])
 end
 

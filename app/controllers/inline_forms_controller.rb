@@ -143,18 +143,19 @@ class InlineFormsController < ApplicationController
   #
   # PUT /examples/1
   #
-  def update
-    @object = @Klass.find(params[:id])
-    @attribute = params[:attribute]
-    @form_element = params[:form_element]
-    @sub_id = params[:sub_id]
-    @update_span = params[:update]
-    send("#{@form_element.to_s}_update", @object, @attribute)
-    @object.save
-    respond_to do |format|
-      format.js { }
+    def update
+      @object = @Klass.find(params[:id])
+      @attribute = params[:attribute]
+      @form_element = params[:form_element]
+      @sub_id = params[:sub_id]
+      @update_span = params[:update]
+      send("#{@form_element.to_s}_update", @object, @attribute)
+      @object.save
+      puts "Requested #{request.format}"
+      respond_to do |format|
+        format.js { }
+      end
     end
-  end
 
   # :show shows one attribute (attribute) from a record (object). It inludes the link to 'edit'
   #

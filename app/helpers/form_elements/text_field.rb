@@ -9,6 +9,6 @@ def text_field_edit(object, attribute)
 end
 
 def text_field_update(object, attribute)
-  object[attribute.to_sym] = params[attribute.to_sym]
+  object.send(attribute + '=', params[attribute.to_sym])
 end
 
