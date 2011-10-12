@@ -1,18 +1,27 @@
 #/bin/bash
 APPNAME=$1
-echo "working directory is now `pwd`"
+echo "Creating Rails app: $1..."
+echo "Working directory: `pwd`."
 rails new $APPNAME
+echo "Create $APPNAME/config/databse.yml..."
 cat database.yml | sed "s/APPNAME/$APPNAME/g" > $APPNAME/config/database.yml
+echo "Create Gemfile in $APPNAME..."
 cp -v Gemfile $APPNAME
 cd $APPNAME
-echo "working directory is now `pwd`"
+echo "Working directory: `pwd`."
+echo "Bundle install..."
 bundle install
-echo devise:install
+echo "Devise install..."
 rails g devise:install
-echo devise User
+echo "Devise User model..."
 rails g devise User
-echo ckeditor:install
+echo "Install ckeditor..."
 rails g ckeditor:install
+echo "Create config file in app/assets/javascripts/ckeditor/config.js"
 mkdir app/assets/javascripts/ckeditor
 cp ../config.js app/assets/javascripts/ckeditor
-rails g remotipart:install
+echo "Add remotipart to app/assets/javascripts/application.js..."
+echo >> app/assets/javascripts/application.js
+echo "//= require jquery.remotipart" >> app/assets/javascripts/application.js
+echo >> app/assets/javascripts/application.js
+echo "Done! Now make your tables."
