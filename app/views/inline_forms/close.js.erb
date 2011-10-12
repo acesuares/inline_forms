@@ -1,1 +1,1 @@
-$('#<%= @update_span %>').html('<%= escape_javascript(link_to h(@object._presentation), send(@object.class.to_s.underscore + "_path", @object, :update => @update_span), :remote => true)%>')
+$('#<%= @update_span %>').html('<%= escape_javascript(render(:partial => 'inline_forms/close' ))%>')

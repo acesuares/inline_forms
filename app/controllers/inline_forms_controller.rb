@@ -192,6 +192,7 @@ class InlineFormsController < ApplicationController
   end
 
   def destroy
+    @update_span = params[:update]
     @object = @Klass.find(params[:id])
     @object.destroy
     respond_to do |format|
@@ -199,6 +200,25 @@ class InlineFormsController < ApplicationController
     end
   end
 
+  def revert
+    # http://railscasts.com/episodes/255-undo-with-paper-trail
+    @update_span = params[:update]
+    @version = Version.find(params[:id])
+    @version.reify.save!
+    @object = @Klass.find(@version.item_id)
+    respond_to do |format|
+      format.js { render :close }
+    end
+
+    #    if @version.reify
+    #      @version.reify.save!
+    #    else
+    #      @version.item.destroy
+    #    end
+    #    link_name = params[:redo] == "true" ? "undo" : "redo"
+    #    link = view_context.link_to(link_name, revert_version_path(@version.next, :redo => !params[:redo]), :method => :post)
+    #    redirect_to :back, :notice => "Undid #{@version.event}. #{link}"
+  end
 
   private
   # Get the class from the controller name.

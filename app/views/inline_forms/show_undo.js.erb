@@ -1,1 +1,1 @@
-$('#<%= @update_span %>').html('<%= escape_javascript(render(:partial => 'inline_forms/show_undo' ))%>')
+$('#<%= @update_span %>').html('<%= escape_javascript(link_to 'undo', send('revert_' + @object.class.to_s.underscore + "_path", @object.versions.scoped.last, :update => @update_span), :remote => true, :method => :post)%>')

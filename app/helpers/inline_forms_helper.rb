@@ -24,16 +24,22 @@ module InlineFormsHelper
   # destroy link
   def link_to_destroy( msg, object, update_span )
     if cancan_disabled? || ( can? :destroy, object )
-    link_to image_tag(  'trash.png',
-      :class => "trash_icon",
-      :title => 'trash' ),
-      send( object.class.to_s.underscore + '_path',
-      object,
-      :update => update_span ),
-      :method => :delete,
-      :remote => true
+      link_to image_tag(  'trash.png',
+        :class => "trash_icon",
+        :title => 'trash' ),
+        send( object.class.to_s.underscore + '_path',
+        object,
+        :update => update_span ),
+        :method => :delete,
+        :remote => true
+    end
   end
+
+  def link_to_undo_destroy(msg, object, update_span )
+    link_to("undo", revert_version_path(object.versions.scoped.last), :method => :post)
   end
+
+
 
   # link_to_inline_edit
   def link_to_inline_edit(object, attribute, attribute_value='')
