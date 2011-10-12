@@ -9,6 +9,6 @@ def image_field_edit(object, attribute)
 end
 
 def image_field_update(object, attribute)
-  object.send(attribute + '=', params[attribute.to_sym])
+  object.send(attribute.to_s + '=', params[attribute.to_sym])
 end
 
