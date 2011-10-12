@@ -158,7 +158,7 @@ module InlineForms
     end
 
     def generate_resource_route
-      route "resources :#{resource_name}" if @flag_create_resource_route
+      route "resources :#{resource_name} do\n  post 'revert', :on => :member\nend" if @flag_create_resource_route
     end 
 
     def generate_migration
