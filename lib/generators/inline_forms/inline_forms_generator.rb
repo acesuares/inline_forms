@@ -98,11 +98,15 @@ module InlineForms
         @has_attached_files       = "\n"
         @presentation             = "\n"
         @order                    = "\n"
+        @carrierwave_mounters     = "\n"
         @inline_forms_attribute_list  = String.new
 
         for attribute in attributes
           if attribute.column_type  == :belongs_to # :drop_down, :references and :belongs_to all end up with the column_type :belongs_to
             @belongs_to << '  belongs_to :'         + attribute.name + "\n"
+          end
+          if attribute.column_type  == :image_field # upload images via carrierwave
+            @carrierwave_mounters << '  mount_uploader :' + attribute.name + ', ' + "#{attribute.name}_uploader".camelcase + "\n"
           end
           if attribute.type         == :has_many ||
              attribute.type         == :has_many_destroy
@@ -117,10 +121,6 @@ module InlineForms
              attribute.type         == :has_and_belongs_to_many ||
              attribute.type         == :check_list
             @habtm << '  has_and_belongs_to_many :' + attribute.name + "\n"
-          end
-          if attribute.type         == :image
-            @has_attached_files << "  has_attached_file :#{attribute.name},
-                 :styles => { :medium => \"300x300>\", :thumb => \"100x100>\" }\n"
           end
           if attribute.name == '_presentation'
             @presentation <<  "  def _presentation\n" +

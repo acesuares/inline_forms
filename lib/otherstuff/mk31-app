@@ -13,3 +13,6 @@ echo devise User
 rails g devise User
 echo ckeditor:install
 rails g ckeditor:install
+mkdir app/assets/javascripts/ckeditor
+cp ../config.js app/assets/javascripts/ckeditor
+rails g remotipart:install

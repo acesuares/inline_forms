@@ -2,7 +2,7 @@ class <%= name %> < ActiveRecord::Base
   attr_reader :per_page
   @per_page = 7
   attr_writer :inline_forms_attribute_list
-
+<%= @carrierwave_mounters if @carrierwave_mounters.length > 1 -%>
 <%= @belongs_to if @belongs_to.length > 1 -%>
 <%= @has_many if @has_many.length > 1 -%>
 <%= @has_one if @has_one.length > 1 -%>
