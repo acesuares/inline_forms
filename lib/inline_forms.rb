@@ -1,4 +1,4 @@
-puts "loading inline_forms...#{InlineForms.VERSION}"
+#puts "loading inline_forms...#{VERSION}"
 
 module InlineForms
 
