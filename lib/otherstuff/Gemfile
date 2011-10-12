@@ -1,28 +1,9 @@
 source 'http://rubygems.org'
 
-gem 'rails', "~> 3.1.0"
-
-gem 'rake'
-
-gem 'jquery-rails'
-
-gem 'mysql2'
-
-gem 'capistrano'
-
 gem 'devise'
 
 gem 'cancan'
 
 gem 'inline_forms'
 
-gem 'paperclip'
-
-gem 'will_paginate', :git => 'git://github.com/acesuares/will_paginate.git', :branch => 'rails3'
-
-gem 'tabs_on_rails'
-
-gem 'ckeditor', :git => 'git://github.com/acesuares/ckeditor.git', :branch => 'master'
-
-gem 'carrierwave'
 
