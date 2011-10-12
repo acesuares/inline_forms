@@ -143,19 +143,19 @@ class InlineFormsController < ApplicationController
   #
   # PUT /examples/1
   #
-    def update
-      @object = @Klass.find(params[:id])
-      @attribute = params[:attribute]
-      @form_element = params[:form_element]
-      @sub_id = params[:sub_id]
-      @update_span = params[:update]
-      send("#{@form_element.to_s}_update", @object, @attribute)
-      @object.save
-      #puts "Requested #{request.format}"
-      respond_to do |format|
-        format.js { }
-      end
+  def update
+    @object = @Klass.find(params[:id])
+    @attribute = params[:attribute]
+    @form_element = params[:form_element]
+    @sub_id = params[:sub_id]
+    @update_span = params[:update]
+    send("#{@form_element.to_s}_update", @object, @attribute)
+    @object.save
+    #puts "Requested #{request.format}"
+    respond_to do |format|
+      format.js { }
     end
+  end
 
   # :show shows one attribute (attribute) from a record (object). It inludes the link to 'edit'
   #
@@ -191,16 +191,13 @@ class InlineFormsController < ApplicationController
     end
   end
 
-  # :destroy is not implemented
-  # TODO implement a destroy method
-  #
-  # DELETE /examples/1
-  #
-  #  def destroy
-  #    #    @@Klass.constantize = @Klass.constantize.find(params[:id])
-  #    #    @@Klass.constantize.destroy
-  #    redirect_to(@Klass.constantizes_url)
-  #  end
+  def destroy
+    @object = @Klass.find(params[:id])
+    @object.destroy
+    respond_to do |format|
+      format.js { render :show_undo }
+    end
+  end
 
 
   private

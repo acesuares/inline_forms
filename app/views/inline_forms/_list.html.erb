@@ -68,6 +68,7 @@ they are @object. We need this magic here to rewrite all the @variables to varia
       <% path_to_object = attribute.to_s.singularize.underscore + "_path" %>
     <% end %>
     <li id="<%= css_class_id -%>" class="<%= cycle('odd', 'even') -%>" >
+      <%= link_to_destroy('del',object, css_class_id) -%>
       <%= link_to h(object._presentation),
         send( path_to_object, object, :update => css_class_id),
         :remote => true -%>

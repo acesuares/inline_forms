@@ -21,6 +21,20 @@ module InlineFormsHelper
       :remote => true
   end
 
+  # destroy link
+  def link_to_destroy( msg, object, update_span )
+    if cancan_disabled? || ( can? :destroy, object )
+    link_to image_tag(  'trash.png',
+      :class => "trash_icon",
+      :title => 'trash' ),
+      send( object.class.to_s.underscore + '_path',
+      object,
+      :update => update_span ),
+      :method => :delete,
+      :remote => true
+  end
+  end
+
   # link_to_inline_edit
   def link_to_inline_edit(object, attribute, attribute_value='')
     attribute_value = h(attribute_value)
@@ -39,18 +53,6 @@ module InlineFormsHelper
       attribute_value
     end
   end
-
-  # link to inline image edit
-  #  def link_to_inline_image_edit(object, attribute)
-  #    text= image_tag object.send(attribute).send('url', :thumb)
-  #    link_to text,
-  #      send('edit_' + @Klass.to_s.underscore + '_path',
-  #      object,
-  #      :attribute => attribute.to_s,
-  #      :form_element => calling_method.sub(/_[a-z]+$/,''),
-  #      :update => "attribute_#{attribute}_#{object.id}" ),
-  #      :remote => true
-  #  end
 
   def link_to_new_record(text, model, path_to_new, update_span, parent_class, parent_id)
     out = ""
