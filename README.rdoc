@@ -1,14 +1,29 @@
 = inline_forms
 
-Ever tired of setting up forms to manage your data? Inline Forms aims at quick and easy setup of models, migrations and controllers and providing a user-friendly interface.
+Inline Forms is almost a complete admin application. You can try it out easily.
 
 = Usage
 
-Look in the generator files for a hint about usage. In short:
- rails g inline_forms Person first_name:string last_name:string age:dropdown_with_integers
-will create a model, a migration an a controller. In the model you would only have to add 
-values for the dropdown, for instance 12..45.
-In going to /persons you would see a nice form to add and edit persons.
+gem install inline_forms
+inline_forms MyAppName
+rails g inline_forms Picture \
+	name:string \
+	caption:string \
+	image:image_field \
+	description:text \
+	apartment:belongs_to \
+	_presentation:'#{name}' -f
+rails generate uploader Image
+rails g inline_forms Apartment \
+	name:string \
+	title:string \
+	description:text \
+	pictures:has_many \
+	pictures:associated \
+	_enabled:yes \
+	_presentation:'#{name}' -f
+rails s
+point your browser to http://localhost:3000/apartments (make sure JavaScript is enabled)
 
 It's work in progress.
 

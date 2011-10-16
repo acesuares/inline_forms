@@ -1,10 +1,8 @@
-THIS IS NOT YET A GOOD THING ITS A COPY OF THE HOBO BIN FILE
-
 #!/usr/bin/env ruby
+# copied from hobo and then modified. Some stuff is there because of that.
 
 require 'fileutils'
 require 'pathname'
-
 require 'rbconfig'
 
 RUBY = File.join(Config::CONFIG['bindir'], Config::CONFIG['ruby_install_name']).sub(/.*\s.*/m, '"\&"')
@@ -16,28 +14,30 @@ end
 
 Signal.trap("INT") { puts; exit }
 
-hobo_src = File.join(File.dirname(__FILE__), "../hobo_files/plugin")
+src = File.join(File.dirname(__FILE__), "..")
 
-USAGE = "USAGE: hobo <options> <app-path>
+
+USAGE = "
+USAGE: inline_forms <options> <app-name>
+
+  'inline_forms MyApp' will create a rails app in directory MyApp. It will also
+  try to create a MyApp_development mysql database and grant permissions on that
+  database to user 'MyApp' identified by 'MyApp', unless you specify
+  --skip-db-setup
 
 Options:
-  --user-model <model-name-or-false>
-  --db-create                        # Run rake db:create:all
-  --hobo-src <path to hobo src>
-  -d | --database <database>         # e.g. mysql, sqlite
-  -r | --rails <version>             # rails version to use
-  -n | --no-rails                    # don't run 'rails'.  Assumes app-path=='.'
-  --invite-only                      # add features for an invite-only website (admin site, no signup)
+  --skip-db-setup             # skip setup of mysql development database
+  --help                      # show this message
+
 "
 
-
 ### Nasty stuff needed for Windows :-( ###
-if Config::CONFIG["arch"] =~ /win32/
-  require "win32/registry"
-  def system(command)
-    win = Win32API.new("crtdll", "system", ['P'], 'L').Call(command)
-  end
-end
+#if Config::CONFIG["arch"] =~ /win32/
+#  require "win32/registry"
+#  def system(command)
+#    win = Win32API.new("crtdll", "system", ['P'], 'L').Call(command)
+#  end
+#end
 ### end nasty stuff ###
 
 
@@ -48,106 +48,118 @@ def command(*s)
   exit(1) unless ok
 end
 
-user_model = "user"
-create_db  = false
-run_rails  = true
-invite_only = ""
+skip_db_setup = false
 
 while true
   case arg_name = ARGV.shift
-  when "--user-model"
-    arg = ARGV.shift
-    user_model = arg == "false" ? nil : arg
-  when "--db-create"
-    create_db = true
-  when "--hobo-src"
-    hobo_src = ARGV.shift
-    hobo_src = "../" + hobo_src unless Pathname.new(hobo_src).absolute?
-  when "-d", "--database"
-    database_type = ARGV.shift
-  when "-r", "--rails"
-    rails_version = ARGV.shift
-  when "-n", "--no-rails"
-    run_rails = false
-  when "--invite-only"
-    invite_only = "--invite-only"
+  when "--skip-db-setup"
+    skip_db_setup = true
   when "--help"
     puts USAGE
     exit
   else
-    app_path = arg_name
+    app_name = arg_name
     break
   end
 end
 
-if run_rails==false && app_path.nil?
-  app_path = '.'
-end
-
-if !ARGV.empty? || app_path.nil?
+if !ARGV.empty? || app_name.nil? || !/^[a-zA-Z][0-9a-zA-Z_-]+/.match(app_name) || File.exists?(app_name)
   puts USAGE
   exit 1
 end
 
-if run_rails
-  puts "\nGenerating Rails app...\n"
-  opts = []
-  if rails_version
-    opts << "_#{rails_version}_"
-  else
-    v=`#{RUBY} -S rails -v`.split[1].split(".")
-    unless v.length>=3
-      puts "rails not found!"
-      exit 2
-    end
-    unless v[0]=='2' && ['2', '3'].include?(v[1])
-      puts "Rails 2.2 or 2.3 required!"
-      puts "Rails 3 requires Hobo 1.1 or later."
-      exit 2
-    end
-  end
-  opts << "-d #{database_type}" if database_type
-  system("#{RUBY} -S rails #{opts * ' '} #{app_path}")
+puts "\nGenerating Rails app '#{app_name}'...\n"
+system("#{RUBY} -S rails new #{app_name}")
+
+Dir.chdir(app_name)
+puts "\nWorking directory is now #{`pwd`}"
+
+puts "\nInstalling Gemfile and running Bundle...\n"
+
+gemfile_sources = "
+source 'http://rubygems.org'
+
+"
+gemfile_gems = "
+
+gem 'rails', '~> 3.1.0'
+gem 'rake'
+gem 'jquery-rails'
+gem 'mysql2'
+gem 'capistrano'
+gem 'will_paginate', :git => 'git://github.com/acesuares/will_paginate.git', :branch => 'rails3'
+gem 'tabs_on_rails'
+gem 'ckeditor', :git => 'git://github.com/acesuares/ckeditor.git', :branch => 'master'
+gem 'carrierwave'
+gem 'remotipart', '~> 1.0'
+gem 'paper_trail'
+gem 'devise'
+gem 'cancan'
+gem 'inline_forms'
+
+"
+gemfile_development_group ="
+
+# Include everything needed to run rake, tests, features, etc.
+group :development do
+  gem 'rspec-rails'
+  gem 'shoulda', '>= 0'
+  gem 'bundler', '~> 1.0.0'
+  gem 'jeweler', '~> 1.5.2'
+  gem 'rcov', '>= 0'
 end
 
-Dir.chdir(app_path) do
-  gen = "#{RUBY} #{File.join('script', 'generate')}"
-  plugin = "#{RUBY} #{File.join('script', 'plugin')}"
+"
+File.open( 'Gemfile', 'w') {|f| f.write(gemfile_sources + gemfile_gems + gemfile_development_group) }
 
-  FileUtils.touch("public/stylesheets/application.css")
+system('bundle install')
 
-  puts "\nInitialising Hobo...\n"
-  command(gen, "hobo --add-gem --add-routes")
+if skip_db_setup
+  puts "\nDatabase setup skipped on your request!\n"
+else
+  puts "\nDatabase setup: creating config/database.yml\n"
+  development_stanza = "
+  development:
+    adapter: mysql2
+    database: #{app_name}_development
+    username: #{app_name}
+    password: #{app_name}
 
-  puts "\nInstalling Hobo Rapid and default theme...\n"
-  command("#{gen} hobo_rapid --import-tags #{invite_only}")
+  "
+  File.open( 'config/database.yml', 'w') {|f| f.write(development_stanza) }
 
-  if user_model
-    puts "\nCreating #{user_model} model and controller...\n"
-    command("#{gen} hobo_user_model #{user_model} #{invite_only}")
-    command("#{gen} hobo_user_controller #{user_model} #{invite_only}")
-  end
+  puts "CREATE #{app_name}_development database"
+  system("sudo mysqladmin create #{app_name}_development")
 
-  puts "\nCreating standard pages...\n"
-  command("#{gen} hobo_front_controller front --delete-index --add-routes #{invite_only}")
+  puts "GRANT ALL ON #{app_name}_development.* to '#{app_name}'@'localhost' identified by '#{app_name}'"
+  system("echo \"GRANT ALL ON #{app_name}_development.* to '#{app_name}'@'localhost' identified by '#{app_name}';\" | sudo mysql -v mysql")
+  system('echo "FLUSH PRIVILEGES;" | sudo mysql mysql')
 
-  if create_db
-    puts "\nCreating databases"
-    command("#{RUBY} -S rake db:create:all")
-  end
 end
 
-if !invite_only.empty?
-  puts %(
-Invite-only website
-  If you wish to prevent all access to the site to non-members, add 'before_filter :login_required'
-  to the relevant controllers, e.g. to prevent all access to the site, add
-  
-    include Hobo::AuthenticationSupport
-    before_filter :login_required
-  
-  to application_controller.rb (note that the include statement is not required for hobo_controllers)
-  
-  NOTE: You might want to sign up as the administrator before adding this!
-)
+puts "\nDevise install..."
+system('bundle exec rails g devise:install')
+puts "\nDevise User model install..."
+system('bundle exec rails g devise User')
+puts "\nInstall ckeditor..."
+system('bundle exec rails g ckeditor:install')
+puts "Create config file in app/assets/javascripts/ckeditor/config.js"
+FileUtils.mkdir_p 'app/assets/javascripts/ckeditor'
+system("cp #{src}/app/assets/javascripts/ckeditor/config.js app/assets/javascripts/ckeditor")
+puts "Add remotipart to app/assets/javascripts/application.js..."
+system('echo >> app/assets/javascripts/application.js')
+system('echo "//= require jquery.remotipart" >> app/assets/javascripts/application.js')
+system('echo >> app/assets/javascripts/application.js')
+puts "Paper_trail install..."
+system('bundle exec rails g paper_trail:install')
+
+
+if skip_db_setup
+  puts "Migrations skipped on your request!\n"
+else
+  puts "Migrating Devise and Versions"
+  system('bundle exec rake db:migrate')
 end
+
+puts "\n\nDone! Now make your tables.\n\n\n"
+
