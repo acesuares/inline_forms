@@ -4,17 +4,14 @@ Inline Forms is almost a complete admin application. You can try it out easily.
 
 = Usage
 
-gem install inline_forms
-
-inline_forms MyAppName
-
-rails g inline_forms Picture name:string caption:string image:image_field description:text apartment:belongs_to _presentation:'#{name}' -f
-
-rails generate uploader Image
-
-rails g inline_forms Apartment name:string title:string description:text pictures:has_many pictures:associated _enabled:yes _presentation:'#{name}' -f
-
-rails s
+ gem install inline_forms
+ inline_forms MyAppName
+ cd MyAppName
+ rails g inline_forms Picture name:string caption:string image:image_field description:text apartment:belongs_to _presentation:'#{name}' -f
+ rails generate uploader Image
+ rails g inline_forms Apartment name:string title:string description:text pictures:has_many pictures:associated _enabled:yes _presentation:'#{name}' -f
+ bundle exec rake db:migrate
+ rails s
 
 point your browser to http://localhost:3000/apartments (make sure JavaScript is enabled)
 
