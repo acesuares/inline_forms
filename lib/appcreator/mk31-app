@@ -24,4 +24,15 @@ echo "Add remotipart to app/assets/javascripts/application.js..."
 echo >> app/assets/javascripts/application.js
 echo "//= require jquery.remotipart" >> app/assets/javascripts/application.js
 echo >> app/assets/javascripts/application.js
+echo "Paper_trail install..."
+bundle exec rails generate paper_trail:install
+echo "DROP ${APPNAME}_development database"
+sudo mysqladmin drop ${APPNAME}_development
+echo "CREATE ${APPNAME}_development database"  
+sudo mysqladmin create ${APPNAME}_development
+echo "GRANT permissions"
+echo "GRANT ALL ON ${APPNAME}_development.* to '${APPNAME}'@'localhost' identified by '${APPNAME}';" | sudo mysql -v mysql
+echo "FLUSH PRIVILEGES;" | sudo mysql mysql
+echo "Migrating Devise and Versions"
+bundle exec rake db:migrate
 echo "Done! Now make your tables."
