@@ -1,0 +1,25 @@
+<div id="large_title">QwiRed</div>
+<div id="flash_message">
+  <%= devise_error_messages!.empty? ? 'Please signup with your name, email and password' : devise_error_messages! -%>
+</div>
+
+<div id="sign_in">
+  <div id="sign_in_form">
+    <%= form_for(resource, :as => resource_name, :url => registration_path(resource_name)) do |f| %>
+      <div class="float_right"><%= f.label :name %>&nbsp;&nbsp;<%= f.text_field :name %></div>
+      <div style="clear: both"></div>
+      <div class="float_right"><%= f.label :email %>&nbsp;&nbsp;<%= f.email_field :email %></div>
+      <div style="clear: both"></div>
+      <div class="float_right"><%= f.label :password %>&nbsp;&nbsp;<%= f.password_field :password %></div>
+      <div style="clear: both"></div>
+      <div class="float_right"><%= f.label :password_confirmation %>&nbsp;&nbsp;<%= f.password_field :password_confirmation %></div>
+      <div style="clear: both"></div>
+      
+      <div><%= f.submit "Sign up" %></div>
+    <% end %>
+  </div>
+</div>
+<div id="shared_links">
+  <%= render :partial => "devise/shared/links" %>
+</div>
+

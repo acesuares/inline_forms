@@ -1,0 +1,19 @@
+<div id="large_title">QwiRed</div>
+<div id="flash_message">
+  <%= devise_error_messages!.empty? ? 'Please provide your email and we will send you instructions' : devise_error_messages! -%>
+</div>
+
+<div id="sign_in">
+  <div id="sign_in_form">
+    <%= form_for(resource, :as => resource_name, :url => password_path(resource_name), :html => { :method => :post }) do |f| %>
+
+        <br /> <%= f.email_field :email %><br /><br />
+
+    <div><%= f.submit "Send me instructions" %></div>
+  <% end %>
+  </div>
+</div>
+<div id="shared_links">
+<%= render :partial => "devise/shared/links" %>
+</div>
+

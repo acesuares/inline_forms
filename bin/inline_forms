@@ -161,5 +161,22 @@ else
   system('bundle exec rake db:migrate')
 end
 
+puts "Creating header in app/views/inline_forms/_header.html.erb...\n"
+header_src = "
+<div id='Header'>
+  <div id='title'>
+    #{app_name} v<%= inline_forms_version -%>
+  </div>
+  <% if cancan_enabled? -%>
+  <div id='logout'>
+    <%= link_to 'Afmelden: \#{current_user.name}', destroy_user_session_path %>
+  </div>
+  <% end -%>
+  <div style='clear: both;'></div>
+</div>
+"
+FileUtils.mkdir_p 'app/views/inline_forms'
+File.open( 'app/views/inline_forms/_header.html.erb', 'w') {|f| f.write(header_src) }
+
 puts "\n\nDone! Now make your tables.\n\n\n"
 

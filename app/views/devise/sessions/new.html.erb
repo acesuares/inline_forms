@@ -1,0 +1,15 @@
+<div id="large_title">RumboTS</div>
+<div id="flash_message"><%= flash[:alert] || 'Please login with your email and password' -%></div>
+
+<div id="sign_in">
+  <div id="sign_in_form">
+    <%= form_for(resource, :as => resource_name, :url => session_path(resource_name)) do |f| %>
+          <%= f.email_field :email %><br />
+          <%= f.password_field :password %>
+      <p><%= f.submit "Sign in" %></p>
+    <% end %>
+  </div>
+</div>
+<div id="shared_links">
+  <%= render :partial => "devise/shared/links" %>
+</div>

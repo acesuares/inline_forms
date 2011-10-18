@@ -1,5 +1,5 @@
-#puts "loading inline_forms...#{VERSION}"
-
+require ('inline_forms/version.rb')
+#puts "Loading inline_forms version #{InlineForms::VERSION}"
 module InlineForms
 
   # ActiveRecord::Migration comes with a set of column types.

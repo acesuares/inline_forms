@@ -9,6 +9,10 @@ module InlineFormsHelper
 
   private
 
+  def inline_forms_version
+    InlineForms::VERSION
+  end
+
   # close link
   def close_link( object, update_span )
     link_to image_tag(  'close.png',
