@@ -186,7 +186,7 @@ system('echo "nbproject" >> .gitignore')
 system('echo "public/uploads" >> .gitignore')
 system('echo  >> .gitignore')
 system('git add .')
-system('git add -a -m " * Initial"')
+system('git commit -a -m " * Initial"')
 
 puts "\n\nDone! Now make your tables.\n\n\n"
 
