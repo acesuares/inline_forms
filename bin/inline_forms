@@ -119,6 +119,14 @@ else
     password: #{app_name}
 
   "
+  production_stanza = "
+  production:
+    adapter: mysql2
+    database: #{app_name}_production
+    username: #{app_name}
+    password: #{app_name}444
+
+  "
   File.open( 'config/database.yml', 'w') {|f| f.write(development_stanza) }
 
   puts "CREATE #{app_name}_development database"
@@ -170,6 +178,15 @@ header_src = "
 "
 FileUtils.mkdir_p 'app/views/inline_forms'
 File.open( 'app/views/inline_forms/_header.html.erb', 'w') {|f| f.write(header_src) }
+
+puts "Initializing git...\n"
+system('git init')
+system('echo >> .gitignore')
+system('echo "nbproject" >> .gitignore')
+system('echo "public/uploads" >> .gitignore')
+system('echo  >> .gitignore')
+system('git add .')
+system('git add -a -m " * Initial"')
 
 puts "\n\nDone! Now make your tables.\n\n\n"
 
