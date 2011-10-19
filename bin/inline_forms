@@ -127,7 +127,7 @@ else
     password: #{app_name}444
 
   "
-  File.open( 'config/database.yml', 'w') {|f| f.write(development_stanza) }
+  File.open( 'config/database.yml', 'w') {|f| f.write(development_stanza + production_stanza) }
 
   puts "CREATE #{app_name}_development database"
   system("sudo mysqladmin create #{app_name}_development")
@@ -187,6 +187,10 @@ system('echo "public/uploads" >> .gitignore')
 system('echo  >> .gitignore')
 system('git add .')
 system('git commit -a -m " * Initial"')
+
+puts "Capify...\n"
+system('capify .')
+
 
 puts "\n\nDone! Now make your tables.\n\n\n"
 
