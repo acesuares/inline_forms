@@ -94,7 +94,16 @@ group :development do
 end
 
 "
-File.open( 'Gemfile', 'w') {|f| f.write(gemfile_sources + gemfile_gems + gemfile_development_group) }
+gemfile_production_group ="
+# these are just for production
+group :production do
+  gem 'therubyracer'
+  gem 'uglifier'
+end
+
+"
+
+File.open( 'Gemfile', 'w') {|f| f.write(gemfile_sources + gemfile_gems + gemfile_development_group + gemfile_production_group ) }
 
 system('bundle install')
 
