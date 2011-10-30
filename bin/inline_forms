@@ -179,6 +179,9 @@ header_src = "
 FileUtils.mkdir_p 'app/views/inline_forms'
 File.open( 'app/views/inline_forms/_header.html.erb', 'w') {|f| f.write(header_src) }
 
+puts "Capify...\n"
+system('capify .')
+
 puts "Initializing git...\n"
 system('git init')
 system('echo >> .gitignore')
@@ -188,9 +191,5 @@ system('echo  >> .gitignore')
 system('git add .')
 system('git commit -a -m " * Initial"')
 
-puts "Capify...\n"
-system('capify .')
-
-
-puts "\n\nDone! Now make your tables.\n\n\n"
+puts "\n\nDone! Now make your tables with 'rails g inline_forms ...\n\n\n"
 
