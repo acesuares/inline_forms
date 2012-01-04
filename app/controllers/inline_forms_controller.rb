@@ -50,7 +50,7 @@ class InlineFormsController < ApplicationController
   # The link to 'new' allows you to create a new record.
   #
   def index
-    update_span = params[:update]
+    @update_span = params[:update]
     @parent_class = params[:parent_class]
     @parent_id = params[:parent_id]
     @ul_needed = params[:ul_needed]
@@ -65,7 +65,7 @@ class InlineFormsController < ApplicationController
     end
     respond_to do |format|
       format.html { render 'inline_forms/_list', :layout => 'inline_forms' } unless @Klass.not_accessible_through_html?
-      format.js { }
+      format.js { render :list }
     end
   end
 
