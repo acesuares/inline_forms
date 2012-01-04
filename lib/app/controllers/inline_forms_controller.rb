@@ -1,4 +1,3 @@
-module InlineForms
   # == Generic controller for the inline_forms plugin.
   # === Usage
   # If you have an Example class, make an ExampleController
@@ -44,7 +43,7 @@ module InlineForms
 
     load_and_authorize_resource if cancan_enabled?
 
-    include InlineFormsHelper
+#    include InlineFormsHelper
 
     # :index shows a list of all objects from class @Klass, using will_paginate,
     # including a link to 'new', that allows you to create a new record.
@@ -220,4 +219,3 @@ module InlineForms
     end
 
   end
-end
