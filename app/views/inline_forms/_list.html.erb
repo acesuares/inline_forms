@@ -3,7 +3,6 @@
   <script type="text/javascript">
     $(function() { $("#flash").delay(1000).fadeToggle('2000'); } );
   </script>
-
 <% end %>
 
 <!-- purpose: list objects. we come here from #index and from #new.
@@ -53,35 +52,31 @@ they are @object. We need this magic here to rewrite all the @variables to varia
 
 <% end %>
 
-<% if ul_needed %>
-  <ul id="<%= update_span -%>" class="inline_forms_list">
+<%= "<ul id=\"#{update_span}\" class=\"inline_forms_list\">" if ul_needed -%>
+<!--  # link to new -->
+<%= link_to_new_record("Add a new #{human_readable_class}", model_name, path_to_new, update_span, parent_class, parent_id) -%>
+<!--  # list of objects -->
+<% for object in objects %>
+  <% if parent_class.nil?  %>
+    <% css_class_id = object.class.to_s.underscore + '_' + object.id.to_s -%>
+    <% path_to_object = object.class.to_s.underscore + '_path' %>
+  <% else %>
+    <% css_class_id = parent_class.to_s.underscore + '_' + parent_id.to_s + '_' + attribute.to_s.singularize.underscore + "_" + object.id.to_s -%>
+    <% path_to_object = attribute.to_s.singularize.underscore + "_path" %>
   <% end %>
-  <!--  # link to new -->
-  <%= link_to_new_record("Add a new #{human_readable_class}", model_name, path_to_new, update_span, parent_class, parent_id) -%>
-  <!--  # list of objects -->
-  <% for object in objects %>
-    <% if parent_class.nil?  %>
-      <% css_class_id = object.class.to_s.underscore + '_' + object.id.to_s -%>
-      <% path_to_object = object.class.to_s.underscore + '_path' %>
-    <% else %>
-      <% css_class_id = parent_class.to_s.underscore + '_' + parent_id.to_s + '_' + attribute.to_s.singularize.underscore + "_" + object.id.to_s -%>
-      <% path_to_object = attribute.to_s.singularize.underscore + "_path" %>
-    <% end %>
-    <li id="<%= css_class_id -%>" class="<%= cycle('odd', 'even') -%>" >
-      <%= link_to_destroy('del',object, css_class_id) -%>
-      <%= link_to h(object._presentation),
-        send( path_to_object, object, :update => css_class_id),
-        :remote => true -%>
-    </li>
-  <% end -%>
-  <!--  # pagination -->
-  <li class="even">
-    <%  if parent_id.nil? -%>
-      <%= will_paginate objects -%>
-    <% else %>
-      <%= will_paginate objects, :ajax => true, :params => {:controller => attribute, :action => :index, :id => nil, :parent_class => parent_class, :parent_id => parent_id, :update => "#{parent_class.to_s.underscore}_#{parent_id}_#{attribute}", :ul_needed => true  } -%>
-    <% end %>
+  <li id="<%= css_class_id -%>" class="<%= cycle('odd', 'even') -%>" >
+    <%= link_to_destroy('del',object, css_class_id) -%>
+    <%= link_to h(object._presentation),
+      send( path_to_object, object, :update => css_class_id),
+      :remote => true -%>
   </li>
-  <% if ul_needed %>
-  </ul>
-<% end %>
+<% end -%>
+<!--  # pagination -->
+<li class="even">
+  <%  if parent_id.nil? -%>
+    <%= will_paginate objects -%>
+  <% else %>
+    <%= will_paginate objects, :ajax => true, :params => {:controller => attribute, :action => :index, :id => nil, :parent_class => parent_class, :parent_id => parent_id, :update => "#{parent_class.to_s.underscore}_#{parent_id}_#{attribute}", :ul_needed => true  } -%>
+  <% end %>
+</li>
+<%= "</ul>" if ul_needed -%>

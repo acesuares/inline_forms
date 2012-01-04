@@ -45,10 +45,8 @@ class InlineFormsController < ApplicationController
 
   include InlineFormsHelper
 
-  # shows a list of all objects from class @Klass, using will_paginate
-  #
-  # The link to 'new' allows you to create a new record.
-  #
+  # :index shows a list of all objects from class @Klass, using will_paginate,
+  # including a link to 'new', that allows you to create a new record.
   def index
     @update_span = params[:update]
     @parent_class = params[:parent_class]
@@ -57,11 +55,22 @@ class InlineFormsController < ApplicationController
     @PER_PAGE = 5 unless @parent_class.nil?
     # if the parent_class is not nill, we are in associated list and we don't search there.
     # also, make sure the Model that you want to do a search on has a :name attribute. TODO
-    @parent_class.nil? ? conditions = [ @Klass.order_by_clause.to_s + " like ?", "%#{params[:search]}%" ] : conditions =  [ "#{@parent_class.foreign_key} = ?", @parent_id ]
-    if cancan_enabled?
-      @objects = @Klass.accessible_by(current_ability).order(@Klass.order_by_clause).paginate :page => params[:page], :per_page => @PER_PAGE || 12, :conditions => conditions
+    if @parent_class.nil?
+      conditions = [ @Klass.order_by_clause.to_s + " like ?", "%#{params[:search]}%" ]
     else
-      @objects = @Klass.order(@Klass.order_by_clause).paginate :page => params[:page], :per_page => @PER_PAGE || 12, :conditions => conditions
+      conditions =  [ "#{@parent_class.foreign_key} = ?", @parent_id ]
+    end
+    # if we are using cancan, then make sure to select only accessible records
+    if cancan_enabled?
+      @objects = @Klass.accessible_by(current_ability).order(@Klass.order_by_clause).paginate(
+        :page => params[:page],
+        :per_page => @PER_PAGE || 12,
+        :conditions => conditions )
+    else
+      @objects = @Klass.order(@Klass.order_by_clause).paginate(
+        :page => params[:page],
+        :per_page => @PER_PAGE || 12,
+        :conditions => conditions )
     end
     respond_to do |format|
       format.html { render 'inline_forms/_list', :layout => 'inline_forms' } unless @Klass.not_accessible_through_html?
@@ -69,10 +78,9 @@ class InlineFormsController < ApplicationController
     end
   end
 
-  # :new prepares a new object, updates the entire list of objects and replaces it with a new
-  # empty form. After pressing OK or Cancel, the list of objects is retrieved in the same way as :index
-  #
-  # GET /examples/new
+  # :new prepares a new object, updates the list of objects and replaces it with
+  # an empty form. After pressing OK or Cancel, the list of objects is retrieved
+  # in the same way as :index
   def new
     @object = @Klass.new
     @update_span = params[:update]
@@ -87,9 +95,6 @@ class InlineFormsController < ApplicationController
   end
 
   # :edit presents a form to edit one specific attribute from an object
-  #
-  # GET /examples/1/edit
-  #
   def edit
     @object = @Klass.find(params[:id])
     @attribute = params[:attribute]
@@ -101,10 +106,8 @@ class InlineFormsController < ApplicationController
     end
   end
 
-  # :create creates the object made with :new. It then presents the list of objects.
-  #
-  # POST /examples
-  #
+  # :create creates the object made with :new.
+  # It then presents the list of objects.
   def create
     object = @Klass.new
     @update_span = params[:update]
@@ -139,10 +142,8 @@ class InlineFormsController < ApplicationController
       end
     end
   end
+
   # :update updates a specific attribute from an object.
-  #
-  # PUT /examples/1
-  #
   def update
     @object = @Klass.find(params[:id])
     @attribute = params[:attribute]
@@ -157,11 +158,8 @@ class InlineFormsController < ApplicationController
     end
   end
 
-  # :show shows one attribute (attribute) from a record (object). It inludes the link to 'edit'
-  #
-  # GET /examples/1?attribute=name&form_element=text
-  #
-  
+  # :show shows one attribute (attribute) from a record (object).
+  # It includes the link to 'edit'
   def show
     @object = @Klass.find(params[:id])
     @attribute = params[:attribute]
@@ -191,6 +189,7 @@ class InlineFormsController < ApplicationController
     end
   end
 
+  # :destroy destroys the record, but also shows an undo link (with paper_trail)
   def destroy
     @update_span = params[:update]
     @object = @Klass.find(params[:id])
@@ -200,8 +199,9 @@ class InlineFormsController < ApplicationController
     end
   end
 
+  # :revert works like undo.
+  # Thanks Ryan Bates: http://railscasts.com/episodes/255-undo-with-paper-trail
   def revert
-    # http://railscasts.com/episodes/255-undo-with-paper-trail
     @update_span = params[:update]
     @version = Version.find(params[:id])
     @version.reify.save!
@@ -209,19 +209,11 @@ class InlineFormsController < ApplicationController
     respond_to do |format|
       format.js { render :close }
     end
-
-    #    if @version.reify
-    #      @version.reify.save!
-    #    else
-    #      @version.item.destroy
-    #    end
-    #    link_name = params[:redo] == "true" ? "undo" : "redo"
-    #    link = view_context.link_to(link_name, revert_version_path(@version.next, :redo => !params[:redo]), :method => :post)
-    #    redirect_to :back, :notice => "Undid #{@version.event}. #{link}"
   end
 
   private
   # Get the class from the controller name.
+  # CountryController < InlineFormsController, so what class are we?
   def getKlass #:doc:
     @Klass = self.controller_name.classify.constantize
   end
