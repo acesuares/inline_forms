@@ -39,6 +39,7 @@ module InlineFormsHelper
     end
   end
 
+  # undo link
   def link_to_undo_destroy(msg, object, update_span )
     link_to("undo", revert_version_path(object.versions.scoped.last), :method => :post)
   end
@@ -64,6 +65,7 @@ module InlineFormsHelper
     end
   end
 
+  # link to new record
   def link_to_new_record(text, model, path_to_new, update_span, parent_class, parent_id)
     out = ""
     out << "<li class='new_record_link'>"
@@ -117,14 +119,17 @@ module InlineFormsHelper
 
 end
 
-# make the current method and the calling method available
-#   http://www.ruby-forum.com/topic/75258
-#   supposedly, this is fixed in 1.9
 module Kernel
   private
+  # make the current method available
+  #   http://www.ruby-forum.com/topic/75258
+  #   supposedly, this is fixed in 1.9
   def this_method
     caller[0] =~ /`([^']*)'/ and $1
   end
+  # make the calling method available
+  #   http://www.ruby-forum.com/topic/75258
+  #   supposedly, this is fixed in 1.9
   def calling_method
     caller[1] =~ /`([^']*)'/ and $1
   end
