@@ -6,7 +6,7 @@ module InlineForms
   #
   # Read more about the possible types below.
   #
-  # = Overriding Rails::Generators::GeneratedAttribute
+  # == Overriding Rails::Generators::GeneratedAttribute
   # When using a generator in the form
   #  rails g example_generator Modelname attribute:type attribute:type ...
   # an array with attributes and types is created for use in the generator.
@@ -15,7 +15,7 @@ module InlineForms
   # This attribute_type maps column types to form attribute helpers like text_field.
   # We override it here to make our own.
   #
-  class InlineFormsGenerator < Rails::Generators::NamedBase
+  class Generator < Rails::Generators::NamedBase
     Rails::Generators::GeneratedAttribute.class_eval do #:doc:
       # Deducts the column_type for migrations from the type.
       #

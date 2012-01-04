@@ -52,7 +52,7 @@ they are @object. We need this magic here to rewrite all the @variables to varia
 
 <% end %>
 
-<%= "<ul id=\"#{update_span}\" class=\"inline_forms_list\">" if ul_needed -%>
+<%= raw "<ul id=\"#{update_span}\" class=\"inline_forms_list\">" if ul_needed -%>
 <!--  # link to new -->
 <%= link_to_new_record("Add a new #{human_readable_class}", model_name, path_to_new, update_span, parent_class, parent_id) -%>
 <!--  # list of objects -->
@@ -79,4 +79,4 @@ they are @object. We need this magic here to rewrite all the @variables to varia
     <%= will_paginate objects, :ajax => true, :params => {:controller => attribute, :action => :index, :id => nil, :parent_class => parent_class, :parent_id => parent_id, :update => "#{parent_class.to_s.underscore}_#{parent_id}_#{attribute}", :ul_needed => true  } -%>
   <% end %>
 </li>
-<%= "</ul>" if ul_needed -%>
+<%= raw "</ul>" if ul_needed -%>
