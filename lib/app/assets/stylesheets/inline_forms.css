@@ -44,6 +44,9 @@ a {
     background-color: #F9EBAE;
 }
 
+.inline_forms_list ul {
+    list-style-type: none;
+}
 
 .inline_forms_list .new_record_link {
     font-size: 110%;

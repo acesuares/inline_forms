@@ -69,7 +69,11 @@ module InlineFormsHelper
   def link_to_new_record(text, model, path_to_new, update_span, parent_class, parent_id)
     out = ""
     out << "<li class='new_record_link'>"
-    out << (link_to text, send(path_to_new, :update => update_span, :parent_class => parent_class, :parent_id => parent_id ), :remote => true)
+    out << (link_to image_tag(  'add.png',
+                                :class => "new_record_icon",
+                                :title => text ),
+                    send(path_to_new, :update => update_span, :parent_class => parent_class, :parent_id => parent_id ),
+                    :remote => true)
     out << "</li>"
     ""
     if cancan_enabled?
