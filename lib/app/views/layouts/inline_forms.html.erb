@@ -2,10 +2,10 @@
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html>
   <head>
-    <title><%= h(yield(:title) || "xyxyxyx") %></title>
-    <%= csrf_meta_tag %>
-    <%= stylesheet_link_tag 'inline_forms' %>
+    <title><%= h( yield(:title) || "Unconfigured Titile") %></title>
+    <%= stylesheet_link_tag 'inline_forms', 'application' %>
     <%= javascript_include_tag 'application' %>
+    <%= csrf_meta_tag %>
     <%= yield(:head) %>
     <script>
       $.datepicker.setDefaults({
