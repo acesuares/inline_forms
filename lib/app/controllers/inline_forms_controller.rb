@@ -87,6 +87,7 @@
         @parent_id = params[:parent_id]
         @object[@parent_class.foreign_key] = @parent_id
       end
+      @object.inline_forms_attribute_list = @inline_forms_attribute_list if @inline_forms_attribute_list
       respond_to do |format|
         format.js { }
       end

@@ -74,6 +74,7 @@ module InlineFormsHelper
                                 :title => text ),
                     send(path_to_new, :update => update_span, :parent_class => parent_class, :parent_id => parent_id ),
                     :remote => true)
+    out << "<div style='clear: both;'></div>"
     out << "</li>"
     ""
     if cancan_enabled?

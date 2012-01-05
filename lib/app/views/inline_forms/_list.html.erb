@@ -72,11 +72,10 @@ they are @object. We need this magic here to rewrite all the @variables to varia
   </li>
 <% end -%>
 <!--  # pagination -->
-<li class="even">
-  <%  if parent_id.nil? -%>
-    <%= will_paginate objects -%>
-  <% else %>
-    <%= will_paginate objects, :ajax => true, :params => {:controller => attribute, :action => :index, :id => nil, :parent_class => parent_class, :parent_id => parent_id, :update => "#{parent_class.to_s.underscore}_#{parent_id}_#{attribute}", :ul_needed => true  } -%>
-  <% end %>
-</li>
+<% if parent_id.nil? -%>
+  <% pagination = will_paginate objects -%>
+<% else %>
+  <% pagination = will_paginate objects, :ajax => true, :params => {:controller => attribute, :action => :index, :id => nil, :parent_class => parent_class, :parent_id => parent_id, :update => "#{parent_class.to_s.underscore}_#{parent_id}_#{attribute}", :ul_needed => true  } -%>
+<% end %>
+<%= raw "<li class=\"#{cycle('odd', 'even')}\">" + pagination + "</li>" if pagination -%>
 <%= raw "</ul>" if ul_needed -%>

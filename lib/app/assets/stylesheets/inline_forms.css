@@ -23,7 +23,7 @@ body {
     padding: 0;
     margin: 0 auto;
     font-family: sans-serif;
-    font-size: 12pt;
+    font-size: 11pt;
     max-width: 1200px;
 }
 
@@ -34,8 +34,9 @@ a {
 .inline_forms_list {
     font-size: 100%;
     font-weight: normal;
-    padding: 0.7em;
-    margin: 0.4em 1em 0.4em 1em;
+    padding: 0;
+    padding-bottom: 8px;
+    margin: 0;
     list-style-type: none;
     -moz-border-radius: 10px;
     -webkit-border-radius: 10px;
@@ -46,24 +47,27 @@ a {
 
 .inline_forms_list ul {
     list-style-type: none;
+    padding-left: 0;
 }
 
 .inline_forms_list .new_record_link {
-    font-size: 110%;
-   padding: 0.3em;
-    border: solid #999999 1px;
-    text-decoration: none;
-    text-align: center;
-    color:black;
-    background-color: #EBEAE9;
-    background-image: -moz-linear-gradient(100% 100% 90deg, #cccccc,#EBEAE9);
-    background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#cccccc), to(#EBEAE9));
-    -moz-border-radius: 5px;
-    -webkit-border-radius: 5px;
-    -webkit-box-shadow: 0 2px 3px rgba(0,0,0, .4);
-    -moz-box-shadow: 0 2px 3px rgba(0,0,0, .4);
-    margin-bottom: 0.5em;
-    width: 14em;
+    background-color: transparent;
+    height: 25px;
+    padding-bottom: 0;
+}
+
+.inline_forms_list .new_record_link a {
+    float: right;
+    width: 24px;
+    height: 24px;
+    margin: 0;
+    padding: 0;
+}
+
+.inline_forms_list .new_record_link img {
+    width: 24px;
+    height: 24px;
+    border: 0;
 }
 
 .inline_forms_list li a {
@@ -81,7 +85,7 @@ a {
 
 .inline_forms_list li.even {
     background-color: #FFEDB0;
-    }
+}
 
 .inline_forms_list li table {
     border: 1px solid #EFCA4B;
@@ -104,7 +108,7 @@ a {
 }
 
 .inline_forms_list div.attribute_value {
-    margin-left: 1em;
+    margin: 0;
 }
 
 .inline_forms_list div.attribute_value a{
@@ -177,7 +181,7 @@ ul.checklist li {
     -moz-box-shadow: 0 1px 3px rgba(0,0,0, .4);
     /*    border: 1px solid white;*/
     padding: 0.4em;
-    margin: 0.4em 1em 0.4em 1em;
+    margin: 0.4em 0 0.3em 0;
 }
 
 #title {
@@ -201,12 +205,12 @@ ul.checklist li {
     background-image: -moz-linear-gradient(100% 100% 90deg, #F9EBAE, #EFCA4B);
     background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#F9EBAE), to(#F9EBAE));
     padding: 0.4em;
-    margin: 0 1em 0.4em 1em;
+    margin: 0 0 0.4em 0;
     font-size: 10pt;
 }
 
 #tabs li {
-    font-size: 130%;
+    font-size: 110%;
     font-weight: bold;
     display: inline-block;
     background-color: #EFE06C;
@@ -245,14 +249,9 @@ ul.checklist li {
 }
 
 .pagination {
-    -moz-border-radius: 5px;
-    -webkit-border-radius: 5px;
-    -webkit-box-shadow: 0 1px 3px rgba(0,0,0, .4);
-    -moz-box-shadow: 0 1px 3px rgba(0,0,0, .4);
-    background-image: -moz-linear-gradient(100% 100% 90deg, #EFCA4B, #F9EBAE );
-    background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#EFCA4B), to(#F9EBAE));
-    padding: 0.7em;
-    margin: 0 1em 0.4em 1em;
+    padding: 0;
+    margin: 0;
+    margin-bottom: 5px;
 }
 
 .pagination a, .pagination span, .pagination em {
