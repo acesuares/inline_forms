@@ -2,6 +2,8 @@ require ('inline_forms/version.rb')
 # InlineForms is a Rails Engine that let you setup an admin interface quick and
 # easy. Please install it as a gem or include it in your Gemfile.
 module InlineForms
+  # load stuff in lib
+  config.autoload_paths += Dir["lib", "lib/**/"]
   # DEFAULT_COLUMN_TYPES holds the standard ActiveRecord::Migration column types.
   # This list provides compatability with the standard types, but we add our own
   # later in 'Special Column Types'.
@@ -142,6 +144,7 @@ module InlineForms
     paths["app/models"] << "lib/app/models"
     paths["app/views"] << "lib/app/views"
     paths["app/assets"] << "lib/app/assets"
+    paths["lib"]  << "lib/validators"
   end
 
 end
