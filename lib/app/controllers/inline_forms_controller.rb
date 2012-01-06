@@ -213,6 +213,7 @@
     private
     # Get the class from the controller name.
     # CountryController < InlineFormsController, so what class are we?
+    # TODO think about this a bit more.
     def getKlass #:doc:
       @Klass = self.controller_name.classify.constantize
     end

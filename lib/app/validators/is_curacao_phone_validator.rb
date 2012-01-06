@@ -3,7 +3,7 @@
 #  validates :email, :presence => true, :is_email_address => true;
 # taken from http://lindsaar.net/2010/1/31/validates_rails_3_awesome_is_true
 # (It's probably a fake regex but hey, it looks legit.)
-class IsEmailAddressValidator < ActiveModel::EachValidator
+class IsCuracaoPhoneValidator < ActiveModel::EachValidator
   EmailAddress = begin
     qtext = '[^\\x0d\\x22\\x5c\\x80-\\xff]'
     dtext = '[^\\x0d\\x5b-\\x5d\\x80-\\xff]'
@@ -22,7 +22,7 @@ class IsEmailAddressValidator < ActiveModel::EachValidator
   end
 
   def message
-    "is not a valid email address."
+    "has to be a sucker!."
   end
   
   def validate_each(record, attribute, value)

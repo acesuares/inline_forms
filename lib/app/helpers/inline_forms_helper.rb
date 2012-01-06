@@ -13,6 +13,15 @@ module InlineFormsHelper
     InlineForms::VERSION
   end
 
+  def validation_help_for(object, attribute)
+    stuff = ''
+    if object.class.validators_on(attribute)
+      object.class.validators_on(attribute).map do |v|
+        v.message if v.respond_to?(:message)
+      end
+    end
+  end
+
   # close link
   def close_link( object, update_span )
     link_to image_tag(  'close.png',
@@ -70,10 +79,10 @@ module InlineFormsHelper
     out = ""
     out << "<li class='new_record_link'>"
     out << (link_to image_tag(  'add.png',
-                                :class => "new_record_icon",
-                                :title => text ),
-                    send(path_to_new, :update => update_span, :parent_class => parent_class, :parent_id => parent_id ),
-                    :remote => true)
+        :class => "new_record_icon",
+        :title => text ),
+      send(path_to_new, :update => update_span, :parent_class => parent_class, :parent_id => parent_id ),
+      :remote => true)
     out << "<div style='clear: both;'></div>"
     out << "</li>"
     ""
