@@ -144,7 +144,7 @@ module InlineForms
     paths["app/models"] << "lib/app/models"
     paths["app/views"] << "lib/app/views"
     paths["app/assets"] << "lib/app/assets"
-    paths["lib"]  << "lib/validators"
+    paths["config"] <<  "lib/config"
   end
 
 end
