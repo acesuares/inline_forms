@@ -4,7 +4,7 @@
   <head>
     <title><%= h( yield(:title) || "Unconfigured Titile") %></title>
     <%= stylesheet_link_tag 'inline_forms_application', 'application' %>
-    <%= javascript_include_tag 'application', 'jquery.tools/jquery.tools' %>
+    <%= javascript_include_tag 'application', 'inline_forms_application' %>
     <%= csrf_meta_tag %>
     <%= yield(:head) %>
     <script>
