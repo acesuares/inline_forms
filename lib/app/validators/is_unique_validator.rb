@@ -1,4 +1,4 @@
-class ActiveRecord::Validations::UniquenessValidator
+class IsUniqueValidator < ActiveRecord::Validations::UniquenessValidator
   def error_message
     "is not unique."
   end
@@ -6,5 +6,4 @@ class ActiveRecord::Validations::UniquenessValidator
   def help_message
     "Needs to be unique."
   end
-
 end
