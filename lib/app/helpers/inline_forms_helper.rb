@@ -13,13 +13,25 @@ module InlineFormsHelper
     InlineForms::VERSION
   end
 
+  def validation_help_as_tooltip_for(object, attribute)
+    "" and return unless object.class.validators_on(attribute)
+    "<div class='validation_help_tooltip'>".html_safe +
+      validation_help_as_list_for(object, attribute) +
+      "</div>".html_safe
+  end
+
+  def validation_help_as_list_for(object, attribute)
+    "" and return unless object.class.validators_on(attribute)
+    content_tag(:ul, validation_help_for(object, attribute).map { |help_message| content_tag(:li, help_message ) }.to_s.html_safe )
+  end
+
+  # validation_help_for(object, attribute) extracts the help messages for
+  # attribute of object.class (in an Array)
   def validation_help_for(object, attribute)
-    stuff = ''
-    if object.class.validators_on(attribute)
-      object.class.validators_on(attribute).map do |v|
-        v.message if v.respond_to?(:message)
-      end
-    end
+    "" and return unless object.class.validators_on(attribute)
+    object.class.validators_on(attribute).map do |v|
+      v.help_message if v.respond_to?(:help_message)
+    end.compact
   end
 
   # close link

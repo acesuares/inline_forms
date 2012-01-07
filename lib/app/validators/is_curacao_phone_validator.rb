@@ -21,13 +21,17 @@ class IsCuracaoPhoneValidator < ActiveModel::EachValidator
     pattern = /\A#{addr_spec}\z/
   end
 
-  def message
-    "has to be a sucker!."
+  def error_message
+    "is not a valid Curacao phone number."
   end
-  
+
+  def help_message
+    "Needs to be a valid Curacao phone number."
+  end
+
   def validate_each(record, attribute, value)
     unless value =~ EmailAddress
-      record.errors[attribute] << (options[:message] || message )
+      record.errors[attribute] << (options[:message] || error_message )
     end
   end
 

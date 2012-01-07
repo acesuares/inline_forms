@@ -18,8 +18,8 @@
       <td valign="top">
         <div class='<%= "attribute_name attribute_#{attribute} form_element_#{form_element}" -%>' >
           <%= h(name) -%>
-          <%= validation_help_for(@object, attribute) %>
         </div>
+        <%= validation_help_as_tooltip_for(@object, attribute) -%>
       </td>
       <td valign="top">
         <div class='<%= "attribute_value attribute_#{attribute} form_element_#{form_element}" -%>' >
