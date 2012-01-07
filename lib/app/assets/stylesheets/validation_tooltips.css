@@ -1,16 +1,14 @@
 .validation_help_tooltip {
-    position: relative;
     display: none;
     width: 250px;
     height: 175px;
-    background-image: url('/images/tooltip-bubble-up-left.png');
+    background-image: url('/assets/tooltip-bubble-up-left.png');
     background-color: transparent;
 }
 
 .validation_help_content {
-    position: relative;
-    top: 18px;
-    left: 18px;
+    margin-top: 18px;
+    margin-left: 18px;
     font-size: 9pt;
     color: #3399cc;
     height: 100px;

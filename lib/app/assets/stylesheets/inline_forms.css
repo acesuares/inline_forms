@@ -134,6 +134,10 @@ a {
     -webkit-border-radius: 5px;
 }
 
+.edit_form_field {
+    position: relative;
+}
+
 .edit_form_checklist ul {
     list-style-type: none;
 }

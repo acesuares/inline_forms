@@ -41,7 +41,7 @@ module InlineForms
   }
 
   # DEFAULT_FORM_ELEMENTS holds a mapping from Default Column Types to
-  # Form Elements. Form Elements are defined in app/helpers/form_elements
+  # Form Elements. Form Elements are defined in lib/app/helpers/form_elements
   # and are pieces of code that display a form for a field.
   #
   # Example:
@@ -73,10 +73,10 @@ module InlineForms
   }
 
   # SPECIAL_COLUMN_TYPES maps the column types that we define here and in
-  # app/helpers/form_elements to the standard ActiveRecord::Migration column
+  # lib/app/helpers/form_elements to the standard ActiveRecord::Migration column
   # types
   #
-  # Example: in app/helpers/form_elements/dropdown.rb
+  # Example: in lib/app/helpers/form_elements/dropdown.rb
   #  InlineForms::SPECIAL_COLUMN_TYPES[:dropdown]=:belongs_to
   # this maps the :dropdown form element to the :belongs_to column type.
   #
