@@ -19,16 +19,18 @@
         <div class='<%= "attribute_name attribute_#{attribute} form_element_#{form_element}" -%>' >
           <%= h(name) -%>
         </div>
-        <%= validation_help_as_tooltip_for(@object, attribute) -%>
+        <div class='validation_help_tooltip'>
+          <%= validation_help_as_list_for(@object, attribute) -%>
+        </div>
       </td>
       <td valign="top">
         <div class='<%= "attribute_value attribute_#{attribute} form_element_#{form_element}" -%>' >
           <span id="<%= css_class_id -%>" >
             <% if form_element == :associated -%>
               <%= render  :partial => "inline_forms/list",
-                          :locals => {  :parent_class => @object.class,
-                                        :parent_id    => @object.id,
-                                        :attribute    => attribute } %>
+                :locals => {  :parent_class => @object.class,
+                :parent_id    => @object.id,
+                :attribute    => attribute } %>
             <% else -%>
               <%= send("#{form_element}_show", @object, attribute) -%>
             <% end -%>

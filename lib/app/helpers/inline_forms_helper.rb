@@ -13,13 +13,6 @@ module InlineFormsHelper
     InlineForms::VERSION
   end
 
-  def validation_help_as_tooltip_for(object, attribute)
-    "" and return if object.class.validators_on(attribute).empty?
-    "<div class='validation_help_tooltip'>".html_safe +
-      validation_help_as_list_for(object, attribute) +
-      "</div>".html_safe
-  end
-
   def validation_help_as_list_for(object, attribute)
     "" and return if object.class.validators_on(attribute).empty?
     content_tag(:ul, validation_help_for(object, attribute).map { |help_message| content_tag(:li, help_message ) }.to_s.html_safe )
