@@ -104,7 +104,7 @@ module InlineForms
           if attribute.column_type  == :belongs_to # :drop_down, :references and :belongs_to all end up with the column_type :belongs_to
             @belongs_to << '  belongs_to :'         + attribute.name + "\n"
           end
-          if attribute.attribute_type  == :image_field # upload images via carrierwave
+          if attribute.type  == :image_field # upload images via carrierwave
             @carrierwave_mounters << '  mount_uploader :' + attribute.name + ', ' + "#{attribute.name}_uploader".camelcase + "\n"
           end
           if attribute.type         == :has_many ||

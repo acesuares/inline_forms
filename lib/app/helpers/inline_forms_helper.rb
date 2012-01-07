@@ -4,6 +4,8 @@ module InlineFormsHelper
   #
   INLINE_FORMS_PATH = File.dirname(__FILE__) + "/form_elements/"
   Dir[INLINE_FORMS_PATH + "*.rb"].each do |form_element|
+    puts form_element.inspect
+raise 'hell'
     require form_element
   end
 
