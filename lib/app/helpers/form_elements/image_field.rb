@@ -1,5 +1,4 @@
 InlineForms::SPECIAL_COLUMN_TYPES[:image_field]=:string
-puts InlineForms::SPECIAL_COLUMN_TYPES.inspect
 
 def image_field_show(object, attribute)
   link_to_inline_edit object, attribute, image_tag( object.send(attribute).send(:url) )

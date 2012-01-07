@@ -1,5 +1,4 @@
 InlineForms::SPECIAL_COLUMN_TYPES[:text_field]=:string
-puts InlineForms::SPECIAL_COLUMN_TYPES.inspect
 
 def text_field_show(object, attribute)
   link_to_inline_edit object, attribute, object.send(attribute)
