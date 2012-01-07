@@ -6,12 +6,12 @@ Example:
     rails generate inline_forms Thing name:text_field description:text_area yesno:check_box gender:boolean_with_values
 
 This will create:
-      create  lib/app/models/thing.rb
-      create  lib/app/controllers/things_controller.rb
+      create  app/models/thing.rb
+      create  app/controllers/things_controller.rb
        route  resources :things
       create  db/migrate/20110204074707_inline_forms_create_things.rb
 
-      lib/app/models/thing.rb:
+      app/models/thing.rb:
         class Thing < ActiveRecord::Base
           def _presentation
             #define your presentation here
@@ -26,7 +26,7 @@ This will create:
          end
         end
 
-        lib/app/controllers/things_controller.rb
+        app/controllers/things_controller.rb
             class ThingsController < InlineFormsController
             end
 
