@@ -1,9 +1,19 @@
 .validation_help_tooltip {
-    display:none;
-    height:163px;
-    padding:40px 30px 10px 30px;
-    width:310px;
-    font-size:11px;
-    color:#fff;
-    background-color: #B94C32
+    position: relative;
+    display: none;
+    width: 250px;
+    height: 175px;
+    background-image: url('/images/tooltip-bubble-up-left.png');
+    background-color: transparent;
+}
+
+.validation_help_content {
+    position: relative;
+    top: 18px;
+    left: 18px;
+    font-size: 9pt;
+    color: #3399cc;
+    height: 100px;
+    width: 215px;
+    overflow: auto;
 }
