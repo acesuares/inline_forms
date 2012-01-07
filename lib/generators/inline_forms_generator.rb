@@ -15,7 +15,7 @@ module InlineForms
   # This attribute_type maps column types to form attribute helpers like text_field.
   # We override it here to make our own.
   #
-  class Generator < Rails::Generators::NamedBase
+  class InlineFormsGenerator < Rails::Generators::NamedBase
     Rails::Generators::GeneratedAttribute.class_eval do #:doc:
       # Deducts the column_type for migrations from the type.
       #
@@ -70,8 +70,7 @@ module InlineForms
     end
     argument :attributes, :type => :array,  :banner => "[name:form_element]..."
 
-    source_root File.expand_path('../templates', __FILE__)
-
+    source_root File.expand_path(File.join(File.dirname(__FILE__), 'templates'))
   
     # using flags.
     def set_some_flags
