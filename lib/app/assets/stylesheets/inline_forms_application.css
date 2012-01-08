@@ -4,5 +4,4 @@
  * the top of the compiled file, but it's generally better to create a new file per style scope.
  *= require 'inline_forms'
  *= require 'validation_tooltips'
- *= require 'jquery-ui-1.8.16.custom.css'
 */

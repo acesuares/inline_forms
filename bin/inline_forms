@@ -73,7 +73,7 @@ gem 'jquery-rails'
 gem 'mysql2'
 gem 'capistrano'
 gem 'will_paginate', :git => 'git://github.com/acesuares/will_paginate.git', :branch => 'rails3'
-gem 'tabs_on_rails'
+gem 'tabs_on_rails', :git => 'git@github.com:acesuares/tabs_on_rails.git', :branch => 'add_remote'
 gem 'ckeditor', :git => 'git://github.com/acesuares/ckeditor.git', :branch => 'master'
 gem 'carrierwave'
 gem 'remotipart', '~> 1.0'
@@ -81,6 +81,8 @@ gem 'paper_trail'
 gem 'devise'
 gem 'cancan'
 gem 'inline_forms'
+gem 'mini_magick'
+gem 'jquery_datepicker'
 
 "
 gemfile_development_group ="
