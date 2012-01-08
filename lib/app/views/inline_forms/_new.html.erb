@@ -18,7 +18,7 @@
             </div>
           </th>
         </tr>
-        <% attributes ||= @object.inline_forms_attribute_list -%>
+        <% attributes ||= ( @inline_forms_attribute_list || @object.inline_forms_attribute_list ) -%>
         <% attributes.each do | attribute, name, form_element | -%>
           <% unless form_element.to_sym == :associated -%>
             <% css_class_id = "attribute_#{attribute}_#{@object.id}" -%>

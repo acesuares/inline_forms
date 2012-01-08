@@ -110,7 +110,7 @@
     def create
       object = @Klass.new
       @update_span = params[:update]
-      attributes = object.inline_forms_attribute_list
+      attributes = @inline_forms_attribute_list || object.inline_forms_attribute_list
       attributes.each do | attribute, name, form_element |
         send("#{form_element.to_s}_update", object, attribute) unless form_element == :associated
       end
@@ -131,12 +131,13 @@
           format.js { render :list }
         end
       else
-        flash.now[:error] = "Failed to create #{object.class.to_s.underscore}.".html_safe
+        flash.now[:error] = "Kan #{object.class.to_s.underscore} niet aanmaken.".html_safe
         object.errors.each do |e|
           flash.now[:error] << '<br />'.html_safe + e[0].to_s + ": " + e[1]
         end
         respond_to do |format|
           @object = object
+          @object.inline_forms_attribute_list = attributes
           format.js { render :new}
         end
       end

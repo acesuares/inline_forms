@@ -15,3 +15,12 @@
     width: 215px;
     overflow: auto;
 }
+
+.validation_help_content ul {
+}
+
+.validation_help_content ul li {
+    padding: 0;
+    margin: 0;
+    margin-bottom: 3px;
+}
