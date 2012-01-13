@@ -11,7 +11,7 @@
       </div>
     </th>
   </tr>
-  <% attributes ||= @object.inline_forms_attribute_list -%>
+  <% attributes = @inline_forms_attribute_list || @object.inline_forms_attribute_list -%>
   <% attributes.each do | attribute, name, form_element | -%>
     <% css_class_id = "#{@object.class.to_s.underscore}_#{@object.id}_#{attribute}" -%>
     <tr>

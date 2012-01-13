@@ -122,7 +122,8 @@ module InlineFormsHelper
     # if we have an array ['a','d','b'] will result in [[0,'a'],[2,'b'],[1,'d']] (sorted on value)
     # if we have a hash { 0=>'a', 2=>'b', 3=>'d' } will result in [[0,'a'],[2,'b'],[3,'d']] (it will keep the index and sort on the index)
     # TODO work this out better!
-    values = object.inline_forms_attribute_list.assoc(attribute.to_sym)[3]
+    attributes = @inline_forms_attribute_list || object.inline_forms_attribute_list # if we do this as a form_element, @inline.. is nil!!!
+    values = attributes.assoc(attribute.to_sym)[3]
     raise "No Values defined in #{@Klass}, #{attribute}" if values.nil?
     if values.is_a?(Hash)
       temp = Array.new
