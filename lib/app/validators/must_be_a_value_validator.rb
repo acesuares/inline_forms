@@ -3,7 +3,7 @@
 #  validates :sex, :must_be_a_value => true;
 # 
 #  this checks against the objects attribute_values
-class MustBeAValue < ActiveModel::EachValidator
+class MustBeAValueValidator < ActiveModel::EachValidator
 
   def error_message
     "is geen geldige keuze."
