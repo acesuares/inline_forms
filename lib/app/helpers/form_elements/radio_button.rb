@@ -5,14 +5,15 @@ InlineForms::SPECIAL_COLUMN_TYPES[:radio_button]=:integer
 
 def radio_button_show(object, attribute)
   values = attribute_values(object, attribute)
-  link_to_inline_edit object, attribute, object.send(attribute)
+  link_to_inline_edit object, attribute, values.assoc(object.send(attribute))[1] #TODO code for values.assoc(object.send(attribute)) = nil
 end
 
 def radio_button_edit(object, attribute)
   out ='<ul class="radio_list">'
-  attribute_values(object, attribute).each do |n,value|
+  values = attribute_values(object, attribute)
+  values.each do |key,value|
     out << '<li>'
-    out << radio_button_tag(attribute.to_s, value, value == object.send(attribute))
+    out << radio_button_tag(attribute.to_s, key, key == object.send(attribute))
     out << value
     out << '</li>'
   end
@@ -21,6 +22,6 @@ def radio_button_edit(object, attribute)
 end
 
 def radio_button_update(object, attribute)
-  object[attribute.to_s.to_sym] = params[attribute.to_s.to_sym].nil? ? 0 : 1
+  object[attribute.to_s.to_sym] = params[attribute.to_s.to_sym]
 end
 
