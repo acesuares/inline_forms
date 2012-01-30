@@ -83,7 +83,7 @@ gem 'cancan'
 gem 'inline_forms'
 gem 'mini_magick'
 gem 'jquery_datepicker'
-
+gem 'rails3-jquery-autocomplete'
 "
 gemfile_development_group ="
 

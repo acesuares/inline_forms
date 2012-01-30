@@ -2,11 +2,11 @@ InlineForms::SPECIAL_COLUMN_TYPES[:geo_code_curacao]=:string
 
 # geo_code_curacao
 def geo_code_curacao_show(object, attribute)
-  attribute_value = object.send(attribute)._presentation rescue nil
+  attribute_value = object.send(attribute).presentation rescue nil
   link_to_inline_edit object, attribute, attribute_value
 end
 def geo_code_curacao_edit(object, attribute)
-  text_field_with_auto_complete :geo_code_curacao, :street, :skip_style => true
+  autocomplete_field_tag :geo_code_curacao, 'straatje', autocomplete_geo_code_curacao_street_clients_path
 end
 def geo_code_curacao_update(object, attribute)
   # extract the geocode

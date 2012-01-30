@@ -161,6 +161,3 @@ module Kernel
     caller[1] =~ /`([^']*)'/ and $1
   end
 end
-
-
-
