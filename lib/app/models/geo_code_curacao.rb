@@ -22,7 +22,6 @@ class GeoCodeCuracao
     zone_code = decoded[0]
     neighbourhood_code = decoded[1]
     street_code = decoded[2]
-    #Hash[*['zone','neighbourhood','street'].zip(gecode.to_s.scan(/\d\d/).map(&:to_i)).flatten]
     self.street = Street.find_by_ZONECODE_and_NBRHCODE_and_STREETCODE(zone_code,neighbourhood_code,street_code)
     self.neighbourhood = Neighbourhood.find_by_ZONECODE_and_NBRHCODE(zone_code,neighbourhood_code) if self.street
     self.zone = Zone.find_by_ZONECODE(zone_code) if self.street
@@ -37,8 +36,8 @@ class GeoCodeCuracao
   end
 
   def self.lookup(term)
-      street = term.gsub(/\\/, '\&\&').gsub(/'/, "''")
-      sql = "select CONCAT( CONCAT_WS( ', ', S.NAME, B.NAME, Z.NAME), ' (', LPAD( S.ZONECODE, 2, '0' ), LPAD( S.NBRHCODE, 2, '0' ), LPAD( S.STREETCODE, 2, '0' ), ')' ) AS street
+    street = term.gsub(/\\/, '\&\&').gsub(/'/, "''")
+    sql = "select CONCAT( CONCAT_WS( ', ', S.NAME, B.NAME, Z.NAME), ' (', LPAD( S.ZONECODE, 2, '0' ), LPAD( S.NBRHCODE, 2, '0' ), LPAD( S.STREETCODE, 2, '0' ), ')' ) AS street
               FROM Straatcode S,  Buurten B, Zones Z
               WHERE 
                   B.RECORDTYPE='NBRHOOD'
@@ -48,7 +47,7 @@ class GeoCodeCuracao
               AND S.NBRHCODE = B.NBRHCODE
               AND S.NAME LIKE '#{street}'
               ORDER BY S.NAME"
-      ActiveRecord::Base.connection.execute(sql)
-    end
+    ActiveRecord::Base  .connection.execute(sql)
+  end
 
 end

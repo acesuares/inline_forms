@@ -10,7 +10,7 @@ def geo_code_curacao_edit(object, attribute)
   out = text_field_tag attribute, attribute_value
   out << '<script>
 		$( "#geo_code_curacao" ).autocomplete({
-			source: "/clients",
+			source: "/geo_code_curacao",
 			minLength: 2,
 			});
 	</script>'.html_safe
