@@ -36,12 +36,8 @@ class GeoCodeCuracao
     "#{street.name}, #{zone.name}"
   end
 
-  def self.find(*args)
-    find_options = args.extract_options!
-    if args.first.to_s == "all"
-      # ActiveRecord::Base.sanitize_sql_for_conditions can not be called from here. Why?
-      # http://www.ruby-forum.com/topic/80357, active_record/connection_adapter/Quoting.rb
-      street = find_options[:conditions][1].gsub(/\\/, '\&\&').gsub(/'/, "''") 
+  def self.lookup(term)
+      street = term.gsub(/\\/, '\&\&').gsub(/'/, "''")
       sql = "select CONCAT( CONCAT_WS( ', ', S.NAME, B.NAME, Z.NAME), ' (', LPAD( S.ZONECODE, 2, '0' ), LPAD( S.NBRHCODE, 2, '0' ), LPAD( S.STREETCODE, 2, '0' ), ')' ) AS street
               FROM Straatcode S,  Buurten B, Zones Z
               WHERE 
@@ -52,8 +48,7 @@ class GeoCodeCuracao
               AND S.NBRHCODE = B.NBRHCODE
               AND S.NAME LIKE '#{street}'
               ORDER BY S.NAME"
-      ids = ActiveRecord::Base.connection.execute(sql)
+      ActiveRecord::Base.connection.execute(sql)
     end
-  end
 
 end
