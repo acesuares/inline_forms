@@ -6,8 +6,16 @@ def geo_code_curacao_show(object, attribute)
   link_to_inline_edit object, attribute, attribute_value
 end
 def geo_code_curacao_edit(object, attribute)
-  autocomplete_field_tag :geo_code_curacao, 'straatje', autocomplete_geo_code_curacao_street_clients_path
+  attribute_value = object.send(attribute).presentation rescue nil
+  out = text_field_tag attribute, attribute_value
+  out << '<script>
+		$( "#geo_code_curacao" ).autocomplete({
+			source: "/clients",
+			minLength: 2,
+			});
+	</script>'.html_safe
 end
+
 def geo_code_curacao_update(object, attribute)
   # extract the geocode
   geo_code = params[attribute.to_sym][:street].scan(/\d\d\d\d\d\d/).to_s || nil

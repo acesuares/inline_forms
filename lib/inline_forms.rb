@@ -144,9 +144,6 @@ module InlineForms
     paths["app/assets"] << "lib/app/assets"
   end
 
- 
-
-
 end
 
 # make the current method and the calling method available
