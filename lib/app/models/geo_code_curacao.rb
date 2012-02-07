@@ -37,7 +37,7 @@ class GeoCodeCuracao
 
   def self.lookup(term)
     street = term.gsub(/\\/, '\&\&').gsub(/'/, "''")
-    sql = "select CONCAT( CONCAT_WS( ', ', S.NAME, B.NAME, Z.NAME), ' (', LPAD( S.ZONECODE, 2, '0' ), LPAD( S.NBRHCODE, 2, '0' ), LPAD( S.STREETCODE, 2, '0' ), ')' ) AS street
+    sql = "select CONCAT( CONCAT_WS( ', ', S.NAME, B.NAME, Z.NAME), ' (', LPAD( S.ZONECODE, 2, '0' ), LPAD( S.NBRHCODE, 2, '0' ), LPAD( S.STREETCODE, 2, '0' ), ')' ) 
               FROM Straatcode S,  Buurten B, Zones Z
               WHERE 
                   B.RECORDTYPE='NBRHOOD'
@@ -47,7 +47,10 @@ class GeoCodeCuracao
               AND S.NBRHCODE = B.NBRHCODE
               AND S.NAME LIKE '#{street}'
               ORDER BY S.NAME"
-    ActiveRecord::Base  .connection.execute(sql)
+    q = []
+    ActiveRecord::Base.connection.execute(sql).to_a.each do |r|
+      q << { :label => r[0] }
+    end
+    q.to_json.html_safe
   end
-
 end
