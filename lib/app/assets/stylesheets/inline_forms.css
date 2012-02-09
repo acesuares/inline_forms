@@ -347,3 +347,14 @@ ul.checklist li {
 .ckeditor_area .cke_top, .ckeditor_area .cke_bottom, .ckeditor_area .cke_border {
     display: none;
 }
+
+/* jQuery ui Slider 8 */
+.slider {
+    width: 300px;
+    float: left;
+}
+.slider_value {
+    float: left;
+    min-width: 60px;
+    text-align: right;
+}
