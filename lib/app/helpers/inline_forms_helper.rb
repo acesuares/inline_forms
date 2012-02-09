@@ -125,15 +125,21 @@ module InlineFormsHelper
     # 2012-01-23 Use Cases
     # [ :sex , "sex", :radio_button, { 1 => 'f', 2 => 'm' } ],
     # in this case we want the attribute in the database to be 1 or 2. From that attribute, we need to find the value.
-    # using an array, won't work, since [ 'v', 'm' ][1] would be 'm' in stead of 'v'
+    # using an array, won't work, since [ 'f', 'm' ][1] would be 'm' in stead of 'f'
     # so values should be a hash. BUT since we don't have sorted hashes (ruby 1,.8.7), the order of the values in the edit screen will be random.
-    # so we DO need an array, and look up by index.
+    # so we DO need an array, and look up by index (or association?).
     # [[1,'v'],[2,'m]] and then use #assoc:
     # assoc(obj) → new_ary or nil
     # Searches through an array whose elements are also arrays comparing obj with the first element of each contained array using obj.==.
     # Returns the first contained array that matches (that is, the first associated array), or nil if no match is found. See also Array#rassoc.
     # like value=values.assoc(attribute_from_database)[1] (the [1] is needed since the result of #assoc = [1,'v'] and we need the 'v')
     # I feel it's ugly but it works.
+    # 2012-02-09 Use Case slider_with_values
+    # { 0 => '???', 1 => '--', 2 => '-', 3 => '+-', 4 => '+', 5 => '++' }
+    # In the dropdown (or the slider) we definately need the order preserverd.
+    # attribulte_values turns this into
+    # [ [0,'???'], [1, '--'] .... [5, '++'] ]
+
 
     attributes = @inline_forms_attribute_list || object.inline_forms_attribute_list # if we do this as a form_element, @inline.. is nil!!!
     values = attributes.assoc(attribute.to_sym)[3]

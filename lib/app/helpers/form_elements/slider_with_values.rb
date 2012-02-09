@@ -5,26 +5,19 @@ def slider_with_values_show(object, attribute)
   values = attribute_values(object, attribute)
   link_to_inline_edit object, attribute, values[object.send(attribute)][1]
 end
+
 def slider_with_values_edit(object, attribute)
   # the leading underscore is to avoid name conflicts, like 'email' and 'email_type' will result in 'email' and 'email[email_type_id]' in the form!
   values = attribute_values(object, attribute)
   css_id = "#{object.class.to_s.underscore}_#{object.id}_#{attribute}"
-  out = "<div id='value_#{css_id}'>#{values[object.send(attribute)][1]}</div>".html_safe
+  out = "<div id='value_#{css_id}'>#{values.assoc(object.send(attribute))[1]}</div>".html_safe
   out << "<div id='slider_#{css_id}'></div>".html_safe
   out << "<input type='hidden' name='_#{object.class.to_s.underscore}[#{attribute}]' value='0' id='input_#{css_id}' />".html_safe
   out << ('<script>
 	$(function() {
     var displayvalues = ' + values.collect {|x| x[1]}.inspect + ';
-		$( "#slider_' + css_id + '" ).slider({
-			value:' + object.send(attribute).to_s + ',
-			min: 0,
-			max: 5,
-			step: 1,
-			slide: function( event, ui ) {
-				$( "#value_' + css_id + '" ).html( displayvalues[ui.value] );
-				$( "#input_' + css_id + '" ).val( ui.value );
-			}
-		});
+		$( "#slider_' + css_id + '" ).slider(
+    );
 		$( "#value_' + css_id + '" ).html(displayvalues[' + object.send(attribute).to_s + ']);
 		$( "#input_' + css_id + '" ).val(' + object.send(attribute).to_s + ');
 	});
