@@ -101,6 +101,7 @@
       @sub_id = params[:sub_id]
       @update_span = params[:update]
       respond_to do |format|
+        #format.html { } unless @Klass.not_accessible_through_html?
         format.js { }
       end
     end
