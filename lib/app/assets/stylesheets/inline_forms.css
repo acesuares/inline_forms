@@ -357,4 +357,5 @@ ul.checklist li {
     float: left;
     min-width: 60px;
     text-align: right;
+    font-family: monospace;
 }
