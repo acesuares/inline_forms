@@ -73,7 +73,7 @@ gem 'jquery-rails'
 gem 'mysql2'
 gem 'capistrano'
 gem 'will_paginate', :git => 'git://github.com/acesuares/will_paginate.git', :branch => 'rails3'
-gem 'tabs_on_rails', :git => 'git@github.com:acesuares/tabs_on_rails.git', :branch => 'add_remote'
+gem 'tabs_on_rails', :git => 'git://github.com/acesuares/tabs_on_rails.git', :branch => 'add_remote'
 gem 'ckeditor', :git => 'git://github.com/acesuares/ckeditor.git', :branch => 'master'
 gem 'carrierwave'
 gem 'remotipart', '~> 1.0'
@@ -118,7 +118,7 @@ else
   development_stanza = "
   development:
     adapter: mysql2
-    database: #{app_name}_development
+    database: #{app_name}_dev
     username: #{app_name}
     password: #{app_name}
 
@@ -126,18 +126,18 @@ else
   production_stanza = "
   production:
     adapter: mysql2
-    database: #{app_name}_production
+    database: #{app_name}_p
     username: #{app_name}
     password: #{app_name}444
 
   "
   File.open( 'config/database.yml', 'w') {|f| f.write(development_stanza + production_stanza) }
 
-  puts "CREATE #{app_name}_development database"
-  system("sudo mysqladmin create #{app_name}_development")
+  puts "CREATE #{app_name}_dev database"
+  system("sudo mysqladmin create #{app_name}_dev")
 
-  puts "GRANT ALL ON #{app_name}_development.* to '#{app_name}'@'localhost' identified by '#{app_name}'"
-  system("echo \"GRANT ALL ON #{app_name}_development.* to '#{app_name}'@'localhost' identified by '#{app_name}';\" | sudo mysql -v mysql")
+  puts "GRANT ALL ON #{app_name}_dev.* to '#{app_name}'@'localhost' identified by '#{app_name}'"
+  system("echo \"GRANT ALL ON #{app_name}_dev.* to '#{app_name}'@'localhost' identified by '#{app_name}';\" | sudo mysql -v mysql")
   system('echo "FLUSH PRIVILEGES;" | sudo mysql mysql')
 
 end
@@ -182,6 +182,24 @@ header_src = "
 "
 FileUtils.mkdir_p 'app/views/inline_forms'
 File.open( 'app/views/inline_forms/_header.html.erb', 'w') {|f| f.write(header_src) }
+
+puts "Set application_name and _title in ApplicationHelper...\n"
+app_helper = "
+module ApplicationHelper
+  def application_name
+    #{app_name}
+  end
+  def application_title
+    #{app_name}
+  end
+end
+"
+#File.open( 'app/helpers/application_helper.rb', 'w') {|f| f.write(app_helper) }
+
+
+#puts "Injecting precompile assets stuff in production.rb...\n"
+# Precompile additional assets (application.js, application.css, and all non-JS/CSS are already added)
+#  config.assets.precompile += %w( inline_forms_application.js inline_forms_application.css devise.css )
 
 puts "Capify...\n"
 system('capify .')
