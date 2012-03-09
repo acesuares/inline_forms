@@ -107,6 +107,13 @@ module InlineFormsHelper
     end
   end
 
+
+  def locale_url(request, locale)
+    subdomains = request.subdomains
+    subdomain.shift   #strip off the locale
+    request.protocol + [ locale, subdomains.join('.'), request.domain ].join('.') + request.port_string
+  end
+
   # get the values for an attribute
   #
   # values should be a Hash { integer => string, ... }
