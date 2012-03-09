@@ -84,6 +84,7 @@ gem 'inline_forms'
 gem 'mini_magick'
 gem 'jquery_datepicker'
 gem 'yaml_db'
+gem 'rails-i18n'
 
 "
 gemfile_development_group ="
