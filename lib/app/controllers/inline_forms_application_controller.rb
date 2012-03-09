@@ -1,4 +1,4 @@
-class ApplicationController < ActionController::Base
+class InlineFormsApplicationController < ActionController::Base
   protect_from_forgery
   layout 'devise' if :devise_controller?
 
