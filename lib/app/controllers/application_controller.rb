@@ -1,5 +1,6 @@
 class ApplicationController < ActionController::Base
-  before_filter :set_locale
+  protect_from_forgery
+  layout 'devise' if :devise_controller?
 
   def set_locale
     I18n.locale = extract_locale_from_subdomain || I18n.default_locale
