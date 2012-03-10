@@ -188,17 +188,50 @@ ul.checklist li {
     margin: 0.4em 0 0.3em 0;
 }
 
+/* HEADER */
+
 #title {
     float: left;
+    height: 1.5em;
 }
 
 #logout {
     float:right;
+    height: 1.5em;
+}
+
+#locales {
+    float: left;
+    height: 1.5em;
+    margin-left: 2em;
+}
+
+#locales ul {
+    list-style: none;
+    list-style-position: inside;
+    margin: 0;
+    padding: 0;
+}
+
+#locales li {
+    display: inline-block;
+    height: 1.5em;
+}
+
+#locales li a {
+    color: white;
+}
+
+#locales li .active_locale {
+    color: yellow;
 }
 
 #logout a {
     color: white;
 }
+
+/* END HEADER */
+
 
 #tabs {
     background-color: #F9EBAE;
@@ -359,3 +392,4 @@ ul.checklist li {
     text-align: right;
     font-family: monospace;
 }
+

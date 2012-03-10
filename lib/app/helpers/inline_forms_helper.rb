@@ -110,7 +110,13 @@ module InlineFormsHelper
 
   def locale_url(request, locale)
     subdomains = request.subdomains
-    subdomain.shift   #strip off the locale
+    # if there are no subdomains, prepend the locale to the domain
+    return request.protocol + [ locale, request.domain ].join('.') + request.port_string if subdomains.empty?
+    # if there is a subdomain, find out if it's an available locale and strip it
+    subdomains.shift if I18n.available_locales.include?(subdomains.first.to_sym)
+    # if there are no subdomains, prepend the locale to the domain
+    return request.protocol + [ locale, request.domain ].join('.') + request.port_string if subdomains.empty?
+    # else return the rest
     request.protocol + [ locale, subdomains.join('.'), request.domain ].join('.') + request.port_string
   end
 

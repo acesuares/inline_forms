@@ -8,8 +8,9 @@ class InlineFormsApplicationController < ActionController::Base
 
   # Get locale code from request subdomain (like http://it.application.local:3000)
   def extract_locale_from_subdomain
-    parsed_locale = request.subdomains.first
-    I18n.available_locales.include?(parsed_locale.to_sym) ? parsed_locale : nil
+    locale = request.subdomains.first
+    return nil if locale.nil?
+    I18n.available_locales.include?(locale.to_sym) ? locale : nil
   end
 
 end
