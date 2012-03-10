@@ -19,7 +19,7 @@ module InlineFormsHelper
 
   def validation_help_as_list_for(object, attribute)
     "" and return if object.class.validators_on(attribute).empty?
-    content_tag(:ul, validation_help_for(object, attribute).map { |help_message| content_tag(:li, help_message.html_safe ) }.to_s.html_safe )
+    content_tag(:ul, validation_help_for(object, attribute).map { |help_message| content_tag(:li, t(help_message) ) }.to_s.html_safe )
   end
 
   # validation_help_for(object, attribute) extracts the help messages for
@@ -35,7 +35,7 @@ module InlineFormsHelper
   def close_link( object, update_span )
     link_to image_tag(  'close.png',
       :class => "close_icon",
-      :title => 'close' ),
+      :title => t('inline_forms.view.close') ),
       send( object.class.to_s.underscore + '_path',
       object,
       :update => update_span,
@@ -44,11 +44,11 @@ module InlineFormsHelper
   end
 
   # destroy link
-  def link_to_destroy( msg, object, update_span )
+  def link_to_destroy( object, update_span )
     if cancan_disabled? || ( can? :destroy, object )
       link_to image_tag(  'trash.png',
         :class => "trash_icon",
-        :title => 'trash' ),
+        :title => t('inline_forms.view.trash') ),
         send( object.class.to_s.underscore + '_path',
         object,
         :update => update_span ),
@@ -57,12 +57,10 @@ module InlineFormsHelper
     end
   end
 
-  # undo link
-  def link_to_undo_destroy(msg, object, update_span )
-    link_to("undo", revert_version_path(object.versions.scoped.last), :method => :post)
-  end
-
-
+#  # undo link
+#  def link_to_undo_destroy(object, update_span )
+#    link_to(t('inline_forms.view.undo'), revert_version_path(object.versions.scoped.last), :method => :post)
+#  end
 
   # link_to_inline_edit
   def link_to_inline_edit(object, attribute, attribute_value='')
@@ -83,12 +81,12 @@ module InlineFormsHelper
   end
 
   # link to new record
-  def link_to_new_record(text, model, path_to_new, update_span, parent_class, parent_id)
+  def link_to_new_record(translated_text, model, path_to_new, update_span, parent_class, parent_id)
     out = ""
     out << "<li class='new_record_link'>"
     out << (link_to image_tag(  'add.png',
         :class => "new_record_icon",
-        :title => text ),
+        :title => translated_text ),
       send(path_to_new, :update => update_span, :parent_class => parent_class, :parent_id => parent_id ),
       :remote => true)
     out << "<div style='clear: both;'></div>"
@@ -107,7 +105,7 @@ module InlineFormsHelper
     end
   end
 
-
+  # url to other language
   def locale_url(request, locale)
     subdomains = request.subdomains
     # if there are no subdomains, prepend the locale to the domain
@@ -155,7 +153,7 @@ module InlineFormsHelper
 
     attributes = @inline_forms_attribute_list || object.inline_forms_attribute_list # if we do this as a form_element, @inline.. is nil!!!
     values = attributes.assoc(attribute.to_sym)[3]
-    raise "No Values defined in #{@Klass}, #{attribute}" if values.nil?
+    raise t("fatal.no_values_defined_in", @Klass, attribute) if values.nil?
     if values.is_a?(Hash)
       temp = Array.new
       values.to_a.each do |k,v|

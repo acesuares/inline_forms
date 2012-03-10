@@ -1,7 +1,7 @@
 InlineForms::SPECIAL_COLUMN_TYPES[:text_area]=:text
 
 def text_area_show(object, attribute)
-  if defined? Ckeditor
+  if defined? Ckeditor 
     link_to_inline_edit object,
       attribute,
       '<div class="ckeditor_area">'.html_safe +
