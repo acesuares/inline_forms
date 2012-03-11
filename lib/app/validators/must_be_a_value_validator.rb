@@ -10,7 +10,6 @@ class MustBeAValueValidator < ActiveModel::EachValidator
   end
 
   def help_message
-    "U dient een keuze te maken."
   end
 
   def validate_each(record, attribute, value)

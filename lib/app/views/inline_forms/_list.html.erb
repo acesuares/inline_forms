@@ -18,31 +18,28 @@ they are @object. We need this magic here to rewrite all the @variables to varia
     <% # the controller didn't give us a parent_class, this means we are here for the 'first' time  %>
     <% # we have to rely on the @Klass set in the controller %>
     <% update_span = @Klass.to_s.pluralize.downcase + '_list'  %>
-    <% human_readable_class = @Klass.to_s.humanize.downcase  %>
     <% path_to_new = "new_#{@Klass.to_s.singularize.underscore}_path" %>
     <% parent_class = nil %>
     <% parent_id = nil  %>
     <% objects = @objects %>
-    <% model_name = @Klass.to_s %>
+    <% model = @Klass %>
   <% else %>
     <% # the controller gave us an @parent_class, so ... %>
     <% attribute = @Klass.to_s.underscore.pluralize %>
     <% update_span = "#{@parent_class.to_s.underscore}_#{@parent_id}_#{attribute}_list" -%>
-    <% human_readable_class= attribute.to_s.singularize.humanize.downcase %>
     <% path_to_new='new_' + attribute.to_s.underscore.singularize + '_path' %>
     <% parent_class=@parent_class.constantize %>
     <% parent_id=@parent_id %>
     <% objects = @objects %>
     <% ul_needed = false unless @ul_needed %>
-    <% model_name = attribute.to_s.singularize.camelcase %>
+    <% model = attribute.to_s.singularize.camelcase.constantize %>
   <% end %>
 <% else %>
   <% # here we come from _show %>
   <% update_span = "#{parent_class.to_s.underscore}_#{parent_id}_#{attribute}_list" -%>
-  <% human_readable_class = attribute.to_s.singularize.humanize.downcase %>
   <% path_to_new='new_' + attribute.to_s.singularize + '_path' %>
   <% conditions =  [ "#{parent_class.name.foreign_key} = ?", parent_id ] %>
-  <% model_name = attribute.to_s.singularize.camelcase %>
+  <% model = attribute.to_s.singularize.camelcase.constantize %>
 
   <% if cancan_enabled? %>
     <% objects = parent_class.find(parent_id).send(attribute).accessible_by(current_ability).order(attribute.to_s.singularize.camelcase.constantize.order_by_clause).paginate  :page => params[:page], :per_page => @PER_PAGE || 5, :conditions => conditions %>
@@ -54,7 +51,7 @@ they are @object. We need this magic here to rewrite all the @variables to varia
 
 <%= raw "<ul id=\"#{update_span}\" class=\"inline_forms_list\">" if ul_needed -%>
 <!--  # link to new -->
-<%= link_to_new_record("Add a new #{human_readable_class}", model_name, path_to_new, update_span, parent_class, parent_id) -%>
+<%= link_to_new_record(model, path_to_new, update_span, parent_class, parent_id) -%>
 <!--  # list of objects -->
 <% for object in objects %>
   <% if parent_class.nil?  %>

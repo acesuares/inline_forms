@@ -3,10 +3,6 @@
 #  validates :id_number, must_be_present => true, is_a_curacao_id_number => true;
 class IsACuracaoIdNumberValidator < ActiveModel::EachValidator
 
-  def help_message
-    "Een geldig ID nummer bestaat uit:<br />4 cijfers voor het jaar<br />2 cijfers voor de maand<br />2 cijfers voor de dag<br />2 cijfers voor het volgnummer<br />Bijvoorbeeld: 1990021123."
-  end
-
   def validate_each(record, attribute, value)
     if value =~ /^[0-9]{10}$/
       year  = value[0..3].to_i

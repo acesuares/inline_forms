@@ -13,13 +13,14 @@ module InlineFormsHelper
     InlineForms::VERSION
   end
 
+  # used as class name
   def has_validations(object, attribute)
     "has_validations " unless object.class.validators_on(attribute).empty?
   end
 
   def validation_help_as_list_for(object, attribute)
     "" and return if object.class.validators_on(attribute).empty?
-    content_tag(:ul, validation_help_for(object, attribute).map { |help_message| content_tag(:li, t(help_message) ) }.to_s.html_safe )
+    content_tag(:ul, validation_help_for(object, attribute).map { |help_message| content_tag(:li, help_message ) }.to_s.html_safe )
   end
 
   # validation_help_for(object, attribute) extracts the help messages for
@@ -27,7 +28,8 @@ module InlineFormsHelper
   def validation_help_for(object, attribute)
     "" and return if object.class.validators_on(attribute).empty?
     object.class.validators_on(attribute).map do |v|
-      v.help_message if v.respond_to?(:help_message)
+      puts v
+      t("inline_forms.validators.help.#{ActiveModel::Name.new(v.class).i18n_key.to_s}")
     end.compact
   end
 
@@ -81,19 +83,19 @@ module InlineFormsHelper
   end
 
   # link to new record
-  def link_to_new_record(translated_text, model, path_to_new, update_span, parent_class, parent_id)
+  def link_to_new_record(model, path_to_new, update_span, parent_class, parent_id)
     out = ""
     out << "<li class='new_record_link'>"
     out << (link_to image_tag(  'add.png',
         :class => "new_record_icon",
-        :title => translated_text ),
+        :title => t('inline_forms.view.add_new', :model => model.model_name.human ) ),
       send(path_to_new, :update => update_span, :parent_class => parent_class, :parent_id => parent_id ),
       :remote => true)
     out << "<div style='clear: both;'></div>"
     out << "</li>"
     ""
     if cancan_enabled?
-      if can?(:create, model.constantize)
+      if can?(:create, model)
         if parent_class.nil?
           raw out
         else
