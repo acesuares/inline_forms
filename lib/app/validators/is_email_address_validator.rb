@@ -25,10 +25,6 @@ class IsEmailAddressValidator < ActiveModel::EachValidator
     "is not a valid email address."
   end
   
-  def help_message
-    "Needs to be a valid email address."
-  end
-
   def validate_each(record, attribute, value)
     unless value =~ EmailAddress
       record.errors[attribute] << (options[:message] || error_message )

@@ -1,6 +1,12 @@
 <li id="newnew">
   <% flash.each do |key, value| %>
-    <div id="flash" class="flash <%= key %>"><%= value %></div>
+    <div id="flash" class="flash <%= key %>">
+      <ul>
+        <% value.each do |m| %>
+          <li><%= m %></li>
+        <% end %>
+      </ul>
+    </div>
   <% end %>
   <script type="text/javascript">
     $(function() { $("#flash").delay(1000).fadeTo('slow', 0.33); } );
@@ -14,7 +20,7 @@
         <tr>
           <th colspan="2" valign="top">
             <div class="object_presentation" >
-              Add a new <%= @object.class.to_s.singularize.downcase -%>
+              <%= t('inline_forms.view.add_new', :model => @Klass.model_name.human ) -%>
             </div>
           </th>
         </tr>
@@ -25,7 +31,7 @@
             <tr>
               <td valign="top">
                 <div class='<%= has_validations(@object, attribute) -%><%= "attribute_name attribute_#{attribute} form_element_#{form_element}" -%>' >
-                  <%= h(name) -%>
+                  <%= translated_attribute(@object, attribute) -%>
                 </div>
                 <% if has_validations(@object, attribute) %>
                   <div class='validation_help_tooltip'>

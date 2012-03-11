@@ -132,10 +132,8 @@
           format.js { render :list }
         end
       else
-        flash.now[:error] = "Kan #{object.class.to_s.underscore} niet aanmaken.".html_safe
-        object.errors.each do |e|
-          flash.now[:error] << '<br />'.html_safe + e[0].to_s + ": " + e[1]
-        end
+        flash.now[:header] = ["Kan #{object.class.to_s.underscore} niet aanmaken."]
+        flash.now[:error] = object.errors.to_a
         respond_to do |format|
           @object = object
           @object.inline_forms_attribute_list = attributes

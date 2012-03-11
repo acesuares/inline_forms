@@ -12,11 +12,13 @@ class IsACuracaoIdNumberValidator < ActiveModel::EachValidator
       begin
         DateTime.civil(year, month, day)
       rescue ArgumentError
-        record.errors[attribute] << (options[:message] || "is geen geldig ID nummer voor Curacao." )
+        record.errors.add(attribute.to_sym, options[:message] || "too_short" )
       end
     else
-      record.errors[attribute] << (options[:message] || "moet bestaan uit tien cijfers (bijvoorbeeld 1983040812)." )
+      record.errors.add(attribute.to_sym, options[:message] || "not_a_number" )
     end
   end
 
 end
+
+#"moet bestaan uit tien cijfers (bijvoorbeeld 1983040812)."

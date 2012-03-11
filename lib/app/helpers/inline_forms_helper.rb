@@ -28,8 +28,7 @@ module InlineFormsHelper
   def validation_help_for(object, attribute)
     "" and return if object.class.validators_on(attribute).empty?
     object.class.validators_on(attribute).map do |v|
-      puts v
-      t("inline_forms.validators.help.#{ActiveModel::Name.new(v.class).i18n_key.to_s}")
+      t("inline_forms.validators.help.#{ActiveModel::Name.new(v.class).i18n_key.to_s.gsub(/active_model\/validations\//, '')}")
     end.compact
   end
 
@@ -118,6 +117,12 @@ module InlineFormsHelper
     return request.protocol + [ locale, request.domain ].join('.') + request.port_string if subdomains.empty?
     # else return the rest
     request.protocol + [ locale, subdomains.join('.'), request.domain ].join('.') + request.port_string
+  end
+
+  def translated_attribute(object,attribute)
+    t("activerecord.attributes.#{object.class.name.underscore}.#{attribute}")
+#          "activerecord.attributes.#{attribute}",
+#          "attributes.#{attribute}" ] )
   end
 
   # get the values for an attribute
