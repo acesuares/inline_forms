@@ -1,16 +1,13 @@
-<div id="large_title"><%= application_name -%></div>
-<div id="flash_message">
-  <%= devise_error_messages!.empty? ? t('provide_email_and_we_send_instructions') : devise_error_messages! -%>
-</div>
+<% @default_message = 'provide_email_and_we_send_instructions' -%>
+<%= render :partial => "devise/shared/header_and_errors" %>
 
 <div id="sign_in">
   <div id="sign_in_form">
     <%= form_for(resource, :as => resource_name, :url => unlock_path(resource_name), :html => { :method => :post }) do |f| %>
       <br /> <%= f.email_field :email %><br /><br />
-      <div><%= f.submit "Send me instructions" %></div>
+      <div><%= f.submit t("inline_forms.devise.send_instructions") %></div>
     <% end %>
   </div>
 </div>
-<div id="shared_links">
-  <%= render :partial => "devise/shared/links" %>
-</div>
+
+<%= render :partial => "devise/shared/links" %>

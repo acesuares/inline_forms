@@ -1,17 +1,13 @@
-<div id="large_title"><%= application_name -%></div>
-<div id="flash_message">
-  <%= devise_error_messages!.empty? ? 'Please login with your email address and password' : devise_error_messages! -%>
-</div>
+<% @default_message = 'login_with_email_and_password' -%>
+<%= render :partial => "devise/shared/header_and_errors" %>
 
 <div id="sign_in">
   <div id="sign_in_form">
     <%= form_for(resource, :as => resource_name, :url => session_path(resource_name)) do |f| %>
       <br /> <%= f.email_field :email %><br />
       <%= f.password_field :password %><br />
-      <p><%= f.submit "Sign in" %></p>
+      <p><%= f.submit t("inline_forms.devise.sign_in") %></p>
     <% end %>
   </div>
 </div>
-<div id="shared_links">
-  <%= render :partial => "devise/shared/links" %>
-</div>
+<%= render :partial => "devise/shared/links" %>

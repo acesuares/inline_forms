@@ -1,7 +1,5 @@
-<div id="large_title"><%= application_name -%></div>
-<div id="flash_message">
-  <%= devise_error_messages!.empty? ? 'Please signup with your name, email and password' : devise_error_messages! -%>
-</div>
+<% @default_message = 'signup_with_email_name_and_password' -%>
+<%= render :partial => "devise/shared/header_and_errors" %>
 
 <div id="sign_in">
   <div id="sign_in_form">
@@ -15,11 +13,10 @@
       <div class="float_right"><%= f.label :password_confirmation %>&nbsp;&nbsp;<%= f.password_field :password_confirmation %></div>
       <div style="clear: both"></div>
       
-      <div><%= f.submit "Sign up" %></div>
+      <div><%= f.submit t("inline_forms.devise.sign_in") %></div>
     <% end %>
   </div>
 </div>
-<div id="shared_links">
-  <%= render :partial => "devise/shared/links" %>
-</div>
+
+<%= render :partial => "devise/shared/links" %>
 

@@ -142,9 +142,8 @@ module InlineForms
     paths["app/models"] << "lib/app/models"
     paths["app/views"] << "lib/app/views"
     paths["app/assets"] << "lib/app/assets"
-    raise 'hell' + (File.expand_path(File.dirname(__FILE__))).inspect
-#    raise 'hell' + Dir[File.join(File.expand_path(File.dirname(__FILE__) + '/locales'), '*.yml')].inspect
-      I18n.load_path.flatten!
+    I18n.load_path << Dir[File.join(File.expand_path(File.dirname(__FILE__) + '/locales'), '*.yml')]
+    I18n.load_path.flatten!
   end
 
 end
