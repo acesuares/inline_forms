@@ -1,10 +1,4 @@
 nl:
-  inline_forms:
-    view:
-      close: Sluiten
-    devise:
-      logout: afmelden
-    activerecord:
-    attributes:
-      if_translation:
-        is_proc: procedureel
+  test: test
+
+  
