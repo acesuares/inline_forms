@@ -2,8 +2,9 @@ nl:
   inline_forms:
     view:
       close: Sluiten
-  activerecord:
+    devise:
+      logout: afmelden
+    activerecord:
     attributes:
       if_translation:
         is_proc: procedureel
- 

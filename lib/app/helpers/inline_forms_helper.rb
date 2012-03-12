@@ -9,10 +9,6 @@ module InlineFormsHelper
 
   private
 
-  def inline_forms_version
-    InlineForms::VERSION
-  end
-
   # used as class name
   def has_validations(object, attribute)
     "has_validations " unless object.class.validators_on(attribute).empty?

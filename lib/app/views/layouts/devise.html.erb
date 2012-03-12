@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title><%= application_title -%> v<%= inline_forms_version -%></title>
+  <title><%= t('application.name') + " v" + InlineForms::VERSION -%></title>
   <%= stylesheet_link_tag 'devise' %>
   <%#= javascript_include_tag :defaults %>
   <%= csrf_meta_tag %>
