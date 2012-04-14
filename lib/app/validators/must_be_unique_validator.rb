@@ -4,8 +4,5 @@ class MustBeUniqueValidator  < ActiveRecord::Validations::UniquenessValidator
     "is not a unique."
   end
 
-  def help_message
-    "Moet uniek zijn (mag niet twee keer voorkomen)."
-  end
 
 end

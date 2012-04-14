@@ -1,8 +1,8 @@
 <% flash.each do |key, value| %>
   <div id="flash" class="flash <%= key %>"><%= value %></div>
-  <script type="text/javascript">
-    $(function() { $("#flash").delay(1000).fadeToggle('2000'); } );
-  </script>
+  <%#*<script type="text/javascript">%>
+    <%#*$(function() { $("#flash").delay(1000).fadeToggle('2000'); } );%>
+  <%#*</script>%>
 <% end %>
 
 <!-- purpose: list objects. we come here from #index and from #new.

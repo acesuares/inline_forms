@@ -121,7 +121,9 @@ class InlineFormsController < ApplicationController
     # for the logic behind the :conditions see the #index method.
     @parent_class.nil? ? conditions = [ @Klass.order_by_clause.to_s + " like ?", "%#{params[:search]}%" ] : conditions =  [ "#{@parent_class.foreign_key} = ?", @parent_id ]
     object[@parent_class.foreign_key] = @parent_id unless @parent_class.nil?
+    puts "BEFORE IF #{object.id} #{object.name}"
     if object.save
+    puts "AFTER SAVE IF #{object.id} #{object.name}"
       flash.now[:success] = t('success', :message => object.class.model_name.human)
       if cancan_enabled?
         @objects = @Klass.accessible_by(current_ability).order(@Klass.order_by_clause).paginate :page => params[:page], :per_page => @PER_PAGE || 12, :conditions => conditions
@@ -129,8 +131,9 @@ class InlineFormsController < ApplicationController
         @objects = @Klass.order(@Klass.order_by_clause).paginate :page => params[:page], :per_page => @PER_PAGE || 12, :conditions => conditions
       end
       respond_to do |format|
-        format.js { render :list }
+        format.js { render :list}
       end
+      puts "*)*)*)#{object.id} #{object.name}"
     else
       flash.now[:header] = ["Kan #{object.class.to_s.underscore} niet aanmaken."]
       flash.now[:error] = object.errors.to_a
