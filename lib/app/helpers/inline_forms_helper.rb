@@ -7,6 +7,9 @@ module InlineFormsHelper
     require form_element
   end
 
+  def inline_forms_version
+    INLINE_FORMS::VERSION
+  end
   private
 
   # used as class name
@@ -69,7 +72,7 @@ module InlineFormsHelper
         send( 'edit_' + object.class.to_s.underscore + '_path',
         object,
         :attribute => attribute.to_s,
-        :form_element => calling_method.sub(/_[a-z]+$/,''),
+        :form_element => calling_method.sub(/_[a-z]+$/,'').sub(/block in /,''),
         :update => css_class_id ),
         :remote => true
     else
