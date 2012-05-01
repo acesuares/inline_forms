@@ -85,6 +85,8 @@ gem 'mini_magick'
 gem 'jquery_datepicker'
 gem 'yaml_db'
 gem 'rails-i18n'
+gem 'unicorn'
+gem 'rvm-capistrano'
 
 "
 gemfile_development_group ="

@@ -6,7 +6,7 @@
 class IsCuracaoPhoneValidator < ActiveModel::EachValidator
 
   def error_message
-    "is geen geldig Curaçao telefoon nummer."
+    "is geen geldig Curacao telefoon nummer."
   end
 
   def help_message
