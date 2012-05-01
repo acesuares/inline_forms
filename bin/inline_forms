@@ -1,4 +1,4 @@
-#!/usr/bin/env ruby
+mv#!/usr/bin/env ruby
 # copied from hobo and then modified. Some stuff is there because of that.
 
 require 'fileutils'
@@ -206,6 +206,10 @@ end
 
 puts "Capify...\n"
 system('capify .')
+system("cp #{src}/lib/generators/templates/deploy.rb config/deploy.rb")
+
+puts "Unicorn Config...\n"
+system("cp #{src}/lib/generators/templates/unicorn.rb config/unicorn.rb")
 
 puts "Initializing git...\n"
 system('git init')
