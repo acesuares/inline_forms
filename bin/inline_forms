@@ -173,7 +173,7 @@ puts "Creating header in app/views/inline_forms/_header.html.erb...\n"
 header_src = "
 <div id='Header'>
   <div id='title'>
-    #{app_name} v<%= 'inline_forms_version' -%>
+    #{app_name} v<%= inline_forms_version -%>
   </div>
   <% if cancan_enabled? -%>
   <div id='logout'>

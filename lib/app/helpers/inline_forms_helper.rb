@@ -9,7 +9,7 @@ module InlineFormsHelper
   end
 
   def inline_forms_version
-    INLINE_FORMS::VERSION
+    InlineForms::VERSION
   end
   private
 
