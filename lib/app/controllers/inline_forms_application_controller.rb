@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 class InlineFormsApplicationController < ActionController::Base
   protect_from_forgery
   layout 'devise' if :devise_controller?

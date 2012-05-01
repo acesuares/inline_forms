@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 InlineForms::SPECIAL_COLUMN_TYPES[:check_list]=:no_migration
 
 # checklist

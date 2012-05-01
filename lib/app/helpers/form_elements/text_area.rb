@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 InlineForms::SPECIAL_COLUMN_TYPES[:text_area]=:text
 
 def text_area_show(object, attribute)

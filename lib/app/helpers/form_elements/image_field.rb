@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 InlineForms::SPECIAL_COLUMN_TYPES[:image_field]=:string
 
 def image_field_show(object, attribute)

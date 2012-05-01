@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 require File.expand_path(File.join(File.dirname(__FILE__),'../app/helpers/inline_forms_helper.rb'))
 module InlineForms
   # == Usage

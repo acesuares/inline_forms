@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 InlineForms::SPECIAL_COLUMN_TYPES[:dropdown_with_integers]=:integer
 
 # dropdown_with_integers generates a dropdown menu

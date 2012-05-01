@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 InlineForms::SPECIAL_COLUMN_TYPES[:geo_code_curacao]=:string
 
 # geo_code_curacao

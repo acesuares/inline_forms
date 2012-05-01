@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 InlineForms::SPECIAL_COLUMN_TYPES[:radio_button]=:integer
 # radio buttons are integers in this version
 # us like this:

@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 require "bundler/capistrano"
 
 set :rvm_ruby_string, ENV['GEM_HOME'].gsub(/.*\//,"") # Read from local system

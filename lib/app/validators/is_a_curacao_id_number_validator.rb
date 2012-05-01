@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 # == usage:
 # in your model, add:
 #  validates :id_number, must_be_present => true, is_a_curacao_id_number => true;

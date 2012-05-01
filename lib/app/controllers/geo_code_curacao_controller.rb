@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
   # Used in autocomplete
   #
   class GeoCodeCuracaoController < ApplicationController

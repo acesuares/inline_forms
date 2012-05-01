@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 InlineForms::SPECIAL_COLUMN_TYPES[:scale_with_values]=:integer
 
 # scale_with_values generates a scale

@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 module InlineFormsHelper
   # load form elements. Each element goes into a separate file
   # and defines a _show, _edit and _update method.

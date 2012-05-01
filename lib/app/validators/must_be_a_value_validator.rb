@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 # == usage:
 # in your model, add:
 #  validates :sex, :must_be_a_value => true;
