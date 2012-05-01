@@ -1,4 +1,4 @@
-mv#!/usr/bin/env ruby
+#!/usr/bin/env ruby
 # copied from hobo and then modified. Some stuff is there because of that.
 
 require 'fileutils'
