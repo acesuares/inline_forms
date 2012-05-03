@@ -144,12 +144,8 @@ puts "Paper_trail install..."
 system('bundle exec rails g paper_trail:install')
 
 
-if skip_db_setup
-  puts "Migrations skipped on your request!\n"
-else
-  puts "Migrating Devise and Versions"
-  system('bundle exec rake db:migrate')
-end
+puts "Migrating Devise and Versions"
+system('bundle exec rake db:migrate')
 
 puts "Creating header in app/views/inline_forms/_header.html.erb...\n"
 header_src = "
@@ -179,7 +175,7 @@ module ApplicationHelper
   end
 end
 "
-#File.open( 'app/helpers/application_helper.rb', 'w') {|f| f.write(app_helper) }
+File.open( 'app/helpers/application_helper.rb', 'w') {|f| f.write(app_helper) }
 
 
 #puts "Injecting precompile assets stuff in production.rb...\n"
