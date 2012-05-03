@@ -20,25 +20,19 @@ require "#{src}/lib/inline_forms/version.rb"
 USAGE = "
 USAGE: inline_forms <options> <app-name>
 
-  'inline_forms MyApp' will create a rails app in directory MyApp. It will also
-  try to create a MyApp_development mysql database and grant permissions on that
-  database to user 'MyApp' identified by 'MyApp', unless you specify
-  --skip-db-setup
+  'inline_forms MyApp' will create a rails app in directory MyApp.
 
 Options:
-  --skip-db-setup             # skip setup of mysql development database
   --help                      # show this message
 
 VERSION: #{InlineForms::VERSION}
 "
 
 
-skip_db_setup = false
-
 while true
   case arg_name = ARGV.shift
-  when "--skip-db-setup"
-    skip_db_setup = true
+#  when "--skip-db-setup"
+#    skip_db_setup = true
   when "--help"
     puts USAGE
     exit
@@ -70,7 +64,7 @@ gemfile_gems = "
 gem 'rails'
 gem 'rake'
 gem 'jquery-rails'
-gem 'mysql2'
+#gem 'mysql2'
 gem 'capistrano'
 gem 'will_paginate' #, :git => 'git://github.com/acesuares/will_paginate.git', :branch => 'rails3'
 gem 'tabs_on_rails' # , :git => 'git://github.com/acesuares/tabs_on_rails.git', :branch => 'add_remote'
@@ -93,6 +87,7 @@ gemfile_development_group ="
 
 # Include everything needed to run rake, tests, features, etc.
 group :development do
+  gem 'sqlite3'
   gem 'rspec-rails'
   gem 'shoulda', '>= 0'
   gem 'bundler'
@@ -114,36 +109,23 @@ File.open( 'Gemfile', 'w') {|f| f.write(gemfile_sources + gemfile_gems + gemfile
 
 system('bundle install')
 
-if skip_db_setup
-  puts "\nDatabase setup skipped on your request!\n"
-else
-  puts "\nDatabase setup: creating config/database.yml\n"
-  development_stanza = "
-  development:
-    adapter: mysql2
-    database: #{app_name}_dev
-    username: #{app_name}
-    password: #{app_name}
+puts "\nDatabase setup: creating config/database.yml\n"
+development_stanza = "
+development:
+  adapter: sqlite3
+  database: db/development.sqlite3
+  pool: 5
+  timeout: 5000
+"
+production_stanza = "
+production:
+  adapter: mysql2
+  database: #{app_name}_p
+  username: #{app_name}
+  password: #{app_name}444
 
-  "
-  production_stanza = "
-  production:
-    adapter: mysql2
-    database: #{app_name}_p
-    username: #{app_name}
-    password: #{app_name}444
-
-  "
-  File.open( 'config/database.yml', 'w') {|f| f.write(development_stanza + production_stanza) }
-
-  puts "CREATE #{app_name}_dev database"
-  system("sudo mysqladmin create #{app_name}_dev")
-
-  puts "GRANT ALL ON #{app_name}_dev.* to '#{app_name}'@'localhost' identified by '#{app_name}'"
-  system("echo \"GRANT ALL ON #{app_name}_dev.* to '#{app_name}'@'localhost' identified by '#{app_name}';\" | sudo mysql -v mysql")
-  system('echo "FLUSH PRIVILEGES;" | sudo mysql mysql')
-
-end
+"
+File.open( 'config/database.yml', 'w') {|f| f.write(development_stanza + production_stanza) }
 
 puts "\nDevise install..."
 system('bundle exec rails g devise:install')
@@ -220,5 +202,8 @@ system('echo  >> .gitignore')
 system('git add .')
 system('git commit -a -m " * Initial"')
 
-puts "\n\nDone! Now make your tables with 'rails g inline_forms ...\n\n\n"
+puts "\n\nDone! Now make your tables with 'rails g inline_forms ...\n"
+puts "\nDon't forget: edit config/{routes.rb, deploy.rb}, .git/config, delete public/index.html\n\n"
+
+
 
