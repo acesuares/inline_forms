@@ -53,7 +53,7 @@ system("#{RUBY} -S rails new #{app_name}")
 Dir.chdir(app_name)
 puts "\nWorking directory is now #{`pwd`}"
 
-puts "\nInstalling Gemfile and running Bundle...\n"
+puts "\nInstalling Gemfile...\n"
 
 gemfile_sources = "
 source 'http://rubygems.org'
@@ -107,6 +107,12 @@ end
 
 File.open( 'Gemfile', 'w') {|f| f.write(gemfile_sources + gemfile_gems + gemfile_development_group + gemfile_production_group ) }
 
+puts "\nCreating and trusting rvmrc...\n"
+system("echo `rvm current`@#{app_name} --create > .rvmrc")
+system("rvm rvmrc trust .rvmrc")
+system("rvm use `rvm current`@#{app_name} --create")
+
+puts "\nRunning bundle...\n"
 system('bundle install')
 
 puts "\nDatabase setup: creating config/database.yml\n"
