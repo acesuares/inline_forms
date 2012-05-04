@@ -37,13 +37,23 @@ before 'deploy:setup', 'rvm:install_ruby'
 after  "deploy:update_code", "deploy:fix_stuff"
 after  "deploy:update_code", "deploy:precompile_assets"
 
+
+
 namespace :deploy do
-  task :start, :roles => :app do
-    run "touch #{current_release}/tmp/restart.txt"
+  desc "Zero-downtime restart of Unicorn"
+  task :restart, :except => { :no_release => true } do
+    run "kill -s USR2 `cat #{shared_path}/pids/unicorn.pid`"
   end
 
-  task :stop, :roles => :app do
-    # Do nothing.
+  desc "Start unicorn"
+  task :start, :except => { :no_release => true } do
+    run "rvm rvmrc trust #{current_release}"
+    run "cd #{current_path} ; r193_unicorn -c config/unicorn.rb -D -E production"
+  end
+
+  desc "Stop unicorn"
+  task :stop, :except => { :no_release => true } do
+    run "kill -s QUIT `cat #{shared_path}/pids/unicorn.pid`"
   end
 
   desc "Fix Stuff."
@@ -63,8 +73,4 @@ namespace :deploy do
     run "cd #{release_path} && bundle exec rake #{task} RAILS_ENV=#{rails_env}"
   end
 
-  desc "Restart Application"
-  task :restart, :roles => :app do
-    run "touch #{current_release}/tmp/restart.txt"
-  end
 end
