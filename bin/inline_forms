@@ -182,13 +182,12 @@ puts "Injecting precompile assets stuff in production.rb...\n"
 precomp = "
   \n
   \n
-  #
-  # Precompile additional assets (application.js, application.css, and all non-JS/CSS are already added)\n
-  #{app_name}::Application.configure do\n
-    config.assets.precompile += %w( inline_forms_application.js inline_forms_application.css devise.css )\n
-  end\n
+  # Precompile additional assets (application.js, application.css, and all non-JS/CSS are already added)
+  #{app_name}::Application.configure do
+    config.assets.precompile += %w( inline_forms_application.js inline_forms_application.css devise.css )
+  end
   \n"
-File.open( 'config/environments/production.rb', 'w') {|f| f.write(precomp) }
+File.open( 'config/environments/production.rb', 'a') {|f| f.write(precomp) }
 
 puts "Capify...\n"
 system('capify .')
