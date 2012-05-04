@@ -188,7 +188,7 @@ precomp = "
     config.assets.precompile += %w( inline_forms_application.js inline_forms_application.css devise.css )\n
   end\n
   \n"
-File.open( 'app/config/environments/production.rb', 'w') {|f| f.write(precomp) }
+File.open( 'config/environments/production.rb', 'w') {|f| f.write(precomp) }
 
 puts "Capify...\n"
 system('capify .')
