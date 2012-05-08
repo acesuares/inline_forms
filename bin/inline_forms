@@ -61,6 +61,7 @@ source 'http://rubygems.org'
 "
 gemfile_gems = "
 
+gem 'test-unit'
 gem 'rails'
 gem 'rake'
 gem 'jquery-rails'
