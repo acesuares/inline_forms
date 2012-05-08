@@ -5,7 +5,7 @@ require 'fileutils'
 require 'pathname'
 require 'rbconfig'
 
-RUBY = File.join(Config::CONFIG['bindir'], Config::CONFIG['ruby_install_name']).sub(/.*\s.*/m, '"\&"')
+RUBY = File.join(RbConfig::CONFIG['bindir'], RbConfig::CONFIG['ruby_install_name']).sub(/.*\s.*/m, '"\&"')
 
 if RUBY.empty?
   puts "ruby not found"
@@ -61,6 +61,7 @@ source 'http://rubygems.org'
 "
 gemfile_gems = "
 
+gem 'test-unit'
 gem 'rails'
 gem 'rake'
 gem 'jquery-rails'
