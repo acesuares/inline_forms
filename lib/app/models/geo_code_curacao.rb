@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 class GeoCodeCuracao
   attr_accessor :street, :neighbourhood, :zone
   

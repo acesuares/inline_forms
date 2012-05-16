@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 require ('inline_forms/version.rb')
 # InlineForms is a Rails Engine that let you setup an admin interface quick and
 # easy. Please install it as a gem or include it in your Gemfile.

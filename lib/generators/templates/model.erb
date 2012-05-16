@@ -17,8 +17,6 @@ class <%= name %> < ActiveRecord::Base
     <%= @flag_not_accessible_through_html %>
   end
 
-  def self.order_by_clause
-    "name"
-  end
+<%= @order_by_clause -%>
 
 end

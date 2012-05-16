@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 # == usage:
 # in your model, add:
 #  validates :email, :presence => true, :is_email_address => true;

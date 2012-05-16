@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 # == Generic controller for the inline_forms plugin.
 # === Usage
 # If you have an Example class, make an ExampleController

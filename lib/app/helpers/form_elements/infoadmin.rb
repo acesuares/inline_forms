@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 # FIXME not needed here, since this is only used in the views InlineForms::SPECIAL_COLUMN_TYPES[:info]=:string
 
 def infoadmin_show(object, attribute)

@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 InlineForms::SPECIAL_COLUMN_TYPES[:check_box]=:boolean
 # boolean, bit unaptly named check_box
 def check_box_show(object, attribute)
