@@ -102,7 +102,8 @@ module InlineForms
         @inline_forms_attribute_list  = String.new
 
         for attribute in attributes
-          if attribute.column_type  == :belongs_to # :drop_down, :references and :belongs_to all end up with the column_type :belongs_to
+          if attribute.column_type  == :belongs_to 
+            ## :drop_down, :references and :belongs_to all end up with the column_type :belongs_to
             @belongs_to << '  belongs_to :'         + attribute.name + "\n"
           end
           if attribute.type  == :image_field # upload images via carrierwave
@@ -195,6 +196,10 @@ module InlineForms
                 :after => "<%= tabs_tag :open_tabs => { :id => \"tabs\" } do |tab| %>\n"
       end
     end
+    
+    def generate_test
+      template "test.erb", "app/test/#{test_file_name}"
+    end
 
     def generate_controller
       template "controller.erb", "app/controllers/#{controller_file_name}.rb" if @flag_create_controller
@@ -216,6 +221,14 @@ module InlineForms
 
     def controller_file_name
       controller_name.underscore
+    end
+    
+    def test_name
+      name + 'Test'
+    end
+    
+    def test_file_name
+      test_name.underscore
     end
 
     def table_name

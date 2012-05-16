@@ -1,13 +1,32 @@
 = inline_forms
 
+inline_forms is my ruby on rails framework for database record adminstration applications. We have used it for four big rails projects. Follow the instructions below to try it out.
+
+
+
+It has generators that generate a administration interface that significantly more featureful than the default rails generators.
+
+
 Inline Forms is almost a complete admin application. You can try it out easily.
+
+
 
 = Usage
 
  gem install inline_forms
+ # This first generator assumes that you have mysql running on your localhost
+ # and that mysql is configured to login your ubuntu user 
+ # the root account of your mysql server without a password prompt.
+ # this is configured by adding:
+ # [client]
+ # user="root"
+ # pass="<<password>>"
+ # to your /etc/mysql/my.cnf file
+ # in order to log in to your mysql server and create databases and users for your inline_forms application.
+ # also MyAppName should be shorter than 16 characters
  inline_forms MyAppName
  cd MyAppName
- rails g inline_forms Picture name:string caption:string image:image_field description:text apartment:belongs_to _presentation:'#{name}' -f
+ rails g inline_forms Picture name:string caption:string image:image_field description:text apartment:belongs_to _presentation:'#{name}'
  rails generate uploader Image
  rails g inline_forms Apartment name:string title:string description:text pictures:has_many pictures:associated _enabled:yes _presentation:'#{name}' -f
  bundle exec rake db:migrate
