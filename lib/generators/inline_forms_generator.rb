@@ -207,7 +207,7 @@ module InlineForms
     end
     
     def generate_test
-      template "test.erb", "app/test/#{test_file_name}"
+      template "test.erb", "test/unit/#{test_file_name}.rb"
     end
 
     def generate_controller
