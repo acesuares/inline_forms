@@ -100,7 +100,7 @@ module InlineForms
         @presentation             = "\n"
         @order                    = "\n"
         @order_by_clause          = "  def self.order_by_clause\n" +
-                                    "    \"#{attribute.type}\"\n" +
+                                    "    \"name\"\n" +
                                     "  end\n" +
                                     "\n"
         @carrierwave_mounters     = "\n"
