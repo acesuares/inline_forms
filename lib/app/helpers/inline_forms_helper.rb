@@ -15,18 +15,18 @@ module InlineFormsHelper
 
   # used as class name
   def has_validations(object, attribute)
-    "has_validations " unless object.class.validators_on(attribute).empty?
+    not object.class.validators_on(attribute).empty?
   end
 
   def validation_help_as_list_for(object, attribute)
-    "" and return if object.class.validators_on(attribute).empty?
+    "" and return unless has_validations(object, attribute)
     content_tag(:ul, validation_help_for(object, attribute).map { |help_message| content_tag(:li, help_message ) }.to_s.html_safe )
   end
 
   # validation_help_for(object, attribute) extracts the help messages for
   # attribute of object.class (in an Array)
   def validation_help_for(object, attribute)
-    "" and return if object.class.validators_on(attribute).empty?
+    "" and return unless has_validations(object, attribute)
     object.class.validators_on(attribute).map do |v|
       t("inline_forms.validators.help.#{ActiveModel::Name.new(v.class).i18n_key.to_s.gsub(/active_model\/validations\//, '')}")
     end.compact

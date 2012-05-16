@@ -99,6 +99,10 @@ module InlineForms
         @has_attached_files       = "\n"
         @presentation             = "\n"
         @order                    = "\n"
+        @order_by_clause          = "  def self.order_by_clause\n" +
+                                    "    \"#{attribute.type}\"\n" +
+                                    "  end\n" +
+                                    "\n"
         @carrierwave_mounters     = "\n"
         @inline_forms_attribute_list  = String.new
 
@@ -130,10 +134,14 @@ module InlineForms
                               "\n"
           end
           if attribute.name == '_order'
-            @order <<  "  def <=>(other)\n" +
+            @order <<         "  def <=>(other)\n" +
                               "    self.#{attribute.type} <=> other.#{attribute.type}\n" +
                               "  end\n" +
                               "\n"
+            @order_by_clause = "  def self.order_by_clause\n" +
+                               "    \"#{attribute.type}\"\n" +
+                               "  end\n" +
+                               "\n"
           end
           if attribute.attribute?
             attribute.attribute_type == :unknown ? commenter = '#' : commenter = ' '
