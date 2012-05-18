@@ -20,6 +20,7 @@ def dropdown_edit(object, attribute)
 end
 
 def dropdown_update(object, attribute)
-  object[attribute.to_s.foreign_key.to_sym] = params[('_' + object.class.to_s.underscore).to_sym][attribute.to_s.foreign_key.to_sym]
+  foreign_key = object.association(attribute.to_sym).reflection.options[:foreign_key]
+  object[foreign_key] = params[('_' + object.class.to_s.underscore).to_sym][attribute.to_s.foreign_key.to_sym]
 end
 
