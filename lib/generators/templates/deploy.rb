@@ -3,6 +3,11 @@
 require "bundler/capistrano"
 require "rvm/capistrano"
 
+load 'deploy/assets'
+
+set :rvm_ruby_string, ENV['GEM_HOME'].gsub(/.*\//,"") # Read from local system
+set :rvm_install_ruby_params, '--1.9'      # for jruby/rbx default to 1.9 mode https://github.com/wayneeseguin/rvm-capistrano/commit/663252851a9d6294439a9b501cebe66f8c3150f7
+
 set :application, "YOUR_APPLICATION_NAME"
 set :domain,      "YOUR_HOST_NAME"
 set :user,        "YOUR_USERNAME_ON_THE_HOST"
@@ -35,8 +40,6 @@ end
 before 'deploy:setup', 'rvm:install_rvm'
 before 'deploy:setup', 'rvm:install_ruby'
 after  "deploy:update_code", "deploy:fix_stuff"
-after  "deploy:update_code", "deploy:precompile_assets"
-
 
 
 namespace :deploy do
@@ -48,12 +51,17 @@ namespace :deploy do
   desc "Start unicorn"
   task :start, :except => { :no_release => true } do
     run "rvm rvmrc trust #{current_release}"
-    run "cd #{current_path} ; r193_unicorn -c config/unicorn.rb -D -E production"
+    run "cd #{current_path} ; bundle exec r193_unicorn -c #{current_path}/config/unicorn.rb -D -E production"
   end
 
   desc "Stop unicorn"
   task :stop, :except => { :no_release => true } do
     run "kill -s QUIT `cat #{shared_path}/pids/unicorn.pid`"
+  end
+
+  desc "Kill unicorn"
+  task :kill, :except => { :no_release => true } do
+    run "kill -s KILL `cat #{shared_path}/pids/unicorn.pid`"
   end
 
   desc "Fix Stuff."
@@ -65,12 +73,5 @@ namespace :deploy do
     run "cd #{release_path} && RAILS_ENV=#{rails_env} bundle exec rails g ckeditor:install "
   end
 
-
-  desc "Compile all the assets named in config.assets.precompile."
-  task :precompile_assets do
-    raise "Rails environment not set" unless rails_env
-    task = "assets:precompile"
-    run "cd #{release_path} && bundle exec rake #{task} RAILS_ENV=#{rails_env}"
-  end
 
 end
