@@ -9,7 +9,7 @@ end
 
 class Dropdown
   attr_accessor :params
-  # niet echt convetioneel
+  # niet echt conventioneel
   # met require worden de methods in dropdown.rb private
   # het zijn dan private methods van de class Object
   code = File.read '../lib/app/helpers/form_elements/dropdown.rb'
