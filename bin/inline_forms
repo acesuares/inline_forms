@@ -78,6 +78,7 @@ gem 'jquery_datepicker'
 gem 'yaml_db'
 gem 'rails-i18n'
 gem 'unicorn'
+gem 'rvm'
 gem 'rvm-capistrano'
 
 "
