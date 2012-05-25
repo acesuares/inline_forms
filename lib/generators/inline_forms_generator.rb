@@ -98,8 +98,9 @@ module InlineForms
           begin
             eval model_name
           rescue NameError
-            raise "Can't find model \"#{model_name}\" " +
+            puts "Can't find model \"#{model_name}\" " +
               "which you referred to in a #{attribute.type} relation"
+            exit
           end
         end
       end
