@@ -164,7 +164,7 @@ header_src = "
   </div>
   <% if cancan_enabled? -%>
   <div id='logout'>
-    <%= link_to 'Afmelden: \#{current_user.name}', destroy_user_session_path, :method => :delete %>
+    <%= link_to \"Afmelden: \#{current_user.name}\", destroy_user_session_path, :method => :delete %>
   </div>
   <% end -%>
   <div style='clear: both;'></div>

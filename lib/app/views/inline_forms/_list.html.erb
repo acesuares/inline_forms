@@ -72,7 +72,7 @@ they are @object. We need this magic here to rewrite all the @variables to varia
 <% if parent_id.nil? -%>
   <% pagination = will_paginate objects -%>
 <% else %>
-  <% pagination = will_paginate objects, :ajax => true, :params => {:controller => attribute, :action => :index, :id => nil, :parent_class => parent_class, :parent_id => parent_id, :update => "#{parent_class.to_s.underscore}_#{parent_id}_#{attribute}", :ul_needed => true  } -%>
+  <% pagination = will_paginate objects, :remote => true, :params => {:controller => attribute, :action => :index, :id => nil, :parent_class => parent_class, :parent_id => parent_id, :update => "#{parent_class.to_s.underscore}_#{parent_id}_#{attribute}", :ul_needed => true  } -%>
 <% end %>
 <%= raw "<li class=\"#{cycle('odd', 'even')}\">" + pagination + "</li>" if pagination -%>
 <%= raw "</ul>" if ul_needed -%>
