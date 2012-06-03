@@ -64,7 +64,7 @@ gem 'rails'
 gem 'rake'
 gem 'jquery-rails'
 gem 'capistrano'
-gem 'will_paginate' #, :git => 'git://github.com/acesuares/will_paginate.git', :branch => 'rails3'
+gem 'will_paginate' :git => 'git://github.com/acesuares/will_paginate.git'
 gem 'tabs_on_rails' # , :git => 'git://github.com/acesuares/tabs_on_rails.git', :branch => 'add_remote'
 gem 'ckeditor', :git => 'git://github.com/acesuares/ckeditor.git', :branch => 'master'
 gem 'carrierwave'
@@ -186,6 +186,23 @@ end
 "
 File.open( 'app/helpers/application_helper.rb', 'w') {|f| f.write(app_helper) }
 
+
+
+puts "Overwriting application_controller...\n"
+app_cont = "
+class ApplicationController < ActionController::Base
+  protect_from_forgery
+
+  # before_filter :authenticate_user!
+  # check_authorization :unless => :devise_controller?
+
+  # rescue_from CanCan::AccessDenied do |exception|
+  #  sign_out :user if user_signed_in?
+  #  redirect_to new_user_session_path, :alert => exception.message
+  # end
+end
+"
+File.open( 'app/controller/application_controller.rb', 'w+') {|f| f.write(app_cont) }
 
 puts "Injecting precompile assets stuff in production.rb...\n"
 precomp = "

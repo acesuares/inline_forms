@@ -2,7 +2,7 @@
 # not needed here, since this is only used in the views InlineForms::SPECIAL_COLUMN_TYPES[:info]=:string
 
 def info_show(object, attribute)
-  object.send(attribute)
+  object.send attribute.to_sym
 end
 
 def info_edit(object, attribute)
