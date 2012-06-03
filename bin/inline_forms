@@ -202,7 +202,7 @@ class ApplicationController < ActionController::Base
   # end
 end
 "
-File.open( 'app/controller/application_controller.rb', 'w+') {|f| f.write(app_cont) }
+File.open( 'app/controllers/application_controller.rb', 'w+') {|f| f.write(app_cont) }
 
 puts "Injecting precompile assets stuff in production.rb...\n"
 precomp = "
