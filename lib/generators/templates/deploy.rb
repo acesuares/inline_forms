@@ -12,10 +12,6 @@ set :application, "YOUR_APPLICATION_NAME"
 set :domain,      "YOUR_HOST_NAME"
 set :user,        "YOUR_USERNAME_ON_THE_HOST"
 
-#
-
-set :rvm_ruby_string, ENV['GEM_HOME'].gsub(/.*\//,"") # Read from local system
-
 set :bundle_flags,       "--deployment"
 
 set :use_sudo,    false
@@ -39,14 +35,23 @@ end
 
 before 'deploy:setup', 'rvm:install_rvm'
 before 'deploy:setup', 'rvm:install_ruby'
-after  "deploy:update_code", "deploy:fix_stuff"
+before  "deploy:assets:precompile", "deploy:fix_stuff"
 
 
 namespace :deploy do
   desc "Zero-downtime restart of Unicorn"
-  task :restart, :except => { :no_release => true } do
+  task :zero_restart, :except => { :no_release => true } do
     run "kill -s USR2 `cat #{shared_path}/pids/unicorn.pid`"
   end
+
+  desc "Downtime restart of Unicorn"
+  task :restart, :except => { :no_release => true } do
+    run "kill -s KILL `cat #{shared_path}/pids/unicorn.pid`"
+    sleep 10
+    run "rvm rvmrc trust #{current_release}"
+    run "cd #{current_path} ; bundle exec r193_unicorn -c #{current_path}/config/unicorn.rb -D -E production"
+  end
+
 
   desc "Start unicorn"
   task :start, :except => { :no_release => true } do
@@ -69,6 +74,8 @@ namespace :deploy do
     run "cd #{shared_path} && mkdir -p log"
     run "cd #{shared_path} && mkdir -p sockets"
     run "ln -s #{shared_path}/sockets #{release_path}/tmp/sockets"
+    run "cd #{shared_path} && mkdir -p uploads"
+    run "ln -s #{shared_path}/uploads #{release_path}/public/uploads"
     raise "Rails environment not set" unless rails_env
     run "cd #{release_path} && RAILS_ENV=#{rails_env} bundle exec rails g ckeditor:install "
   end

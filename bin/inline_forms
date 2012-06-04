@@ -211,6 +211,18 @@ precomp = "
   # Precompile additional assets (application.js, application.css, and all non-JS/CSS are already added)
   #{app_name}::Application.configure do
     config.assets.precompile += %w( inline_forms_application.js inline_forms_application.css devise.css )
+    # Fallback to assets pipeline if a precompiled asset is missed, we need this for ckeditor
+    config.assets.compile = true
+    # for devise
+    config.action_mailer.default_url_options = { :protocol => 'https', :host => 'YOURHOSTNAME' }
+
+    config.action_mailer.delivery_method = :smtp
+    config.action_mailer.smtp_settings = {
+      :address => 'YOURMAILSERVER',
+      :enable_starttls_auto => true,
+      :password => 'YOURPASSWORD',
+      :user_name => 'YOURUSERNAME'
+    }
   end
   \n"
 File.open( 'config/environments/production.rb', 'a') {|f| f.write(precomp) }
