@@ -38,7 +38,9 @@ they are @object. We need this magic here to rewrite all the @variables to varia
   <% # here we come from _show %>
   <% update_span = "#{parent_class.to_s.underscore}_#{parent_id}_#{attribute}_list" -%>
   <% path_to_new='new_' + attribute.to_s.singularize + '_path' %>
-  <% conditions =  [ "#{parent_class.name.foreign_key} = ?", parent_id ] %>
+  <% foreign_key = parent_class.first.association(attribute.to_sym).reflection.options[:foreign_key] || parent_class.name.foreign_key -%>
+
+  <% conditions =  [ "#{foreign_key} = ?", parent_id ] %>
   <% model = attribute.to_s.singularize.camelcase.constantize %>
 
   <% if cancan_enabled? %>

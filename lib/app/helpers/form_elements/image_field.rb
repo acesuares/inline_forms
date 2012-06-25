@@ -2,7 +2,7 @@
 InlineForms::SPECIAL_COLUMN_TYPES[:image_field]=:string
 
 def image_field_show(object, attribute)
-  link_to_inline_edit object, attribute, image_tag( object.send(attribute).send(:url) )
+  link_to_inline_edit object, attribute, image_tag(object.send(attribute).send(:palm).send(:url))
 end
 
 def image_field_edit(object, attribute)

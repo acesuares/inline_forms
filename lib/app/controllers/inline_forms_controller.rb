@@ -42,8 +42,7 @@ class InlineFormsController < ApplicationController
 
   helper_method :cancan_disabled?, :cancan_enabled?
 
-  load_and_authorize_resource if cancan_enabled?
-
+  load_and_authorize_resource :except => :revert if cancan_enabled?
   # :index shows a list of all objects from class @Klass, using will_paginate,
   # including a link to 'new', that allows you to create a new record.
   def index
@@ -57,7 +56,8 @@ class InlineFormsController < ApplicationController
     if @parent_class.nil?
       conditions = [ @Klass.order_by_clause.to_s + " like ?", "%#{params[:search]}%" ]
     else
-      conditions =  [ "#{@parent_class.foreign_key} = ?", @parent_id ]
+      foreign_key = @Klass.first.association(@parent_class.underscore.to_sym).reflection.options[:foreign_key] || @parent_class.foreign_key
+      conditions =  [ "#{foreign_key} = ?", @parent_id ]
     end
     # if we are using cancan, then make sure to select only accessible records
     if cancan_enabled?
@@ -120,11 +120,10 @@ class InlineFormsController < ApplicationController
     @parent_id = params[:parent_id]
     @PER_PAGE = 5 unless @parent_class.nil?
     # for the logic behind the :conditions see the #index method.
-    @parent_class.nil? ? conditions = [ @Klass.order_by_clause.to_s + " like ?", "%#{params[:search]}%" ] : conditions =  [ "#{@parent_class.foreign_key} = ?", @parent_id ]
-    object[@parent_class.foreign_key] = @parent_id unless @parent_class.nil?
-    puts "BEFORE IF #{object.id} #{object.name}"
+    foreign_key = object.association(@parent_class.underscore.to_sym).reflection.options[:foreign_key] || @parent_class.foreign_key
+    @parent_class.nil? ? conditions = [ @Klass.order_by_clause.to_s + " like ?", "%#{params[:search]}%" ] : conditions =  [ "#{foreign_key} = ?", @parent_id ]
+    object[foreign_key] = @parent_id unless @parent_class.nil?
     if object.save
-    puts "AFTER SAVE IF #{object.id} #{object.name}"
       flash.now[:success] = t('success', :message => object.class.model_name.human)
       if cancan_enabled?
         @objects = @Klass.accessible_by(current_ability).order(@Klass.order_by_clause).paginate :page => params[:page], :per_page => @PER_PAGE || 12, :conditions => conditions
@@ -134,7 +133,6 @@ class InlineFormsController < ApplicationController
       respond_to do |format|
         format.js { render :list}
       end
-      puts "*)*)*)#{object.id} #{object.name}"
     else
       flash.now[:header] = ["Kan #{object.class.to_s.underscore} niet aanmaken."]
       flash.now[:error] = object.errors.to_a
@@ -209,6 +207,7 @@ class InlineFormsController < ApplicationController
     @version = Version.find(params[:id])
     @version.reify.save!
     @object = @Klass.find(@version.item_id)
+    authorize!(:revert, @object)
     respond_to do |format|
       format.js { render :close }
     end

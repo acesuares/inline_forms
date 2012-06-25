@@ -15,8 +15,12 @@ def dropdown_edit(object, attribute)
   else
     values = o.order(o.order_by_clause)
   end
+  values.each do |v|
+    v.name = v._presentation
+  end
+  values.sort_by! &:name
   # the leading underscore is to avoid name conflicts, like 'email' and 'email_type' will result in 'email' and 'email[email_type_id]' in the form!
-  collection_select( ('_' + object.class.to_s.underscore).to_sym, attribute.to_s.foreign_key.to_sym, values, 'id', '_presentation', :selected => object.send(attribute).id)
+  collection_select( ('_' + object.class.to_s.underscore).to_sym, attribute.to_s.foreign_key.to_sym, values, 'id', 'name', :selected => object.send(attribute).id)
 end
 
 def dropdown_update(object, attribute)
