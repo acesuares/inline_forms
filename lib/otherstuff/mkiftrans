@@ -1,0 +1,21 @@
+#!/bin/bash
+rails g inline_forms IFLocale \
+  name:string \
+  if_translations:belongs_to \
+  _enabled:yes _presentation:'#{name}' -f
+
+rails g inline_forms IFKey \
+  name:string \
+  if_translations:has_many if_translations:associated \
+  _enabled:yes _presentation:'#{name}' -f
+
+rails g inline_forms IFTranslation \
+  if_key:belongs_to \
+  if_locale:dropdown \
+  value:text \
+  interpolations:text \
+  is_proc:boolean \
+  _presentation:'#{value}' -f
+
+bundle exec rake db:migrate
+

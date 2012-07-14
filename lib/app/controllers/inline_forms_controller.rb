@@ -120,9 +120,13 @@ class InlineFormsController < ApplicationController
     @parent_id = params[:parent_id]
     @PER_PAGE = 5 unless @parent_class.nil?
     # for the logic behind the :conditions see the #index method.
-    foreign_key = object.association(@parent_class.underscore.to_sym).reflection.options[:foreign_key] || @parent_class.foreign_key
-    @parent_class.nil? ? conditions = [ @Klass.order_by_clause.to_s + " like ?", "%#{params[:search]}%" ] : conditions =  [ "#{foreign_key} = ?", @parent_id ]
-    object[foreign_key] = @parent_id unless @parent_class.nil?
+    if @parent_class.nil?
+      conditions = [ @Klass.order_by_clause.to_s + " like ?", "%#{params[:search]}%" ]
+    else
+      foreign_key = object.association(@parent_class.underscore.to_sym).reflection.options[:foreign_key] || @parent_class.foreign_key
+      conditions =  [ "#{foreign_key} = ?", @parent_id ]
+      object[foreign_key] = @parent_id
+    end
     if object.save
       flash.now[:success] = t('success', :message => object.class.model_name.human)
       if cancan_enabled?
