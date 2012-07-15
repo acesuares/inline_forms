@@ -45,19 +45,25 @@ if !ARGV.empty? || app_name.nil? || !/^[a-zA-Z][0-9a-zA-Z_-]+/.match(app_name) |
 end
 
 puts "\nGenerating Rails app '#{app_name}'...\n"
-ruby_version = %x[rvm current]
 RVM.run "rails new #{app_name}"
 
-Dir.chdir(app_name)
-puts "\nWorking directory is now #{`pwd`}"
+puts "\nCreating and trusting .rvmrc...\n"
+ruby_version = %x[rvm current]
+system "echo rvm use #{ruby_version.chop}@#{app_name} --create > #{app_name}/.rvmrc"
+system "rvm rvmrc trust #{app_name}/.rvmrc"
 
-puts "\nInstalling Gemfile...\n"
+puts "\nChanging to '#{app_name}' with RVM...\n"
+RVM.chdir(app_name) do
+  puts "\nWorking directory is now #{`pwd`}"
+  rvm_gemset = %x[rvm current]
+  puts "\nRVM gemset is now #{rvm_gemset}"
 
-gemfile_sources = "
+  puts "\nInstalling Gemfile...\n"
+  gemfile_sources = "
 source 'http://rubygems.org'
 
-"
-gemfile_gems = "
+  "
+  gemfile_gems = "
 
 gem 'test-unit'
 gem 'rails'
@@ -81,8 +87,8 @@ gem 'unicorn'
 gem 'rvm'
 gem 'rvm-capistrano'
 
-"
-gemfile_development_group ="
+  "
+  gemfile_development_group ="
 
 # Include everything needed to run rake, tests, features, etc.
 group :development do
@@ -94,8 +100,8 @@ group :development do
 #  gem 'rcov', '>= 0'
 end
 
-"
-gemfile_production_group ="
+  "
+  gemfile_production_group ="
 # these are just for production
 group :production do
   gem 'mysql2'
@@ -103,61 +109,54 @@ group :production do
   gem 'uglifier'
 end
 
-"
+  "
 
-File.open( 'Gemfile', 'w') {|f| f.write(gemfile_sources + gemfile_gems + gemfile_development_group + gemfile_production_group ) }
-
-puts "\nCreating and trusting .rvmrc...\n"
-system "echo rvm use #{ruby_version.chop}@#{app_name} --create > .rvmrc"
+  File.open( 'Gemfile', 'w') {|f| f.write(gemfile_sources + gemfile_gems + gemfile_development_group + gemfile_production_group ) }
 
 
-system "rvm rvmrc trust .rvmrc"
-
-RVM.use "#{ruby_version.chop}@#{app_name}"
-
-puts "\nRunning bundle...\n"
-RVM.run "bundle install"
-
-puts "\nDatabase setup: creating config/database.yml\n"
-development_stanza = "
+  puts "\nRunning bundle...\n"
+  system "bundle install"
+exit
+  puts "\nDatabase setup: creating config/database.yml\n"
+  development_stanza = "
 development:
   adapter: sqlite3
   database: db/development.sqlite3
   pool: 5
   timeout: 5000
-"
-production_stanza = "
+  "
+  production_stanza = "
 production:
   adapter: mysql2
   database: #{app_name}_p
   username: #{app_name}
   password: #{app_name}444
 
-"
-File.open( 'config/database.yml', 'w') {|f| f.write(development_stanza + production_stanza) }
+  "
+  File.open( 'config/database.yml', 'w') {|f| f.write(development_stanza + production_stanza) }
 
-puts "\nDevise install..."
-RVM.run "bundle exec rails g devise:install"
-puts "\nDevise User model install with added name field..."
-RVM.run "bundle exec rails g devise User name:string"
-puts "\nInstall ckeditor..."
-RVM.run "bundle exec rails g ckeditor:install"
-puts "Create config file in app/assets/javascripts/ckeditor/config.js"
-FileUtils.mkdir_p 'app/assets/javascripts/ckeditor'
-system("cp #{src}/lib/app/assets/javascripts/ckeditor/config.js app/assets/javascripts/ckeditor")
-puts "Add remotipart to app/assets/javascripts/application.js..."
-system('echo >> app/assets/javascripts/application.js')
-system('echo "//= require jquery.remotipart" >> app/assets/javascripts/application.js')
-system('echo >> app/assets/javascripts/application.js')
-puts "Paper_trail install..."
-RVM.run "bundle exec rails g paper_trail:install"
+  puts "\nDevise install..."
+  RVM.run "bundle exec rails g devise:install"
+  puts "\nDevise User model install with added name field..."
+  RVM.run "bundle exec rails g devise User name:string"
+  puts "\nInstall ckeditor..."
+  RVM.run "bundle exec rails g ckeditor:install"
+  puts "Create config file in app/assets/javascripts/ckeditor/config.js"
+  FileUtils.mkdir_p 'app/assets/javascripts/ckeditor'
+  system("cp #{src}/lib/app/assets/javascripts/ckeditor/config.js app/assets/javascripts/ckeditor")
+  puts "Add remotipart to app/assets/javascripts/application.js..."
+  system('echo >> app/assets/javascripts/application.js')
+  system('echo "//= require jquery.remotipart" >> app/assets/javascripts/application.js')
+  system('echo >> app/assets/javascripts/application.js')
+  puts "Paper_trail install..."
+  RVM.run "bundle exec rails g paper_trail:install"
 
 
-puts "Migrating Devise and Versions"
-system('bundle exec rake db:migrate')
+  puts "Migrating Devise and Versions"
+  system('bundle exec rake db:migrate')
 
-puts "Creating header in app/views/inline_forms/_header.html.erb...\n"
-header_src = "
+  puts "Creating header in app/views/inline_forms/_header.html.erb...\n"
+  header_src = "
 <div id='Header'>
   <div id='title'>
     #{app_name} v<%= inline_forms_version -%>
@@ -169,12 +168,12 @@ header_src = "
   <% end -%>
   <div style='clear: both;'></div>
 </div>
-"
-FileUtils.mkdir_p 'app/views/inline_forms'
-File.open( 'app/views/inline_forms/_header.html.erb', 'w') {|f| f.write(header_src) }
+  "
+  FileUtils.mkdir_p 'app/views/inline_forms'
+  File.open( 'app/views/inline_forms/_header.html.erb', 'w') {|f| f.write(header_src) }
 
-puts "Set application_name and _title in ApplicationHelper...\n"
-app_helper = "
+  puts "Set application_name and _title in ApplicationHelper...\n"
+  app_helper = "
 module ApplicationHelper
   def application_name
     #{app_name}
@@ -183,13 +182,13 @@ module ApplicationHelper
     #{app_name}
   end
 end
-"
-File.open( 'app/helpers/application_helper.rb', 'w') {|f| f.write(app_helper) }
+  "
+  File.open( 'app/helpers/application_helper.rb', 'w') {|f| f.write(app_helper) }
 
 
 
-puts "Overwriting application_controller...\n"
-app_cont = "
+  puts "Overwriting application_controller...\n"
+  app_cont = "
 class ApplicationController < ActionController::Base
   protect_from_forgery
 
@@ -201,11 +200,11 @@ class ApplicationController < ActionController::Base
   #  redirect_to new_user_session_path, :alert => exception.message
   # end
 end
-"
-File.open( 'app/controllers/application_controller.rb', 'w+') {|f| f.write(app_cont) }
+  "
+  File.open( 'app/controllers/application_controller.rb', 'w+') {|f| f.write(app_cont) }
 
-puts "Injecting precompile assets stuff in production.rb...\n"
-precomp = "
+  puts "Injecting precompile assets stuff in production.rb...\n"
+  precomp = "
   \n
   \n
   # Precompile additional assets (application.js, application.css, and all non-JS/CSS are already added)
@@ -225,26 +224,26 @@ precomp = "
     }
   end
   \n"
-File.open( 'config/environments/production.rb', 'a') {|f| f.write(precomp) }
+  File.open( 'config/environments/production.rb', 'a') {|f| f.write(precomp) }
 
-puts "Capify...\n"
-system('capify .')
-system("cp #{src}/lib/generators/templates/deploy.rb config/deploy.rb")
+  puts "Capify...\n"
+  system('capify .')
+  system("cp #{src}/lib/generators/templates/deploy.rb config/deploy.rb")
 
-puts "Unicorn Config...\n"
-system("cp #{src}/lib/generators/templates/unicorn.rb config/unicorn.rb")
+  puts "Unicorn Config...\n"
+  system("cp #{src}/lib/generators/templates/unicorn.rb config/unicorn.rb")
 
-puts "Initializing git...\n"
-system('git init')
-system('echo >> .gitignore')
-system('echo "nbproject" >> .gitignore')
-system('echo "public/uploads" >> .gitignore')
-system('echo  >> .gitignore')
-system('git add .')
-system('git commit -a -m " * Initial"')
+  puts "Initializing git...\n"
+  system('git init')
+  system('echo >> .gitignore')
+  system('echo "nbproject" >> .gitignore')
+  system('echo "public/uploads" >> .gitignore')
+  system('echo  >> .gitignore')
+  system('git add .')
+  system('git commit -a -m " * Initial"')
 
-puts "\n\nDone! Now make your tables with 'rails g inline_forms ...\n"
-puts "\nDon't forget: edit .rvmrc, config/{routes.rb, deploy.rb}, .git/config, delete public/index.html\n\n"
+  puts "\n\nDone! Now make your tables with 'rails g inline_forms ...\n"
+  puts "\nDon't forget: edit .rvmrc, config/{routes.rb, deploy.rb}, .git/config, delete public/index.html\n\n"
 
-
+end
 
