@@ -32,17 +32,33 @@ module InlineForms
     DATABASE_OPTIONS = %w(sqlite mysql)
     method_option :database, :aliases => "-d", :default => DATABASE_OPTIONS.first, :banner => DATABASE_OPTIONS.join('|'), :desc => 'specify development database'
     method_option :dry, :type => :boolean, :desc => 'dry run. Do not do most things. Only useful for development of inline_forms'
+    method_option :example, :type => :boolean, :desc => 'install the example app. incompatible with --dry and uses sqlite as development database'
 
     def create(app_name)
 
-      def dry_run?
+      def self.dry_run?
         options[:dry]
       end
 
-      options_database = DATABASE_OPTIONS.include?(options[:database]) ? options[:database] : DATABASE_OPTIONS.first
+      def self.install_example?
+        options[:example]
+      end
+
+      database = DATABASE_OPTIONS.include?(options[:database]) ? options[:database] : DATABASE_OPTIONS.first
+
+      if install_example? && dry_run?
+        say "--example and --dry-run can not be used together", :red
+        exit 1
+      end
+
+      if install_example? && (database != 'sqlite')
+        say "--example can only be used with an sqlite development database", :red
+        exit 1
+      end
 
       say "This is a dry run. I hope you know what you are doing...", :red if dry_run?
-      say "Creating #{app_name} with inline_forms v#{VERSION} and development database #{options_database}...", :green
+
+      say "Creating #{app_name} with inline_forms v#{VERSION} and development database #{database}...", :green
 
       regex = /\A[0-9a-zA-Z][0-9a-zA-Z_-]+[0-9a-zA-Z]\Z/
       if ! regex.match(app_name)
@@ -62,7 +78,7 @@ module InlineForms
       say "- Creating and trusting .rvmrc..."
       ruby_version = %x[rvm current]
       create_file "#{app_name}/.rvmrc", "rvm use #{ruby_version.chop}@#{app_name} --create"
-      say ("- " + %x[cd #{app_name} && rvm rvmrc trust .rvmrc]).chop, :green
+      say ("- " + %x[cd #{app_name} && rvm rvmrc trust .rvmrc]).chop
 
       say "- Changing to '#{app_name}' with RVM..."
       RVM.chdir(app_name) do
@@ -123,9 +139,9 @@ module InlineForms
         say "- Running bundle..."
         system "bundle install" unless dry_run?
   
-        say "- Database setup: creating config/database.yml with development database #{options_database}"
+        say "- Database setup: creating config/database.yml with development database #{database}"
         remove_file "#{app_name}/config/database.yml" # the one that 'rails new' created
-        if options_database == 'mysql'
+        if database == 'mysql'
           create_file "#{app_name}/config/database.yml", <<-END_DATABASEYML.strip_heredoc_with_indent
           development:
             adapter: mysql2
@@ -271,8 +287,19 @@ module InlineForms
         RVM.run 'git add .'
         RVM.run 'git commit -a -m " * Initial"'
 
-        say "\nDone! Now make your tables with 'rails g inline_forms ...", :green
-        #say "- Don't forget: edit .rvmrc, config/{routes.rb, deploy.rb}, .git/config, delete public/index.html\n"
+        if install_example?
+          say "\nInstalling example application..."
+          RVM.run 'rails g inline_forms Picture name:string caption:string image:image_field description:text apartment:belongs_to _presentation:\'#{name}\''
+          RVM.run 'rails generate uploader Image'
+          RVM.run 'rails g inline_forms Apartment name:string title:string description:text pictures:has_many pictures:associated _enabled:yes _presentation:\'#{name}\''
+          RVM.run 'bundle exec rake db:migrate'
+          say "\nDone! Now point your browser to http://localhost:3000/apartments !", :yellow
+          say "\nPress ctlr-C to quit...", :yellow
+          RVM.run 'rails s'
+        else
+          say "\nDone! Now make your tables with 'rails g inline_forms ...", :yellow
+          #say "- Don't forget: edit .rvmrc, config/{routes.rb, deploy.rb}, .git/config, delete public/index.html\n"
+        end
 
       end
     end

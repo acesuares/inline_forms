@@ -2,12 +2,16 @@
 InlineForms::SPECIAL_COLUMN_TYPES[:image_field]=:string
 
 def image_field_show(object, attribute)
-#  if object.send(attribute).send(:present?)
-#    title = "Full Size: #{object.send(attribute).send(:url)}.<br />" +  image_tag(object.send(attribute).send(:palm).send(:url))
-#  else
-#    title = ''
-#  end
-  link_to_inline_edit object, attribute, object.send(attribute).send(:present?) ? image_tag(object.send(attribute).send(:palm).send(:url)) : object.send(attribute).to_s
+  o = object.send(attribute)
+  msg = o.to_s
+  if o.send(:present?)
+    if o.respond_to? :palm
+      msg = image_tag(o.send(:palm).send(:url))
+    else
+      msg = image_tag(o.send(:url))
+    end
+  end
+  link_to_inline_edit object, attribute, msg
 end
 
 def image_field_edit(object, attribute)
