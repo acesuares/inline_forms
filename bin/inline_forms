@@ -1,9 +1,5 @@
 #!/usr/bin/env ruby
-# copied from hobo and then modified. Some stuff is there because of that.
 
-require 'fileutils'
-require 'pathname'
-require 'rbconfig'
 require 'rvm'
 
 if not RVM.current
@@ -11,8 +7,10 @@ if not RVM.current
   exit 2
 end
 
+# what is this?
 Signal.trap("INT") { puts; exit }
 
+# require the version file
 src = File.join(File.dirname(__FILE__), "..")
 require "#{src}/lib/inline_forms/version.rb"
 
@@ -50,11 +48,12 @@ RVM.run "rails new #{app_name}"
 puts "\nCreating and trusting .rvmrc...\n"
 ruby_version = %x[rvm current]
 system "echo rvm use #{ruby_version.chop}@#{app_name} --create > #{app_name}/.rvmrc"
-system "rvm rvmrc trust #{app_name}/.rvmrc"
+system "cd #{app_name} && rvm rvmrc trust .rvmrc"
 
 puts "\nChanging to '#{app_name}' with RVM...\n"
 RVM.chdir(app_name) do
   puts "\nWorking directory is now #{`pwd`}"
+  RVM.use_from_path! '.'
   rvm_gemset = %x[rvm current]
   puts "\nRVM gemset is now #{rvm_gemset}"
 
@@ -116,7 +115,7 @@ end
 
   puts "\nRunning bundle...\n"
   system "bundle install"
-exit
+  
   puts "\nDatabase setup: creating config/database.yml\n"
   development_stanza = "
 development:
