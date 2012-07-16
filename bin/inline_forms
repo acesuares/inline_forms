@@ -44,14 +44,21 @@ module InlineForms
         options[:example]
       end
 
-      database = DATABASE_OPTIONS.include?(options[:database]) ? options[:database] : DATABASE_OPTIONS.first
+      def self.database
+        DATABASE_OPTIONS.include?(options[:database]) ? options[:database] : 'sqlite'
+      end
+      
+      def self.using_sqlite?
+        database == 'sqlite'
+      end
+
 
       if install_example? && dry_run?
         say "--example and --dry-run can not be used together", :red
         exit 1
       end
 
-      if install_example? && (database != 'sqlite')
+      if install_example? && !using_sqlite?
         say "--example can only be used with an sqlite development database", :red
         exit 1
       end
@@ -141,22 +148,22 @@ module InlineForms
   
         say "- Database setup: creating config/database.yml with development database #{database}"
         remove_file "#{app_name}/config/database.yml" # the one that 'rails new' created
-        if database == 'mysql'
-          create_file "#{app_name}/config/database.yml", <<-END_DATABASEYML.strip_heredoc_with_indent
-          development:
-            adapter: mysql2
-            database: #{app_name}_dev
-            username: #{app_name}
-            password: #{app_name}
-
-          END_DATABASEYML
-        else
+        if using_sqlite?
           create_file "#{app_name}/config/database.yml", <<-END_DATABASEYML.strip_heredoc_with_indent
           development:
             adapter: sqlite3
             database: db/development.sqlite3
             pool: 5
             timeout: 5000
+
+          END_DATABASEYML
+        else
+          create_file "#{app_name}/config/database.yml", <<-END_DATABASEYML.strip_heredoc_with_indent
+          development:
+            adapter: mysql2
+            database: #{app_name}_dev
+            username: #{app_name}
+            password: #{app_name}
 
           END_DATABASEYML
         end
@@ -187,8 +194,39 @@ module InlineForms
         say "- Paper_trail install..."
         RVM.run "bundle exec rails g paper_trail:install" unless dry_run?
 
-        say "- Migrating Devise and Versions"
-        RVM.run "bundle exec rake db:migrate" unless dry_run?
+        say "- Generate models and tables and views for translations..."
+        RVM.run 'rails g inline_forms IFLocale name:string if_translations:belongs_to _enabled:yes _presentation:\'#{name}\''
+        RVM.run 'rails g inline_forms IFKey name:string if_translations:has_many if_translations:associated _enabled:yes _presentation:\'#{name}\''
+        RVM.run 'rails g inline_forms IFTranslation if_key:belongs_to if_locale:dropdown value:text interpolations:text is_proc:boolean _presentation:\'#{value}\''
+
+        sleep 1 # to get unique migration number
+        create_file "#{app_name}/db/migrate/" + 
+          Time.now.utc.strftime("%Y%m%d%H%M%S") +
+          "_" +
+          "inline_forms_create_view_for_translations.rb", <<-VIEW_MIGRATION.strip_heredoc_with_indent
+          class InlineFormsCreateViewForTranslations < ActiveRecord::Migration
+
+            def self.up
+              execute 'CREATE VIEW translations
+                       AS
+                         SELECT L.name AS locale,
+                                K.name AS thekey,
+                                T.value AS value,
+                                T.interpolations AS interpolations,
+                                T.is_proc AS is_proc
+                           FROM if_keys K, if_locales L, if_translations T
+                             WHERE T.if_key_id = K.id AND T.if_locale_id = L.id '
+            end
+
+            def self.down
+              execute 'DROP VIEW translations'
+            end
+
+          end
+        VIEW_MIGRATION
+        
+        say "- Migrating Database"
+        RVM.run "bundle exec rake db:migrate" unless (dry_run? || !using_sqlite?)
 
         say "- Creating header in app/views/inline_forms/_header.html.erb..."
         create_file "#{app_name}/app/views/inline_forms/_header.html.erb", <<-END_HEADER.strip_heredoc_with_indent
