@@ -33,6 +33,8 @@ module InlineForms
     method_option :database, :aliases => "-d", :default => DATABASE_OPTIONS.first, :banner => DATABASE_OPTIONS.join('|'), :desc => 'specify development database'
     method_option :dry, :type => :boolean, :desc => 'dry run. Do not do most things. Only useful for development of inline_forms'
     method_option :example, :type => :boolean, :desc => 'install the example app. incompatible with --dry and uses sqlite as development database'
+    method_option :email, :aliases => "-e", :default => "admin@example.com", :desc => 'specify admin email'
+    method_option :password, :aliases => "-p", :default => "admin999", :desc => 'specify admin password'
 
     def create(app_name)
 
@@ -52,6 +54,13 @@ module InlineForms
         database == 'sqlite'
       end
 
+      def self.email
+        options[:email]
+      end
+
+      def self.password
+        options[:password]
+      end
 
       if install_example? && dry_run?
         say "--example and --dry-run can not be used together", :red
@@ -121,6 +130,7 @@ module InlineForms
           gem 'jquery_datepicker'
           gem 'yaml_db'
           gem 'rails-i18n'
+          gem 'i18n-active_record', :git => 'git://github.com/acesuares/i18n-active_record.git'
           gem 'unicorn'
           gem 'rvm'
           gem 'rvm-capistrano'
@@ -178,8 +188,88 @@ module InlineForms
         say "- Devise install..."
         RVM.run "bundle exec rails g devise:install" unless dry_run?
 
-        say "- Devise User model install with added name field..."
-        RVM.run "bundle exec rails g devise User name:string" unless dry_run?
+        say "- Devise User model install with added name and locale field..."
+        RVM.run "bundle exec rails g devise User name:string locale:string" unless dry_run?
+
+        say "- Replace Devise route and add path_prefix..."
+        gsub_file "#{app_name}/config/routes.rb", /devise_for :users/, "devise_for :users, :path_prefix => 'auth'"
+        insert_into_file "#{app_name}/config/routes.rb", <<-ROUTE.strip_heredoc_with_indent(2), :after => "devise_for :users, :path_prefix => 'auth'\n"
+          resources :users do
+            post 'revert', :on => :member
+          end
+        ROUTE
+
+        say "- Create User Controller..."
+        create_file "#{app_name}/app/controllers/users_controller.rb", <<-USERS_CONTROLLER.strip_heredoc_with_indent
+          class UsersController < InlineFormsController
+            set_tab :user
+          end
+        USERS_CONTROLLER
+
+        say "- Recreate User Model..."
+        remove_file "#{app_name}/app/models/user.rb" # the one that 'devise:install' created
+        create_file "#{app_name}/app/models/user.rb", <<-USER_MODEL.strip_heredoc_with_indent
+          class User < ActiveRecord::Base
+
+            # devise options
+            devise :database_authenticatable
+            # devise :registerable # uncomment this if you want people to be able to register
+            devise :recoverable
+            devise :rememberable
+            devise :trackable
+            devise :validatable
+            # devise :token_authenticatable
+            # devise :confirmable,
+            # devise :lockable
+            # devise :timeoutable
+            # devise :omniauthable
+
+            # Setup accessible (or protected) attributes for your model
+            attr_accessible :email, :password, :password_confirmation, :remember_me, :name, :locale
+            attr_writer :inline_forms_attribute_list
+
+            # validations
+            validates :name, :must_be_present => true
+
+            # pagination
+            attr_reader :per_page
+            @per_page = 7
+
+            has_paper_trail
+
+            def _presentation
+              "\#{name}"
+            end
+
+            def inline_forms_attribute_list
+              @inline_forms_attribute_list ||= [
+                [ :name , 'name', :text_field ],
+                [ :email , 'email', :text_field ],
+                [ :password , 'Nieuw wachtwoord', :devise_password_field ],
+                [ :encrypted_password , 'encrypted_password', :info ],
+                [ :reset_password_token , 'reset_password_token', :info ],
+                [ :reset_password_sent_at , 'reset_password_sent_at', :info],
+                [ :remember_created_at , 'remember_created_at', :info ],
+                [ :sign_in_count , 'sign_in_count', :info ],
+                [ :current_sign_in_at , 'current_sign_in_at', :info ],
+                [ :last_sign_in_at , 'last_sign_in_at', :info ],
+                [ :current_sign_in_ip , 'current_sign_in_ip', :info ],
+                [ :last_sign_in_ip , 'last_sign_in_ip', :info ],
+                [ :created_at , 'created_at', :info ],
+                [ :updated_at , 'updated_at', :info ],
+              ]
+            end
+
+            def self.not_accessible_through_html?
+              false
+            end
+
+            def self.order_by_clause
+              'name'
+            end
+
+          end
+        USER_MODEL
 
         say "- Install ckeditor..."
         RVM.run "bundle exec rails g ckeditor:install" unless dry_run?
@@ -195,9 +285,9 @@ module InlineForms
         RVM.run "bundle exec rails g paper_trail:install" unless dry_run?
 
         say "- Generate models and tables and views for translations..."
-        RVM.run 'rails g inline_forms IFLocale name:string if_translations:belongs_to _enabled:yes _presentation:\'#{name}\''
-        RVM.run 'rails g inline_forms IFKey name:string if_translations:has_many if_translations:associated _enabled:yes _presentation:\'#{name}\''
-        RVM.run 'rails g inline_forms IFTranslation if_key:belongs_to if_locale:dropdown value:text interpolations:text is_proc:boolean _presentation:\'#{value}\''
+        RVM.run 'rails g inline_forms InlineFormsLocale name:string inline_forms_translations:belongs_to _enabled:yes _presentation:\'#{name}\''
+        RVM.run 'rails g inline_forms InlineFormsKey name:string inline_forms_translations:has_many inline_forms_translations:associated _enabled:yes _presentation:\'#{name}\''
+        RVM.run 'rails g inline_forms InlineFormsTranslation inline_forms_key:belongs_to inline_forms_locale:dropdown value:text interpolations:text is_proc:boolean _presentation:\'#{value}\''
 
         sleep 1 # to get unique migration number
         create_file "#{app_name}/db/migrate/" + 
@@ -214,8 +304,8 @@ module InlineForms
                                 T.value AS value,
                                 T.interpolations AS interpolations,
                                 T.is_proc AS is_proc
-                           FROM if_keys K, if_locales L, if_translations T
-                             WHERE T.if_key_id = K.id AND T.if_locale_id = L.id '
+                           FROM inline_forms_keys K, inline_forms_locales L, inline_forms_translations T
+                             WHERE T.inline_forms_key_id = K.id AND T.inline_forms_locale_id = L.id '
             end
 
             def self.down
@@ -227,6 +317,12 @@ module InlineForms
         
         say "- Migrating Database"
         RVM.run "bundle exec rake db:migrate" unless (dry_run? || !using_sqlite?)
+
+        say "- Adding admin user with email: #{email}, password: #{password} to seeds.rb"
+        append_to_file "#{app_name}/db/seeds.rb", "User.new({ :email => '#{email}', :name => 'Admin', :password => '#{password}', :password_confirmation => '#{password}'}).save"
+
+        say "- Seeding the database"
+        RVM.run "bundle exec rake db:seed" unless (dry_run? || !using_sqlite?)
 
         say "- Creating header in app/views/inline_forms/_header.html.erb..."
         create_file "#{app_name}/app/views/inline_forms/_header.html.erb", <<-END_HEADER.strip_heredoc_with_indent
@@ -256,18 +352,42 @@ module InlineForms
           end
         END_APPHELPER
 
-        say "- Recreating ApplicationController to add devise and cancan stuff..."
+        say "- Recreating ApplicationController to add devise, cancan, I18n stuff..."
         remove_file "#{app_name}/app/controllers/application_controller.rb" # the one that 'rails new' created
         create_file "#{app_name}/app/controllers/application_controller.rb", <<-END_APPCONTROLLER.strip_heredoc_with_indent
-          class ApplicationController < ActionController::Base
+          class ApplicationController < InlineFormsApplicationController
             protect_from_forgery
 
-            # before_filter :authenticate_user!
-            # check_authorization :unless => :devise_controller?
+            # Uncomment next two lines if you want Devise authentication
+            before_filter :authenticate_user!
+            layout 'devise' if :devise_controller?
 
+            # Uncomment next 6 lines if you want CanCan authorization
+            # check_authorization :unless => :devise_controller?
+            #
             # rescue_from CanCan::AccessDenied do |exception|
             #  sign_out :user if user_signed_in?
             #  redirect_to new_user_session_path, :alert => exception.message
+            # end
+
+            # Uncomment next line if you want I18n
+            # before_filter :set_locale
+
+            # Uncomment next line and specify default locale
+            # I18n.default_locale = :en
+
+            # Uncomment next line and specify available locales
+            # I18n.available_locales = [ :en, :nl, :pp ]
+
+            # Uncomment next nine line if you want locale based on subdomain, like 'it.example.com, de.example.com'
+            # def set_locale
+            #   I18n.locale = extract_locale_from_subdomain || I18n.default_locale
+            # end
+            #
+            # def extract_locale_from_subdomain
+            #   locale = request.subdomains.first
+            #   return nil if locale.nil?
+            #   I18n.available_locales.include?(locale.to_sym) ? locale.to_s : nil
             # end
           end
         END_APPCONTROLLER
@@ -295,14 +415,9 @@ module InlineForms
           
         DEVISE_MAILER_STUFF
 
-        say "- Setting config.assets.compile to true in environments/production.rb..."
+        say "- Setting config.assets.compile to true in environments/production.rb (needed for ckeditor)..."
         insert_into_file "#{app_name}/config/environments/production.rb", "  config.assets.compile = false\n", :before => "end\n" if dry_run?
-        insert_into_file "#{app_name}/config/environments/production.rb", <<-COMPILE_ASSETS.strip_heredoc_with_indent(2), :after => "  config.assets.compile = false\n"
-          # Fallback to assets pipeline if a precompiled asset is missed, we need this for ckeditor
-          config.assets.compile = true
-        COMPILE_ASSETS
-          
-        comment_lines "#{app_name}/config/environments/production.rb", /config\.assets\.compile = false/
+        gsub_file "#{app_name}/config/environments/production.rb", /config.assets.compile = false/, "config.assets.compile = true"
 
         say "- Capify..."
         RVM.run 'capify .'

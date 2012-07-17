@@ -54,18 +54,18 @@ module InlineForms
 
       def migration?
         not ( column_type == :no_migration  ||
-              name == "_presentation"       ||
-              name == "_order"              ||
-              name == "_enabled"            ||
-              name == "_id" )
+            name == "_presentation"       ||
+            name == "_order"              ||
+            name == "_enabled"            ||
+            name == "_id" )
       end
 
       def attribute?
         not ( name == '_presentation'       ||
-              name == '_order'              ||
-              name == '_enabled'            ||
-              name == "_id"                 ||
-              relation? )
+            name == '_order'              ||
+            name == '_enabled'            ||
+            name == "_id"                 ||
+            relation? )
       end
 
 
@@ -100,9 +100,9 @@ module InlineForms
         @presentation             = "\n"
         @order                    = "\n"
         @order_by_clause          = "  def self.order_by_clause\n" +
-                                    "    \"name\"\n" +
-                                    "  end\n" +
-                                    "\n"
+          "    \"name\"\n" +
+          "  end\n" +
+          "\n"
         @carrierwave_mounters     = "\n"
         @inline_forms_attribute_list  = String.new
 
@@ -115,7 +115,7 @@ module InlineForms
             @carrierwave_mounters << '  mount_uploader :' + attribute.name + ', ' + "#{attribute.name}_uploader".camelcase + "\n"
           end
           if attribute.type         == :has_many ||
-             attribute.type         == :has_many_destroy
+              attribute.type         == :has_many_destroy
             @has_many << '  has_many :'             + attribute.name
             @has_many << ', :dependent => :destroy' if attribute.type == :has_many_destroy
             @has_many << "\n"
@@ -124,51 +124,57 @@ module InlineForms
             @has_one << '  has_one :'               + attribute.name + "\n"
           end
           if attribute.type         == :habtm ||
-             attribute.type         == :has_and_belongs_to_many ||
-             attribute.type         == :check_list
+              attribute.type         == :has_and_belongs_to_many ||
+              attribute.type         == :check_list
             @habtm << '  has_and_belongs_to_many :' + attribute.name + "\n"
           end
           if attribute.name == '_presentation'
             @presentation <<  "  def _presentation\n" +
-                              "    \"#{attribute.type.to_s}\"\n" +
-                              "  end\n" +
-                              "\n"
+              "    \"#{attribute.type.to_s}\"\n" +
+              "  end\n" +
+              "\n"
           end
           if attribute.name == '_order'
             @order <<         "  def <=>(other)\n" +
-                              "    self.#{attribute.type} <=> other.#{attribute.type}\n" +
-                              "  end\n" +
-                              "\n"
+              "    self.#{attribute.type} <=> other.#{attribute.type}\n" +
+              "  end\n" +
+              "\n"
             @order_by_clause = "  def self.order_by_clause\n" +
-                               "    \"#{attribute.type}\"\n" +
-                               "  end\n" +
-                               "\n"
+              "    \"#{attribute.type}\"\n" +
+              "  end\n" +
+              "\n"
           end
           if attribute.attribute?
             attribute.attribute_type == :unknown ? commenter = '#' : commenter = ' '
             @inline_forms_attribute_list << commenter +
-                                        '     [ :' +
-                                        attribute.name +
-                                        ' , "' + attribute.name +
-                                        '", :' + attribute.attribute_type.to_s +
-                                        " ], \n"
+              '     [ :' +
+              attribute.name +
+              ' , "' + attribute.name +
+              '", :' + attribute.attribute_type.to_s +
+              " ], \n"
           end
         end
         unless @inline_forms_attribute_list.empty?
           @inline_forms_attribute_list =  "\n" +
-                                      "  def inline_forms_attribute_list\n" +
-                                      "    @inline_forms_attribute_list ||= [\n" +
-                                      @inline_forms_attribute_list +
-                                      "    ]\n" +
-                                      "  end\n" +
-                                      "\n"
+            "  def inline_forms_attribute_list\n" +
+            "    @inline_forms_attribute_list ||= [\n" +
+            @inline_forms_attribute_list +
+            "    ]\n" +
+            "  end\n" +
+            "\n"
         end
         template "model.erb", "app/models/#{model_file_name}.rb"
       end
     end
 
     def generate_resource_route
-      route "resources :#{resource_name} do\n  post 'revert', :on => :member\nend" if @flag_create_resource_route
+      if @flag_create_resource_route
+        route <<-ROUTE.strip_heredoc
+          resources :#{resource_name} do
+            post 'revert', :on => :member
+          end
+        ROUTE
+      end
     end 
 
     def generate_migration
@@ -185,11 +191,11 @@ module InlineForms
             if attribute.migration?
               attribute.attribute_type == :unknown ? commenter = '#' : commenter = ' '
               @columns << commenter +
-                          '     t.' +
-                          attribute.column_type.to_s +
-                          " :" +
-                          attribute.name +
-                          " \n"
+                '     t.' +
+                attribute.column_type.to_s +
+                " :" +
+                attribute.name +
+                " \n"
             end
           end
         end
@@ -201,8 +207,8 @@ module InlineForms
       unless @flag_not_accessible_through_html
         copy_file "_inline_forms_tabs.html.erb", "app/views/_inline_forms_tabs.html.erb" unless File.exists?('app/views/_inline_forms_tabs.html.erb')
         inject_into_file "app/views/_inline_forms_tabs.html.erb",
-                "  <%= tab.#{name.underscore} '#{name}', #{name.pluralize.underscore + '_path'} %>\n",
-                :after => "<%= tabs_tag :open_tabs => { :id => \"tabs\" } do |tab| %>\n"
+          "  <%= tab.#{name.underscore} '#{name}', #{name.pluralize.underscore + '_path'} %>\n",
+          :after => "<%= tabs_tag :open_tabs => { :id => \"tabs\" } do |tab| %>\n"
       end
     end
     
