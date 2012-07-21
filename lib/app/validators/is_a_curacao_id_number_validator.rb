@@ -1,8 +1,5 @@
 # -*- encoding : utf-8 -*-
-# == usage:
-# in your model, add:
-#  validates :id_number, must_be_present => true, is_a_curacao_id_number => true;
-class IsACuracaoIdNumberValidator < ActiveModel::EachValidator
+class IsACuracaoIdNumberValidator < InlineFormsValidator
 
   def validate_each(record, attribute, value)
     if value =~ /^[0-9]{10}$/

@@ -11,25 +11,11 @@ module InlineFormsHelper
   def inline_forms_version
     InlineForms::VERSION
   end
+
   private
 
-  # used as class name
-  def has_validations(object, attribute)
-    not object.class.validators_on(attribute).empty?
-  end
-
-  def validation_help_as_list_for(object, attribute)
-    "" and return unless has_validations(object, attribute)
-    content_tag(:ul, validation_help_for(object, attribute).map { |help_message| content_tag(:li, help_message ) }.to_s.html_safe )
-  end
-
-  # validation_help_for(object, attribute) extracts the help messages for
-  # attribute of object.class (in an Array)
-  def validation_help_for(object, attribute)
-    "" and return unless has_validations(object, attribute)
-    object.class.validators_on(attribute).map do |v|
-      t("inline_forms.validators.help.#{ActiveModel::Name.new(v.class).i18n_key.to_s.gsub(/active_model\/validations\//, '')}")
-    end.compact
+  def validation_hints_as_list_for(object, attribute)
+    object.has_validations? ? content_tag(:ul, object.hints.full_messages_for(attribute).map { |m| content_tag(:li, m ) }.join.html_safe )  : ""
   end
 
   # close link
@@ -58,10 +44,10 @@ module InlineFormsHelper
     end
   end
 
-#  # undo link
-#  def link_to_undo_destroy(object, update_span )
-#    link_to(t('inline_forms.view.undo'), revert_version_path(object.versions.scoped.last), :method => :post)
-#  end
+  #  # undo link
+  #  def link_to_undo_destroy(object, update_span )
+  #    link_to(t('inline_forms.view.undo'), revert_version_path(object.versions.scoped.last), :method => :post)
+  #  end
 
   # link_to_inline_edit
   def link_to_inline_edit(object, attribute, attribute_value='')
@@ -121,8 +107,8 @@ module InlineFormsHelper
 
   def translated_attribute(object,attribute)
     t("activerecord.attributes.#{object.class.name.underscore}.#{attribute}")
-#          "activerecord.attributes.#{attribute}",
-#          "attributes.#{attribute}" ] )
+    #          "activerecord.attributes.#{attribute}",
+    #          "attributes.#{attribute}" ] )
   end
 
   # get the values for an attribute

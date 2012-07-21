@@ -126,6 +126,7 @@ module InlineForms
           gem 'devise'
           gem 'cancan'
           gem 'inline_forms'
+          gem 'validation_hints'
           gem 'mini_magick'
           gem 'jquery_datepicker'
           gem 'yaml_db'

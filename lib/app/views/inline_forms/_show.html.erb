@@ -16,13 +16,13 @@
     <% css_class_id = "#{@object.class.name.underscore}_#{@object.id}_#{attribute}" -%>
     <tr>
       <td valign="top">
-        <div class='<%= "has_validations " if has_validations(@object, attribute) -%><%= "attribute_name attribute_#{attribute} form_element_#{form_element}" -%>' >
+        <div class='<%= 'has_validations ' if @object.has_validations_for?(attribute) -%><%= "attribute_name attribute_#{attribute} form_element_#{form_element}" -%>' >
           <%= translated_attribute(@object, attribute) -%>
         </div>
-        <% if has_validations(@object, attribute) %>
+        <% if @object.has_validations_for?(attribute) %>
           <div class='validation_help_tooltip'>
             <div class='validation_help_content'>
-              <%= validation_help_as_list_for(@object, attribute) -%>
+              <%= validation_hints_as_list_for(@object, attribute) -%>
             </div>
           </div>
         <% end -%>
