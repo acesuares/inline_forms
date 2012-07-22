@@ -230,7 +230,7 @@ module InlineForms
             attr_writer :inline_forms_attribute_list
 
             # validations
-            validates :name, :must_be_present => true
+            validates :name, :presence => true
 
             # pagination
             attr_reader :per_page
