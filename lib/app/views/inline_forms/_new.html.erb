@@ -11,6 +11,7 @@
   <script type="text/javascript">
     $(function() { $("#flash").delay(1000).fadeTo('slow', 0.33); } );
   </script>
+  <span class="tfdssdfsdfsdranslation_missing" title="translation missing: en.activerecord.attributes.apartment.name">Name</span>
   <%= form_tag  send(@Klass.to_s.underscore.pluralize + '_path', :update => @update_span,
     :parent_class => @parent_class,
     :parent_id => @parent_id ),
@@ -29,17 +30,10 @@
           <% unless form_element.to_sym == :associated -%>
             <% css_class_id = "attribute_#{attribute}_#{@object.id}" -%>
             <tr>
-              <td valign="top">
-                <div class='<%= 'has_validations ' if @object.has_validations_for?(attribute) -%><%= "attribute_name attribute_#{attribute} form_element_#{form_element}" -%>' >
-                  <%= translated_attribute(@object, attribute) -%>
+              <td valign="top" class="<%= 'has_validations ' if @object.has_validations_for?(attribute) -%>" validation-hint="<%= validation_hints_as_list_for(@object, attribute) -%>">
+                <div class='<%= "attribute_name attribute_#{attribute} form_element_#{form_element}" -%>' >
+                  <%= @object.class.human_attribute_name(attribute) -%>
                 </div>
-                <% if @object.has_validations_for?(attribute) %>
-                  <div class='validation_help_tooltip'>
-                    <div class='validation_help_content'>
-                      <%= validation_hints_as_list_for(@object, attribute) -%>
-                    </div>
-                  </div>
-                <% end -%>
               </td>
               <td valign="top">
                 <div class='<%= "attribute_value attribute_#{attribute} form_element_#{form_element}" -%>' >

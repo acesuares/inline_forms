@@ -393,3 +393,17 @@ ul.checklist li {
     font-family: monospace;
 }
 
+.ui-tooltip-content ul {
+    padding: 0;
+    margin: 0;
+    list-style-type: none;
+}
+
+.ui-tooltip-content ul li {
+    margin-left: 20px;
+}
+
+.ui-tooltip-content ul li:first-letter
+{
+    margin-left: -20px;
+}
