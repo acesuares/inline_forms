@@ -52,10 +52,10 @@ module InlineFormsHelper
   # link_to_inline_edit
   def link_to_inline_edit(object, attribute, attribute_value='')
     spaces = attribute_value.length > 40 ? 0 : 40 - attribute_value.length
-    h(attribute_value) << "&nbsp;".html_safe * spaces
+    value = h(attribute_value) + ("&nbsp;" * spaces).html_safe
     css_class_id = "#{object.class.to_s.underscore}_#{object.id}_#{attribute}"
     if cancan_disabled? || ( can? :update, object )
-      link_to attribute_value,
+      link_to value,
         send( 'edit_' + object.class.to_s.underscore + '_path',
         object,
         :attribute => attribute.to_s,
@@ -63,7 +63,7 @@ module InlineFormsHelper
         :update => css_class_id ),
         :remote => true
     else
-      attribute_value
+      h(attribute_value)
     end
   end
 

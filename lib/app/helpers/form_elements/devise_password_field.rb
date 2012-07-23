@@ -10,6 +10,10 @@ def devise_password_field_edit(object, attribute)
 end
 
 def devise_password_field_update(object, attribute)
-  object.password = params[attribute.to_sym]
+  if params[attribute.to_sym].blank?
+    # nothing happens
+  else
+    object.password = params[attribute.to_sym]
+  end
 end
 

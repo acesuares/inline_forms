@@ -15,17 +15,10 @@
   <% attributes.each do | attribute, name, form_element | -%>
     <% css_class_id = "#{@object.class.name.underscore}_#{@object.id}_#{attribute}" -%>
     <tr>
-      <td valign="top">
-        <div class='<%= 'has_validations ' if @object.has_validations_for?(attribute) -%><%= "attribute_name attribute_#{attribute} form_element_#{form_element}" -%>' >
-          <%= translated_attribute(@object, attribute) -%>
+      <td valign="top" class="<%= 'has_validations ' if @object.has_validations_for?(attribute) -%>" validation-hint="<%= validation_hints_as_list_for(@object, attribute) -%>">
+        <div class='<%= "attribute_name attribute_#{attribute} form_element_#{form_element}" -%>' >
+          <%= @object.class.human_attribute_name(attribute) -%>
         </div>
-        <% if @object.has_validations_for?(attribute) %>
-          <div class='validation_help_tooltip'>
-            <div class='validation_help_content'>
-              <%= validation_hints_as_list_for(@object, attribute) -%>
-            </div>
-          </div>
-        <% end -%>
       </td>
       <td valign="top">
         <div class='<%= "attribute_value attribute_#{attribute} form_element_#{form_element}" -%>' >
