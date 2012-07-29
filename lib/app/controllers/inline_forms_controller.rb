@@ -160,7 +160,6 @@ class InlineFormsController < ApplicationController
     send("#{@form_element.to_s}_update", @object, @attribute)
     @object.save
     respond_to do |format|
-    debugger
       format.js { }
     end
   end
