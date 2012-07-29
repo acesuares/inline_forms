@@ -53,10 +53,10 @@ class InlineFormsController < ApplicationController
     @PER_PAGE = 5 unless @parent_class.nil?
     # if the parent_class is not nill, we are in associated list and we don't search there.
     # also, make sure the Model that you want to do a search on has a :name attribute. TODO
-    if @parent_class.nil?
+    if @parent_class.nil? || @Klass.reflect_on_association(@parent_class.underscore.to_sym).nil?
       conditions = [ @Klass.to_s.tableize + "." + @Klass.order_by_clause + " like ?", "%#{params[:search]}%" ]
     else
-      foreign_key = @Klass.first.association(@parent_class.underscore.to_sym).reflection.options[:foreign_key] || @parent_class.foreign_key
+      foreign_key = @Klass.reflect_on_association(@parent_class.underscore.to_sym).options[:foreign_key] || @parent_class.foreign_key
       conditions =  [ "#{foreign_key} = ?", @parent_id ]
     end
     # if we are using cancan, then make sure to select only accessible records
@@ -84,10 +84,12 @@ class InlineFormsController < ApplicationController
     @object = @Klass.new
     @update_span = params[:update]
     @parent_class = params[:parent_class]
-    unless @parent_class.nil?
+    begin
       @parent_id = params[:parent_id]
-      @object[@parent_class.foreign_key] = @parent_id
-    end
+      foreign_key = @Klass.reflect_on_association(@parent_class.underscore.to_sym).options[:foreign_key] || @parent_class.foreign_key
+      @object[foreign_key] = @parent_id
+    end unless @parent_class.nil? || @Klass.reflect_on_association(@parent_class.underscore.to_sym).nil?
+
     @object.inline_forms_attribute_list = @inline_forms_attribute_list if @inline_forms_attribute_list
     respond_to do |format|
       format.js { }
@@ -120,10 +122,10 @@ class InlineFormsController < ApplicationController
     @parent_id = params[:parent_id]
     @PER_PAGE = 5 unless @parent_class.nil?
     # for the logic behind the :conditions see the #index method.
-    if @parent_class.nil?
+    if @parent_class.nil? || @Klass.reflect_on_association(@parent_class.underscore.to_sym).nil?
       conditions = [ @Klass.to_s.tableize + "." + @Klass.order_by_clause + " like ?", "%#{params[:search]}%" ]
     else
-      foreign_key = object.association(@parent_class.underscore.to_sym).reflection.options[:foreign_key] || @parent_class.foreign_key
+      foreign_key = @Klass.reflect_on_association(@parent_class.underscore.to_sym).options[:foreign_key] || @parent_class.foreign_key
       conditions =  [ "#{foreign_key} = ?", @parent_id ]
       object[foreign_key] = @parent_id
     end
