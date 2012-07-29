@@ -1,5 +1,5 @@
 # -*- encoding : utf-8 -*-
-class IsACuracaoIdNumberValidator < InlineFormsValidator
+class IsACuracaoIdNumberValidator < ActiveModel::EachValidator
 
   def validate_each(record, attribute, value)
     if value =~ /^[0-9]{10}$/
