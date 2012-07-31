@@ -92,7 +92,7 @@ module InlineForms
       
 
       say "- Creating and trusting .rvmrc..."
-      ruby_version = %x[rvm current]
+      ruby_version = (%x[rvm current]).gsub(/@.*/,'')
       create_file "#{app_name}/.rvmrc", "rvm use #{ruby_version.chop}@#{app_name} --create"
       say ("- " + %x[cd #{app_name} && rvm rvmrc trust .rvmrc]).chop
 
