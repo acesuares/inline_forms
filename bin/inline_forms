@@ -120,11 +120,11 @@ module InlineForms
           gem 'will_paginate', :git => 'git://github.com/acesuares/will_paginate.git'
           gem 'tabs_on_rails' # , :git => 'git://github.com/acesuares/tabs_on_rails.git', :branch => 'add_remote'
           gem 'ckeditor', :git => 'git://github.com/acesuares/ckeditor.git', :branch => 'master'
+          gem 'cancan', :git => 'git://github.com/acesuares/cancan.git', :branch => '2.0'
           gem 'carrierwave'
           gem 'remotipart', '~> 1.0'
           gem 'paper_trail'
           gem 'devise'
-          gem 'cancan'
           gem 'inline_forms'
           gem 'validation_hints'
           gem 'mini_magick'
@@ -345,10 +345,10 @@ module InlineForms
         create_file "#{app_name}/app/helpers/application_helper.rb", <<-END_APPHELPER.strip_heredoc_with_indent
           module ApplicationHelper
             def application_name
-              #{app_name}
+              '#{app_name}'
             end
             def application_title
-              #{app_name}
+              '#{app_name}'
             end
           end
         END_APPHELPER
@@ -359,19 +359,19 @@ module InlineForms
           class ApplicationController < InlineFormsApplicationController
             protect_from_forgery
 
-            # Uncomment next two lines if you want Devise authentication
+            # Comment next two lines if you don't want Devise authentication
             before_filter :authenticate_user!
             layout 'devise' if :devise_controller?
 
-            # Uncomment next 6 lines if you want CanCan authorization
-            # check_authorization :unless => :devise_controller?
-            #
-            # rescue_from CanCan::AccessDenied do |exception|
-            #  sign_out :user if user_signed_in?
-            #  redirect_to new_user_session_path, :alert => exception.message
-            # end
+            # Comment next 6 lines if you want CanCan authorization
+            check_authorization :unless => :devise_controller?
+            
+            rescue_from CanCan::AccessDenied do |exception|
+             sign_out :user if user_signed_in?
+             redirect_to new_user_session_path, :alert => exception.message
+            end
 
-            # Uncomment next line if you want I18n
+            # Uncomment next line if you want I18n (based on subdomain)
             # before_filter :set_locale
 
             # Uncomment next line and specify default locale
@@ -392,6 +392,25 @@ module InlineForms
             # end
           end
         END_APPCONTROLLER
+
+        say "- Creating Ability model so that the user with id = 1 can access all..."
+        create_file "#{app_name}/app/models/ability.rb", <<-END_ABILITY.strip_heredoc_with_indent
+          class Ability
+            include CanCan::Ability
+
+            def initialize(user)
+              # See the wiki for details: https://github.com/ryanb/cancan/wiki/Defining-Abilities
+
+              user ||= user.new # guest user
+
+              if user.id == 1 #quick hack
+                can :access, :all
+              else
+                # put restrictions for other users here
+              end
+            end
+          end
+        END_ABILITY
 
         # create environments/production.rb if it's a dry run
         create_file "#{app_name}/config/environments/production.rb", "  # config.assets.precompile += %w( search.js )\nend\n" if dry_run?
