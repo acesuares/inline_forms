@@ -51,6 +51,7 @@ module InlineFormsHelper
 
   # link_to_inline_edit
   def link_to_inline_edit(object, attribute, attribute_value='')
+    attribute_value = attribute_value.to_s
     spaces = attribute_value.length > 40 ? 0 : 40 - attribute_value.length
     value = h(attribute_value) + ("&nbsp;" * spaces).html_safe
     css_class_id = "#{object.class.to_s.underscore}_#{object.id}_#{attribute}"
