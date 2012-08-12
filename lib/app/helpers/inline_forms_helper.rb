@@ -32,7 +32,7 @@ module InlineFormsHelper
 
   # destroy link
   def link_to_destroy( object, update_span )
-    if cancan_disabled? || ( can? :destroy, object )
+    if cancan_disabled? || ( can? :delete, object )
       link_to image_tag(  'trash.png',
         :class => "trash_icon",
         :title => t('inline_forms.view.trash') ),
