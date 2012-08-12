@@ -42,7 +42,7 @@ class InlineFormsController < ApplicationController
 
   helper_method :cancan_disabled?, :cancan_enabled?
 
-  load_and_authorize_resource :except => :revert if cancan_enabled?
+  load_and_authorize_resource :except => :revert, :no_params => true if cancan_enabled?
   # :index shows a list of all objects from class @Klass, using will_paginate,
   # including a link to 'new', that allows you to create a new record.
   def index
