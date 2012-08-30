@@ -42,13 +42,10 @@ they are @object. We need this magic here to rewrite all the @variables to varia
 
   <% conditions =  [ "#{foreign_key} = ?", parent_id ] %>
   <% model = attribute.to_s.singularize.camelcase.constantize %>
-
-  <% if cancan_enabled? %>
-    <% objects = parent_class.find(parent_id).send(attribute).accessible_by(current_ability).order(attribute.to_s.singularize.camelcase.constantize.order_by_clause).paginate  :page => params[:page], :per_page => @PER_PAGE || 5, :conditions => conditions %>
-  <% else %>
-    <% objects = parent_class.find(parent_id).send(attribute).order(attribute.to_s.singularize.camelcase.constantize.order_by_clause).paginate :page => params[:page], :per_page => @PER_PAGE || 5, :conditions => conditions %>
-  <% end %>
-
+  <% objects = parent_class.find(parent_id).send(attribute) %>
+  <% objects = parent_class.find(parent_id).send(attribute).accessible_by(current_ability) if cancan_enabled? %>
+  <% objects = objects.order(attribute.to_s.singularize.camelcase.constantize.order_by_clause) if attribute.to_s.singularize.camelcase.constantize.respond_to?(:order_by_clause) && ! attribute.to_s.singularize.camelcase.constantize.order_by_clause.nil? %>
+  <% objects = objects.paginate  :page => params[:page], :per_page => @PER_PAGE || 5, :conditions => conditions %>
 <% end %>
 
 <%= raw "<ul id=\"#{update_span}\" class=\"inline_forms_list\">" if ul_needed -%>

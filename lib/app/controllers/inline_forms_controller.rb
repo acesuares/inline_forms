@@ -53,24 +53,21 @@ class InlineFormsController < ApplicationController
     @PER_PAGE = 5 unless @parent_class.nil?
     # if the parent_class is not nill, we are in associated list and we don't search there.
     # also, make sure the Model that you want to do a search on has a :name attribute. TODO
+    conditions = nil
     if @parent_class.nil? || @Klass.reflect_on_association(@parent_class.underscore.to_sym).nil?
-      conditions = [ @Klass.table_name + "." + @Klass.order_by_clause + " like ?", "%#{params[:search]}%" ]
+      conditions = [ @Klass.table_name + "." + @Klass.order_by_clause + " like ?", "%#{params[:search]}%" ] if @Klass.respond_to?(:order_by_clause) && ! @Klass.order_by_clause.nil?
     else
       foreign_key = @Klass.reflect_on_association(@parent_class.underscore.to_sym).options[:foreign_key] || @parent_class.foreign_key
       conditions =  [ "#{foreign_key} = ?", @parent_id ]
     end
     # if we are using cancan, then make sure to select only accessible records
-    if cancan_enabled?
-      @objects = @Klass.accessible_by(current_ability).order(@Klass.table_name + "." + @Klass.order_by_clause).paginate(
+    @objects = @Klass
+    @objects = @Klass.accessible_by(current_ability) if cancan_enabled?
+    @objects = @objects.order(@Klass.table_name + "." + @Klass.order_by_clause) if @Klass.respond_to?(:order_by_clause) && ! @Klass.order_by_clause.nil?
+    @objects = @objects.paginate(
         :page => params[:page],
         :per_page => @PER_PAGE || 12,
         :conditions => conditions )
-    else
-      @objects = @Klass.order(@Klass.table_name + "." + @Klass.order_by_clause).paginate(
-        :page => params[:page],
-        :per_page => @PER_PAGE || 12,
-        :conditions => conditions )
-    end
     respond_to do |format|
       format.html { render 'inline_forms/_list', :layout => 'inline_forms' } unless @Klass.not_accessible_through_html?
       format.js { render :list }
@@ -122,8 +119,9 @@ class InlineFormsController < ApplicationController
     @parent_id = params[:parent_id]
     @PER_PAGE = 5 unless @parent_class.nil?
     # for the logic behind the :conditions see the #index method.
+    conditions = nil
     if @parent_class.nil? || @Klass.reflect_on_association(@parent_class.underscore.to_sym).nil?
-      conditions = [ @Klass.table_name + "." + @Klass.order_by_clause + " like ?", "%#{params[:search]}%" ]
+      conditions = [ @Klass.table_name + "." + @Klass.order_by_clause + " like ?", "%#{params[:search]}%" ] if @Klass.respond_to?(:order_by_clause) && ! @Klass.order_by_clause.nil?
     else
       foreign_key = @Klass.reflect_on_association(@parent_class.underscore.to_sym).options[:foreign_key] || @parent_class.foreign_key
       conditions =  [ "#{foreign_key} = ?", @parent_id ]
@@ -131,11 +129,10 @@ class InlineFormsController < ApplicationController
     end
     if object.save
       flash.now[:success] = t('success', :message => object.class.model_name.human)
-      if cancan_enabled?
-        @objects = @Klass.accessible_by(current_ability).order(@Klass.table_name + "." + @Klass.order_by_clause).paginate :page => params[:page], :per_page => @PER_PAGE || 12, :conditions => conditions
-      else
-        @objects = @Klass.order(@Klass.table_name + "." + @Klass.order_by_clause).paginate :page => params[:page], :per_page => @PER_PAGE || 12, :conditions => conditions
-      end
+      @objects = @Klass
+      @objects = @Klass.accessible_by(current_ability) if cancan_enabled?
+      @objects = @objects.order(@Klass.table_name + "." + @Klass.order_by_clause) if @Klass.respond_to?(:order_by_clause) && ! @Klass.order_by_clause.nil?
+      @objects = @objects.paginate :page => params[:page], :per_page => @PER_PAGE || 12, :conditions => conditions
       respond_to do |format|
         format.js { render :list}
       end
