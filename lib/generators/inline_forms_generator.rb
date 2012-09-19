@@ -1,6 +1,7 @@
 # -*- encoding : utf-8 -*-
 require File.expand_path(File.join(File.dirname(__FILE__),'../app/helpers/inline_forms_helper.rb'))
 module InlineForms
+
   # == Usage
   # This generator generates a migration, a model and a controller.
   #
@@ -90,6 +91,20 @@ module InlineForms
       @flag_create_resource_route         = @flag_create_model
     end
 
+    def verify_presence_of_has_many_model
+      for attribute in attributes
+        if [:has_many, :has_many_destroy].include? attribute.type
+          model_name = attribute.name.singularize.camelize
+          begin
+            eval model_name
+          rescue NameError
+            raise "Can't find model \"#{model_name}\" " +
+              "which you referred to in a #{attribute.type} relation"
+          end
+        end
+      end
+    end
+
     def generate_model
       if @flag_create_model
         @belongs_to               = "\n"
@@ -166,6 +181,7 @@ module InlineForms
         template "model.erb", "app/models/#{model_file_name}.rb"
       end
     end
+
 
     def generate_resource_route
       if @flag_create_resource_route
