@@ -1,4 +1,32 @@
 nl:
-  test: test
+  succes: het ding is aangemaakt.
+  activerecord:
+    models:
+      language: taal
+    attributes:
+      client:
+        first_name: voornaam
+        last_name: achternaam
+  application_name: naam van de applicatie
+  inline_forms:
+    view:
+      close: sluiten
+      add_new: Maak een nieuw %{model}
+      undo: terughalen
+      trash: weggooien
+    devise:
+      send_instructions: stuur instructies
+      sign_up: inschrijven
+      login_with_email_and_password: aanmelden door email-adres en wachtwoord in te voeren.
+      sign_in: aanmelden
+      links:
+        no_unlock_instructions: geen instructies ontvangen om blokkade op te heffen?
+        sign_up: inschrijven
+        sign_in: aanmelden
+        forgot_password: wachtwoord vergeten?
+        sign_in_with: aanmelden via %{provider}
+        no_instructions: geen instructies ontvangen?
+      signup_with_email_name_and_password: inschrijven door naam, email adres en wachtwoord (twee keer) in te voeren.
+      provide_email_and_we_send_instructions: geef ons uw email adres, dan sturen wij u instructies
 
   

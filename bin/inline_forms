@@ -118,7 +118,7 @@ module InlineForms
           gem 'jquery-rails'
           gem 'capistrano'
           gem 'will_paginate', :git => 'git://github.com/acesuares/will_paginate.git'
-          gem 'tabs_on_rails' # , :git => 'git://github.com/acesuares/tabs_on_rails.git', :branch => 'add_remote'
+          gem 'tabs_on_rails', :git => 'git://github.com/acesuares/tabs_on_rails.git', :branch => 'update_remote'
           gem 'ckeditor', :git => 'git://github.com/acesuares/ckeditor.git', :branch => 'master'
           gem 'cancan', :git => 'git://github.com/acesuares/cancan.git', :branch => '2.0'
           gem 'carrierwave'

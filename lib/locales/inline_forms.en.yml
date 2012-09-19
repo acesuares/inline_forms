@@ -1,38 +1,31 @@
-"en":
-  "activerecord":
-    "models":
-      "if_locale": "Inline Forms Taal"
-      "if_key": "Inline Forms Vertaalsleutel"
-      "language": "Taal"
-    "attributes":
-      "if_translation":
-        "value": "vertaling"
-      "page":
-        "page_blurbs": "Paginatekst"
-  "application":
-    "name": "KBB Barometer Administratie"
-  "inline_forms":
-    "validators":
-      "help":
-        "numericality_validator": "moet een getal zijn"
-        "is_a_curacao_id_number_validator": "Een geldig ID nummer bestaat uit:<br />4 cijfers voor het jaar<br />2 cijfers voor de maand<br />2 cijfers voor de dag<br />2 cijfers voor het volgnummer<br />Bijvoorbeeld: 1990021123."
-    "view":
-      "close": "Sluiten"
-      "add_new": "Maak een %{model} aan"
-      "undo": "Terughalen"
-      "trash": "Weggooien"
-    "devise":
-      "send_instructions": "stuur instructies"
-      "sign_up": "inschrijven"
-      "login_with_email_and_password": "Aanmelden door email adres en wachtwoord in te voeren."
-      "sign_in": "aanmelden"
-      "links":
-        "no_unlock_instructions": "geen instructies ontvangen om blokkade op te heffen?"
-        "sign_up": "inschrijven"
-        "sign_in": "aanmelden"
-        "forgot_password": "wachtwoord vergeten?"
-        "sign_in_with": "aanmelden via %{provider}"
-        "no_instructions": "geen instructies ontvangen?"
-      "signup_with_email_name_and_password": "Inschrijven door naam, email adres en wachtwoord (twee keer) in te voeren."
-      "provide_email_and_we_send_instructions": "Geef ons uw email adres, dan sturen wij u instructies"
+en:
+  succes: success.
+  activerecord:
+    models:
+      language: language
+    attributes:
+      client:
+        first_name: first name
+        last_name: last name
+  application_name: application name
+  inline_forms:
+    view:
+      close: close
+      add_new: make a new %{model}
+      undo: undo
+      trash: trash
+    devise:
+      send_instructions: send instructions
+      sign_up: sign up
+      login_with_email_and_password: login with email and password
+      sign_in: sign in
+      links:
+        no_unlock_instructions: did you not receive unlock instructions?
+        sign_up: sign up
+        sign_in: sing in
+        forgot_password: forgot password?
+        sign_in_with: sign in with %{provider}
+        no_instructions: did you not receive instructions?
+      signup_with_email_name_and_password: sign up with email name and password
+      provide_email_and_we_send_instructions: provide your email and we will send instructions
 
