@@ -79,13 +79,12 @@ module InlineFormsHelper
       :remote => true)
     out << "<div style='clear: both;'></div>"
     out << "</li>"
-    ""
     if cancan_enabled?
-      if can?(:create, model)
+      if can? :create, model.to_s.pluralize.underscore.to_sym
         if parent_class.nil?
           raw out
         else
-          raw out if can?(:update, parent_class.find(parent_id))
+          raw out if can? :update, parent_class.find(parent_id).to_s.underscore.to_sym
         end
       end
     else
