@@ -84,7 +84,7 @@ module InlineFormsHelper
         if parent_class.nil?
           raw out
         else
-          raw out if can? :update, parent_class.find(parent_id).to_s.underscore.to_sym
+          raw out if can? :update, parent_class.find(parent_id) # can update this specific parent object???
         end
       end
     else

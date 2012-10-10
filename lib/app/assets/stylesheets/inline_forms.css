@@ -124,6 +124,16 @@ a {
     -webkit-border-radius: 5px;
 }
 
+.header {
+    border-bottom: 1px solid #EFCA4B;
+}
+
+.form_element_header {
+    padding-top: 7px;
+    font-size: 120%;
+    font-weight: bolder;
+}
+
 .input_text_field {
     width: 600px;
     height: 1.5em;

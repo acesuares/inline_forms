@@ -61,8 +61,8 @@ class InlineFormsController < ApplicationController
       conditions =  [ "#{foreign_key} = ?", @parent_id ]
     end
     # if we are using cancan, then make sure to select only accessible records
-    @objects = @Klass
-    @objects = @Klass.accessible_by(current_ability) if cancan_enabled?
+    @objects ||= @Klass.accessible_by(current_ability) if cancan_enabled?
+    @objects ||= @Klass
     @objects = @objects.order(@Klass.table_name + "." + @Klass.order_by_clause) if @Klass.respond_to?(:order_by_clause) && ! @Klass.order_by_clause.nil?
     @objects = @objects.paginate(
         :page => params[:page],
@@ -78,7 +78,7 @@ class InlineFormsController < ApplicationController
   # an empty form. After pressing OK or Cancel, the list of objects is retrieved
   # in the same way as :index
   def new
-    @object = @Klass.new
+    @object ||= @Klass.new
     @update_span = params[:update]
     @parent_class = params[:parent_class]
     begin
@@ -109,11 +109,11 @@ class InlineFormsController < ApplicationController
   # :create creates the object made with :new.
   # It then presents the list of objects.
   def create
-    object = @Klass.new
+    @object ||= @Klass.new
     @update_span = params[:update]
-    attributes = @inline_forms_attribute_list || object.inline_forms_attribute_list
+    attributes = @inline_forms_attribute_list || @object.inline_forms_attribute_list
     attributes.each do | attribute, name, form_element |
-      send("#{form_element.to_s}_update", object, attribute) unless form_element == :associated
+      send("#{form_element.to_s}_update", @object, attribute) unless form_element == :associated
     end
     @parent_class = params[:parent_class]
     @parent_id = params[:parent_id]
@@ -125,22 +125,22 @@ class InlineFormsController < ApplicationController
     else
       foreign_key = @Klass.reflect_on_association(@parent_class.underscore.to_sym).options[:foreign_key] || @parent_class.foreign_key
       conditions =  [ "#{foreign_key} = ?", @parent_id ]
-      object[foreign_key] = @parent_id
+      @object[foreign_key] = @parent_id
     end
-    if object.save
-      flash.now[:success] = t('success', :message => object.class.model_name.human)
+    if @object.save
+      flash.now[:success] = t('success', :message => @object.class.model_name.human)
       @objects = @Klass
       @objects = @Klass.accessible_by(current_ability) if cancan_enabled?
       @objects = @objects.order(@Klass.table_name + "." + @Klass.order_by_clause) if @Klass.respond_to?(:order_by_clause) && ! @Klass.order_by_clause.nil?
       @objects = @objects.paginate :page => params[:page], :per_page => @PER_PAGE || 12, :conditions => conditions
+      @object = nil
       respond_to do |format|
         format.js { render :list}
       end
     else
-      flash.now[:header] = ["Kan #{object.class.to_s.underscore} niet aanmaken."]
-      flash.now[:error] = object.errors.to_a
+      flash.now[:header] = ["Kan #{@object.class.to_s.underscore} niet aanmaken."]
+      flash.now[:error] = @object.errors.to_a
       respond_to do |format|
-        @object = object
         @object.inline_forms_attribute_list = attributes
         format.js { render :new}
       end
