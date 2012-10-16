@@ -6,7 +6,7 @@ InlineForms::SPECIAL_COLUMN_TYPES[:radio_button]=:integer
 
 def radio_button_show(object, attribute)
   values = attribute_values(object, attribute)
-  link_to_inline_edit object, attribute, values.assoc(object.send(attribute))[1] #TODO code for values.assoc(object.send(attribute)) = nil
+  link_to_inline_edit object, attribute, object.send(attribute) ? values.assoc(object.send(attribute))[1] : ""
 end
 
 def radio_button_edit(object, attribute)

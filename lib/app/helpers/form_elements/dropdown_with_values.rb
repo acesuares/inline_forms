@@ -4,7 +4,7 @@ InlineForms::SPECIAL_COLUMN_TYPES[:dropdown_with_values]=:integer
 # dropdown_with_values
 def dropdown_with_values_show(object, attribute)
   values = attribute_values(object, attribute)
-  link_to_inline_edit object, attribute, values.assoc(object.send(attribute))[1]
+  link_to_inline_edit object, attribute, object.send(attribute) ? values.assoc(object.send(attribute))[1] : ""
 end
 def dropdown_with_values_edit(object, attribute)
   # the leading underscore is to avoid name conflicts, like 'email' and 'email_type' will result in 'email' and 'email[email_type_id]' in the form!
