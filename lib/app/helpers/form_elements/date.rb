@@ -11,7 +11,7 @@ def date_select_edit(object, attribute)
   out = text_field_tag attribute, ( object.send(attribute).nil? ? "" : object.send(attribute).strftime("%d-%m-%Y") ), :id => css_id
   out << '<SCRIPT>'.html_safe
   out << "$(function() { ".html_safe
-  out << '$("#'.html_safe + css_id.html_safe + '").datepicker({ yearRange: "-40:+1" });'.html_safe
+  out << '$("#'.html_safe + css_id.html_safe + '").datepicker({ yearRange: "-100:+5" });'.html_safe
   out << '});'.html_safe
   out << '</SCRIPT>'.html_safe
   return out
