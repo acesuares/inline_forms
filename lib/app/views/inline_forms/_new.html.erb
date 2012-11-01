@@ -26,7 +26,7 @@
         </tr>
         <% attributes = @inline_forms_attribute_list || @object.inline_forms_attribute_list -%>
         <% attributes.each do | attribute, name, form_element | -%>
-          <% unless form_element.to_sym == :associated -%>
+          <% unless form_element.to_sym == :associated || (cancan_enabled? && cannot?(:read, @Klass.to_s.underscore.pluralize.to_sym, attribute)) -%>
             <% css_class_id = "attribute_#{attribute}_#{@object.id}" -%>
             <tr>
               <td valign="top" class="<%= 'has_validations ' if @object.has_validations_for?(attribute) -%>" validation-hint="<%= validation_hints_as_list_for(@object, attribute) -%>">
