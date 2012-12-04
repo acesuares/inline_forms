@@ -2,7 +2,12 @@
 InlineForms::SPECIAL_COLUMN_TYPES[:file_field]=:string
 
 def file_field_show(object, attribute)
-  link_to_inline_edit object, attribute, 'xxx' #image_tag( object.send(attribute).send(:url) )
+  o = object.send(attribute)
+  msg = o.to_s
+  if o.send(:present?)
+    msg = "<a href='#{o.send(:url)}'>#{o.send(:path).gsub(/^.*\//,'')}</a>".html_safe
+  end
+  link_to_inline_edit object, attribute, msg
 end
 
 def file_field_edit(object, attribute)
@@ -10,6 +15,6 @@ def file_field_edit(object, attribute)
 end
 
 def file_field_update(object, attribute)
-  object.send(attribute + '=', params[attribute.to_sym])
+  object.send(attribute.to_s + '=', params[attribute.to_sym])
 end
 
