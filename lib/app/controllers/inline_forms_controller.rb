@@ -209,7 +209,7 @@ class InlineFormsController < ApplicationController
     @version = Version.find(params[:id])
     @version.reify.save!
     @object = @Klass.find(@version.item_id)
-    authorize!(:revert, @object)
+    authorize!(:revert, @object) if cancan_enabled?
     respond_to do |format|
       format.js { render :close }
     end
