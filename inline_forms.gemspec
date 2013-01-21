@@ -24,8 +24,7 @@ Gem::Specification.new do |s|
   s.add_dependency('thor')
   s.add_dependency('validation_hints')
   s.add_dependency('rails-i18n')
-#gem 'i18n-active_record', :git => 'git://github.com/acesuares/i18n-active_record.git'
-
+  s.add_dependency('rails')
 
   s.add_development_dependency(%q<rspec-rails>, [">= 0"])
   s.add_development_dependency(%q<shoulda>, [">= 0"])
