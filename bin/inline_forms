@@ -88,8 +88,14 @@ module InlineForms
       end
 
       say "- Generating Rails app '#{app_name}'..."
-      dry_run? ? empty_directory(app_name) : RVM.run("rails new #{app_name}")
-      
+      if dry_run?
+        empty_directory(app_name)
+      else
+        if ! RVM.run("rails new #{app_name}").successful?
+          say "Rails could not create the app '#{app_name}', maybe because it is a reserved word...", :red
+          exit 1
+        end
+      end
 
       say "- Creating and trusting .rvmrc..."
       ruby_version = (%x[rvm current]).gsub(/@.*/,'')
