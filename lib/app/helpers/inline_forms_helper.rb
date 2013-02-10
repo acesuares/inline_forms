@@ -162,6 +162,8 @@ module InlineFormsHelper
     end
     values
   end
+
+
 end
 
 module Kernel
