@@ -1,5 +1,5 @@
 # -*- encoding : utf-8 -*-
-class IsACuracaoIdNumberValidator < ActiveModel::EachValidator
+class CuracaoIdNumberValidator < ActiveModel::EachValidator
 
   def validate_each(record, attribute, value)
     if value =~ /^[0-9]{10}$/
@@ -10,13 +10,14 @@ class IsACuracaoIdNumberValidator < ActiveModel::EachValidator
       begin
         DateTime.civil(year, month, day)
       rescue ArgumentError
-        record.errors.add(attribute.to_sym, options[:message] || "too_short" )
+        record.errors.add(attribute.to_sym, options[:message] || "not a valid date" )
       end
     else
-      record.errors.add(attribute.to_sym, options[:message] || "not_a_number" )
+      record.errors.add(attribute.to_sym, options[:message] || "is not a number" )
     end
   end
 
 end
 
 #"moet bestaan uit tien cijfers (bijvoorbeeld 1983040812)."
+#"moet een datum zijn."
