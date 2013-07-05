@@ -20,17 +20,17 @@ def info_update(object, attribute)
   # do absolutely nothing
 end
 
-module ActionView::Helpers::DateHelper
-
-  def distance_of_time_in_words_to_now_with_future(from_time, include_seconds = false)
-    if from_time > Time.now()
-      'in ' + distance_of_time_in_words_to_now_without_future(from_time, include_seconds)
-    else
-      distance_of_time_in_words_to_now_without_future(from_time, include_seconds) + ' ago'
-    end
-  end
-
-  alias_method_chain :distance_of_time_in_words_to_now, :future
-
-end
+#module ActionView::Helpers::DateHelper
+#
+#  def distance_of_time_in_words_to_now_with_future(from_time, include_seconds = false)
+#    if from_time > Time.now()
+#      'in ' + distance_of_time_in_words_to_now_without_future(from_time, include_seconds)
+#    else
+#      distance_of_time_in_words_to_now_without_future(from_time, include_seconds) + ' ago'
+#    end
+#  end
+#
+#  alias_method_chain :distance_of_time_in_words_to_now, :future
+#
+#end
 
