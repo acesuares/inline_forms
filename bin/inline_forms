@@ -122,6 +122,7 @@ module InlineForms
           gem 'rails'
           gem 'rake'
           gem 'jquery-rails'
+          gem 'jquery-ui-rails'
           gem 'capistrano'
           gem 'will_paginate', :git => 'git://github.com/acesuares/will_paginate.git'
           gem 'tabs_on_rails', :git => 'git://github.com/acesuares/tabs_on_rails.git', :branch => 'update_remote'
