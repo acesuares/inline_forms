@@ -121,7 +121,7 @@ module InlineForms
           gem 'test-unit'
           gem 'rails', '~> 3.2.12'
           gem 'rake'
-          gem 'jquery-rails'
+	  gem 'jquery-rails', '~> 3.0.2'
           gem 'jquery-ui-rails'
           gem 'capistrano'
           gem 'will_paginate', :git => 'git://github.com/acesuares/will_paginate.git'
