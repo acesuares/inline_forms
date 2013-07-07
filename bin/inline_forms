@@ -119,7 +119,7 @@ module InlineForms
           source 'http://rubygems.org'
 
           gem 'test-unit'
-          gem 'rails'
+          gem 'rails', '~> 3.2.12'
           gem 'rake'
           gem 'jquery-rails'
           gem 'jquery-ui-rails'
