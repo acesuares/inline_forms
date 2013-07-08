@@ -97,10 +97,9 @@ module InlineForms
         end
       end
 
-      say "- Creating and trusting .rvmrc..."
+      say "- Creating .ruby-version..."
       ruby_version = (%x[rvm current]).gsub(/@.*/,'')
-      create_file "#{app_name}/.rvmrc", "rvm use #{ruby_version.chop}@#{app_name} --create"
-      say ("- " + %x[cd #{app_name} && rvm rvmrc trust .rvmrc]).chop
+      create_file "#{app_name}/.ruby-version", "#{ruby_version.chop}"
 
       say "- Changing to '#{app_name}' with RVM..."
       RVM.chdir(app_name) do
@@ -120,7 +119,7 @@ module InlineForms
 
           gem 'test-unit'
           gem 'rails', '~> 3.2.12'
-          gem 'rake'
+          gem 'rake', '10.0.4'
 	  gem 'jquery-rails', '~> 2.3.0'
           gem 'jquery-ui-rails'
           gem 'capistrano'
