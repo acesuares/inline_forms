@@ -17,12 +17,12 @@ module InlineForms
   class Creator < Thor
     include Thor::Actions
 
-    String.class_eval do
-      def strip_heredoc_with_indent(indent=0)
-        new_indent = ( self.empty? ? 0 : ( scan(/^[ \t]*(?=\S)/).min.size - indent ) )
-        gsub(/^[ \t]{#{new_indent}}/, '')
-      end
-    end
+#    String.class_eval do
+#      def strip_heredoc_with_indent(indent=0)
+#        new_indent = ( self.empty? ? 0 : ( scan(/^[ \t]*(?=\S)/).min.size - indent ) )
+#        gsub(/^[ \t]{#{new_indent}}/, '')
+#      end
+#    end
 
     def self.source_root
       File.dirname(__FILE__)+"/.."
@@ -91,7 +91,7 @@ module InlineForms
       if dry_run?
         empty_directory(app_name)
       else
-        if ! RVM.run("rails new #{app_name}").successful?
+        if ! run("rails new #{app_name}").successful?
           say "Rails could not create the app '#{app_name}', maybe because it is a reserved word...", :red
           exit 1
         end
@@ -101,13 +101,11 @@ module InlineForms
       ruby_version = (%x[rvm current]).gsub(/@.*/,'')
       create_file "#{app_name}/.ruby-version", "#{ruby_version.chop}"
 
-      say "- Changing to '#{app_name}' with RVM..."
-      RVM.chdir(app_name) do
+      say "- Changing to '#{app_name}'..."
+      chdir(app_name) do
 
         say "- Working directory is now #{`pwd`}"
-        RVM.use_from_path! '.'
-        rvm_gemset = %x[rvm current]
-        say "- RVM gemset is now #{rvm_gemset}"
+        say "- RVM gemset is now #{%x[rvm current]}"
 
         say "- Recreating Gemfile..."
       
@@ -193,10 +191,10 @@ module InlineForms
         END_DATABASEYML
 
         say "- Devise install..."
-        RVM.run "bundle exec rails g devise:install" unless dry_run?
+        run "bundle exec rails g devise:install" unless dry_run?
 
         say "- Devise User model install with added name and locale field..."
-        RVM.run "bundle exec rails g devise User name:string locale:string" unless dry_run?
+        run "bundle exec rails g devise User name:string locale:string" unless dry_run?
 
         say "- Replace Devise route and add path_prefix..."
         gsub_file "#{app_name}/config/routes.rb", /devise_for :users/, "devise_for :users, :path_prefix => 'auth'"
@@ -279,7 +277,7 @@ module InlineForms
         USER_MODEL
 
         say "- Install ckeditor..."
-        RVM.run "bundle exec rails g ckeditor:install" unless dry_run?
+        run "bundle exec rails g ckeditor:install" unless dry_run?
 
         say "- Create ckeditor config.js"
         copy_file "lib/app/assets/javascripts/ckeditor/config.js", "#{app_name}/app/assets/javascripts/ckeditor/config.js"
@@ -289,12 +287,12 @@ module InlineForms
         insert_into_file "#{app_name}/app/assets/javascripts/application.js", "//= require jquery.remotipart\n", :before => "//= require_tree .\n"
 
         say "- Paper_trail install..."
-        RVM.run "bundle exec rails g paper_trail:install" unless dry_run?
+        run "bundle exec rails g paper_trail:install" unless dry_run?
 
         say "- Generate models and tables and views for translations..."
-        RVM.run 'rails g inline_forms InlineFormsLocale name:string inline_forms_translations:belongs_to _enabled:yes _presentation:\'#{name}\''
-        RVM.run 'rails g inline_forms InlineFormsKey name:string inline_forms_translations:has_many inline_forms_translations:associated _enabled:yes _presentation:\'#{name}\''
-        RVM.run 'rails g inline_forms InlineFormsTranslation inline_forms_key:belongs_to inline_forms_locale:dropdown value:text interpolations:text is_proc:boolean _presentation:\'#{value}\''
+        run 'rails g inline_forms InlineFormsLocale name:string inline_forms_translations:belongs_to _enabled:yes _presentation:\'#{name}\''
+        run 'rails g inline_forms InlineFormsKey name:string inline_forms_translations:has_many inline_forms_translations:associated _enabled:yes _presentation:\'#{name}\''
+        run 'rails g inline_forms InlineFormsTranslation inline_forms_key:belongs_to inline_forms_locale:dropdown value:text interpolations:text is_proc:boolean _presentation:\'#{value}\''
 
         sleep 1 # to get unique migration number
         create_file "#{app_name}/db/migrate/" + 
@@ -323,13 +321,13 @@ module InlineForms
         VIEW_MIGRATION
         
         say "- Migrating Database"
-        RVM.run "bundle exec rake db:migrate" unless (dry_run? || !using_sqlite?)
+        run "bundle exec rake db:migrate" unless (dry_run? || !using_sqlite?)
 
         say "- Adding admin user with email: #{email}, password: #{password} to seeds.rb"
         append_to_file "#{app_name}/db/seeds.rb", "User.new({ :email => '#{email}', :name => 'Admin', :password => '#{password}', :password_confirmation => '#{password}'}).save"
 
         say "- Seeding the database"
-        RVM.run "bundle exec rake db:seed" unless (dry_run? || !using_sqlite?)
+        run "bundle exec rake db:seed" unless (dry_run? || !using_sqlite?)
 
         say "- Creating header in app/views/inline_forms/_header.html.erb..."
         create_file "#{app_name}/app/views/inline_forms/_header.html.erb", <<-END_HEADER.strip_heredoc_with_indent
@@ -446,7 +444,7 @@ module InlineForms
         gsub_file "#{app_name}/config/environments/production.rb", /config.assets.compile = false/, "config.assets.compile = true"
 
         say "- Capify..."
-        RVM.run 'capify .'
+        run 'capify .'
         remove_file "#{app_name}/config/deploy.rb" # remove the file capify created!
         copy_file "lib/generators/templates/deploy.rb", "#{app_name}/config/deploy.rb"
 
@@ -454,7 +452,7 @@ module InlineForms
         copy_file "lib/generators/templates/unicorn.rb", "#{app_name}/config/unicorn.rb"
 
         say "- Initializing git..."
-        RVM.run 'git init'
+        run 'git init'
         create_file "#{app_name}/.gitignore", "/tmp\n" if dry_run?
         insert_into_file "#{app_name}/.gitignore", <<-GITIGNORE.strip_heredoc_with_indent, :after => "/tmp\n"
           # netbeans
@@ -463,18 +461,18 @@ module InlineForms
           public/uploads
         GITIGNORE
 
-        RVM.run 'git add .'
-        RVM.run 'git commit -a -m " * Initial"'
+        run 'git add .'
+        run 'git commit -a -m " * Initial"'
 
         if install_example?
           say "\nInstalling example application..."
-          RVM.run 'rails g inline_forms Picture name:string caption:string image:image_field description:text apartment:belongs_to _presentation:\'#{name}\''
-          RVM.run 'rails generate uploader Image'
-          RVM.run 'rails g inline_forms Apartment name:string title:string description:text pictures:has_many pictures:associated _enabled:yes _presentation:\'#{name}\''
-          RVM.run 'bundle exec rake db:migrate'
+          run 'rails g inline_forms Picture name:string caption:string image:image_field description:text apartment:belongs_to _presentation:\'#{name}\''
+          run 'rails generate uploader Image'
+          run 'rails g inline_forms Apartment name:string title:string description:text pictures:has_many pictures:associated _enabled:yes _presentation:\'#{name}\''
+          run 'bundle exec rake db:migrate'
           say "\nDone! Now point your browser to http://localhost:3000/apartments !", :yellow
           say "\nPress ctlr-C to quit...", :yellow
-          RVM.run 'rails s'
+          run 'rails s'
         else
           say "\nDone! Now make your tables with 'rails g inline_forms ...", :yellow
           #say "- Don't forget: edit .rvmrc, config/{routes.rb, deploy.rb}, .git/config, delete public/index.html\n"
