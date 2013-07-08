@@ -17,13 +17,6 @@ module InlineForms
   class Creator < Thor
     include Thor::Actions
 
-#    String.class_eval do
-#      def strip_heredoc_with_indent(indent=0)
-#        new_indent = ( self.empty? ? 0 : ( scan(/^[ \t]*(?=\S)/).min.size - indent ) )
-#        gsub(/^[ \t]{#{new_indent}}/, '')
-#      end
-#    end
-
     def self.source_root
       File.dirname(__FILE__)+"/.."
     end
@@ -91,7 +84,7 @@ module InlineForms
       if dry_run?
         empty_directory(app_name)
       else
-        if ! run("rails new #{app_name}").successful?
+        if ! run("rails new #{app_name}")
           say "Rails could not create the app '#{app_name}', maybe because it is a reserved word...", :red
           exit 1
         end
@@ -103,7 +96,8 @@ module InlineForms
 
       say "- Changing to '#{app_name}'..."
       chdir(app_name) do
-
+	run("rvm gemset create #{app_name}")
+	run("rvm gemset use #{app_name}")
         say "- Working directory is now #{`pwd`}"
         say "- RVM gemset is now #{%x[rvm current]}"
 
