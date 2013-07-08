@@ -18,6 +18,8 @@ If you want to install the example application:
 
  inline_forms create MyApp --example
 
+Then point your browser to http://localhost:3000/apartments and log in with admin@example.com / admin999
+
 You can install the example application manually if you like:
 
  inline_forms create MyApp
@@ -28,7 +30,7 @@ You can install the example application manually if you like:
  bundle exec rake db:migrate
  rails s
 
-Now point your browser to http://localhost:3000/apartments and make sure JavaScript is enabled.
+Then point your browser to http://localhost:3000/apartments and log in with admin@example.com / admin999
 
 == Disclaimer
 
@@ -37,5 +39,5 @@ It's work in progress. Until I learn to use git branch, new releases break as ea
 
 == Copyright
 
-Copyright (c) 2011-2012 Ace Suares. See LICENSE.txt for further details.
+Copyright (c) 2011-2013 Ace Suares. See LICENSE.txt for further details.
 
