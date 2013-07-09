@@ -100,7 +100,7 @@ module InlineForms
       create_file "#{app_name}/.ruby-version", "#{ruby_version.chop}@#{app_name}"
 
       say "chdir: '#{app_name}'...", :green
-      Dir.chdir(app_name) do
+      RVM.chdir(app_name) do
         RVM.gemset_use! app_name
         say "- Working directory is now #{`pwd`}"
         say "- RVM gemset is now #{%x[rvm current]}"
