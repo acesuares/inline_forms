@@ -1,22 +1,27 @@
-<% @default_message = 'signup_with_email_name_and_password' -%>
-<%= render :partial => "devise/shared/header_and_errors" %>
+<div class="row">
+  <div class="large-4 columns">
+<h2>Sign up</h2>
+  </div>
+  <div class="large-4 columns">
+<%= form_for(resource, :as => resource_name, :url => registration_path(resource_name)) do |f| %>
+  <%= devise_error_messages! %>
 
-<div id="sign_in">
-  <div id="sign_in_form">
-    <%= form_for(resource, :as => resource_name, :url => registration_path(resource_name)) do |f| %>
-      <div class="float_right"><%= f.label :name %>&nbsp;&nbsp;<%= f.text_field :name %></div>
-      <div style="clear: both"></div>
-      <div class="float_right"><%= f.label :email %>&nbsp;&nbsp;<%= f.email_field :email %></div>
-      <div style="clear: both"></div>
-      <div class="float_right"><%= f.label :password %>&nbsp;&nbsp;<%= f.password_field :password %></div>
-      <div style="clear: both"></div>
-      <div class="float_right"><%= f.label :password_confirmation %>&nbsp;&nbsp;<%= f.password_field :password_confirmation %></div>
-      <div style="clear: both"></div>
-      
-      <div><%= f.submit t("inline_forms.devise.sign_up") %></div>
-    <% end %>
+  <div><%= f.label :name %><br />
+  <%= f.text_field :name %></div>
+
+  <div><%= f.label :email %><br />
+  <%= f.email_field :email %></div>
+
+  <div><%= f.label :password %><br />
+  <%= f.password_field :password %></div>
+
+  <div><%= f.label :password_confirmation %><br />
+  <%= f.password_field :password_confirmation %></div>
+
+  <div><%= f.submit "Sign up" %></div>
+<% end %>
+  </div>
+  <div class="large-4 columns">
+    <%= render :partial => "devise/shared/links" %>
   </div>
 </div>
-
-<%= render :partial => "devise/shared/links" %>
-

@@ -1,13 +1,29 @@
-<% @default_message = 'login_with_email_and_password' -%>
-<%= render :partial => "devise/shared/header_and_errors" %>
+<div class="row">
 
-<div id="sign_in">
-  <div id="sign_in_form">
+  <div class="large-4 columns">
+    <h2>Sign in</h2>
+  </div>
+
+  <div class="large-4 columns">
     <%= form_for(resource, :as => resource_name, :url => session_path(resource_name)) do |f| %>
-      <br /> <%= f.email_field :email %><br />
-      <%= f.password_field :password %><br />
-      <p><%= f.submit t("inline_forms.devise.sign_in") %></p>
+
+      <div><%= f.label :email %><br />
+        <%= f.email_field :email %></div>
+
+      <div><%= f.label :password %><br />
+        <%= f.password_field :password %></div>
+
+      <% if devise_mapping.rememberable? -%>
+        <div><%= f.check_box :remember_me %> <%= f.label :remember_me %></div>
+      <% end -%>
+
+      <div><%= f.submit "Sign in" %></div>
+
     <% end %>
   </div>
+
+  <div class="large-4 columns">
+    <%= render :partial => "devise/shared/links" %>
+  </div>
+
 </div>
-<%= render :partial => "devise/shared/links" %>

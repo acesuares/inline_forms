@@ -90,7 +90,7 @@ module InlineForms
       if dry_run?
         empty_directory(app_name)
       else
-        if ! run("rails _3.2.12_ new #{app_name} --skip-bundle --skip-gemfile")
+        if ! run("rails _3.2.12_ new #{app_name} --skip-bundle --skip-gemfile --skip-test-unit")
           say "Rails could not create the app '#{app_name}', maybe because it is a reserved word...", :red
           exit 1
         end
@@ -110,7 +110,6 @@ module InlineForms
 
           source 'http://rubygems.org'
 
-          gem 'test-unit'
           gem 'rails', '3.2.12'
           gem 'rake', '10.0.4'
 	  gem 'jquery-rails', '~> 2.3.0'
@@ -145,16 +144,24 @@ module InlineForms
             # gem 'rcov', '>= 0'
           end
 
-          # these are just for production
-          group :production do
-            gem 'mysql2'
-            gem 'therubyracer'
-            gem 'uglifier'
-          end
+         # these are just for production
+         group :production do
+           gem 'mysql2'
+           gem 'therubyracer'
+           gem 'uglifier', '>= 1.0.3'
+         end
+
+         group :assets do
+           gem 'sass-rails',   '~> 3.2.3'
+           gem 'coffee-rails', '~> 3.2.1'
+           gem 'uglifier', '>= 1.0.3'
+           gem 'compass-rails' # you need this or you get an err
+           gem 'zurb-foundation', '~> 4.0.0'
+        end 
         END_GEMFILE
 
         say "- Running bundle..."
-        system "bundle install" unless dry_run?
+        run("bundle") unless dry_run?
   
         say "- Database setup: creating config/database.yml with development database #{database}"
         remove_file "#{app_name}/config/database.yml" # the one that 'rails _3.2.12_ new' created
@@ -283,6 +290,9 @@ module InlineForms
 
         say "- Paper_trail install..."
         run "bundle exec rails g paper_trail:install" unless dry_run?
+
+        say "- Installaing ZURB Foundation..."
+        run "bundle exec rails g foundation:install"
 
         say "- Generate models and tables and views for translations..."
         run 'bundle exec rails g inline_forms InlineFormsLocale name:string inline_forms_translations:belongs_to _enabled:yes _presentation:\'#{name}\''

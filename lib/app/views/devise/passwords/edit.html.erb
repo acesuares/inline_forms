@@ -1,17 +1,28 @@
-<% @default_message = 'change_password' -%>
-<%= render :partial => "devise/shared/header_and_errors" %>
+<div class="row">
 
-<div id="sign_in">
-  <div id="sign_in_form">
-<%= form_for(resource, :as => resource_name, :url => password_path(resource_name), :html => { :method => :put }) do |f| %>
-  <%= f.hidden_field :reset_password_token %>
-      <div class="float_right"><%= f.label :password %>&nbsp;&nbsp;<%= f.password_field :password %></div>
-      <div style="clear: both"></div>
-      <div class="float_right"><%= f.label :password_confirmation %>&nbsp;&nbsp;<%= f.password_field :password_confirmation %></div>
-      <div style="clear: both"></div>
-      <div><%= f.submit t("inline_forms.devise.submit.change_password") %></div>
-    <% end %>
+  <div class="large-4 columns">
+    <h2>Change your password</h2>
   </div>
-</div>
 
-<%= render :partial => "devise/shared/links" %>
+  <div class="large-4 columns">
+
+    <%= form_for(resource, :as => resource_name, :url => password_path(resource_name), :html => { :method => :put }) do |f| %>
+      <%= devise_error_messages! %>
+      <%= f.hidden_field :reset_password_token %>
+
+      <div><%= f.label :password, "New password" %><br />
+        <%= f.password_field :password %></div>
+
+      <div><%= f.label :password_confirmation, "Confirm new password" %><br />
+        <%= f.password_field :password_confirmation %></div>
+
+      <div><%= f.submit "Change my password" %></div>
+    <% end %>
+
+  </div>
+
+  <div class="large-4 columns">
+    <%= render :partial => "devise/shared/links" %>
+  </div>
+
+</div>

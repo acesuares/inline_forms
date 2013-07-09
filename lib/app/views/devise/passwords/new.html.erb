@@ -1,14 +1,24 @@
-<% @default_message = 'provide_email_and_we_send_instructions' -%>
-<%= render :partial => "devise/shared/header_and_errors" %>
+<div class="row">
 
-<div id="sign_in">
-  <div id="sign_in_form">
-    <%= form_for(resource, :as => resource_name, :url => password_path(resource_name), :html => { :method => :post }) do |f| %>
-      <br /> <%= f.email_field :email %><br /><br />
-      <div><%= f.submit t("inline_forms.devise.send_instructions") %></div>
-    <% end %>
+  <div class="large-4 columns">
+    <h2>Forgot your password?</h2>
   </div>
+
+  <div class="large-4 columns">
+
+    <%= form_for(resource, :as => resource_name, :url => password_path(resource_name), :html => { :method => :post }) do |f| %>
+      <%= devise_error_messages! %>
+
+      <div><%= f.label :email %><br />
+        <%= f.email_field :email %></div>
+
+      <div><%= f.submit "Send me reset password instructions" %></div>
+    <% end %>
+
+  </div>
+
+  <div class="large-4 columns">
+    <%= render :partial => "devise/shared/links" %>
+  </div>
+
 </div>
-
-<%= render :partial => "devise/shared/links" %>
-
