@@ -90,7 +90,7 @@ module InlineForms
       if dry_run?
         empty_directory(app_name)
       else
-        if ! run("rails new #{app_name} --skip-bundle --skip-gemfile")
+        if ! run("rails _3.2.12_ new #{app_name} --skip-bundle --skip-gemfile")
           say "Rails could not create the app '#{app_name}', maybe because it is a reserved word...", :red
           exit 1
         end
@@ -157,7 +157,7 @@ module InlineForms
         system "bundle install" unless dry_run?
   
         say "- Database setup: creating config/database.yml with development database #{database}"
-        remove_file "#{app_name}/config/database.yml" # the one that 'rails new' created
+        remove_file "#{app_name}/config/database.yml" # the one that 'rails _3.2.12_ new' created
         if using_sqlite?
           create_file "#{app_name}/config/database.yml", <<-END_DATABASEYML.strip_heredoc_with_indent
           development:
@@ -285,9 +285,9 @@ module InlineForms
         run "bundle exec rails g paper_trail:install" unless dry_run?
 
         say "- Generate models and tables and views for translations..."
-        run 'rails g inline_forms InlineFormsLocale name:string inline_forms_translations:belongs_to _enabled:yes _presentation:\'#{name}\''
-        run 'rails g inline_forms InlineFormsKey name:string inline_forms_translations:has_many inline_forms_translations:associated _enabled:yes _presentation:\'#{name}\''
-        run 'rails g inline_forms InlineFormsTranslation inline_forms_key:belongs_to inline_forms_locale:dropdown value:text interpolations:text is_proc:boolean _presentation:\'#{value}\''
+        run 'bundle exec rails g inline_forms InlineFormsLocale name:string inline_forms_translations:belongs_to _enabled:yes _presentation:\'#{name}\''
+        run 'bundle exec rails g inline_forms InlineFormsKey name:string inline_forms_translations:has_many inline_forms_translations:associated _enabled:yes _presentation:\'#{name}\''
+        run 'bundle exec rails g inline_forms InlineFormsTranslation inline_forms_key:belongs_to inline_forms_locale:dropdown value:text interpolations:text is_proc:boolean _presentation:\'#{value}\''
 
         sleep 1 # to get unique migration number
         create_file "#{app_name}/db/migrate/" + 
@@ -461,15 +461,15 @@ module InlineForms
 
         if install_example?
           say "\nInstalling example application..."
-          run 'rails g inline_forms Picture name:string caption:string image:image_field description:text apartment:belongs_to _presentation:\'#{name}\''
-          run 'rails generate uploader Image'
-          run 'rails g inline_forms Apartment name:string title:string description:text pictures:has_many pictures:associated _enabled:yes _presentation:\'#{name}\''
+          run 'bundle exec rails g inline_forms Picture name:string caption:string image:image_field description:text apartment:belongs_to _presentation:\'#{name}\''
+          run 'bundle exec rails generate uploader Image'
+          run 'bundle exec rails g inline_forms Apartment name:string title:string description:text pictures:has_many pictures:associated _enabled:yes _presentation:\'#{name}\''
           run 'bundle exec rake db:migrate'
           say "\nDone! Now point your browser to http://localhost:3000/apartments !", :yellow
           say "\nPress ctlr-C to quit...", :yellow
-          run 'rails s'
+          run 'bundle exec rails s'
         else
-          say "\nDone! Now make your tables with 'rails g inline_forms ...", :yellow
+          say "\nDone! Now make your tables with 'bundle exec rails g inline_forms ...", :yellow
           #say "- Don't forget: edit .rvmrc, config/{routes.rb, deploy.rb}, .git/config, delete public/index.html\n"
         end
 
