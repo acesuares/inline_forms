@@ -39,9 +39,8 @@ they are @object. We need this magic here to rewrite all the @variables to varia
   <% update_span = "#{parent_class.to_s.underscore}_#{parent_id}_#{attribute}_list" -%>
   <% path_to_new='new_' + attribute.to_s.singularize + '_path' %>
   <% foreign_key = parent_class.reflect_on_association(attribute.to_sym).options[:foreign_key] || parent_class.name.foreign_key -%>
-
-  <% conditions =  [ "#{foreign_key} = ?", parent_id ] %>
   <% model = attribute.to_s.singularize.camelcase.constantize %>
+  <% conditions =  [ "#{model.table_name}.#{foreign_key} = ?", parent_id ] %>
   <% objects = parent_class.find(parent_id).send(attribute) %>
   <% objects = parent_class.find(parent_id).send(attribute).accessible_by(current_ability) if cancan_enabled? %>
   <% objects = objects.order(attribute.to_s.singularize.camelcase.constantize.order_by_clause) if attribute.to_s.singularize.camelcase.constantize.respond_to?(:order_by_clause) && ! attribute.to_s.singularize.camelcase.constantize.order_by_clause.nil? %>
