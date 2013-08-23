@@ -112,12 +112,12 @@ module InlineForms
 
           gem 'rails', '3.2.12'
           gem 'rake', '10.0.4'
-	  gem 'jquery-rails', '~> 2.3.0'
+          gem 'jquery-rails', '~> 2.3.0'
           gem 'jquery-ui-rails'
           gem 'capistrano'
           gem 'will_paginate', :git => 'git://github.com/acesuares/will_paginate.git'
           gem 'tabs_on_rails', :git => 'git://github.com/acesuares/tabs_on_rails.git', :branch => 'update_remote'
-          gem 'ckeditor', :git => 'git://github.com/acesuares/ckeditor.git', :branch => 'master'
+          gem 'ckeditor'
           gem 'cancan', :git => 'git://github.com/acesuares/cancan.git', :branch => '2.0'
           gem 'carrierwave'
           gem 'remotipart', '~> 1.0'
@@ -206,6 +206,9 @@ module InlineForms
           end
         ROUTE
 
+        say "- Mount Ckeditor::Engine to routes..."
+        insert_into_file "#{app_name}/config/routes.rb", 'mount Ckeditor::Engine => "/ckeditor"'
+
         say "- Create User Controller..."
         create_file "#{app_name}/app/controllers/users_controller.rb", <<-USERS_CONTROLLER.strip_heredoc_with_indent
           class UsersController < InlineFormsController
@@ -278,8 +281,9 @@ module InlineForms
           end
         USER_MODEL
 
-        say "- Install ckeditor..."
-        run "bundle exec rails g ckeditor:install" unless dry_run?
+        say "- Install ckeditor/carrierwave..."
+
+        run "bundle exec rails generate ckeditor:install --orm=active_record --backend=carrierwave" unless dry_run?
 
         say "- Create ckeditor config.js"
         copy_file "lib/app/assets/javascripts/ckeditor/config.js", "#{app_name}/app/assets/javascripts/ckeditor/config.js"
@@ -287,6 +291,9 @@ module InlineForms
         say "- Add remotipart to application.js..."
         create_file "#{app_name}/app/assets/javascripts/application.js", "//= require_tree .\n" if dry_run?
         insert_into_file "#{app_name}/app/assets/javascripts/application.js", "//= require jquery.remotipart\n", :before => "//= require_tree .\n"
+
+        say "- Add ckeditor to application.js..."
+        insert_into_file "#{app_name}/app/assets/javascripts/application.js", "//= require ckeditor/init\n", :before => "//= require_tree .\n"
 
         say "- Paper_trail install..."
         run "bundle exec rails g paper_trail:install" unless dry_run?
@@ -444,9 +451,16 @@ module InlineForms
           
         DEVISE_MAILER_STUFF
 
-        say "- Setting config.assets.compile to true in environments/production.rb (needed for ckeditor)..."
-        insert_into_file "#{app_name}/config/environments/production.rb", "  config.assets.compile = false\n", :before => "end\n" if dry_run?
-        gsub_file "#{app_name}/config/environments/production.rb", /config.assets.compile = false/, "config.assets.compile = true"
+        say "- Setting autoload paths for ckeditor..."
+        insert_into_file "#{app_name}/config/application.rb", '  config.autoload_paths += %W(#{config.root}/app/models/ckeditor)\n', :after => "modules you want to be autoloadable.\n" unless dry_run?
+
+        create_file "#{app_name}/config/initializers/ckeditor.rb" unless dry_run?
+        insert_into_file "#{app_name}/config/initializers/ckeditor.rb", <<-CKEDITOR_INITIALIZER_FOR_CANCAN.strip_heredoc_with_indent(2)
+        Ckeditor.setup do |config|
+          config.authorize_with :cancan
+        end
+
+        CKEDITOR_INITIALIZER_FOR_CANCAN
 
         say "- Capify..."
         run 'capify .'
