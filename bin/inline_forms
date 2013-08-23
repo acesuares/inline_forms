@@ -281,9 +281,8 @@ module InlineForms
           end
         USER_MODEL
 
-        say "- Install ckeditor/carrierwave..."
-
-        run "bundle exec rails generate ckeditor:install --orm=active_record --backend=carrierwave" unless dry_run?
+        #        say "- Install ckeditor/carrierwave..."
+        #        run "bundle exec rails generate ckeditor:install --orm=active_record --backend=carrierwave" unless dry_run?
 
         say "- Create ckeditor config.js"
         copy_file "lib/app/assets/javascripts/ckeditor/config.js", "#{app_name}/app/assets/javascripts/ckeditor/config.js"
@@ -455,7 +454,7 @@ module InlineForms
         insert_into_file "#{app_name}/config/application.rb", '  config.autoload_paths += %W(#{config.root}/app/models/ckeditor)' + "\n", :after => "modules you want to be autoloadable.\n" unless dry_run?
 
         say "- Adding cancan authorization to ckeditor"
-        gsub_file "#{app_name}/config/initializers/ckeditor.rb", "# config.authorize_with :cancan", "config.authorize_with :cancan"
+        gsub_file "#{app_name}/config/initializers/ckeditor.rb", "# config.authorize_with :cancan", "config.authorize_with :cancan" if File.exists?("#{app_name}/config/initializers/ckeditor.rb")
 
         say "- Capify..."
         run 'capify .'
