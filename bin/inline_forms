@@ -90,7 +90,7 @@ module InlineForms
       if dry_run?
         empty_directory(app_name)
       else
-        if ! run("rails _3.2.12_ new #{app_name} --skip-bundle --skip-gemfile --skip-test-unit")
+        if ! run("rails new #{app_name} --skip-bundle --skip-gemfile --skip-test-unit")
           say "Rails could not create the app '#{app_name}', maybe because it is a reserved word...", :red
           exit 1
         end
@@ -207,7 +207,7 @@ module InlineForms
         ROUTE
 
         say "- Mount Ckeditor::Engine to routes..."
-        insert_into_file "#{app_name}/config/routes.rb", 'mount Ckeditor::Engine => "/ckeditor"'
+        insert_into_file "#{app_name}/config/routes.rb", "\nmount Ckeditor::Engine => \"/ckeditor\"\n", :after => "routes.draw do\n"
 
         say "- Create User Controller..."
         create_file "#{app_name}/app/controllers/users_controller.rb", <<-USERS_CONTROLLER.strip_heredoc_with_indent
@@ -452,15 +452,10 @@ module InlineForms
         DEVISE_MAILER_STUFF
 
         say "- Setting autoload paths for ckeditor..."
-        insert_into_file "#{app_name}/config/application.rb", '  config.autoload_paths += %W(#{config.root}/app/models/ckeditor)\n', :after => "modules you want to be autoloadable.\n" unless dry_run?
+        insert_into_file "#{app_name}/config/application.rb", '  config.autoload_paths += %W(#{config.root}/app/models/ckeditor)' + "\n", :after => "modules you want to be autoloadable.\n" unless dry_run?
 
-        create_file "#{app_name}/config/initializers/ckeditor.rb" unless dry_run?
-        insert_into_file "#{app_name}/config/initializers/ckeditor.rb", <<-CKEDITOR_INITIALIZER_FOR_CANCAN.strip_heredoc_with_indent(2)
-        Ckeditor.setup do |config|
-          config.authorize_with :cancan
-        end
-
-        CKEDITOR_INITIALIZER_FOR_CANCAN
+        say "- Adding cancan authorization to ckeditor"
+        gsub_file "#{app_name}/config/initializers/ckeditor.rb", "# config.authorize_with :cancan", "config.authorize_with :cancan"
 
         say "- Capify..."
         run 'capify .'
