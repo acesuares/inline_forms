@@ -128,7 +128,7 @@ module InlineForms
           gem 'mini_magick'
           gem 'jquery-ui-rails'
           gem 'yaml_db'
-          gem 'rails-i18n'
+          gem 'rails-i18n', '~> 3.0.0'
           gem 'i18n-active_record', :git => 'git://github.com/acesuares/i18n-active_record.git'
           gem 'unicorn'
           gem 'rvm'
