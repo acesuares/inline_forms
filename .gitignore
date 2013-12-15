@@ -40,3 +40,8 @@ pkg
 #
 # For vim:
 #*.swp
+.project
+.ruby-version
+.ruby-gemset
+.gitignore~
+bin/LETOVER
