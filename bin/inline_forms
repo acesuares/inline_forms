@@ -93,7 +93,8 @@ module InlineForms
         empty_directory(app_name)
 
       	ruby_version = (%x[rvm current]).gsub(/@.*/,'')
-      	create_file "#{app_name}/.ruby-version", "#{ruby_version.chop}@#{app_name}"
+      	create_file "#{app_name}/.ruby-version", ruby_version
+      	create_file "#{app_name}/.ruby-gemset", app_name
 
 		app_template_file = File.join(File.dirname(__FILE__), 'inline_forms_app_template.rb')
 

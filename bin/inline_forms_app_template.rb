@@ -2,6 +2,7 @@ say "- Working directory is now #{`pwd`}"
 say "- RVM gemset is now #{%x[rvm current]}"
   
 create_file 'Gemfile', '# created by inline_forms\n'
+add_source 'https://rubygems.org'
 gem 'rails', '3.2.12'
 gem 'rake', '10.0.4'
 gem 'jquery-rails', '~> 2.3.0'
@@ -166,217 +167,156 @@ create_file "app/models/user.rb", <<-USER_MODEL.strip_heredoc_with_indent
   end
 USER_MODEL
 
-        say "- Install ckeditor..."
-        generate "ckeditor", "install"
+say "- Install ckeditor..."
+generate "ckeditor", "install"
 
-        say "- Mount Ckeditor::Engine to routes..."
-        route "mount Ckeditor::Engine => '/ckeditor'"
+say "- Mount Ckeditor::Engine to routes..."
+route "mount Ckeditor::Engine => '/ckeditor'"
 
-        say "- Add ckeditor autoload_paths to application.rb..."
-        application "config.autoload_paths += %W(\#{config.root}/app/models/ckeditor)"
+say "- Add ckeditor autoload_paths to application.rb..."
+application "config.autoload_paths += %W(\#{config.root}/app/models/ckeditor)"
 
-        say "- Add ckeditor/init to application.js..."
-        insert_into_file "app/assets/javascripts/application.js",
-                         "//= require ckeditor/init\n",
-                         :before => "//= require_tree .\n"
+say "- Add ckeditor/init to application.js..."
+insert_into_file "app/assets/javascripts/application.js",
+                 "//= require ckeditor/init\n",
+                 :before => "//= require_tree .\n"
 
-        say "- Create ckeditor config.js"
-        copy_file "lib/app/assets/javascripts/ckeditor/config.js", "app/assets/javascripts/ckeditor/config.js"
+say "- Create ckeditor config.js"
+copy_file "lib/app/assets/javascripts/ckeditor/config.js", "app/assets/javascripts/ckeditor/config.js"
 
-        say "- Add remotipart to application.js..."
-        insert_into_file "app/assets/javascripts/application.js", "//= require jquery.remotipart\n", :before => "//= require_tree .\n"
+say "- Add remotipart to application.js..."
+insert_into_file "app/assets/javascripts/application.js", "//= require jquery.remotipart\n", :before => "//= require_tree .\n"
 
-        say "- Paper_trail install..."
-        generate "paper_trail", "install"
+say "- Paper_trail install..."
+generate "paper_trail", "install"
 
-        say "- Installaing ZURB Foundation..."
-        generate "foundation", "install"
+say "- Installaing ZURB Foundation..."
+generate "foundation", "install"
 
-        say "- Generate models and tables and views for translations..."
-        generate "inline_forms", "InlineFormsLocale name:string inline_forms_translations:belongs_to _enabled:yes _presentation:\#{name}"
-        generate "inline_forms", "InlineFormsKey name:string inline_forms_translations:has_many inline_forms_translations:associated _enabled:yes _presentation:\#{name}'"
-        generate "inline_forms", "InlineFormsTranslation inline_forms_key:belongs_to inline_forms_locale:dropdown value:text interpolations:text is_proc:boolean _presentation:\#{value}'"
+say "- Generate models and tables and views for translations..."
+generate "inline_forms", "InlineFormsLocale name:string inline_forms_translations:belongs_to _enabled:yes _presentation:\#{name}"
+generate "inline_forms", "InlineFormsKey name:string inline_forms_translations:has_many inline_forms_translations:associated _enabled:yes _presentation:\#{name}'"
+generate "inline_forms", "InlineFormsTranslation inline_forms_key:belongs_to inline_forms_locale:dropdown value:text interpolations:text is_proc:boolean _presentation:\#{value}'"
 
-        sleep 1 # to get unique migration number
-        create_file "db/migrate/" + 
-          Time.now.utc.strftime("%Y%m%d%H%M%S") +
-          "_" +
-          "inline_forms_create_view_for_translations.rb", <<-VIEW_MIGRATION.strip_heredoc_with_indent
-          class InlineFormsCreateViewForTranslations < ActiveRecord::Migration
+sleep 1 # to get unique migration number
+create_file "db/migrate/" + 
+  Time.now.utc.strftime("%Y%m%d%H%M%S") +
+  "_" +
+  "inline_forms_create_view_for_translations.rb", <<-VIEW_MIGRATION.strip_heredoc_with_indent
+  class InlineFormsCreateViewForTranslations < ActiveRecord::Migration
 
-            def self.up
-              execute 'CREATE VIEW translations
-                       AS
-                         SELECT L.name AS locale,
-                                K.name AS thekey,
-                                T.value AS value,
-                                T.interpolations AS interpolations,
-                                T.is_proc AS is_proc
-                           FROM inline_forms_keys K, inline_forms_locales L, inline_forms_translations T
-                             WHERE T.inline_forms_key_id = K.id AND T.inline_forms_locale_id = L.id '
-            end
+    def self.up
+      execute 'CREATE VIEW translations
+               AS
+                 SELECT L.name AS locale,
+                        K.name AS thekey,
+                        T.value AS value,
+                        T.interpolations AS interpolations,
+                        T.is_proc AS is_proc
+                   FROM inline_forms_keys K, inline_forms_locales L, inline_forms_translations T
+                     WHERE T.inline_forms_key_id = K.id AND T.inline_forms_locale_id = L.id '
+    end
 
-            def self.down
-              execute 'DROP VIEW translations'
-            end
+    def self.down
+      execute 'DROP VIEW translations'
+    end
 
-          end
-        VIEW_MIGRATION
-        
-        say "- Migrating Database (only when using sqlite)"
-        run "bundle exec rake db:migrate" if using_sqlite?
+  end
+VIEW_MIGRATION
 
-        say "- Adding admin user with email: #{email}, password: #{password} to seeds.rb"
-        append_to_file "db/seeds.rb", "User.create({ :email => '#{email}', :name => 'Admin', :password => '#{password}', :password_confirmation => '#{password}'}, :without_protection => true)"
+say "- Migrating Database (only when using sqlite)"
+run "bundle exec rake db:migrate" if using_sqlite?
 
-        say "- Seeding the database (only when using sqlite)"
-        run "bundle exec rake db:seed" if using_sqlite?
+say "- Adding admin user with email: #{email}, password: #{password} to seeds.rb"
+append_to_file "db/seeds.rb", "User.create({ :email => '#{email}', :name => 'Admin', :password => '#{password}', :password_confirmation => '#{password}'}, :without_protection => true)"
 
-        say "- Creating header in app/views/inline_forms/_header.html.erb..."
-        create_file "app/views/inline_forms/_header.html.erb", <<-END_HEADER.strip_heredoc_with_indent
-            <div id='Header'>
-              <div id='title'>
-                #{app_name} v<%= inline_forms_version -%>
-              </div>
-              <% if current_user -%>
-              <div id='logout'>
-                <%= link_to \"Afmelden: \#{current_user.name}\", destroy_user_session_path, :method => :delete %>
-              </div>
-              <% end -%>
-              <div style='clear: both;'></div>
-            </div>
-        END_HEADER
+say "- Seeding the database (only when using sqlite)"
+run "bundle exec rake db:seed" if using_sqlite?
 
-        say "- Recreating ApplicationHelper to set application_name and application_title..."
-        remove_file "app/helpers/application_helper.rb" # the one that 'rails new' created
-        create_file "app/helpers/application_helper.rb", <<-END_APPHELPER.strip_heredoc_with_indent
-          module ApplicationHelper
-            def application_name
-              '#{app_name}'
-            end
-            def application_title
-              '#{app_name}'
-            end
-          end
-        END_APPHELPER
+say "- Creating header in app/views/inline_forms/_header.html.erb..."
+create_file "app/views/inline_forms/_header.html.erb", <<-END_HEADER.strip_heredoc_with_indent
+    <div id='Header'>
+      <div id='title'>
+        #{app_name} v<%= inline_forms_version -%>
+      </div>
+      <% if current_user -%>
+      <div id='logout'>
+        <%= link_to \"Afmelden: \#{current_user.name}\", destroy_user_session_path, :method => :delete %>
+      </div>
+      <% end -%>
+      <div style='clear: both;'></div>
+    </div>
+END_HEADER
 
-        say "- Recreating ApplicationController to add devise, cancan, I18n stuff..."
-        remove_file "app/controllers/application_controller.rb" # the one that 'rails new' created
-        create_file "app/controllers/application_controller.rb", <<-END_APPCONTROLLER.strip_heredoc_with_indent
-          class ApplicationController < InlineFormsApplicationController
-            protect_from_forgery
+say "- Recreating ApplicationHelper to set application_name and application_title..."
+remove_file "app/helpers/application_helper.rb" # the one that 'rails new' created
+create_file "app/helpers/application_helper.rb", <<-END_APPHELPER.strip_heredoc_with_indent
+  module ApplicationHelper
+    def application_name
+      '#{app_name}'
+    end
+    def application_title
+      '#{app_name}'
+    end
+  end
+END_APPHELPER
 
-            # Comment next two lines if you don't want Devise authentication
-            before_filter :authenticate_user!
-            layout 'devise' if :devise_controller?
+say "- Recreating ApplicationController to add devise, cancan, I18n stuff..."
+remove_file "app/controllers/application_controller.rb" # the one that 'rails new' created
+create_file "app/controllers/application_controller.rb", <<-END_APPCONTROLLER.strip_heredoc_with_indent
+  class ApplicationController < InlineFormsApplicationController
+    protect_from_forgery
 
-            # Comment next 6 lines if you want CanCan authorization
-            enable_authorization :unless => :devise_controller?
+    # Comment next two lines if you don't want Devise authentication
+    before_filter :authenticate_user!
+    layout 'devise' if :devise_controller?
 
-            rescue_from CanCan::Unauthorized do |exception|
-              sign_out :user if user_signed_in?
-              redirect_to new_user_session_path, :alert => exception.message
-            end
+    # Comment next 6 lines if you want CanCan authorization
+    enable_authorization :unless => :devise_controller?
 
-            # Uncomment next line if you want I18n (based on subdomain)
-            # before_filter :set_locale
+    rescue_from CanCan::Unauthorized do |exception|
+      sign_out :user if user_signed_in?
+      redirect_to new_user_session_path, :alert => exception.message
+    end
 
-            # Uncomment next line and specify default locale
-            # I18n.default_locale = :en
+    # Uncomment next line if you want I18n (based on subdomain)
+    # before_filter :set_locale
 
-            # Uncomment next line and specify available locales
-            # I18n.available_locales = [ :en, :nl, :pp ]
+    # Uncomment next line and specify default locale
+    # I18n.default_locale = :en
 
-            # Uncomment next nine line if you want locale based on subdomain, like 'it.example.com, de.example.com'
-            # def set_locale
-            #   I18n.locale = extract_locale_from_subdomain || I18n.default_locale
-            # end
-            #
-            # def extract_locale_from_subdomain
-            #   locale = request.subdomains.first
-            #   return nil if locale.nil?
-            #   I18n.available_locales.include?(locale.to_sym) ? locale.to_s : nil
-            # end
-          end
-        END_APPCONTROLLER
+    # Uncomment next line and specify available locales
+    # I18n.available_locales = [ :en, :nl, :pp ]
 
-        say "- Creating Ability model so that the user with id = 1 can access all..."
-        create_file "app/models/ability.rb", <<-END_ABILITY.strip_heredoc_with_indent
-          class Ability
-            include CanCan::Ability
+    # Uncomment next nine line if you want locale based on subdomain, like 'it.example.com, de.example.com'
+    # def set_locale
+    #   I18n.locale = extract_locale_from_subdomain || I18n.default_locale
+    # end
+    #
+    # def extract_locale_from_subdomain
+    #   locale = request.subdomains.first
+    #   return nil if locale.nil?
+    #   I18n.available_locales.include?(locale.to_sym) ? locale.to_s : nil
+    # end
+  end
+END_APPCONTROLLER
 
-            def initialize(user)
-              # See the wiki for details: https://github.com/ryanb/cancan/wiki/Defining-Abilities
+say "- Creating Ability model so that the user with id = 1 can access all..."
+create_file "app/models/ability.rb", <<-END_ABILITY.strip_heredoc_with_indent
+  class Ability
+    include CanCan::Ability
 
-              user ||= user.new # guest user
+    def initialize(user)
+      # See the wiki for details: https://github.com/ryanb/cancan/wiki/Defining-Abilities
 
-              if user.id == 1 #quick hack
-                can :access, :all
-              else
-                # put restrictions for other users here
-              end
-            end
-          end
-        END_ABILITY
+      user ||= user.new # guest user
 
-        say "- Injecting precompile assets stuff in environments/production.rb..."
-        insert_into_file "config/environments/production.rb",
-          "  config.assets.precompile += %w(inline_forms_application.js inline_forms_application.css devise.css)\n",
-          :after => "  # config.assets.precompile += %w( search.js )\n"
-    
-        say "- Injecting devise mailer stuff in environments/production.rb..."
-        insert_into_file "#{app_name}/config/environments/production.rb", <<-DEVISE_MAILER_STUFF.strip_heredoc_with_indent(2), :before => "end\n"
-
-          # for devise
-          config.action_mailer.default_url_options = { :protocol => 'https', :host => 'YOURHOSTNAME' }
-          config.action_mailer.delivery_method = :smtp
-          config.action_mailer.smtp_settings = {
-            :address => 'YOURMAILSERVER',
-            :enable_starttls_auto => true,
-            :password => 'YOURPASSWORD',
-            :user_name => 'YOURUSERNAME'
-          }
-          
-        DEVISE_MAILER_STUFF
-
-        say "- Setting config.assets.compile to true in environments/production.rb (needed for ckeditor)..."
-        insert_into_file "#{app_name}/config/environments/production.rb", "  config.assets.compile = false\n", :before => "end\n" if dry_run?
-        gsub_file "#{app_name}/config/environments/production.rb", /config.assets.compile = false/, "config.assets.compile = true"
-
-        say "- Capify..."
-        run 'capify .'
-        remove_file "#{app_name}/config/deploy.rb" # remove the file capify created!
-        copy_file "lib/generators/templates/deploy.rb", "#{app_name}/config/deploy.rb"
-
-        say "- Unicorn Config..."
-        copy_file "lib/generators/templates/unicorn.rb", "#{app_name}/config/unicorn.rb"
-
-        say "- Initializing git..."
-        run 'git init'
-        create_file "#{app_name}/.gitignore", "/tmp\n" if dry_run?
-        insert_into_file "#{app_name}/.gitignore", <<-GITIGNORE.strip_heredoc_with_indent, :after => "/tmp\n"
-          # netbeans
-          nbproject
-          # remotipart uploads
-          public/uploads
-        GITIGNORE
-
-        run 'git add .'
-        run 'git commit -a -m " * Initial"'
-
-        if install_example?
-          say "\nInstalling example application..."
-          run 'bundle exec rails g inline_forms Picture name:string caption:string image:image_field description:text apartment:belongs_to _presentation:\'#{name}\''
-          run 'bundle exec rails generate uploader Image'
-          run 'bundle exec rails g inline_forms Apartment name:string title:string description:text pictures:has_many pictures:associated _enabled:yes _presentation:\'#{name}\''
-          run 'bundle exec rake db:migrate'
-          say "\nDone! Now point your browser to http://localhost:3000/apartments !", :yellow
-          say "\nPress ctlr-C to quit...", :yellow
-          run 'bundle exec rails s'
-        else
-          say "\nDone! Now make your tables with 'bundle exec rails g inline_forms ...", :yellow
-          #say "- Don't forget: edit .rvmrc, config/{routes.rb, deploy.rb}, .git/config, delete public/index.html\n"
-        end
-
+      if user.id == 1 #quick hack
+        can :access, :all
+      else
+        # put restrictions for other users here
       end
     end
+  end
+END_ABILITY
+
