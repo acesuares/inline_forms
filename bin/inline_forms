@@ -92,14 +92,17 @@ module InlineForms
       else
         empty_directory(app_name)
 
-      ruby_version = (%x[rvm current]).gsub(/@.*/,'')
-      create_file "#{app_name}/.ruby-version", "#{ruby_version.chop}@#{app_name}"
+      	ruby_version = (%x[rvm current]).gsub(/@.*/,'')
+      	create_file "#{app_name}/.ruby-version", "#{ruby_version.chop}@#{app_name}"
 
-        if ! run("rails _3.2.12_ new #{app_name} -m inline_forms_app_template.rb --skip-bundle --skip-gemfile --skip-test-unit")
+		app_template_file = File.join(File.dirname(__FILE__), 'inline_forms_app_template.rb')
+
+        if ! run("rails _3.2.12_ new #{app_name} -m #{app_template_file} --skip-bundle --skip-gemfile --skip-test-unit")
           say "Rails could not create the app '#{app_name}', maybe because it is a reserved word...", :red
           exit 1
         end
       end
+    end
 
     Creator.start
   end
