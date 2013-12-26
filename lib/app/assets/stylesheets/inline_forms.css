@@ -185,7 +185,21 @@ ul.checklist li {
     padding: 0;
 }
 
-#Header {
+/* HEADER */
+
+#inline_forms_application_header {
+    background-color: #B94C32;
+    color: #FFFFFF;
+}
+
+#logout, #logout a {
+    background-color: #B94C32;
+    color: #FFFFFF;
+}
+
+
+/* Deprecated by foundation
+  #Header {
     background-color: #B94C32;
     color: #FFFFFF;
     font-weight: bold;
@@ -193,52 +207,47 @@ ul.checklist li {
     -webkit-border-radius: 5px;
     -webkit-box-shadow: 0 1px 3px rgba(0,0,0, .4);
     -moz-box-shadow: 0 1px 3px rgba(0,0,0, .4);
-    /*    border: 1px solid white;*/
+    /*    border: 1px solid white; *\/
     padding: 0.4em;
     margin: 0.4em 0 0.3em 0;
-}
-
-/* HEADER */
-
-#title {
+  }
+  #title {
     float: left;
     height: 1.5em;
-}
-
-#logout {
-    float:right;
-    height: 1.5em;
-}
-
-#locales {
-    float: left;
-    height: 1.5em;
-    margin-left: 2em;
-}
-
-#locales ul {
-    list-style: none;
-    list-style-position: inside;
-    margin: 0;
-    padding: 0;
-}
-
-#locales li {
-    display: inline-block;
-    height: 1.5em;
-}
-
-#locales li a {
-    color: white;
-}
-
-#locales li .active_locale {
-    color: yellow;
-}
-
-#logout a {
-    color: white;
-}
+  }
+  #logout {
+      float:right;
+      height: 1.5em;
+  }
+  #logout a {
+      color: white;
+  }
+  #locales {
+      float: left;
+      height: 1.5em;
+      margin-left: 2em;
+  }
+  
+  #locales ul {
+      list-style: none;
+      list-style-position: inside;
+      margin: 0;
+      padding: 0;
+  }
+  
+  #locales li {
+      display: inline-block;
+      height: 1.5em;
+  }
+  
+  #locales li a {
+      color: white;
+  }
+  
+  #locales li .active_locale {
+      color: yellow;
+  }
+*/
 
 /* END HEADER */
 

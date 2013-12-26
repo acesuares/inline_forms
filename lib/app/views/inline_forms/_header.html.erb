@@ -1,1 +1,19 @@
-<div id="Header">Inline Forms</div>
+<nav id='inline_forms_application_header' class="top-bar" data-topbar>
+  <ul class="title-area">
+    <li class="name">
+      <h1><a href="#"><%= application_title %> v<%= inline_forms_version %></a></h1>
+    </li>
+    <li class="toggle-topbar menu-icon">
+      <a href="#"><span></span></a>
+    </li>
+  </ul>
+  <section class="top-bar-section">
+    <ul class="right">
+      <li>
+        <div id='logout'>
+          <%= link_to("Afmelden: #{current_user.name}", destroy_user_session_path, :method => :delete) if current_user  %>
+        </div>
+      </li>
+    </ul>
+  </section>
+</nav>
