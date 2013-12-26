@@ -7,13 +7,17 @@
       <a href="#"><span></span></a>
     </li>
   </ul>
-  <section class="top-bar-section">
+  <section class="top-bar-section" id="logout">
     <ul class="right">
-      <li>
-        <div id='logout'>
-          <%= link_to("Afmelden: #{current_user.name}", destroy_user_session_path, :method => :delete) if current_user  %>
-        </div>
+      <li class="has-dropdown">
+        <a href="#"><%= current_user.name %></a>
+        <ul class="dropdown">
+          <li>
+            <%= link_to("Afmelden...", destroy_user_session_path, :method => :delete) if current_user  %>
+          </li>
+        </ul>
       </li>
     </ul>
   </section>
+
 </nav>

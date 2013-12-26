@@ -4,7 +4,7 @@
   <head>
     <title><%= t('application_name') + " v" + InlineForms::VERSION -%></title>
     <%= stylesheet_link_tag 'inline_forms_application', 'application' %>
-    <%= javascript_include_tag 'application', 'inline_forms_application' %>
+    <%= javascript_include_tag "vendor/modernizr" %>
     <%= csrf_meta_tag %>
     <%= yield(:head) %>
     <script>
@@ -28,5 +28,6 @@
     <div id="inline_forms_main_list">
       <%= yield %>
     </div>
+    <%= javascript_include_tag 'application', 'inline_forms_application' %>
   </body>
 </html>
