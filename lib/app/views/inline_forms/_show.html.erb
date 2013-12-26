@@ -1,49 +1,39 @@
-<table cellspacing="0" cellpadding="0" style="height: 0">
-  <tr>
-    <th valign="top" colspan="2">
-      <div class="object_presentation" >
-        <%= h(@object._presentation) -%>
+<div class="row">
+  <div class="object_presentation small-10">
+    <%= h(@object._presentation) -%>
+  </div>
+  <div class="close_link small-2" >
+    <%= close_link(@object, @update_span) -%>
+  </div>
+</div>
+<% attributes = @inline_forms_attribute_list || @object.inline_forms_attribute_list -%>
+<% attributes.each do | attribute, name, form_element | -%>
+  <% if cancan_disabled? || can?(:read, @object, attribute) %>
+    <% css_class_id = "#{@object.class.name.underscore}_#{@object.id}_#{attribute}" -%>
+    <% if form_element == :header %>
+      <div class="row header">
+        <div class='small-12 <%= "attribute_name attribute_#{attribute} form_element_#{form_element}" -%>' >
+          <%= @object.class.human_attribute_name(attribute) -%>
+        </div>
       </div>
-      <div class="close_link" >
-        <%= close_link(@object, @update_span) -%>
+    <% else %>
+      <div class="row <%= 'has_validations ' if @object.has_validations_for?(attribute) -%>" validation-hint="<%= validation_hints_as_list_for(@object, attribute) -%>">
+        <div class='small-4 <%= "attribute_name attribute_#{attribute} form_element_#{form_element}" -%>' >
+          <%= @object.class.human_attribute_name(attribute) -%>
+        </div>
+        <div class='small-8 <%= "attribute_value attribute_#{attribute} form_element_#{form_element}" -%>' >
+          <span id="<%= css_class_id -%>" >
+            <% if form_element == :associated -%>
+              <%= render  :partial => "inline_forms/list",
+                :locals => {  :parent_class => @object.class,
+                :parent_id    => @object.id,
+                :attribute    => attribute } %>
+            <% else -%>
+              <%= send("#{form_element}_show", @object, attribute) -%>
+            <% end -%>
+          </span>
+        </div>
       </div>
-    </th>
-  </tr>
-  <% attributes = @inline_forms_attribute_list || @object.inline_forms_attribute_list -%>
-  <% attributes.each do | attribute, name, form_element | -%>
-    <% if cancan_disabled? || can?(:read, @object, attribute) %>
-      <% css_class_id = "#{@object.class.name.underscore}_#{@object.id}_#{attribute}" -%>
-      <% if form_element == :header %>
-        <tr>
-          <td valign="top" class="header" colspan="2">
-            <div class='<%= "attribute_name attribute_#{attribute} form_element_#{form_element}" -%>' >
-              <%= @object.class.human_attribute_name(attribute) -%>
-            </div>
-          </td>
-        </tr>
-      <% else %>
-        <tr>
-          <td valign="top" class="<%= 'has_validations ' if @object.has_validations_for?(attribute) -%>" validation-hint="<%= validation_hints_as_list_for(@object, attribute) -%>">
-            <div class='<%= "attribute_name attribute_#{attribute} form_element_#{form_element}" -%>' >
-              <%= @object.class.human_attribute_name(attribute) -%>
-            </div>
-          </td>
-          <td valign="top">
-            <div class='<%= "attribute_value attribute_#{attribute} form_element_#{form_element}" -%>' >
-              <span id="<%= css_class_id -%>" >
-                <% if form_element == :associated -%>
-                  <%= render  :partial => "inline_forms/list",
-                    :locals => {  :parent_class => @object.class,
-                    :parent_id    => @object.id,
-                    :attribute    => attribute } %>
-                <% else -%>
-                  <%= send("#{form_element}_show", @object, attribute) -%>
-                <% end -%>
-              </span>
-            </div>
-          </td>
-        </tr>
-      <% end -%>
     <% end -%>
   <% end -%>
-</table>
+<% end -%>
