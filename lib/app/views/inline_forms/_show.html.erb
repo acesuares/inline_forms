@@ -1,8 +1,8 @@
 <div class="row">
-  <div class="small-10 column object_presentation">
+  <div class="large-10 column object_presentation">
     <%= h(@object._presentation) -%>
   </div>
-  <div class="small-1 column close_link" >
+  <div class="large-1 column close_link" >
     <%= close_link(@object, @update_span) -%>
   </div>
 </div>
@@ -12,16 +12,16 @@
     <% css_class_id = "#{@object.class.name.underscore}_#{@object.id}_#{attribute}" -%>
     <% if form_element == :header %>
       <div class="row header">
-        <div class='small-12 column<%= " attribute_name attribute_#{attribute} form_element_#{form_element}" -%>' >
+        <div class='large-12 column<%= " attribute_name attribute_#{attribute} form_element_#{form_element}" -%>' >
           <%= @object.class.human_attribute_name(attribute) -%>
         </div>
       </div>
     <% else %>
       <div class="row <%= 'has_validations ' if @object.has_validations_for?(attribute) -%>" validation-hint="<%= validation_hints_as_list_for(@object, attribute) -%>">
-        <div class='small-4 column<%= " attribute_name attribute_#{attribute} form_element_#{form_element}" -%>' >
+        <div class='large-4 column<%= " attribute_name attribute_#{attribute} form_element_#{form_element}" -%>' >
           <%= @object.class.human_attribute_name(attribute) -%>
         </div>
-        <div class='small-8 column<%= " attribute_value attribute_#{attribute} form_element_#{form_element}" -%>' >
+        <div class='large-8 column<%= " attribute_value attribute_#{attribute} form_element_#{form_element}" -%>' >
           <span id="<%= css_class_id -%>" >
             <% if form_element == :associated -%>
               <%= render  :partial => "inline_forms/list",

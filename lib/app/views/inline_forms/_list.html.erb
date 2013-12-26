@@ -47,7 +47,7 @@ they are @object. We need this magic here to rewrite all the @variables to varia
   <% objects = objects.paginate  :page => params[:page], :per_page => @PER_PAGE || 5, :conditions => conditions %>
 <% end %>
 
-<%= raw "<ul id=\"#{update_span}\" class=\"inline_forms_list\">" if ul_needed -%>
+<%= raw "<div id=\"#{update_span}\" class=\"inline_forms_list\">" if ul_needed -%>
 <!--  # link to new -->
 <%= link_to_new_record(model, path_to_new, update_span, parent_class, parent_id) -%>
 <!--  # list of objects -->
@@ -59,12 +59,16 @@ they are @object. We need this magic here to rewrite all the @variables to varia
     <% css_class_id = parent_class.to_s.underscore + '_' + parent_id.to_s + '_' + attribute.to_s.singularize.underscore + "_" + object.id.to_s -%>
     <% path_to_object = attribute.to_s.singularize.underscore + "_path" %>
   <% end %>
-  <li id="<%= css_class_id -%>" class="<%= cycle('odd', 'even') -%>" >
-    <%= link_to_destroy(object, css_class_id) -%>
-    <%= link_to h(object._presentation),
-      send( path_to_object, object, :update => css_class_id),
-      :remote => true -%>
-  </li>
+  <div class="row <%= cycle('odd', 'even') %>" id="<%= css_class_id -%>">
+    <div  class="small-1 column">
+      <%= link_to_destroy(object, css_class_id) -%>
+    </div>
+    <div  class="small-11 column">
+      <%= link_to h(object._presentation),
+        send( path_to_object, object, :update => css_class_id),
+        :remote => true -%>
+    </div>
+  </div>
 <% end -%>
 <!--  # pagination -->
 <% if parent_id.nil? -%>
@@ -72,5 +76,5 @@ they are @object. We need this magic here to rewrite all the @variables to varia
 <% else %>
   <% pagination = will_paginate objects, :remote => true, :params => {:controller => attribute, :action => :index, :id => nil, :parent_class => parent_class, :parent_id => parent_id, :update => "#{parent_class.to_s.underscore}_#{parent_id}_#{attribute}", :ul_needed => true  } -%>
 <% end %>
-<%= raw "<li class=\"#{cycle('odd', 'even')}\">" + pagination + "</li>" if pagination -%>
-<%= raw "</ul>" if ul_needed -%>
+<%= raw "<div class=\"row\><div class=\"large-12 column #{cycle('odd', 'even')}\">" + pagination + "</div></div>" if pagination -%>
+<%= raw "</div>" if ul_needed -%>
