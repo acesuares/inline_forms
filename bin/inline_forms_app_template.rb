@@ -26,6 +26,7 @@ gem 'i18n-active_record', :git => 'git://github.com/acesuares/i18n-active_record
 gem 'unicorn'
 gem 'rvm'
 gem 'rvm-capistrano'
+gem 'foundation-rails'
 
 gem_group :development do
   gem 'sqlite3'
@@ -46,7 +47,6 @@ gem_group :assets do
   gem 'coffee-rails', '~> 3.2.1'
   gem 'uglifier', '>= 1.0.3'
   gem 'compass-rails' # you need this or you get an err
-  gem 'zurb-foundation', '~> 4.0.0'
 end 
 
 say "- Running bundle..."
