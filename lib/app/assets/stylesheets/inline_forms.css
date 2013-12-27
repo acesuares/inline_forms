@@ -197,6 +197,11 @@ ul.checklist li {
     color: #FFFFFF;
 }
 
+/* MENU */
+
+#inline_forms_menu h1 {
+    color: #FFFFFF;
+}
 
 /* Deprecated by foundation
   #Header {
