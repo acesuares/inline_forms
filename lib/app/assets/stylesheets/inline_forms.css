@@ -10,6 +10,8 @@
    TODO customize this sample style
    Syntax recommendation http://www.w3.org/TR/REC-CSS2/
 */
+
+/* Dperecated
 #flash {
     border: 4px solid white;
 }
@@ -30,6 +32,9 @@ body {
 a {
     text-decoration: none;
 }
+*/
+
+/* DEPRECATED
 
 .inline_forms_list {
     font-size: 100%;
@@ -63,13 +68,13 @@ a {
     margin: 0;
     padding: 0;
 }
-
+*/
 .inline_forms_list .new_record_link img {
     width: 24px;
     height: 24px;
     border: 0;
 }
-
+/*
 .inline_forms_list li a {
     color: #385B7B;
 }
@@ -184,6 +189,7 @@ ul.checklist li {
     float: left;
     padding: 0;
 }
+*/
 
 /* HEADER */
 
@@ -256,7 +262,8 @@ ul.checklist li {
 
 /* END HEADER */
 
-
+/* Deprecated 
+ 
 #tabs {
     background-color: #F9EBAE;
     -moz-border-radius: 5px;
@@ -346,13 +353,15 @@ ul.checklist li {
     background-color: #FFECAB;
     border: 2px solid  #385b7b;
 }
-
 .close_icon {
     border: 0;
     margin: 1px;
     padding: 0;
     float:right;
 }
+
+ */
+
 
 .pagination {
     padding: 0;

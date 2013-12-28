@@ -1,3 +1,4 @@
+<% unless @skip %>
 <div class="row">
   <div class="large-10 column object_presentation">
     <%= h(@object._presentation) -%>
@@ -6,6 +7,7 @@
     <%= close_link(@object, @update_span) -%>
   </div>
 </div>
+<% end %>
 <% attributes = @inline_forms_attribute_list || @object.inline_forms_attribute_list -%>
 <% attributes.each do | attribute, name, form_element | -%>
   <% if cancan_disabled? || can?(:read, @object, attribute) %>
