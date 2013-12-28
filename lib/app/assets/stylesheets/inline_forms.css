@@ -1,42 +1,36 @@
 /* 
     Document   : inline_forms
     Created on : Feb 13, 2011, 10:00:55 AM
-    Author     : ace
-    Description:
-        Purpose of the stylesheet follows.
+    Author     : Ace Suares
+    Description: Stylessheet for inline_forms
 */
 
-/* 
-   TODO customize this sample style
-   Syntax recommendation http://www.w3.org/TR/REC-CSS2/
-*/
-
-/* Dperecated
-#flash {
-    border: 4px solid white;
-}
-root { 
-    display: block;
-}
-
-body {
-    background-color: #ffffff;
-    color: #887E42;
-    padding: 0;
-    margin: 0 auto;
-    font-family: sans-serif;
-    font-size: 11pt;
-    max-width: 1200px;
-}
-
-a {
-    text-decoration: none;
-}
+/* Deprecated
+  #flash {
+      border: 4px solid white;
+  }
+  root { 
+      display: block;
+  }
+  
+  body {
+      background-color: #ffffff;
+      color: #887E42;
+      padding: 0;
+      margin: 0 auto;
+      font-family: sans-serif;
+      font-size: 11pt;
+      max-width: 1200px;
+  }
+  
+  a {
+      text-decoration: none;
+  }
 */
 
 /* DEPRECATED
 
-.inline_forms_list {
+  .inline_forms_list {
     font-size: 100%;
     font-weight: normal;
     padding: 0;
@@ -48,78 +42,79 @@ a {
     -webkit-box-shadow: 0 1px 3px rgba(0,0,0, .4);
     -moz-box-shadow: 0 1px 3px rgba(0,0,0, .4);
     background-color: #F9EBAE;
-}
+  }
 
-.inline_forms_list ul {
+  .inline_forms_list ul {
     list-style-type: none;
     padding-left: 0;
-}
+  }
 
-.inline_forms_list .new_record_link {
+  .inline_forms_list .new_record_link {
     background-color: transparent;
     height: 25px;
     padding-bottom: 0;
-}
+  }
 
-.inline_forms_list .new_record_link a {
+  .inline_forms_list .new_record_link a {
     float: right;
     width: 24px;
     height: 24px;
     margin: 0;
     padding: 0;
-}
-*/
-.inline_forms_list .new_record_link img {
+  }
+
+  .inline_forms_list .new_record_link img {
     width: 24px;
     height: 24px;
     border: 0;
-}
-/*
-.inline_forms_list li a {
-    color: #385B7B;
-}
+  }
 
-.inline_forms_list li {
+  .inline_forms_list li a {
+    color: #385B7B;
+  }
+
+  .inline_forms_list li {
     padding: 0.5em;
     margin-bottom: 0.3em;
-}
+  }
 
-.inline_forms_list li.odd {
+  .inline_forms_list li.odd {
     background-color: #FFE58C;
-}
+  }
 
-.inline_forms_list li.even {
+  .inline_forms_list li.even {
     background-color: #FFEDB0;
-}
+  }
 
-.inline_forms_list li table {
+  .inline_forms_list li table {
     border: 1px solid #EFCA4B;
     margin: 0;
     padding: 0;
-}
+  }
 
-.inline_forms_list table tr th {
+  .inline_forms_list table tr th {
     padding: 0.2em 0.5em 0.2em 0.2em;
     border-bottom: 1px dotted lightgrey;
     font-weight: bold;
     text-align: left;
     background-color: #EFCA4B;
-}
+  }
 
-.inline_forms_list li table tr td {
+  .inline_forms_list li table tr td {
     padding: 0.2em 0.5em 0.2em 0.2em;
     font-weight: normal;
     background-color: #F9EBAE;
-}
+  }
 
-.inline_forms_list div.attribute_value {
+  .inline_forms_list div.attribute_value {
     margin: 0;
-}
+  }
 
-.inline_forms_list div.attribute_value a{
+  .inline_forms_list div.attribute_value a{
     color: #385B7B;
-}
-.attribute_text_area {
+  }
+
+  .attribute_text_area {
     width: 600px;
     height: 4em;
     padding: 0.2em;
@@ -127,19 +122,19 @@ a {
     border: 1px solid #eee;
     -moz-border-radius: 5px;
     -webkit-border-radius: 5px;
-}
+  }
 
-.header {
+  .header {
     border-bottom: 1px solid #EFCA4B;
-}
+  }
 
-.form_element_header {
+  .form_element_header {
     padding-top: 7px;
     font-size: 120%;
     font-weight: bolder;
-}
+  }
 
-.input_text_field {
+  .input_text_field {
     width: 600px;
     height: 1.5em;
     padding: 0.2em;
@@ -147,67 +142,52 @@ a {
     border: 1px solid #eee;
     -moz-border-radius: 5px;
     -webkit-border-radius: 5px;
-}
+  }
 
-.edit_form_field {
+  .edit_form_field {
     position: relative;
-}
+  }
 
-.edit_form_checklist ul {
+  .edit_form_checklist ul {
     list-style-type: none;
-}
+  }
 
-ul.checklist {
+  ul.checklist {
     list-style-type: none;
     margin: 0;
     padding: 0;
-}
+  }
 
-ul.checklist li {
+  ul.checklist li {
     margin: 0;
     padding: 0;
-}
+  }
 
-
-.edit_form_checklist ul {
+  .edit_form_checklist ul {
     margin: 0;
     padding: 0;
-}
+  }
 
-
-.inline_forms_list .edit_form_checklist ul li {
+  .inline_forms_list .edit_form_checklist ul li {
     margin: 0;
     padding: 0 0 0.3em 0;
-}
+  }
 
-.edit_form_checklist ul li .edit_form_checklist_text {
+  .edit_form_checklist ul li .edit_form_checklist_text {
     float: left;
     padding: 0 0 0 0.2em;
-}
+  }
 
-.edit_form_checklist ul li input {
+  .edit_form_checklist ul li input {
     float: left;
     padding: 0;
-}
+  }
+
 */
 
 /* HEADER */
 
-#inline_forms_application_header {
-    background-color: #B94C32;
-    color: #FFFFFF;
-}
-
-#logout, #logout a {
-    background-color: #B94C32;
-    color: #FFFFFF;
-}
-
 /* MENU */
-
-#inline_forms_menu h1 {
-    color: #FFFFFF;
-}
 
 /* Deprecated by foundation
   #Header {
@@ -264,7 +244,7 @@ ul.checklist li {
 
 /* Deprecated 
  
-#tabs {
+  #tabs {
     background-color: #F9EBAE;
     -moz-border-radius: 5px;
     -webkit-border-radius: 5px;
@@ -275,9 +255,9 @@ ul.checklist li {
     padding: 0.4em;
     margin: 0 0 0.4em 0;
     font-size: 10pt;
-}
+  }
 
-#tabs li {
+  #tabs li {
     font-size: 110%;
     font-weight: bold;
     display: inline-block;
@@ -288,28 +268,28 @@ ul.checklist li {
     -webkit-border-radius: 5px;
     -webkit-box-shadow: 0 1px 3px rgba(0,0,0, .4);
     -moz-box-shadow: 0 1px 3px rgba(0,0,0, .4);
-}
+  }
 
-#tabs li:hover {
+  #tabs li:hover {
     -webkit-transform: scale(1.2);
     -moz-transform: scale(1.2);
     -webkit-box-shadow: 0 2px 5px rgba(0,0,0, .5);
     -moz-box-shadow: 0 2px 5px rgba(0,0,0, .5);
-}
+  }
 
 
-#tabs li a {
+  #tabs li a {
     color: #887E42;
-}
+  }
 
-#tabs .current {
+  #tabs .current {
     font-weight: bold;
     color: #385B7B;
     background-color: #FFECAB;
     border: 2px solid  #385b7b;
-}
+  }
 
-#admin_tabs {
+  #admin_tabs {
     background-color: #FFEBAE;
     -moz-border-radius: 5px;
     -webkit-border-radius: 5px;
@@ -320,9 +300,9 @@ ul.checklist li {
     padding: 0.4em;
     margin: 0 0 0.4em 0;
     font-size: 10pt;
-}
+  }
 
-#admin_tabs li {
+  #admin_tabs li {
     font-size: 110%;
     font-weight: bold;
     display: inline-block;
@@ -333,34 +313,35 @@ ul.checklist li {
     -webkit-border-radius: 5px;
     -webkit-box-shadow: 0 1px 3px rgba(0,0,0, .4);
     -moz-box-shadow: 0 1px 3px rgba(0,0,0, .4);
-}
+  }
 
-#admin_tabs li:hover {
+  #admin_tabs li:hover {
     -webkit-transform: scale(1.2);
     -moz-transform: scale(1.2);
     -webkit-box-shadow: 0 2px 5px rgba(0,0,0, .5);
     -moz-box-shadow: 0 2px 5px rgba(0,0,0, .5);
-}
+  }
 
 
-#admin_tabs li a {
+  #admin_tabs li a {
     color: #887E42;
-}
+  }
 
-#admin_tabs .current {
+  #admin_tabs .current {
     font-weight: bold;
     color: #385B7B;
     background-color: #FFECAB;
     border: 2px solid  #385b7b;
-}
-.close_icon {
+  }
+
+  .close_icon {
     border: 0;
     margin: 1px;
     padding: 0;
     float:right;
-}
+  }
 
- */
+*/
 
 
 .pagination {
@@ -485,3 +466,24 @@ ul.checklist li {
 {
     margin-left: -20px;
 }
+
+
+/* LEFT */
+
+
+
+#inline_forms_application_header {
+    background-color: #B94C32;
+    color: #FFFFFF;
+}
+
+#logout, #logout a {
+    background-color: #B94C32;
+    color: #FFFFFF;
+}
+
+
+#inline_forms_menu h1 {
+    color: #FFFFFF;
+}
+
