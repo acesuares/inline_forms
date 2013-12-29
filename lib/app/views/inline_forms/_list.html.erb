@@ -48,8 +48,6 @@ they are @object. We need this magic here to rewrite all the @variables to varia
 <% end %>
 
 <%= raw "<div id=\"#{update_span}\" class=\"inline_forms_list\">" if ul_needed -%>
-<!--  # link to new -->
-<%= link_to_new_record(model, path_to_new, update_span, parent_class, parent_id) -%>
 <!--  # list of objects -->
 <% for object in objects %>
   <% if parent_class.nil?  %>

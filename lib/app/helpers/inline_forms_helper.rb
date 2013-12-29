@@ -71,12 +71,14 @@ module InlineFormsHelper
   # link to new record
   def link_to_new_record(model, path_to_new, update_span, parent_class, parent_id)
     out = ""
-    out << "<div class='button new_record_link'>"
-    out << (link_to image_tag(  'add.png',
-        :class => "new_record_icon",
-        :title => t('inline_forms.view.add_new', :model => model.model_name.human ) ),
-      send(path_to_new, :update => update_span, :parent_class => parent_class, :parent_id => parent_id ),
-      :remote => true)
+    out << "<div class='new_record_link'>"
+    out << (link_to "<i class='fi-plus'></i>".html_safe,
+                    send(path_to_new, :update => update_span, 
+                                      :parent_class => parent_class, 
+                                      :parent_id => parent_id,
+                                       ),
+                    :remote => true,
+                    :title => t('inline_forms.view.add_new', :model => model.model_name.human ) )
     out << "</div>"
     if cancan_enabled?
       if can? :create, model.to_s.pluralize.underscore.to_sym

@@ -13,15 +13,17 @@
   <% if cancan_disabled? || can?(:read, @object, attribute) %>
     <% css_class_id = "#{@object.class.name.underscore}_#{@object.id}_#{attribute}" -%>
     <% if form_element == :header %>
-      <div class="row header">
+      <div class="row form_element_header">
         <div class='large-12 column<%= " attribute_name attribute_#{attribute} form_element_#{form_element}" -%>' >
           <%= @object.class.human_attribute_name(attribute) -%>
         </div>
       </div>
     <% else %>
-      <div class="row <%= 'has_validations ' if @object.has_validations_for?(attribute) -%>" validation-hint="<%= validation_hints_as_list_for(@object, attribute) -%>">
+      <div class="row <%= 'has_validations ' if @object.has_validations_for?(attribute) -%>" validation-hint="">
         <div class='large-4 column<%= " attribute_name attribute_#{attribute} form_element_#{form_element}" -%>' >
-          <%= @object.class.human_attribute_name(attribute) -%>
+          <span data-tooltip class="has-tip tip-top" title="<%= validation_hints_as_list_for(@object, attribute) -%>">
+            <%= @object.class.human_attribute_name(attribute) -%>
+          </span>
         </div>
         <div class='large-8 column<%= " attribute_value attribute_#{attribute} form_element_#{form_element}" -%>' >
           <span id="<%= css_class_id -%>" >
