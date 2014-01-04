@@ -20,55 +20,29 @@ module InlineFormsHelper
 
   # close link
   def close_link( object, update_span )
-    link_to image_tag(  'close.png',
-      :class => "close_icon",
-      :title => t('inline_forms.view.close') ),
+    link_to "<i class='fi-x'></i>".html_safe,
       send( object.class.to_s.underscore + '_path',
       object,
       :update => update_span,
       :close => true ),
-      :remote => true
+      :remote => true,
+      :title => t('inline_forms.view.close')
   end
 
   # destroy link
   def link_to_destroy( object, update_span )
     if cancan_disabled? || ( can? :delete, object )
-      link_to image_tag(  'trash.png',
-        :class => "trash_icon",
-        :title => t('inline_forms.view.trash') ),
+      link_to "<i class='fi-trash'></i>".html_safe,
         send( object.class.to_s.underscore + '_path',
         object,
         :update => update_span ),
         :method => :delete,
-        :remote => true
+        :remote => true,
+        :title => t('inline_forms.view.trash')
     end
   end
 
-  #  # undo link
-  #  def link_to_undo_destroy(object, update_span )
-  #    link_to(t('inline_forms.view.undo'), revert_version_path(object.versions.scoped.last), :method => :post)
-  #  end
-
-  # link_to_inline_edit
-  def link_to_inline_edit(object, attribute, attribute_value='')
-    attribute_value = attribute_value.to_s
-    spaces = attribute_value.length > 40 ? 0 : 40 - attribute_value.length
-    value = h(attribute_value) + ("&nbsp;" * spaces).html_safe
-    css_class_id = "#{object.class.to_s.underscore}_#{object.id}_#{attribute}"
-    if cancan_disabled? || ( can? :update, object, attribute )
-      link_to value,
-        send( 'edit_' + object.class.to_s.underscore + '_path',
-        object,
-        :attribute => attribute.to_s,
-        :form_element => calling_method.sub(/_[a-z]+$/,'').sub(/block in /,''),
-        :update => css_class_id ),
-        :remote => true
-    else
-      h(attribute_value)
-    end
-  end
-
-  # link to new record
+  # new link
   def link_to_new_record(model, path_to_new, update_span, parent_class, parent_id)
     out = ""
     out << "<div class='new_record_link'>"
@@ -90,6 +64,25 @@ module InlineFormsHelper
       end
     else
       raw out
+    end
+  end
+
+  # link_to_inline_edit
+  def link_to_inline_edit(object, attribute, attribute_value='')
+    attribute_value = attribute_value.to_s
+    spaces = attribute_value.length > 40 ? 0 : 40 - attribute_value.length
+    value = h(attribute_value) + ("&nbsp;" * spaces).html_safe
+    css_class_id = "#{object.class.to_s.underscore}_#{object.id}_#{attribute}"
+    if cancan_disabled? || ( can? :update, object, attribute )
+      link_to value,
+        send( 'edit_' + object.class.to_s.underscore + '_path',
+        object,
+        :attribute => attribute.to_s,
+        :form_element => calling_method.sub(/_[a-z]+$/,'').sub(/block in /,''),
+        :update => css_class_id ),
+        :remote => true
+    else
+      h(attribute_value)
     end
   end
 
