@@ -1,32 +1,22 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html>
+<!DOCTYPE html>
+<html lang="en">
   <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
     <title><%= t('application_name') + " v" + InlineForms::VERSION -%></title>
-    <%= stylesheet_link_tag 'inline_forms_application', 'application' %>
+
+    <%= stylesheet_link_tag    "application" %>
     <%= javascript_include_tag "vendor/modernizr" %>
-    <%= csrf_meta_tag %>
-    <%= yield(:head) %>
-    <script>
-      $.datepicker.setDefaults({
-        dateFormat: 'dd-mm-yy',
-        changeMonth: true,
-        changeYear: true,
-        showOtherMonths: true,
-        selectOtherMonths: true,
-        showButtonPanel: false,
-        showWeek: true,
-        firstDay: 1,
-        prevText: '<<',
-        nextText: '>>'
-      })
-    </script>
+    <%= csrf_meta_tags %>
   </head>
+
   <body>
+
     <%= render "inline_forms/header" %>
     <%= render "/inline_forms_tabs" %>
     <div id="inline_forms_main_list">
-      <%= yield %>
+    <%= yield %>
     </div>
     <%= javascript_include_tag 'application', 'inline_forms_application' %>
   </body>
