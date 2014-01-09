@@ -19,13 +19,14 @@ module InlineFormsHelper
   end
 
   # close link
-  def close_link( object, update_span )
+  def close_link( object, update_span, html_class = 'button close_button' )
     link_to "<i class='fi-x'></i>".html_safe,
       send( object.class.to_s.underscore + '_path',
       object,
       :update => update_span,
       :close => true ),
       :remote => true,
+      :class => html_class,
       :title => t('inline_forms.view.close')
   end
 
@@ -43,7 +44,7 @@ module InlineFormsHelper
   end
 
   # new link
-  def link_to_new_record(model, path_to_new, update_span, parent_class, parent_id, klass = 'button')
+  def link_to_new_record(model, path_to_new, update_span, parent_class = nil, parent_id = nil, html_class = 'button new_button')
     out = ""
     out << (link_to "<i class='fi-plus'></i>".html_safe,
                     send(path_to_new, :update => update_span, 
@@ -51,7 +52,7 @@ module InlineFormsHelper
                                       :parent_id => parent_id,
                                        ),
                     :remote => true,
-                    :class => klass,
+                    :class => html_class,
                     :title => t('inline_forms.view.add_new', :model => model.model_name.human ) )
     if cancan_enabled?
       if can? :create, model.to_s.pluralize.underscore.to_sym
