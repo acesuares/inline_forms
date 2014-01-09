@@ -3,6 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,400italic' rel='stylesheet' type='text/css' />
 
     <title><%= t('application_name') + " v" + InlineForms::VERSION -%></title>
 
@@ -15,9 +16,7 @@
 
     <%= render "inline_forms/header" %>
     <%= render "/inline_forms_tabs" %>
-    <div id="inline_forms_main_list">
     <%= yield %>
-    </div>
     <%= javascript_include_tag 'application', 'inline_forms_application' %>
   </body>
 </html>

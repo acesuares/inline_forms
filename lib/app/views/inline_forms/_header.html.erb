@@ -1,14 +1,14 @@
 <div class="contain-to-grid fixed">
-  <nav id='inline_forms_application_header' class="top-bar" data-topbar>
+  <nav id='inline_forms_application_top_bar' class="top-bar" data-topbar>
     <ul class="title-area">
       <li class="name">
-        <h1><a href="#"><%= application_title %> v<%= inline_forms_version %></a></h1>
+        <h1><a href="/"><%= application_title %> v<%= inline_forms_version %> - <em><%= t(controller_name) %></em></a></h1>
       </li>
       <li class="toggle-topbar menu-icon">
         <a href="#"><span></span></a>
       </li>
     </ul>
-    <section class="top-bar-section" id="logout">
+    <section class="top-bar-section">
       <ul class="right">
         <li class="has-dropdown">
           <a href="#"><%= current_user.name %></a>
