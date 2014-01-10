@@ -1,23 +1,28 @@
 <%= form_tag send(@object.class.to_s.underscore + '_path', :update => @update_span,
-  :attribute => @attribute,
-  :form_element => @form_element,
-  :sub_id => @sub_id ),
-  :method => :put, # this is going to the update method!
-  :multipart => true,
-  :class  => "edit_form",
-  :remote => true do -%>
-  <div class="edit_form_field">
-    <%= send("#{@form_element}_edit", @object, @attribute) %>
-  </div>
-  <%= link_to( send( @object.class.to_s.underscore + '_path', :update => @update_span || "field_#{@attribute}_#{@object.id.to_s}",
+    :attribute => @attribute,
+    :form_element => @form_element,
+    :sub_id => @sub_id ),
+    :method => :put, # this is going to the update method!
+    :multipart => true,
+    :class  => "edit_form",
+    :remote => true do -%>
+  <div class="row collapse">
+    <div class="small-9 columns">
+      <%= send("#{@form_element}_edit", @object, @attribute) %>
+    </div>
+    <div class="small-1 columns">
+      <%= submit_tag "ok", :class => "postfix button"-%>
+    </div>
+    <div class="small-2 columns">
+      <%= link_to( send( @object.class.to_s.underscore + '_path', :update => @update_span || "field_#{@attribute}_#{@object.id.to_s}",
       :attribute => @attribute,
       :form_element => @form_element,
       :sub_id => @sub_id ),
-    :method => :get, # this is going to the show method!
-    :class  => "edit_form_cancel",
-    :remote => true ) do %>
-    <input type="button" name="cancel" value="cancel" />
-  <% end %>
-  <%= submit_tag "ok", :class => "edit_form_submit"-%>
-  <div style="clear: both;"></div>
+      :method => :get, # this is going to the show method!
+      :remote => true ) do %>
+        <input type="button" name="cancel" value="cancel" class="button alert postfix radius" />
+      <% end %>
+    </div>
+  </div>
+
 <% end -%>
