@@ -43,7 +43,7 @@
   <% objects = objects.paginate  :page => params[:page], :per_page => @PER_PAGE || 5, :conditions => conditions %>
 <% end %>
 
-<%= raw "<div id=\"#{update_span}\">" if ul_needed -%>
+<%= raw "<div class=\"list_container\" id=\"#{update_span}\">" if ul_needed -%>
 <!--  # list of objects -->
 <% for object in objects %>
   <% if parent_class.nil?  %>

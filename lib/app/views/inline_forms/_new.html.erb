@@ -1,4 +1,4 @@
-<li id="newnew">
+  <div class="new_record">
   <% flash.each do |key, value| %>
     <div id="flash" class="flash <%= key %>">
       <ul>
@@ -15,32 +15,31 @@
       $("#flash").delay(1000).fadeTo('slow', 0.33);
     });
   </script>
-  <%= form_tag  send(@Klass.to_s.underscore.pluralize + '_path',  :update => @update_span,
-                                                                  :parent_class => @parent_class,
-                                                                  :parent_id => @parent_id ),
-                                                                  :multipart => true, :remote => true, :class  => "edit_form" do -%>
-    <div class="edit_form_field">
       <div class="row" >
         <div class="large-12 column object_presentation" >
           <%= t('inline_forms.view.add_new', :model => @Klass.model_name.human ) -%>
         </div>
       </div>
+  <%= form_tag  send(@Klass.to_s.underscore.pluralize + '_path',  :update => @update_span,
+                                                                  :parent_class => @parent_class,
+                                                                  :parent_id => @parent_id ),
+                                                                  :multipart => true, :remote => true, :class  => "edit_form" do -%>
       <% attributes = @inline_forms_attribute_list || @object.inline_forms_attribute_list -%>
       <% attributes.each do | attribute, name, form_element | -%>
         <% unless form_element.to_sym == :associated || (cancan_enabled? && cannot?(:read, @Klass.to_s.underscore.pluralize.to_sym, attribute)) -%>
           <% css_class_id = "attribute_#{attribute}_#{@object.id}" -%>
           <% if form_element == :header %>
-            <div class="row" >
+            <div class="row form_element_header" >
               <div class='large-12 column<%= " attribute_name attribute_#{attribute} form_element_#{form_element}" -%>' >
                 <%= @object.class.human_attribute_name(attribute) -%>
               </div>
             </div>
           <% else %>
-            <div class="row <%= 'has_validations ' if @object.has_validations_for?(attribute) -%>" validation-hint="<%= validation_hints_as_list_for(@object, attribute) -%>">
-              <div class='large-4 column<%= " attribute_name attribute_#{attribute} form_element_#{form_element}" -%>' >
+            <div class="row <%= cycle('odd', 'even') %><%= ' has_validations ' if @object.has_validations_for?(attribute) -%>" validation-hint="<%= validation_hints_as_list_for(@object, attribute) -%>">
+              <div class='medium-3 large-3 column<%= " attribute_name attribute_#{attribute} form_element_#{form_element}" -%>' >
                 <%= @object.class.human_attribute_name(attribute) -%>
               </div>
-              <div class='large-8 column<%= " attribute_value attribute_#{attribute} form_element_#{form_element}" -%>' >
+              <div class='medium-9 large-9 column<%= " attribute_value attribute_#{attribute} form_element_#{form_element}" -%>' >
                 <span id="<%= css_class_id -%>" > <%= send("#{form_element}_edit", @object, attribute) -%> </span>
               </div>
             </div>
@@ -49,17 +48,19 @@
       <% end -%>
       <%= link_to( send(@Klass.to_s.underscore.pluralize + '_path', :update => @update_span,
                                                                     :parent_class => @parent_class,
-                                                                    :parent_id => @parent_id ),
+                                                                    :parent_id => @parent_id,
+                                                                    :ul_needed => true ),
                                                                     :remote => true,
-                                                                    :class  => "edit_form_cancel" ) do -%>
-        <input type="button" name="cancel" value="cancel" />
+                                                                  ) do -%>
+        <input type="button" name="cancel" value="cancel" class="button alert" />
       <% end %>
-      <%= submit_tag "ok", :class => "edit_form_submit"-%>
+      <%= submit_tag "ok", :class => "button "-%>
       <div style="clear: both;"></div>
     <% end %>
-</li>
+
 <script type="text/javascript">
   $(function() {
     $("#newnew").slideDown(4000);
   }); 
 </script>
+</div>
