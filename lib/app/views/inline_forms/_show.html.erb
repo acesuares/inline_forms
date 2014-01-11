@@ -32,11 +32,15 @@
           </div>
         </div>
       <% else -%>
-        <div class="row <%= cycle('odd', 'even') %><%= ' has_validations ' if @object.has_validations_for?(attribute) -%>" validation-hint="">
+        <div class="row <%= cycle('odd', 'even') %>">
           <div class='medium-3 large-3 column<%= " attribute_name attribute_#{attribute} form_element_#{form_element}" -%>' >
+            <% if @object.has_validations_for?(attribute) -%>
             <span data-tooltip class="has-tip tip-top" title="<%= validation_hints_as_list_for(@object, attribute) -%>">
               <%= @object.class.human_attribute_name(attribute) -%>
             </span>
+            <% else %>
+              <%= @object.class.human_attribute_name(attribute) -%>
+            <% end %>
           </div>
           <div class='medium-9 large-9 column<%= " attribute_value attribute_#{attribute} form_element_#{form_element}" -%>' >
             <span id="<%= css_class_id -%>" >

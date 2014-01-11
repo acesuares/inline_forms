@@ -6,7 +6,7 @@ def text_field_show(object, attribute)
 end
 
 def text_field_edit(object, attribute)
-  text_field_tag attribute, (object.send attribute.to_sym), :class => 'input_text_field'
+  text_field_tag attribute, (object.send attribute.to_sym), :class => 'input_text_field', :required => true
 end
 
 def text_field_update(object, attribute)
