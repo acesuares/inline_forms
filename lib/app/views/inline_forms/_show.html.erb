@@ -14,7 +14,7 @@
     <% css_class_id = "#{@object.class.name.underscore}_#{@object.id}_#{attribute}" -%>
     <% if form_element == :header %>
       <div class="row form_element_header">
-        <div class='large-12 column<%= " attribute_name attribute_#{attribute} form_element_#{form_element}" -%>' >
+        <div class='large-12 column' >
           <%= @object.class.human_attribute_name(attribute) -%>
         </div>
       </div>
@@ -28,7 +28,7 @@
 	          <%= link_to_new_record(attribute.to_s.singularize.camelcase.constantize, "new_#{attribute.to_s.underscore.singularize}_path", css_class_id, @object.class, @object.id) -%>
 	        </div>
 	      </div>
-	      <div class="row <%= cycle('odd', 'even') %><%= ' has_validations ' if @object.has_validations_for?(attribute) -%>" validation-hint="">
+	      <div class="row <%= cycle('odd', 'even') %>">
 	        <div id="<%= css_class_id -%>" class='small-11 small-centered column' >
 	          <%= render  :partial => "inline_forms/list",
 	            :locals => {  :parent_class => @object.class,
@@ -38,16 +38,16 @@
 	      </div>
       <% else -%>
         <div class="row <%= cycle('odd', 'even') %>">
-          <div class='medium-3 large-3 column<%= " attribute_name attribute_#{attribute} form_element_#{form_element}" -%>' >
+          <div class='medium-3 large-3 column' >
             <% if @object.has_validations_for?(attribute) -%>
-            <span data-tooltip class="has-tip tip-top" title="<%= validation_hints_as_list_for(@object, attribute) -%>">
-              <%= @object.class.human_attribute_name(attribute) -%>
-            </span>
+              <span data-tooltip class="has-tip tip-top" title="<%= validation_hints_as_list_for(@object, attribute) -%>">
+                <%= @object.class.human_attribute_name(attribute) -%>
+              </span>
             <% else %>
               <%= @object.class.human_attribute_name(attribute) -%>
             <% end %>
           </div>
-          <div class='medium-9 large-9 column<%= " attribute_value attribute_#{attribute} form_element_#{form_element}" -%>' >
+          <div class='medium-9 large-9 column' >
             <span id="<%= css_class_id -%>" >
               <%= send("#{form_element}_show", @object, attribute) -%>
             </span>
