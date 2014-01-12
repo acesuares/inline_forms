@@ -62,5 +62,11 @@
 <% else %>
   <% pagination = will_paginate objects, :remote => true, :params => {:controller => attribute, :action => :index, :id => nil, :parent_class => parent_class, :parent_id => parent_id, :update => "#{parent_class.to_s.underscore}_#{parent_id}_#{attribute}", :ul_needed => true  } -%>
 <% end %>
-<%= raw "<div class=\"row\"><div class=\"large-12 column #{cycle('odd', 'even')}\">" + pagination + "</div></div>" if pagination -%>
+<% if pagination %>
+  <div class="row <%= cycle('odd', 'even') %>">
+    <div class='small-11 small-centered column'>
+      <%= raw pagination %>
+    </div>
+  </div>
+<% end %>
 <%= raw "</div>" if ul_needed -%>

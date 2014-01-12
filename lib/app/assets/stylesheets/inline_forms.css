@@ -7,59 +7,7 @@
 
 
 
-.pagination {
-    padding: 0;
-    margin: 0;
-    margin-bottom: 5px;
-}
 
-.pagination a, .pagination span, .pagination em {
-    font-size: 70%;
-    padding-left:8px;
-    padding-right:8px;
-    padding-top:5px;
-    padding-bottom: 5px;
-    border: solid #999999 1px;
-    text-decoration: none;
-    color:black;
-    background-color: #EBEAE9;
-    background-image: -moz-linear-gradient(100% 100% 90deg, #cccccc,#EBEAE9);
-    background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#cccccc), to(#EBEAE9));
-    -moz-border-radius: 5px;
-    -webkit-border-radius: 5px;
-    -webkit-box-shadow: 0 2px 3px rgba(0,0,0, .4);
-    -moz-box-shadow: 0 2px 3px rgba(0,0,0, .4);
-}
-
-.pagination  a:hover {
-    color:white;
-    background-color: #EFCA4B;
-    background-image: -moz-linear-gradient(100% 100% 90deg, #F9EBAE,#EFCA4B);
-    background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#EFCA4B), to(#F9EBAE));
-}
-
-.pagination em {
-    background-color: #eeeeee;
-    color: black;
-    background-image: -moz-linear-gradient(100% 100% 90deg, #eeeeee, #ffffff);
-    background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#ffffff), to(#eeeeee));
-}
-
-.pagination span.disabled {
-    color: #AAA; }
-
-#paginate_info {
-    color: #ffffff;
-    font-weight: bold;
-    -moz-border-radius: 5px;
-    -webkit-border-radius: 5px;
-    -webkit-box-shadow: 0 1px 1px rgba(0,0,0, .1);
-    -moz-box-shadow: 0 1px 1px rgba(0,0,0, .1);
-    background-color: #EFCA4B;
-    padding: 0.7em;
-    margin: 0 1em 0.4em 1em;
-
-}
 .error {
     color: #ffffff;
     font-weight: bold;
