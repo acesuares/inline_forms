@@ -1,12 +1,3 @@
-<% flash.each do |key, value| %>
-  <div id="flash" class="flash <%= key %>"><%= value %></div>
-  <%#*<script type="text/javascript">%>
-    <%#*$(function() { $("#flash").delay(1000).fadeToggle('2000'); } );%>
-  <%#*</script>%>
-<% end %>
-
-<% "purpose: list objects. we come here from #index and from #new. If we come here for the 'first' time, we dont' have parents; its just a list of objects.   But if we come here because we are called from the show partial, then we have to deal wits some parent object.   Unfortaunatlly, the way :locals work, these are local variables, like object, but if we come from a controller,   they are @object. We need this magic here to rewrite all the @variables to variables. Ugh." %>
-
 <% ul_needed = true %>
 <% if not defined?(parent_class)  %>
   <%   # we didn't come here via _show.html.erb %>
@@ -44,6 +35,7 @@
 <% end %>
 
 <%= raw "<div class=\"list_container\" id=\"#{update_span}\">" if ul_needed -%>
+
 <!--  # list of objects -->
 <% for object in objects %>
   <% if parent_class.nil?  %>
@@ -70,5 +62,5 @@
 <% else %>
   <% pagination = will_paginate objects, :remote => true, :params => {:controller => attribute, :action => :index, :id => nil, :parent_class => parent_class, :parent_id => parent_id, :update => "#{parent_class.to_s.underscore}_#{parent_id}_#{attribute}", :ul_needed => true  } -%>
 <% end %>
-<%= raw "<div class=\"row\><div class=\"large-12 column #{cycle('odd', 'even')}\">" + pagination + "</div></div>" if pagination -%>
+<%= raw "<div class=\"row\"><div class=\"large-12 column #{cycle('odd', 'even')}\">" + pagination + "</div></div>" if pagination -%>
 <%= raw "</div>" if ul_needed -%>

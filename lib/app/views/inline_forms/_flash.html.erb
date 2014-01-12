@@ -1,0 +1,13 @@
+<% unless flash.empty? %>
+  <% identifier = Time.now.to_i.to_s %>
+  <div class="row" id="flash_<%= identifier %>">
+  <% flash.each do |key, value| %>
+    <%= value %>
+  <% end %>
+  <script>
+    $("#<%= "#{update_span}_auto_header" %>").ScrollTo();
+    $("#flash_<%= identifier %>").delay(1000).fadeToggle('2000');
+  </script>
+  </div>
+<% end %>
+
