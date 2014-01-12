@@ -16,7 +16,9 @@
 
     <%= render "inline_forms/header" %>
     <%= render "/inline_forms_tabs" %>
+    <div id="outer_container">
     <%= yield %>
+    </div>
     <%= javascript_include_tag 'application', 'inline_forms_application' %>
   </body>
 </html>
