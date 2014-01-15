@@ -1,60 +1,64 @@
-<% unless @skip %>
-<div class="row object_presentation">
-  <div class="small-11 column object_presentation">
-    <%= h(@object._presentation) -%>
-  </div>
-  <div class="small-1 column close_link" >
-    <%= close_link(@object, @update_span) -%>
-  </div>
-</div>
-<% end %>
-<% attributes = @inline_forms_attribute_list || @object.inline_forms_attribute_list -%>
-<% attributes.each do | attribute, name, form_element | -%>
-  <% if cancan_disabled? || can?(:read, @object, attribute) %>
-    <% css_class_id = "#{@object.class.name.underscore}_#{@object.id}_#{attribute}" -%>
-    <% if form_element == :header %>
-      <div class="row form_element_header">
-        <div class='large-12 column' >
-          <%= @object.class.human_attribute_name(attribute) -%>
-        </div>
+<div class="row">
+  <div class='small-11 small-centered column'>
+    <% unless @skip %>
+    <div class="row object_presentation">
+      <div class="small-11 column object_presentation">
+        <%= h(@object._presentation) -%>
       </div>
-    <% else %>
-      <% if form_element == :associated -%>
-	      <div class="row form_element_header associated_auto_header" id="<%= css_class_id -%>_list_auto_header" >
-	        <div class='medium-11 large-11 column' >
-	          <%= @object.class.human_attribute_name(attribute) -%>
-	        </div>
-	        <div class='medium-1 large-1 column'>
-	          <%= link_to_new_record(attribute.to_s.singularize.camelcase.constantize, "new_#{attribute.to_s.underscore.singularize}_path", css_class_id, @object.class, @object.id) -%>
-	        </div>
-	      </div>
-	      <div class="row <%= cycle('odd', 'even') %>">
-	        <div id="<%= css_class_id -%>" class='small-11 small-centered column' >
-	          <%= render  :partial => "inline_forms/list",
-	            :locals => {  :parent_class => @object.class,
-								            :parent_id    => @object.id,
-								            :attribute    => attribute } %>
-	        </div>
-	      </div>
-      <% else -%>
-        <div class="row <%= cycle('odd', 'even') %>">
-          <div class='medium-3 large-3 column' >
-            <% if @object.has_validations_for?(attribute) -%>
-              <span data-tooltip class="has-tip tip-top" title="<%= validation_hints_as_list_for(@object, attribute) -%>">
-                <%= @object.class.human_attribute_name(attribute) -%>
-              </span>
-            <% else %>
+      <div class="small-1 column close_link" >
+        <%= close_link(@object, @update_span) -%>
+      </div>
+    </div>
+    <% end %>
+    <% attributes = @inline_forms_attribute_list || @object.inline_forms_attribute_list -%>
+    <% attributes.each do | attribute, name, form_element | -%>
+      <% if cancan_disabled? || can?(:read, @object, attribute) %>
+        <% css_class_id = "#{@object.class.name.underscore}_#{@object.id}_#{attribute}" -%>
+        <% if form_element == :header %>
+          <div class="row form_element_header">
+            <div class='large-12 column' >
               <%= @object.class.human_attribute_name(attribute) -%>
-            <% end %>
+            </div>
           </div>
-          <div class='medium-9 large-9 column' >
-            <span id="<%= css_class_id -%>" >
-              <%= send("#{form_element}_show", @object, attribute) -%>
-            </span>
-          </div>
-        </div>
+        <% else %>
+          <% if form_element == :associated -%>
+    	      <div class="row form_element_header associated_auto_header" id="<%= css_class_id -%>_list_auto_header" >
+    	        <div class='medium-11 large-11 column' >
+    	          <%= @object.class.human_attribute_name(attribute) -%>
+    	        </div>
+    	        <div class='medium-1 large-1 column'>
+    	          <%= link_to_new_record(attribute.to_s.singularize.camelcase.constantize, "new_#{attribute.to_s.underscore.singularize}_path", css_class_id, @object.class, @object.id) -%>
+    	        </div>
+    	      </div>
+    	      <div class="row <%= cycle('odd', 'even') %>">
+    	        <div id="<%= css_class_id -%>" class='small-11 small-centered column' >
+    	          <%= render  :partial => "inline_forms/list",
+    	            :locals => {  :parent_class => @object.class,
+    								            :parent_id    => @object.id,
+    								            :attribute    => attribute } %>
+    	        </div>
+    	      </div>
+          <% else -%>
+            <div class="row <%= cycle('odd', 'even') %>">
+              <div class='medium-3 large-3 column' >
+                <% if @object.has_validations_for?(attribute) -%>
+                  <span data-tooltip class="has-tip tip-top" title="<%= validation_hints_as_list_for(@object, attribute) -%>">
+                    <%= @object.class.human_attribute_name(attribute) -%>
+                  </span>
+                <% else %>
+                  <%= @object.class.human_attribute_name(attribute) -%>
+                <% end %>
+              </div>
+              <div class='medium-9 large-9 column' >
+                <span id="<%= css_class_id -%>" >
+                  <%= send("#{form_element}_show", @object, attribute) -%>
+                </span>
+              </div>
+            </div>
+          <% end -%>
+        <% end -%>
       <% end -%>
     <% end -%>
-  <% end -%>
-<% end -%>
-<div class="record_footer"></div>
+    <div class="record_footer"></div>
+  </div>
+</div>
