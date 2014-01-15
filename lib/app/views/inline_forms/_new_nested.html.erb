@@ -1,0 +1,36 @@
+<% @nested_object = @nested_model.build %>
+
+<div class="new_nested_record">
+  <div class="row" >
+    <div class="large-12 column object_presentation" >
+      <%= t('inline_forms.view.add_new', :model => @nested_object.class ) -%>
+    </div>
+  </div>
+    <% nested_attributes = @nested_object.inline_forms_attribute_list -%>
+    <% nested_attributes.each do | nested_attribute, nested_name, nested_form_element | -%>
+    <% @nested_form_element = nested_form_element %>
+    <% @nested_attribute = nested_attribute %>
+      <% unless @nested_form_element.to_sym == :associated -%>
+        <% if @nested_form_element == :header %>
+          <div class="row form_element_header" >
+            <div class='large-12 column' >
+              <%= @nested_object.class.human_attribute_name(@nested_attribute) -%>
+            </div>
+          </div>
+        <% else %>
+          <div class="row <%= cycle('odd', 'even') %>">
+            <div class='medium-3 large-3 column' >
+              <%= @nested_object.class.human_attribute_name(@nested_attribute) -%>
+            </div>
+            <div class='medium-9 large-9 column' >
+              <%= send("#{@nested_form_element}_edit", @nested_object, @nested_attribute) -%>
+            </div>
+          </div>
+        <% end -%>
+      <% end -%>
+    <% end -%>
+    <% if @nested_form_element.to_sym == :associated  -%>
+      <%= render 'new_nested' %>
+    <% end %>
+    <div class="row record_footer"></div>
+</div>

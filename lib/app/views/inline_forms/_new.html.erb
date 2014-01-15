@@ -26,6 +26,10 @@
                                                                   :multipart => true, :remote => true, :class  => "edit_form" do -%>
     <% attributes = @inline_forms_attribute_list || @object.inline_forms_attribute_list -%>
     <% attributes.each do | attribute, name, form_element | -%>
+      <% if form_element.to_sym == :associated  -%>
+        <% @nested_model = @object.send(attribute) %>
+        <%= render 'new_nested' %>
+      <% end %>
       <% unless form_element.to_sym == :associated || (cancan_enabled? && cannot?(:read, @Klass.to_s.underscore.pluralize.to_sym, attribute)) -%>
         <% css_class_id = "attribute_#{attribute}_#{@object.id}" -%>
         <% if form_element == :header %>
