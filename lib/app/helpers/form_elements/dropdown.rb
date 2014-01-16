@@ -3,7 +3,7 @@ InlineForms::SPECIAL_COLUMN_TYPES[:dropdown]=:belongs_to
 
 # dropdown
 def dropdown_show(object, attribute)
-  attribute_value = object.send(attribute)._presentation rescue  nil
+  attribute_value = object.send(attribute)._presentation rescue  "<i class='fi-plus'></i>".html_safe
   link_to_inline_edit object, attribute, attribute_value
 end
 

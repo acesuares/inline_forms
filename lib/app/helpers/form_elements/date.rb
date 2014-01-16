@@ -3,7 +3,7 @@ InlineForms::SPECIAL_COLUMN_TYPES[:date_select]=:date
 
 # date
 def date_select_show(object, attribute)
-  link_to_inline_edit object, attribute, object.send(attribute).nil? ? "" : object.send(attribute).strftime("%d-%m-%Y")
+  link_to_inline_edit object, attribute, object.send(attribute).nil? ? "<i class='fi-plus'></i>".html_safe : object.send(attribute).strftime("%d-%m-%Y")
 end
 
 def date_select_edit(object, attribute)

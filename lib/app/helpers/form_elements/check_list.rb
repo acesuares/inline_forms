@@ -4,7 +4,7 @@ InlineForms::SPECIAL_COLUMN_TYPES[:check_list]=:no_migration
 # checklist
 def check_list_show(object, attribute)
   out = '<ul class="checklist">'
-  out << link_to_inline_edit(object, attribute) if object.send(attribute).empty?
+  out << link_to_inline_edit(object, attribute, "<i class='fi-plus'></i>".html_safe) if object.send(attribute).empty?
   object.send(attribute).sort.each do | item |
     out << '<li>'
     out << link_to_inline_edit(object, attribute, item._presentation )

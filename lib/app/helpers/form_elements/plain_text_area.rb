@@ -2,7 +2,7 @@
 InlineForms::SPECIAL_COLUMN_TYPES[:plain_text_area]=:text
 
 def plain_text_area_show(object, attribute)
-  link_to_inline_edit object, attribute, object[attribute]    #.empty? ? 'Click here to edit' : object[attribute]
+  link_to_inline_edit object, attribute, (object[attribute].nil? || object[attribute].empty?) ? "<i class='fi-plus'></i>".html_safe : object[attribute]
 end
 
 def plain_text_area_edit(object, attribute)
