@@ -1,3 +1,10 @@
+This goes in _new.html.erb
+      <% if form_element.to_sym == :associated  -%>
+        <% @nested_model = @object.send(attribute) %>
+        <%= render 'new_nested' %>
+      <% end %>
+********
+
 <% @nested_object = @nested_model.build %>
 
 <div class="new_nested_record">

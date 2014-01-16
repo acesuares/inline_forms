@@ -9,7 +9,7 @@ end
 def date_select_edit(object, attribute)
   css_id = 'datepicker_' + object.class.to_s.underscore + '_' + object.id.to_s + '_' + attribute.to_s
   out = text_field_tag attribute, ( object.send(attribute).nil? ? "" : object.send(attribute).strftime("%d-%m-%Y") ), :id => css_id, :class =>'datepicker'
-  out << "<script>$('##{css_id}').fdatepicker();</script>".html_safe
+  out << "<script>$('##{css_id}').datepicker();</script>".html_safe
 end
 
 def date_select_update(object, attribute)

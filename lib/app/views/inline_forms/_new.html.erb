@@ -1,4 +1,4 @@
-<div class="new_record">
+<div class="new_record"">
   <% flash.each do |key, value| %>
     <div id="flash" class="flash <%= key %>">
       <ul>
@@ -10,26 +10,19 @@
       </ul>
     </div>
   <% end %>
-  <script type="text/javascript">
-    $(function() {
-      $("#flash").delay(1000).fadeTo('slow', 0.33);
-    });
-  </script>
+
   <div class="row" >
     <div class="large-12 column object_presentation" >
       <%= t('inline_forms.view.add_new', :model => @Klass.model_name.human ) -%>
     </div>
   </div>
+
   <%= form_tag  send(@Klass.to_s.underscore.pluralize + '_path',  :update => @update_span,
                                                                   :parent_class => @parent_class,
                                                                   :parent_id => @parent_id ),
                                                                   :multipart => true, :remote => true, :class  => "edit_form" do -%>
     <% attributes = @inline_forms_attribute_list || @object.inline_forms_attribute_list -%>
     <% attributes.each do | attribute, name, form_element | -%>
-      <% if form_element.to_sym == :associated  -%>
-        <% @nested_model = @object.send(attribute) %>
-        <%= render 'new_nested' %>
-      <% end %>
       <% unless form_element.to_sym == :associated || (cancan_enabled? && cannot?(:read, @Klass.to_s.underscore.pluralize.to_sym, attribute)) -%>
         <% css_class_id = "attribute_#{attribute}_#{@object.id}" -%>
         <% if form_element == :header %>
@@ -65,9 +58,4 @@
     </div>
     <div class="row record_footer"></div>
   <% end %>
-  <script type="text/javascript">
-    $(function() {
-      $("#new_record").slideDown(4000);
-    }); 
-  </script>
 </div>
