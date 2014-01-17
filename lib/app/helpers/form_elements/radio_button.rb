@@ -10,16 +10,15 @@ def radio_button_show(object, attribute)
 end
 
 def radio_button_edit(object, attribute)
-  out ='<ul class="radio_list">'
+  out =''
   values = attribute_values(object, attribute)
   values.each do |key,value|
-    out << '<li>'
+    out << "<div class='row #{cycle('odd', 'even')}'>"
     out << radio_button_tag(attribute.to_s, key, key == object.send(attribute))
-    out << value
-    out << '</li>'
+    out << "<label for=#{key}>#{value}</label>"
+    out << '</div>'
   end
-  out << '</ul>'
-  raw out
+  out.html_safe
 end
 
 def radio_button_update(object, attribute)

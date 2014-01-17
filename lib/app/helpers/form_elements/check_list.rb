@@ -21,19 +21,13 @@ def check_list_edit(object, attribute)
   else
     values = object.send(attribute).first.class.name.constantize.order(attribute.to_s.singularize.camelcase.constantize.order_by_clause)
   end
-  out = '<div class="edit_form_checklist">'
-  out << '<ul>'
+  out = ''
   values.each do | item |
-    out << '<li>'
+    out << "<div class='row #{cycle('odd', 'even')}'>"
     out << check_box_tag( attribute.to_s + '[' + item.id.to_s + ']', 1, object.send(attribute.to_s.singularize + "_ids").include?(item.id) )
-    out << '<div class="edit_form_checklist_text">'
-    out << h(item._presentation)
+    out << "<label for=#{attribute.to_s + '[' + item.id.to_s + ']'}>#{h(item._presentation)}</label>"
     out << '</div>'
-    out << '<div style="clear: both;"></div>'
-    out << '</li>'
   end
-  out << '</ul>'
-  out << '</div>'
   out.html_safe
 end
 
