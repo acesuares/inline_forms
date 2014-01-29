@@ -7,7 +7,7 @@ def dropdown_with_other_show(object, attribute)
   id = object[foreign_key]
   if id == 0
     attribute_value = object[attribute.to_s + '_other']
-    attribute_value = "<i class='fi-plus'></i>".html_safe if attribute_value.empty? || attribute_value.nil?
+    attribute_value = "<i class='fi-plus'></i>".html_safe if attribute_value.nil? || attribute_value.empty?
   else
     attribute_value = object.send(attribute)._presentation rescue  "<i class='fi-plus'></i>".html_safe
   end
@@ -30,7 +30,7 @@ def dropdown_with_other_edit(object, attribute)
   collection = values.map {|v|[v.name, v.id]}
   collection << [object[attribute.to_s + '_other'], 0] unless object[attribute.to_s + '_other'].nil? || object[attribute.to_s + '_other'].empty?
   out = '<div class="ui-widget">'
-  out << select('_' + object.class.to_s.underscore, foreign_key.to_sym, collection, {selected: object[foreign_key.to_sym], prompt: 'maake een keuze', id: '_' + object.class.to_s.underscore + '_' + object.id.to_s + '_'  + foreign_key.to_s})
+  out << select('_' + object.class.to_s.underscore, foreign_key.to_sym, collection, {selected: object[foreign_key.to_sym], prompt: 'maake een keuze'}, {id: '_' + object.class.to_s.underscore + '_' + object.id.to_s + '_'  + foreign_key.to_s})
   #  collection_select( ('_' + object.class.to_s.underscore).to_sym, attribute.to_s.foreign_key.to_sym, values, 'id', 'name', :selected => object.send(attribute).id)
   out << '</div>
   <script>
