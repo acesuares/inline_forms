@@ -12,6 +12,7 @@
     <% end %>
     <% attributes = @inline_forms_attribute_list || @object.inline_forms_attribute_list -%>
     <% attributes.each do | attribute, name, form_element | -%>
+    <% puts "LOG: #{attribute}, #{form_element}" if Rails.env.development? %>
       <% if cancan_disabled? || can?(:read, @object, attribute) %>
         <% css_class_id = "#{@object.class.name.underscore}_#{@object.id}_#{attribute}" -%>
         <% if form_element == :header %>
@@ -42,7 +43,7 @@
             <div class="row <%= cycle('odd', 'even') %>">
               <div class='medium-3 large-3 column' >
                 <% if @object.has_validations_for?(attribute) -%>
-                  <span data-tooltip class="has-tip tip-top" title="<%= validation_hints_as_list_for(@object, attribute) -%>">
+                  <span data-tooltip class="has-tip tip-top" title="<%= validation_hints_as_list_for(@object, attribute).html_safe -%>">
                     <%= @object.class.human_attribute_name(attribute) -%>
                   </span>
                 <% else %>

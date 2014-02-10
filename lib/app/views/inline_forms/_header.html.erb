@@ -18,21 +18,23 @@
             </li>
           </ul>
         </li>
-        <li class="has-dropdown">
-          <a href="#">Models</a>
-          <ul class="dropdown">
-            <% MODEL_TABS.each do |m| %>
-            <% model = m.singularize.camelcase.constantize rescue nil %>
-            <% unless model.nil? || model.not_accessible_through_html? %>
-            <% if can? m.to_sym, :clients %>
-            <li>
-              <%= link_to model.model_name.human, m %>
-            </li>
-            <% end %>
-            <% end %>
-            <% end %>
-          </ul>
-        </li>
+        <% if cancan_disabled? || can?(:access, DROPDOWN_LISTS) #TODO Hack this %>
+          <li class="has-dropdown">
+            <a href="#">Models</a>
+            <ul class="dropdown">
+              <% MODEL_TABS.each do |m| %>
+              <% model = m.singularize.camelcase.constantize rescue nil %>
+              <% unless model.nil? || model.not_accessible_through_html? %>
+              <% if can? m.to_sym, :clients %>
+              <li>
+                <%= link_to model.model_name.human, m %>
+              </li>
+              <% end %>
+              <% end %>
+              <% end %>
+            </ul>
+          </li>
+        <% end %>
       </ul>
     </section>
 
