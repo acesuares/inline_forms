@@ -9,13 +9,14 @@ def text_area_show(object, attribute)
       cktext_area_tag(
       attribute,
       object[attribute],
-      :input_html => { :id => "textarea_#{object.class.name.underscore}_#{object.id}_#{attribute.to_s}",
-        :width => '100%' },
-      :height => '200px',
-      :toolbar => "None",
-      :readOnly => "true",
-      :resize_enabled => "false",
-      :toolbarCanCollapse => "false"
+      :id => "textarea_#{object.class.name.underscore}_#{object.id}_#{attribute.to_s}",
+      :ckeditor => {  :width => '100%',
+                      :height => '200px',
+                      :toolbar => "None",
+                      :readOnly => "true",
+                      :resize_enabled => "false",
+                      :toolbarCanCollapse => "false"
+                    }
     ) +
       image_tag(  'glass_plate.gif',
       :class => "glass_plate",
@@ -31,9 +32,10 @@ def text_area_edit(object, attribute)
     cktext_area_tag(
       attribute,
       object[attribute],
-      :input_html => { :id => "textarea_#{object.class.name.underscore}_#{object.id}_#{attribute.to_s}",
-        :width => '100%'},
-      :height => '200px'
+      :id => "textarea_#{object.class.name.underscore}_#{object.id}_#{attribute.to_s}",
+      :ckeditor => {  :width => '100%',
+                      :height => '200px'
+                    }
     )
   else
     text_area_tag attribute, object[attribute], :class => 'attribute_text_area'

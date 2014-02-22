@@ -9,9 +9,8 @@ class InlineFormsApplicationController < ActionController::Base
   #set the locale based on the subdomain
   def set_locale
     I18n.locale = extract_locale_from_subdomain || I18n.default_locale
-
   end
-
+  
   # Get locale code from request subdomain (like http://it.application.local:3000)
   def extract_locale_from_subdomain
     locale = request.subdomains.first

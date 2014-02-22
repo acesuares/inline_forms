@@ -7,23 +7,49 @@
     :class  => "edit_form",
     :abide => true,
     :remote => true do -%>
-  <div class="row collapse">
-    <div class="small-9 columns">
-      <%= send("#{@form_element}_edit", @object, @attribute) %>
+  <% if BUTTONS_UNDER.include? @form_element %>
+    <div class="row collapse">
+      <div class="small-12 columns">
+        <%= send("#{@form_element}_edit", @object, @attribute) %>
+      </div>
     </div>
-    <div class="small-1 columns">
-      <%= submit_tag "ok", :class => "postfix button"-%>
+    <div class="row collapse">
+      <div class="small-9 columns">
+        &nbsp;
+      </div>
+      <div class="small-1 columns">
+        <%= submit_tag "ok", :class => "postfix button"-%>
+      </div>
+      <div class="small-2 columns">
+        <%= link_to( send( @object.class.to_s.underscore + '_path', :update => @update_span || "field_#{@attribute}_#{@object.id.to_s}",
+        :attribute => @attribute,
+        :form_element => @form_element,
+        :sub_id => @sub_id ),
+        :method => :get, # this is going to the show method!
+        :remote => true ) do %>
+          <input type="button" name="cancel" value="cancel" class="button alert postfix radius" />
+        <% end %>
+      </div>
     </div>
-    <div class="small-2 columns">
-      <%= link_to( send( @object.class.to_s.underscore + '_path', :update => @update_span || "field_#{@attribute}_#{@object.id.to_s}",
-      :attribute => @attribute,
-      :form_element => @form_element,
-      :sub_id => @sub_id ),
-      :method => :get, # this is going to the show method!
-      :remote => true ) do %>
-        <input type="button" name="cancel" value="cancel" class="button alert postfix radius" />
-      <% end %>
+  <% else %>
+    <div class="row collapse">
+      <div class="small-9 columns">
+        <%= send("#{@form_element}_edit", @object, @attribute) %>
+      </div>
+      <div class="small-1 columns">
+        <%= submit_tag "ok", :class => "postfix button"-%>
+      </div>
+      <div class="small-2 columns">
+        <%= link_to( send( @object.class.to_s.underscore + '_path', :update => @update_span || "field_#{@attribute}_#{@object.id.to_s}",
+        :attribute => @attribute,
+        :form_element => @form_element,
+        :sub_id => @sub_id ),
+        :method => :get, # this is going to the show method!
+        :remote => true ) do %>
+          <input type="button" name="cancel" value="cancel" class="button alert postfix radius" />
+        <% end %>
+      </div>
     </div>
-  </div>
+  <% end%>
 
 <% end -%>
