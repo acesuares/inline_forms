@@ -7,13 +7,12 @@ def kansen_slider_show(object, attribute)
   value = object.send(attribute).to_i         # should be an int
   display_value = values.assoc(value)[1]      # values should be [ [ 0, value ], [ 3, value2 ] .... ] and we lookup the key, not the place in the array!
   css_id = "#{object.class.to_s.underscore}_#{object.id}_#{attribute}"
-  if value == 0
-    out = "?"   # we use this as the 'unknown' value. So in the data, 0 should always be the unknown value. This gives problems with sliders where the real value is 0.
+  if value == 0 || value > 5 
+    out = display_value
   else
-    out = "".html_safe
-    out << "<div class='slider slider_#{attribute.to_s}' id='slider_#{css_id}'></div>".html_safe
-    out << "<div class='slider_value' id='value_#{css_id}'>#{display_value}</div>".html_safe
-    out << "<div style='clear: both' />".html_safe
+    out = "<div class='row collapse'>".html_safe
+    out << "<div class='small-1 column slider_value' id='value_#{css_id}'>#{display_value}</div>".html_safe
+    out << "<div class='small-11 column slider slider_#{attribute.to_s}' id='slider_#{css_id}'></div>".html_safe
     out << "<input type='hidden' name='_#{object.class.to_s.underscore}[#{attribute}]' value='0' id='input_#{css_id}' />".html_safe
     out << ('<script>
               $(function() {
@@ -23,13 +22,14 @@ def kansen_slider_show(object, attribute)
                     value:' + value.to_s + ',
                     range: "min",
                     disabled: true,
-                    min: 0,
-                    max: ' + values.length + ',
+                    min: 1,
+                    max: 5,
                     step: 1,
                   }
                 );
               });
              </script>').html_safe
+    out << "</div>".html_safe
   end
   link_to_inline_edit object, attribute, out
 end
@@ -40,10 +40,9 @@ def kansen_slider_edit(object, attribute)
   value = object.send(attribute).to_i         # should be an int, will be 0 if nil
   css_id = "#{object.class.to_s.underscore}_#{object.id}_#{attribute}"
   display_value = values.assoc(value)[1]      # values should be [ [ 0, value ], [ 3, value2 ] .... ] and we lookup the key, not the place in the array!
-  out = "".html_safe
-  out << "<div class='slider slider_#{attribute.to_s}' id='slider_#{css_id}'></div>".html_safe
-  out << "<div class='slider_value' id='value_#{css_id}'>#{display_value}</div>".html_safe
-  out << "<div style='clear: both' />".html_safe
+  out = "<div class='row collapse'>".html_safe
+  out << "<div class='small-5 column slider_value' id='value_#{css_id}'>#{display_value}</div>".html_safe
+  out << "<div class='small-7 column slider slider_#{attribute.to_s}' id='slider_#{css_id}'></div>".html_safe
   out << "<input type='hidden' name='_#{object.class.to_s.underscore}[#{attribute}]' value='0' id='input_#{css_id}' />".html_safe
   out << ('<script>
 	$(function() {
@@ -53,7 +52,7 @@ def kansen_slider_edit(object, attribute)
         value:' + value.to_s + ',
         range: "min",
         min: 0,
-        max: 5,
+        max: ' + (values.length - 1 ).to_s + ',
         step: 1,
         slide: function( event, ui ) {
           $( "#input_' + css_id + '" ).val( ui.value );
@@ -65,6 +64,7 @@ def kansen_slider_edit(object, attribute)
 	out << ('$( "#input_' + css_id + '" ).val(' + value.to_s + ');').html_safe
 	out << ('});
 	</script>').html_safe
+	out << '</div>'.html_safe
   out
 end
 
