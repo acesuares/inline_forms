@@ -11,8 +11,8 @@ def kansen_slider_show(object, attribute)
     out = display_value
   else
     out = "<div class='row collapse'>".html_safe
-    out << "<div class='small-1 column slider_value' id='value_#{css_id}'>#{display_value}</div>".html_safe
-    out << "<div class='small-11 column slider slider_#{attribute.to_s}' id='slider_#{css_id}'></div>".html_safe
+    out << "<div class='small-2 column slider_value' id='value_#{css_id}'>#{display_value}</div>".html_safe
+    out << "<div class='small-10 column kansen_slider_show slider slider_#{attribute.to_s}' id='slider_#{css_id}'></div>".html_safe
     out << "<input type='hidden' name='_#{object.class.to_s.underscore}[#{attribute}]' value='0' id='input_#{css_id}' />".html_safe
     out << ('<script>
               $(function() {
@@ -20,7 +20,6 @@ def kansen_slider_show(object, attribute)
                 $( "#slider_' + css_id + '" ).slider(
                   {
                     value:' + value.to_s + ',
-                    range: "min",
                     disabled: true,
                     min: 1,
                     max: 5,
@@ -41,8 +40,8 @@ def kansen_slider_edit(object, attribute)
   css_id = "#{object.class.to_s.underscore}_#{object.id}_#{attribute}"
   display_value = values.assoc(value)[1]      # values should be [ [ 0, value ], [ 3, value2 ] .... ] and we lookup the key, not the place in the array!
   out = "<div class='row collapse'>".html_safe
-  out << "<div class='small-5 column slider_value' id='value_#{css_id}'>#{display_value}</div>".html_safe
-  out << "<div class='small-7 column slider slider_#{attribute.to_s}' id='slider_#{css_id}'></div>".html_safe
+  out << "<div class='small-5 column kansen_slider_value' id='value_#{css_id}'>#{display_value}</div>".html_safe
+  out << "<div class='small-7 column kansen_slider_edit slider slider_#{attribute.to_s}' id='slider_#{css_id}'></div>".html_safe
   out << "<input type='hidden' name='_#{object.class.to_s.underscore}[#{attribute}]' value='0' id='input_#{css_id}' />".html_safe
   out << ('<script>
 	$(function() {
@@ -50,7 +49,6 @@ def kansen_slider_edit(object, attribute)
 		$( "#slider_' + css_id + '" ).slider(
       {
         value:' + value.to_s + ',
-        range: "min",
         min: 0,
         max: ' + (values.length - 1 ).to_s + ',
         step: 1,
