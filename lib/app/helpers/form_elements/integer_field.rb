@@ -6,7 +6,7 @@ def integer_field_show(object, attribute)
 end
 
 def integer_field_edit(object, attribute)
-  integer_field_tag attribute, (object.send attribute.to_sym), :class => 'input_integer_field'  # for abide: , :required => true
+  number_field_tag attribute, (object.send attribute.to_sym), :class => 'input_integer_field'  # for abide: , :required => true
 end
 
 def integer_field_update(object, attribute)
