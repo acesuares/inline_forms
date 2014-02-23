@@ -11,8 +11,8 @@ def kansen_slider_show(object, attribute)
     out = display_value
   else
     out = "<div class='row collapse'>".html_safe
-    out << "<div class='small-2 column slider_value' id='value_#{css_id}'>#{display_value}</div>".html_safe
-    out << "<div class='small-10 column kansen_slider_show slider slider_#{attribute.to_s}' id='slider_#{css_id}'></div>".html_safe
+    out << "<div class='small-5 column slider_value' id='value_#{css_id}'>#{display_value}</div>".html_safe
+    out << "<div class='small-7 column kansen_slider_show slider slider_#{attribute.to_s}' id='slider_#{css_id}'></div>".html_safe
     out << "<input type='hidden' name='_#{object.class.to_s.underscore}[#{attribute}]' value='0' id='input_#{css_id}' />".html_safe
     out << ('<script>
               $(function() {
