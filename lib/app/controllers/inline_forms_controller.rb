@@ -206,7 +206,7 @@ class InlineFormsController < ApplicationController
   # Thanks Ryan Bates: http://railscasts.com/episodes/255-undo-with-paper-trail
   def revert
     @update_span = params[:update]
-    @version = Version.find(params[:id])
+    @version = PaperTrail::Version.find(params[:id])
     @version.reify.save!
     @object = @Klass.find(@version.item_id)
     authorize!(:revert, @object) if cancan_enabled?
