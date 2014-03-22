@@ -1,0 +1,46 @@
+  <% # here we come from _show %>
+  <% update_span = "#{parent_class.to_s.underscore}_#{parent_id}_#{attribute}_list" -%>
+  <% path_to_new='new_' + parent_class.to_s.underscore.singularize + '_path' %>
+  <% model = parent_class %>
+  <% objects = parent_class.find(parent_id).children %>
+  <% objects = parent_class.find(parent_id).children.accessible_by(current_ability) if cancan_enabled? %>
+  <% objects = objects.paginate  :page => params[:page], :per_page => @PER_PAGE || 5 %>
+
+<%= raw "<div class=\"list_container\" id=\"#{update_span}\">" if ul_needed -%>
+
+<!--  # list of objects -->
+<% for object in objects %>
+    <% css_class_id = parent_class.to_s.underscore + '_' + parent_id.to_s + '_' + attribute.to_s.singularize.underscore + "_" + object.id.to_s -%>
+    <% path_to_object = attribute.to_s.singularize.underscore + "_path" %>
+  <div class="row <%= cycle('odd', 'even') %><%= " top-level" if parent_class.nil? %>" id="<%= css_class_id -%>">
+    <% if cancan_disabled? || ( can? :delete, object ) %>
+      <div  class="small-1 column">
+        <%= link_to_destroy(object, css_class_id) -%>
+      </div>
+      <div  class="small-11 column">
+        <%= link_to h(object._presentation),
+          send( path_to_object, object, :update => css_class_id),
+          :remote => true -%>
+      </div>
+    <% else %>
+      <div  class="small-12 column">
+        <%= link_to h(object._presentation),
+          send( path_to_object, object, :update => css_class_id),
+          :remote => true -%>
+      </div>
+    <% end %>
+  </div>
+<% end -%>
+<!--  # pagination -->
+<% if parent_id.nil? -%>
+  <% pagination = will_paginate objects -%>
+<% else %>
+  <% pagination = will_paginate objects, :remote => true, :params => {:controller => attribute, :action => :index, :id => nil, :parent_class => parent_class, :parent_id => parent_id, :update => "#{parent_class.to_s.underscore}_#{parent_id}_#{attribute}", :ul_needed => true  } -%>
+<% end %>
+<% if pagination %>
+  <div class="row <%= cycle('odd', 'even') %>">
+    <div class='small-11 small-centered column'>
+      <%= raw pagination %>
+    </div>
+  </div>
+<% end %>
