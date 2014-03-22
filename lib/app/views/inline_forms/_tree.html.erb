@@ -6,12 +6,12 @@
   <% objects = parent_class.find(parent_id).children.accessible_by(current_ability) if cancan_enabled? %>
   <% objects = objects.paginate  :page => params[:page], :per_page => @PER_PAGE || 5 %>
 
-<%= raw "<div class=\"list_container\" id=\"#{update_span}\">" if ul_needed -%>
+<div class="list_container" id="<%= update_span %>">
 
 <!--  # list of objects -->
 <% for object in objects %>
     <% css_class_id = parent_class.to_s.underscore + '_' + parent_id.to_s + '_' + attribute.to_s.singularize.underscore + "_" + object.id.to_s -%>
-    <% path_to_object = attribute.to_s.singularize.underscore + "_path" %>
+    <% path_to_object = parent_class.to_s.singularize.underscore + "_path" %>
   <div class="row <%= cycle('odd', 'even') %><%= " top-level" if parent_class.nil? %>" id="<%= css_class_id -%>">
     <% if cancan_disabled? || ( can? :delete, object ) %>
       <div  class="small-1 column">
