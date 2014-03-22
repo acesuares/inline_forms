@@ -3,10 +3,11 @@ InlineForms::SPECIAL_COLUMN_TYPES[:dropdown_with_other]=:belongs_to
 
 # dropdown
 def dropdown_with_other_show(object, attribute)
-  foreign_key = object.class.reflect_on_association(attribute.to_sym).options[:foreign_key] || attribute.to_s.foreign_key.to_sym
+  attribute = attribute.to_s
+  foreign_key = object.class.reflect_on_association(attribute.to_sym).options[:foreign_key] || attribute.foreign_key.to_sym
   id = object[foreign_key]
   if id == 0
-    attribute_value = object[attribute.to_s + '_other']
+    attribute_value = object[attribute + '_other']
     attribute_value = "<i class='fi-plus'></i>".html_safe if attribute_value.nil? || attribute_value.empty?
   else
     attribute_value = object.send(attribute)._presentation rescue  "<i class='fi-plus'></i>".html_safe
@@ -15,9 +16,27 @@ def dropdown_with_other_show(object, attribute)
 end
 
 def dropdown_with_other_edit(object, attribute)
-  foreign_key = object.class.reflect_on_association(attribute.to_sym).options[:foreign_key] || attribute.to_s.foreign_key.to_sym
-  #  object.send('build_' + attribute.to_s) unless object.send(attribute)
+  x ||= 1
+
+  puts "XXXXXXXXXXXXXXXXXX" + x.to_s
+  x += 1
+
+  attribute = attribute.to_s
+
+  puts "XXXXXXXXXXXXXXXXXX" + x.to_s
+  x += 1
+  
+  foreign_key = object.class.reflect_on_association(attribute.to_sym).options[:foreign_key] || attribute.foreign_key.to_sym
+
+  puts "XXXXXXXXXXXXXXXXXX" + x.to_s
+  x += 1
+
+  #  object.send('build_' + attribute) unless object.send(attribute)
   o = attribute.capitalize.constantize
+
+  puts "XXXXXXXXXXXXXXXXXX" + x.to_s
+  x += 1
+
   if cancan_enabled?
     values = o.accessible_by(current_ability).order(o.order_by_clause)
   else
@@ -28,7 +47,7 @@ def dropdown_with_other_edit(object, attribute)
   end
   values.sort_by! &:name
   collection = values.map {|v|[v.name, v.id]}
-  collection << [object[attribute.to_s + '_other'], 0] unless object[attribute.to_s + '_other'].nil? || object[attribute.to_s + '_other'].empty?
+  collection << [object[attribute + '_other'], 0] unless object[attribute + '_other'].nil? || object[attribute + '_other'].empty?
   out = '<div class="ui-widget">'
   out << select('_' + object.class.to_s.underscore, foreign_key.to_sym, collection, {selected: object[foreign_key.to_sym], prompt: 'maake een keuze'}, {id: '_' + object.class.to_s.underscore + '_' + object.id.to_s + '_'  + foreign_key.to_s})
   #  collection_select( ('_' + object.class.to_s.underscore).to_sym, attribute.to_s.foreign_key.to_sym, values, 'id', 'name', :selected => object.send(attribute).id)
@@ -52,7 +71,7 @@ def dropdown_with_other_edit(object, attribute)
  
         this.input = $( "<input name=\''
         
-    out << '_' + object.class.to_s.underscore + '[' + attribute.to_s + '_other]' 
+    out << '_' + object.class.to_s.underscore + '[' + attribute + '_other]' 
         
         out << '\'>" )
           .appendTo( this.wrapper )
@@ -128,7 +147,7 @@ def dropdown_with_other_edit(object, attribute)
  
   $(function() {
     $( "'
-    out << '#_' + object.class.to_s.underscore + '_' + object.id.to_s + '_' + attribute.to_s.foreign_key.to_s 
+    out << '#_' + object.class.to_s.underscore + '_' + object.id.to_s + '_' + attribute.foreign_key.to_s 
     out << '" ).combobox();
   });
   </script>'
@@ -138,12 +157,13 @@ def dropdown_with_other_edit(object, attribute)
 end
 
 def dropdown_with_other_update(object, attribute)
-  foreign_key = object.class.reflect_on_association(attribute.to_sym).options[:foreign_key] || attribute.to_s.foreign_key.to_sym
+  attribute = attribute.to_s
+  foreign_key = object.class.reflect_on_association(attribute.to_sym).options[:foreign_key] || attribute.foreign_key.to_sym
   # if there is an attribute attr, then there must be an attribute attr_other
-  other = params[('_' + object.class.to_s.underscore).to_sym][(attribute.to_s + "_other").to_sym]
+  other = params[('_' + object.class.to_s.underscore).to_sym][(attribute + "_other").to_sym]
   # see if it matches anything
   match = attribute.capitalize.constantize.where(name: other).first # problem if there are dupes!
   match.nil? ? object[foreign_key] = 0 : object[foreign_key] = match.id # problem if there is a record with id: 0 !
-  match.nil? ? object[attribute.to_s + '_other'] = other : object[attribute.to_s + '_other'] = nil  
+  match.nil? ? object[attribute + '_other'] = other : object[attribute + '_other'] = nil  
 end
 
