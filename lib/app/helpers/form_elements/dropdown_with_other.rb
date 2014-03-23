@@ -16,41 +16,20 @@ def dropdown_with_other_show(object, attribute)
 end
 
 def dropdown_with_other_edit(object, attribute)
-  x ||= 1
-
-  puts "XXXXXXXXXXXXXXXXXX" + x.to_s
-  x += 1
-
   attribute = attribute.to_s
-
-  puts "XXXXXXXXXXXXXXXXXX" + x.to_s
-  x += 1
-  
   foreign_key = object.class.reflect_on_association(attribute.to_sym).options[:foreign_key] || attribute.foreign_key.to_sym
-
-  puts "XXXXXXXXXXXXXXXXXX" + x.to_s
-  x += 1
-
-  #  object.send('build_' + attribute) unless object.send(attribute)
   o = attribute.capitalize.constantize
-
-  puts "XXXXXXXXXXXXXXXXXX" + x.to_s
-  x += 1
-
-  if cancan_enabled?
-    values = o.accessible_by(current_ability).order(o.order_by_clause)
-  else
-    values = o.order(o.order_by_clause)
-  end
+  values = o.all
+  values = o.accessible_by(current_ability) if cancan_enabled?
   values.each do |v|
     v.name = v._presentation
   end
-  values.sort_by! &:name
+  # values.sort_by! &:name
+
   collection = values.map {|v|[v.name, v.id]}
   collection << [object[attribute + '_other'], 0] unless object[attribute + '_other'].nil? || object[attribute + '_other'].empty?
   out = '<div class="ui-widget">'
-  out << select('_' + object.class.to_s.underscore, foreign_key.to_sym, collection, {selected: object[foreign_key.to_sym], prompt: 'maake een keuze'}, {id: '_' + object.class.to_s.underscore + '_' + object.id.to_s + '_'  + foreign_key.to_s})
-  #  collection_select( ('_' + object.class.to_s.underscore).to_sym, attribute.to_s.foreign_key.to_sym, values, 'id', 'name', :selected => object.send(attribute).id)
+  out << select('_' + object.class.to_s.underscore, foreign_key.to_sym, collection, {selected: object[foreign_key.to_sym]}, {id: '_' + object.class.to_s.underscore + '_' + object.id.to_s + '_'  + foreign_key.to_s})
   out << '</div>
   <script>
     (function( $ ) {
