@@ -18,7 +18,7 @@ end
 def dropdown_with_other_edit(object, attribute)
   attribute = attribute.to_s
   foreign_key = object.class.reflect_on_association(attribute.to_sym).options[:foreign_key] || attribute.foreign_key.to_sym
-  o = attribute.capitalize.constantize
+  o = attribute.camelcase.constantize
   values = o.all
   values = o.accessible_by(current_ability) if cancan_enabled?
   values.each do |v|
@@ -141,7 +141,7 @@ def dropdown_with_other_update(object, attribute)
   # if there is an attribute attr, then there must be an attribute attr_other
   other = params[('_' + object.class.to_s.underscore).to_sym][(attribute + "_other").to_sym]
   # see if it matches anything
-  match = attribute.capitalize.constantize.where(name: other).first # problem if there are dupes!
+  match = attribute.camelcase.constantize.where(name: other).first # problem if there are dupes!
   match.nil? ? object[foreign_key] = 0 : object[foreign_key] = match.id # problem if there is a record with id: 0 !
   match.nil? ? object[attribute + '_other'] = other : object[attribute + '_other'] = nil  
 end
