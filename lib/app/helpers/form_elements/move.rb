@@ -6,11 +6,12 @@ def move_show(object, attribute)
 end
 
 def move_edit(object, attribute)
-  o = object.send(attribute).class.name.constantize
-  collection_select( ('_' + object.class.to_s.underscore).to_sym, attribute, o.all, 'id', 'name', :selected => object.id )
+  values = object.class.send :hash_tree_to_collection
+    select( ('_' + object.class.to_s.underscore).to_sym, attribute, values, :selected => object.id )
 end
 
 def move_update(object, attribute)
-  #object.send :write_attribute, attribute.to_sym, params[attribute.to_sym]
+  parent = object.class.find_by_id(params['_' + object.class.to_s.underscore][attribute.to_sym])
+  parent.add_child(object) if parent
 end
 
