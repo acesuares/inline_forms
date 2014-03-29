@@ -1,5 +1,8 @@
 <div class="row">
-  <div class='small-11 small-centered column'>
+  <div class='medium-1 large-1 column'>
+    &nbsp;
+  </div>
+  <div class='small-11 column'>
     <% unless @skip %>
     <div class="row object_presentation">
       <div class="small-11 column object_presentation">
@@ -32,7 +35,10 @@
               </div>
             </div>
             <div class="row <%= cycle('odd', 'even') %>">
-              <div id="<%= css_class_id -%>" class='small-11 small-centered column' >
+                <div class='medium-1 large-1 column'>
+                  &nbsp;
+                </div>
+              <div id="<%= css_class_id -%>" class='small-11 column' >
                 <%= render  :partial => "inline_forms/tree",
                   :locals => {  :parent_class => @object.class,
                                 :parent_id    => @object.id,
@@ -50,7 +56,10 @@
       	        </div>
       	      </div>
       	      <div class="row <%= cycle('odd', 'even') %>">
-      	        <div id="<%= css_class_id -%>" class='small-11 small-centered column' >
+                <div class='medium-1 large-1 column'>
+                  &nbsp;
+                </div>
+      	        <div id="<%= css_class_id -%>" class='small-11 column' >
       	          <%= render  :partial => "inline_forms/list",
       	            :locals => {  :parent_class => @object.class,
       								            :parent_id    => @object.id,
@@ -59,7 +68,7 @@
       	      </div>
             <% else -%>
               <div class="row <%= cycle('odd', 'even') %>">
-                <div class='medium-3 large-3 column' >
+                <div class='medium-5 large-5 column' >
                   <% if @object.has_validations_for?(attribute) -%>
                     <span data-tooltip class="has-tip tip-top" title="<%= validation_hints_as_list_for(@object, attribute).html_safe -%>">
                       <%= @object.class.human_attribute_name(attribute) -%>
@@ -68,7 +77,7 @@
                     <%= @object.class.human_attribute_name(attribute) -%>
                   <% end %>
                 </div>
-                <div class='medium-9 large-9 column' >
+                <div class='medium-7 large-7 column' >
                   <span id="<%= css_class_id -%>" >
                     <%= send("#{form_element}_show", @object, attribute) -%>
                   </span>

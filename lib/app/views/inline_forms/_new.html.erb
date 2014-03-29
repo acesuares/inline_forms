@@ -33,10 +33,10 @@
           </div>
         <% else %>
           <div class="row <%= cycle('odd', 'even') %>">
-            <div class='medium-3 large-3 column' >
+            <div class='medium-5 large-5 column' >
               <%= @object.class.human_attribute_name(attribute) -%>
             </div>
-            <div class='medium-9 large-9 column' >
+            <div class='medium-7 large-7 column' >
               <span id="<%= css_class_id -%>" > <%= send("#{form_element}_edit", @object, attribute) -%> </span>
             </div>
           </div>
@@ -44,7 +44,10 @@
       <% end -%>
     <% end -%>
     <div class="row <%= cycle('odd', 'even') %>">
-      <div class='small-11 small-centered column' >
+                  <div class='medium-1 large-1 column'>
+                  &nbsp;
+                </div>
+    <div class='small-11  column' >
         <%= link_to( send(@Klass.to_s.underscore.pluralize + '_path', :update => @update_span,
                                                                       :parent_class => @parent_class,
                                                                       :parent_id => @parent_id,
