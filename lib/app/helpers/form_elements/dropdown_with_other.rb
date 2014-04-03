@@ -142,9 +142,11 @@ def dropdown_with_other_update(object, attribute)
   other = params[('_' + object.class.to_s.underscore).to_sym][(attribute + "_other").to_sym]
   # see if it matches anything (but we need to look at I18n too!
   lookup_model = attribute.camelcase.constantize
-  name_field = 'name_' + I18n.locale
-  name_field = 'name' unless lookup_model.respond_to? name_field
-  match = lookup_model.where('? = ?', name_field, other).first # problem if there are dupes!
+  name_field = 'name_' + I18n.locale.to_s
+  name_field = 'name' unless lookup_model.new.respond_to? name_field
+  puts 'XXXXXXXXXXXXXXXXXXXX ' + name_field.inspect
+  match = lookup_model.where(name_field.to_sym => other).first # problem if there are dupes!
+  puts 'XXXXXXXXXXXXXXXXXXXX ' + match.inspect
   match.nil? ? object[foreign_key] = 0 : object[foreign_key] = match.id # problem if there is a record with id: 0 !
   match.nil? ? object[attribute + '_other'] = other : object[attribute + '_other'] = nil  
 end
