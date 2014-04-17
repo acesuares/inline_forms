@@ -90,6 +90,8 @@ END_DATABASEYML
 say "- Devise install..."
 run "bundle exec rails g devise:install"
 
+# TODO ROYTJE Devise creates a model. That is a migration, a test, a route and a model. We delete the model, the route, and the test probably too. Is there another way to just create the migration instead of all the stuff that we are going to delete anyway !?
+
 say "- Devise User model install with added name and locale field..."
 run "bundle exec rails g devise User name:string locale:string"
 
@@ -173,14 +175,22 @@ create_file "app/models/user.rb", <<-USER_MODEL.strip_heredoc
   end
 USER_MODEL
 
+# TODO ROYTJE This above is all that: Devise creates a model. That is a migration, a test, a route and a model. We delete the model, the route, and the test probably too. Is there another way to just create the migration instead of all the stuff that we are going to delete anyway !?
+
+
 say "- Install ckeditor..."
 generate "ckeditor:install --backend=carrierwave"
+
+# TODO ROYTJE urgent, get ckeditor to work with carrierwave (the normal carrierwave, not -db)
+
 
 say "- Mount Ckeditor::Engine to routes..."
 route "mount Ckeditor::Engine => '/ckeditor'"
 
 say "- Add ckeditor autoload_paths to application.rb..."
-application "config.autoload_paths += %W(\#{config.root}/app/models/ckeditor)"
+application "config.autoload_paths += %W(\#{config.root}/app/models/ckeditor)" # TODO ROYTJE is this still needed?
+
+
 
 say "- Add ckeditor/init to application.js..."
 insert_into_file "app/assets/javascripts/application.js",
@@ -194,15 +204,12 @@ say "- Add remotipart to application.js..."
 insert_into_file "app/assets/javascripts/application.js", "//= require jquery.remotipart\n", :before => "//= require_tree .\n"
 
 say "- Paper_trail install..."
-generate "paper_trail:install"
+generate "paper_trail:install" # TODO One day, we need some management tools so we can actually SEE the versions, restore them etc. 
 
-say "- Generate models and tables and views for translations..."
-# using generate this way http://api.rubyonrails.org/classes/Rails/Generators/Actions.html#method-i-generate
-# run "bundle install"
 say "- Installaing ZURB Foundation..."
 generate "foundation:install"
 
-say "- Generate models and tables and views for translations..."
+say "- Generate models and tables and views for translations..." # TODO Translations need to be done in inline_forms, and then generate a yml file, perhaps 
 generate "inline_forms", "InlineFormsLocale name:string inline_forms_translations:belongs_to _enabled:yes _presentation:\#{name}"
 generate "inline_forms", "InlineFormsKey name:string inline_forms_translations:has_many inline_forms_translations:associated _enabled:yes _presentation:\#{name}"
 generate "inline_forms", "InlineFormsTranslation inline_forms_key:belongs_to inline_forms_locale:dropdown value:text interpolations:text is_proc:boolean _presentation:\#{value}"

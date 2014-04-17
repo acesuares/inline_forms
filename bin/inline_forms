@@ -15,7 +15,10 @@ module InlineForms
     desc "create APP", "create an application with inline_forms v#{VERSION}"
     DATABASE_OPTIONS = %w(sqlite mysql)
     method_option :database, :aliases => "-d", :default => DATABASE_OPTIONS.first, :banner => DATABASE_OPTIONS.join('|'), :desc => 'specify development database'
+    # TODO ROYTJE specify sqlite OR mysql, and if none is specified, ASK THE USER.
+   
     method_option :dry, :type => :boolean, :desc => 'dry run. Do not do most things. Only useful for development of inline_forms'
+    # TODO ROYTJE Remove ALL dry run code. We don't do dry runs anymore.
     method_option :example, :type => :boolean, :desc => 'install the example app. incompatible with --dry and uses sqlite as development database'
     method_option :email, :aliases => "-e", :default => "admin@example.com", :desc => 'specify admin email'
     method_option :password, :aliases => "-p", :default => "admin999", :desc => 'specify admin password'
@@ -115,7 +118,7 @@ module InlineForms
 				app_template_file = File.join(File.dirname(__FILE__), 'inline_forms_app_template.rb')
 
         if ! run("rails _3.2.12_ new #{app_name} -m #{app_template_file} --skip-bundle --skip-gemfile --skip-test-unit")
-          say "Rails could not create the app '#{app_name}', maybe because it is a reserved word...", :red
+          say "Rails could not create the app '#{app_name}', maybe because it is a reserved word...", :red # TODO ROYTJE MAKE ERROR MESSAGE MORE RELEVANT # Rails could not create the app 'MyApp', maybe because it is a reserved word..
           exit 1
         end
       end
