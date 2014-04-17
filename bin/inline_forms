@@ -1,33 +1,17 @@
 #!/usr/bin/env ruby
 module InlineForms
-
   require File.join(File.dirname(__FILE__), "../lib/inline_forms/version.rb")
-
-  require 'rvm'
-  if not RVM.current
-    puts "ruby or rvm not found"
-    exit 2
-  end
 
   # what is this?
   Signal.trap("INT") { puts; exit }
 
   require 'thor'
-
   class Creator < Thor
     include Thor::Actions
-
-    String.class_eval do
-      def strip_heredoc_with_indent(indent=0)
-        new_indent = ( self.empty? ? 0 : ( scan(/^[ \t]*(?=\S)/).min.size - indent ) )
-        gsub(/^[ \t]{#{new_indent}}/, '')
-      end
-    end
 
     def self.source_root
       File.dirname(__FILE__)+"/.."
     end
-
     desc "create APP", "create an application with inline_forms v#{VERSION}"
     DATABASE_OPTIONS = %w(sqlite mysql)
     method_option :database, :aliases => "-d", :default => DATABASE_OPTIONS.first, :banner => DATABASE_OPTIONS.join('|'), :desc => 'specify development database'
@@ -35,8 +19,17 @@ module InlineForms
     method_option :example, :type => :boolean, :desc => 'install the example app. incompatible with --dry and uses sqlite as development database'
     method_option :email, :aliases => "-e", :default => "admin@example.com", :desc => 'specify admin email'
     method_option :password, :aliases => "-p", :default => "admin999", :desc => 'specify admin password'
+    method_option :runtest, :aliases => "\-\-run-test", :default => false, :desc => 'run tests'
+    method_option :skiprvm, :aliases => "\-\-no-rvm", :type => :boolean, :default => false, :desc => 'install inline_forms without RVM'
 
     def create(app_name)
+      def self.skiprvm
+        options[:skiprvm]
+      end
+
+      def self.runtest
+        options[:runtest]
+      end
 
       def self.dry_run?
         options[:dry]
@@ -87,16 +80,39 @@ module InlineForms
         exit 1
       end
 
+      # TODO: optioneel, detecteren dat er RVM er is als het niet zo is dan zonder RVM instaleren
+      # Maybe via the method.options (THOR)?? 
+      # using_rvm = false # for testing purpose only need to do this another way.
+      require 'rvm'
+      # if RVM is detected and the user has not disabled using rvm via command than use rvm else without
+      if RVM.current && !options[:skiprvm]
+        # Let the user know that he are installing the inline_forms with support of RVM
+        say "Installing inline_forms with RVM", :green
+        # which ruby version is currently activated?
+        ruby_version = (%x[rvm current]).gsub(/@.*/,'')
+        # Create a ruby rvm-file version based on the version detected
+        create_file "#{app_name}/.ruby-version", ruby_version
+        # Creat a ruby-gemset rvm-file based on the version detected 
+        create_file "#{app_name}/.ruby-gemset", app_name
+      else
+        # Let the user know that he is installing inline_forms without RVM
+        say "Installing inline_forms without RVM", :green
+      end
+
       if dry_run?
         empty_directory(app_name)
       else
         empty_directory(app_name)
+        
+        # need to pass all agruments for app template
+        options.each do | k,v | 
+          ENV[k] = v.to_s
+        end
+        ENV['using_sqlite'] = using_sqlite?.to_s
+        ENV['install_example'] = install_example?.to_s
+        ENV['ruby_version'] = ruby_version
 
-      	ruby_version = (%x[rvm current]).gsub(/@.*/,'')
-      	create_file "#{app_name}/.ruby-version", ruby_version
-      	create_file "#{app_name}/.ruby-gemset", app_name
-
-		app_template_file = File.join(File.dirname(__FILE__), 'inline_forms_app_template.rb')
+				app_template_file = File.join(File.dirname(__FILE__), 'inline_forms_app_template.rb')
 
         if ! run("rails _3.2.12_ new #{app_name} -m #{app_template_file} --skip-bundle --skip-gemfile --skip-test-unit")
           say "Rails could not create the app '#{app_name}', maybe because it is a reserved word...", :red
@@ -104,7 +120,6 @@ module InlineForms
         end
       end
     end
-
     Creator.start
   end
 end
