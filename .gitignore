@@ -44,4 +44,5 @@ pkg
 .ruby-version
 .ruby-gemset
 .gitignore
+.idea
 bin/LETOVER
