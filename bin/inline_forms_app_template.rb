@@ -11,7 +11,7 @@ if RVM.current && ENV['skiprvm'] !='true'
          # to fix temporarily in this shell session run: 'rvm use ruby-2.0.0-p247@MyApp'.
     rvm_gemset = %x[rvm current]
     say "RVM GEMSET is now #{rvm_gemset}"
-    say "Installing using gemset : #{RVM.current}", :green # TODO ROYTJE FIX THIS Installing using gemset : #<RVM::Environment:0xa319a70>
+    say "Installing using gemset : #{RVM.current.environment_name}", :green
   end
 else
   say "Installing without RVM", :green
