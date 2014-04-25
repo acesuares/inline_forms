@@ -3,7 +3,7 @@ InlineForms::SPECIAL_COLUMN_TYPES[:image_field]=:string
 
 def image_field_show(object, attribute)
   o = object.send(attribute)
-  msg = o.to_s
+  msg = "<i class='fi-plus'></i>".html_safe
   if o.send(:present?)
     if o.respond_to? :palm
       msg = image_tag(o.send(:palm).send(:url))
