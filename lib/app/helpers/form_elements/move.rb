@@ -11,9 +11,7 @@ def move_edit(object, attribute)
 end
 
 def move_update(object, attribute)
-  # parent = object.class.find_by_id(params['_' + object.class.to_s.underscore][attribute.to_sym])
-  # parent.add_child(object) if parent
-  sibling = object.class.find_by_id(params['_' + object.class.to_s.underscore][attribute.to_sym])
-  sibling.append_sibling(object)
+  target = object.class.find_by_id(params['_' + object.class.to_s.underscore][attribute.to_sym])
+  target.add_child(object)
 end
 
