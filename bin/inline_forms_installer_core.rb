@@ -402,13 +402,13 @@ remove_file 'spec/models/user_spec.rb'
 # environments/production.rb
 #create_file "#{app_name}/config/environments/production.rb", "  #config.assets.precompile += %w( search.js )\nend\n" if dry_run?
 say "- Injecting precompile assets stuff in environments/production.rb..."
-insert_into_file "#{app_name}/config/environments/production.rb",
+insert_into_file "config/environments/production.rb",
         "  config.assets.precompile += %w(inline_forms_application.js inline_forms_application.css devise.css)\n",
         :after => "  # config.assets.precompile += %w( search.js )\n"
  
 # devise mailer stuff
 say "- Injecting devise mailer stuff in environments/production.rb..."
-insert_into_file "#{app_name}/config/environments/production.rb", <<-DEVISE_MAILER_STUFF.strip_heredoc_with_indent(2), :before => "end\n"
+insert_into_file "config/environments/production.rb", <<-DEVISE_MAILER_STUFF.strip_heredoc_with_indent(2), :before => "end\n"
   # for devise
   config.action_mailer.default_url_options = { :protocol => 'https', :host => 'YOURHOSTNAME' }
   config.action_mailer.delivery_method = :smtp
@@ -424,23 +424,23 @@ DEVISE_MAILER_STUFF
 # assets
 say "- Setting config.assets.compile to true in environments/production.rb (needed for ckeditor)..."
 #insert_into_file "#{app_name}/config/environments/production.rb", "config.assets.compile = false\n", :before => "end\n" if dry_run?
-gsub_file "#{app_name}/config/environments/production.rb", /config.assets.compile = false/, "config.assets.compile = true"
+gsub_file "config/environments/production.rb", /config.assets.compile = false/, "config.assets.compile = true"
 
 # capify
 say "- Capify..."
 run 'capify .'
-remove_file "#{app_name}/config/deploy.rb" # remove the file capify created!
-copy_file "lib/generators/templates/deploy.rb", "#{app_name}/config/deploy.rb"
+remove_file "config/deploy.rb" # remove the file capify created!
+copy_file "lib/generators/templates/deploy.rb", "config/deploy.rb"
 
 # Unicorn
 say "- Unicorn Config..."
-copy_file "lib/generators/templates/unicorn.rb", "#{app_name}/config/unicorn.rb"
+copy_file "lib/generators/templates/unicorn.rb", "config/unicorn.rb"
 
 # Git
 say "- Initializing git..."
 run 'git init'
 #create_file "#{app_name}/.gitignore", "/tmp\n" if dry_run?
-insert_into_file "#{app_name}/.gitignore", <<-GITIGNORE.strip_heredoc_with_indent, :after => "/tmp\n"
+insert_into_file ".gitignore", <<-GITIGNORE.strip_heredoc_with_indent, :after => "/tmp\n"
   # netbeans
   nbproject
   # remotipart uploads
