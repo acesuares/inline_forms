@@ -130,7 +130,7 @@ create_file "app/models/user.rb", <<-USER_MODEL.strip_heredoc
 
     # Setup accessible (or protected) attributes for your model
     attr_writer :inline_forms_attribute_list
-    attr_accessible :email, :password, :locale
+    attr_accessible :email, :password, :locale, :remember_me
 
     belongs_to :locale
     has_and_belongs_to_many :roles
@@ -190,12 +190,12 @@ create_file "app/models/user.rb", <<-USER_MODEL.strip_heredoc
 USER_MODEL
 
 say "- Adding admin user with email: #{ENV['email']}, password: #{ENV['password']} to seeds.rb"
-append_to_file "db/seeds.rb", "User.create({ id: 1, email: '#{ENV['email']}', locale_id: 1, name: 'Admin', password: '#{ENV['password']}', password_confirmation: '#{ENV['password']}' }, without_protection: true)"
+append_to_file "db/seeds.rb", "User.create({ id: 1, email: '#{ENV['email']}', locale_id: 1, name: 'Admin', password: '#{ENV['password']}', password_confirmation: '#{ENV['password']}' }, without_protection: true)\n"
 
 # Create Locales
 say "- Create locales"
-generate "inline_forms", "Locale name:string title:string users:has_many _enabled:yes _presentation:\#{title} (\#{name})"
-append_to_file "db/seeds.rb", "Locale.create({ id: 1, name: 'en', title: 'English' }, without_protection: true)"
+generate "inline_forms", "Locale name:string title:string users:has_many _enabled:yes _presentation:\#{title}"
+append_to_file "db/seeds.rb", "Locale.create({ id: 1, name: 'en', title: 'English' }, without_protection: true)\n"
 
 # Create Roles
 say "- Create roles"
@@ -220,7 +220,7 @@ create_file "db/migrate/" +
   end
 ROLES_MIGRATION
 
-append_to_file "db/seeds.rb", "Role.create({ id: 1, name: 'superadmin', description: 'Super Admin can access all.' }, without_protection: true)"
+append_to_file "db/seeds.rb", "Role.create({ id: 1, name: 'superadmin', description: 'Super Admin can access all.' }, without_protection: true)\n"
 
 # TODO ROYTJE This above is all that: Devise creates a model. That is a migration, a test, a route and a model. We delete the model, the route, and the test probably too. Is there another way to just create the migration instead of all the stuff that we are going to delete anyway !?
 
