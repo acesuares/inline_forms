@@ -206,9 +206,9 @@ create_file "db/migrate/" +
   "inline_forms_create_join_table_user_role.rb", <<-ROLES_MIGRATION.strip_heredoc
   class InlineFormsCreateJoinTableUserRole < ActiveRecord::Migration
     def self.up
-      create_table "roles_users", :id => false, :force => true do |t|
-        t.integer :role_id
-        t.integer :user_id
+      create_table  :roles_users, :id => false, :force => true do |t|
+        t.integer   :role_id
+        t.integer   :user_id
       end
       execute 'INSERT INTO roles_users VALUES (1,1);'
     end
