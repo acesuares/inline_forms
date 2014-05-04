@@ -400,7 +400,7 @@ remove_file 'spec/factories/users.rb'
 remove_file 'spec/models/user_spec.rb'
 
 # environments/production.rb
-create_file "#{app_name}/config/environments/production.rb", "  #config.assets.precompile += %w( search.js )\nend\n" if dry_run?
+#create_file "#{app_name}/config/environments/production.rb", "  #config.assets.precompile += %w( search.js )\nend\n" if dry_run?
 say "- Injecting precompile assets stuff in environments/production.rb..."
 insert_into_file "#{app_name}/config/environments/production.rb",
         "  config.assets.precompile += %w(inline_forms_application.js inline_forms_application.css devise.css)\n",
@@ -423,7 +423,7 @@ DEVISE_MAILER_STUFF
 
 # assets
 say "- Setting config.assets.compile to true in environments/production.rb (needed for ckeditor)..."
-insert_into_file "#{app_name}/config/environments/production.rb", "config.assets.compile = false\n", :before => "end\n" if dry_run?
+#insert_into_file "#{app_name}/config/environments/production.rb", "config.assets.compile = false\n", :before => "end\n" if dry_run?
 gsub_file "#{app_name}/config/environments/production.rb", /config.assets.compile = false/, "config.assets.compile = true"
 
 # capify
@@ -439,7 +439,7 @@ copy_file "lib/generators/templates/unicorn.rb", "#{app_name}/config/unicorn.rb"
 # Git
 say "- Initializing git..."
 run 'git init'
-create_file "#{app_name}/.gitignore", "/tmp\n" if dry_run?
+#create_file "#{app_name}/.gitignore", "/tmp\n" if dry_run?
 insert_into_file "#{app_name}/.gitignore", <<-GITIGNORE.strip_heredoc_with_indent, :after => "/tmp\n"
   # netbeans
   nbproject
