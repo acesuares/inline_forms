@@ -431,12 +431,12 @@ gsub_file "config/environments/production.rb", /config.assets.compile = false/, 
 say "- Capify..."
 run 'capify .'
 remove_file "config/deploy.rb" # remove the file capify created!
-copy_file File.join(File.dirname(File.expand_path(__FILE__)) + '/../lib/generators/templates/deploy.rb", "config/deploy.rb"
+copy_file File.join(File.dirname(File.expand_path(__FILE__)) + '/../lib/generators/templates/deploy.rb'), "config/deploy.rb"
 # TODO: ROYJE isn't there a better way to find the path?
 
 # Unicorn
 say "- Unicorn Config..."
-copy_file File.join(File.dirname(File.expand_path(__FILE__)) + '/../lib/generators/templates/unicorn.rb", "config/unicorn.rb"
+copy_file File.join(File.dirname(File.expand_path(__FILE__)) + '/../lib/generators/templates/unicorn.rb'), "config/unicorn.rb"
 
 # Git
 say "- Initializing git..."
