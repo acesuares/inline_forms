@@ -336,95 +336,155 @@ say "- Generating test files", :green
 # run "bundle exec rspec:install" # TODO: I need do this or simply copy the files in the spec folder ?
 create_file "spec/spec_helper.rb", <<-END_TEST_HELPER.strip_heredoc
   # This file is copied to spec/ when you run 'rails generate rspec:install'
-ENV["RAILS_ENV"] ||= 'development' # this need to be changed to test ???
-require File.expand_path("../../config/environment", __FILE__)
-require 'capybara/rspec'
-require 'rspec/rails'
-require 'rspec/autorun'
-require 'carrierwave/test/matchers'
-
-
-# Requires supporting ruby files with custom matchers and macros, etc,
-# in spec/support/ and its subdirectories.
-Dir[Rails.root.join("spec/support/**/*.rb")].each { |f| require f }
-
-RSpec.configure do |config|
-  config.include FactoryGirl::Syntax::Methods
-  # ## Mock Framework
-  #
-  # If you prefer to use mocha, flexmock or RR, uncomment the appropriate line:
-  #
-  # config.mock_with :mocha
-  # config.mock_with :flexmock
-  # config.mock_with :rr
-
-  # Remove this line if you're not using ActiveRecord or ActiveRecord fixtures
-  config.fixture_path = Rails.root + "/spec/fixtures"
-
-  # If you're not using ActiveRecord, or you'd prefer not to run each of your
-  # examples within a transaction, remove the following line or assign false
-  # instead of true.
-  config.use_transactional_fixtures = true
-
-  # If true, the base class of anonymous controllers will be inferred
-  # automatically. This will be the default behavior in future versions of
-  # rspec-rails.
-  config.infer_base_class_for_anonymous_controllers = false
-
-  # Run specs in random order to surface order dependencies. If you find an
-  # order dependency and want to debug it, you can fix the order by providing
-  # the seed, which is printed after each run.
-  #     --seed 1234
-  config.order = "random"
-end
+  ENV["RAILS_ENV"] ||= 'development' # this need to be changed to test ???
+  require File.expand_path("../../config/environment", __FILE__)
+  require 'capybara/rspec'
+  require 'rspec/rails'
+  require 'rspec/autorun'
+  require 'carrierwave/test/matchers'
+  
+  
+  # Requires supporting ruby files with custom matchers and macros, etc,
+  # in spec/support/ and its subdirectories.
+  Dir[Rails.root.join("spec/support/**/*.rb")].each { |f| require f }
+  
+  RSpec.configure do |config|
+    config.include FactoryGirl::Syntax::Methods
+    # ## Mock Framework
+    #
+    # If you prefer to use mocha, flexmock or RR, uncomment the appropriate line:
+    #
+    # config.mock_with :mocha
+    # config.mock_with :flexmock
+    # config.mock_with :rr
+  
+    # Remove this line if you're not using ActiveRecord or ActiveRecord fixtures
+    config.fixture_path = Rails.root + "/spec/fixtures"
+  
+    # If you're not using ActiveRecord, or you'd prefer not to run each of your
+    # examples within a transaction, remove the following line or assign false
+    # instead of true.
+    config.use_transactional_fixtures = true
+  
+    # If true, the base class of anonymous controllers will be inferred
+    # automatically. This will be the default behavior in future versions of
+    # rspec-rails.
+    config.infer_base_class_for_anonymous_controllers = false
+  
+    # Run specs in random order to surface order dependencies. If you find an
+    # order dependency and want to debug it, you can fix the order by providing
+    # the seed, which is printed after each run.
+    #     --seed 1234
+    config.order = "random"
+  end
 END_TEST_HELPER
+
 say 'copy test image into rspec folder'
 copy_file File.join(File.dirname(File.expand_path(__FILE__)) + '/../lib/otherstuff/fixtures/rails.png'), "spec/fixtures/images/rails.png"
 say '- Creating factory_girl file'
 create_file "spec/factories/inline_forms.rb", <<-END_FACTORY_GIRL.strip_heredoc
-FactoryGirl.define do
-  factory :apartment do
-    name "Luxe House in Bandabou 147A" #string
-    title "A dream house in a dream place" # string 
-    description "A beatiful House at the edge of the <strong>sea</strong>" #text
+  FactoryGirl.define do
+    factory :apartment do
+      name "Luxe House in Bandabou 147A" #string
+      title "A dream house in a dream place" # string 
+      description "A beatiful House at the edge of the <strong>sea</strong>" #text
+    end
+    factory :large_text do
+      name "Luxe House in Bandabou 147A" #string
+      title "A dream house in a dream place" # string 
+      description "A beatiful House at the edge of the <strong>sea</strong>" #text
+    end
   end
-  factory :large_text do
-    name "Luxe House in Bandabou 147A" #string
-    title "A dream house in a dream place" # string 
-    description "A beatiful House at the edge of the <strong>sea</strong>" #text
-  end
-end
 END_FACTORY_GIRL
 remove_file 'spec/factories/users.rb' 
 remove_file 'spec/models/user_spec.rb'
+
+# environments/production.rb
+create_file "#{app_name}/config/environments/production.rb", "  #config.assets.precompile += %w( search.js )\nend\n" if dry_run?
+say "- Injecting precompile assets stuff in environments/production.rb..."
+insert_into_file "#{app_name}/config/environments/production.rb",
+        "  config.assets.precompile += %w(inline_forms_application.js inline_forms_application.css devise.css)\n",
+        :after => "  # config.assets.precompile += %w( search.js )\n"
+ 
+# devise mailer stuff
+say "- Injecting devise mailer stuff in environments/production.rb..."
+insert_into_file "#{app_name}/config/environments/production.rb", <<-DEVISE_MAILER_STUFF.strip_heredoc_with_indent(2), :before => "end\n"
+  # for devise
+  config.action_mailer.default_url_options = { :protocol => 'https', :host => 'YOURHOSTNAME' }
+  config.action_mailer.delivery_method = :smtp
+  config.action_mailer.smtp_settings = {
+    :address => 'YOURMAILSERVER',
+    :enable_starttls_auto => true,
+    :password => 'YOURPASSWORD',
+    :user_name => 'YOURUSERNAME'
+  }
+
+DEVISE_MAILER_STUFF
+
+# assets
+say "- Setting config.assets.compile to true in environments/production.rb (needed for ckeditor)..."
+insert_into_file "#{app_name}/config/environments/production.rb", "config.assets.compile = false\n", :before => "end\n" if dry_run?
+gsub_file "#{app_name}/config/environments/production.rb", /config.assets.compile = false/, "config.assets.compile = true"
+
+# capify
+say "- Capify..."
+run 'capify .'
+remove_file "#{app_name}/config/deploy.rb" # remove the file capify created!
+copy_file "lib/generators/templates/deploy.rb", "#{app_name}/config/deploy.rb"
+
+# Unicorn
+say "- Unicorn Config..."
+copy_file "lib/generators/templates/unicorn.rb", "#{app_name}/config/unicorn.rb"
+
+# Git
+say "- Initializing git..."
+run 'git init'
+create_file "#{app_name}/.gitignore", "/tmp\n" if dry_run?
+insert_into_file "#{app_name}/.gitignore", <<-GITIGNORE.strip_heredoc_with_indent, :after => "/tmp\n"
+  # netbeans
+  nbproject
+  # remotipart uploads
+  public/uploads
+GITIGNORE
+
+run 'git add .'
+run 'git commit -a -m " * Initial"'
+
+# example
 if ENV['install_example'] == 'true'
-          say "\nInstalling example application..."
-          run 'bundle exec rails g inline_forms Photo name:string caption:string image:image_field description:text apartment:belongs_to _presentation:\'#{name}\'' # FIXME temporary changed because ckeditor is playing dirty
-          run 'bundle exec rails generate uploader Image'
-          run 'bundle exec rails g inline_forms Apartment name:string title:string description:text photos:has_many photos:associated _enabled:yes _presentation:\'#{name}\'' # FIXME temporary changed because ckeditor is playing dirty
-          run 'bundle exec rake db:migrate'
-          say '-Adding example test'
-          create_file "spec/models/#{app_name}_example.rb", <<-END_EXAMPLE_TEST.strip_heredoc
-            require "spec_helper"
-            describe Apartment do
-              it "insert an appartment and retrieve it" do
-                appartment_data = create(:apartment)
-                first =  Apartment.first.id
-                expect(Apartment.first.id).to eq(first)
-              end
-            end
-          END_EXAMPLE_TEST
-        # run tests
-        if ENV['runtest'] == 'true' # Not Dry 
-        run "rspec"
-        end
-          say "\nDone! Now point your browser to http://localhost:3000/apartments !", :yellow
-          say "\nPress ctlr-C to quit...", :yellow
-          run 'bundle exec rails s'
-        else
-          say "\nDone! Now make your tables with 'bundle exec rails g inline_forms ...", :yellow
-        # run tests
-        if ENV['runtest'] == 'true'
-        run "rspec"
+  say "\nInstalling example application..."
+  run 'bundle exec rails g inline_forms Photo name:string caption:string image:image_field description:text apartment:belongs_to _presentation:\'#{name}\'' # FIXME temporary changed because ckeditor is playing dirty
+  run 'bundle exec rails generate uploader Image'
+  run 'bundle exec rails g inline_forms Apartment name:string title:string description:text photos:has_many photos:associated _enabled:yes _presentation:\'#{name}\'' # FIXME temporary changed because ckeditor is playing dirty
+  run 'bundle exec rake db:migrate'
+  say '-Adding example test'
+  create_file "spec/models/#{app_name}_example.rb", <<-END_EXAMPLE_TEST.strip_heredoc
+    require "spec_helper"
+    describe Apartment do
+      it "insert an appartment and retrieve it" do
+        appartment_data = create(:apartment)
+        first =  Apartment.first.id
+        expect(Apartment.first.id).to eq(first)
       end
-        end
+    end
+  END_EXAMPLE_TEST
+
+  # run tests
+  # if ENV['runtest'] == 'true' # Not Dry 
+  #   run "rspec"
+  # end
+  run "rspec" if ENV['runtest'] # Drier!
+
+  # done!
+  say "\nDone! Now point your browser to http://localhost:3000/apartments !", :yellow
+  say "\nPress ctlr-C to quit...", :yellow
+  run 'bundle exec rails s'
+else
+  # run tests
+  run "rspec" if ENV['runtest']
+  # done!
+  say "\nDone! Now make your tables with 'bundle exec rails g inline_forms ...", :yellow
+end
+
+
+#say "- Don't forget: edit .rvmrc, config/{routes.rb, deploy.rb}, .git/config, delete public/index.html\n"
