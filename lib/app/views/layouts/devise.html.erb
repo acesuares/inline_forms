@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,400italic' rel='stylesheet' type='text/css' />
-    <title><%= t('application_name') + " v" + InlineForms::VERSION -%></title>
+    <title><%= application_title + " v" + InlineForms::VERSION -%></title>
 
     <%= stylesheet_link_tag    "application" %>
     <%= javascript_include_tag "vendor/modernizr" %>
@@ -13,21 +13,29 @@
 
   <body>
 
-    <div id="devise-header"class="row">
-      <div class="small-6 small-centered columns">
-        <%= image_tag 'devise_header.png' %>
-      </div>
-    </div>
+    <div id="devise_outer_container">
 
+      <div class="row contain-to-grid">
+        <nav id='devise_top_bar' class="top-bar" data-topbar>
+          <ul class="title-area">
+            <li class="name">
+              <h1><a href="/"><%= application_name %> v<%= inline_forms_version %></a></h1>
+            </li>
+            <li class="toggle-topbar menu-icon">
+              <a href="#"><span></span></a>
+            </li>
+          </ul>
+          <section class="top-bar-section">
+            <ul class="right">
+            </ul>
+          </section>
+        </nav>
+      </div>
+<% flash.each do |name, msg| %>
+    <%= content_tag :div, msg, :id => "flash_#{name}", :class => "flash row" %>
+<% end %>
     <%= yield %>
 
-    <div id="devise-footer" class="row">
-      <div class="small-6 columns">
-        <%= image_tag 'devise_footer_left.png' %>
-      </div>
-      <div class="small-6 columns">
-        <%= image_tag 'devise_footer_right.png' %>
-      </div>
     </div>
 
     <%= javascript_include_tag "application" %>

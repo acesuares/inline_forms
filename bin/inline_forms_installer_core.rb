@@ -93,7 +93,7 @@ run "bundle exec rails g devise:install"
 # TODO ROYTJE Devise creates a model. That is a migration, a test, a route and a model. We delete the model, the route, and the test probably too. Is there another way to just create the migration instead of all the stuff that we are going to delete anyway !?
 
 say "- Devise User model install with added name and locale field..."
-run "bundle exec rails g devise User name:string locale:string"
+run "bundle exec rails g devise User name:string locale_id:integer"
 
 say "- Replace Devise route and add path_prefix..."
 gsub_file "config/routes.rb", /devise_for :users/, "devise_for :users, :path_prefix => 'auth'"
@@ -129,11 +129,16 @@ create_file "app/models/user.rb", <<-USER_MODEL.strip_heredoc
     # devise :omniauthable
 
     # Setup accessible (or protected) attributes for your model
-    attr_accessible :email, :password, :password_confirmation, :remember_me, :name, :locale
     attr_writer :inline_forms_attribute_list
+    attr_accessible :email, :password, :locale
 
+    belongs_to :locale
+    has_and_belongs_to_many :roles
+    
     # validations
     validates :name, :presence => true
+
+    default_scope order :name
 
     # pagination
     attr_reader :per_page
@@ -145,22 +150,31 @@ create_file "app/models/user.rb", <<-USER_MODEL.strip_heredoc
       "\#{name}"
     end
 
+    def role?(role)
+      return !!self.roles.find_by_name(role)
+    end
+
     def inline_forms_attribute_list
       @inline_forms_attribute_list ||= [
-        [ :name , 'name', :text_field ],
-        [ :email , 'email', :text_field ],
-        [ :password , 'Nieuw wachtwoord', :devise_password_field ],
-        [ :encrypted_password , 'encrypted_password', :info ],
-        [ :reset_password_token , 'reset_password_token', :info ],
-        [ :reset_password_sent_at , 'reset_password_sent_at', :info],
-        [ :remember_created_at , 'remember_created_at', :info ],
-        [ :sign_in_count , 'sign_in_count', :info ],
-        [ :current_sign_in_at , 'current_sign_in_at', :info ],
-        [ :last_sign_in_at , 'last_sign_in_at', :info ],
-        [ :current_sign_in_ip , 'current_sign_in_ip', :info ],
-        [ :last_sign_in_ip , 'last_sign_in_ip', :info ],
-        [ :created_at , 'created_at', :info ],
-        [ :updated_at , 'updated_at', :info ],
+        [ :header_user_login,         '', :header ],
+        [ :name,                      '', :text_field ],
+        [ :email,                     '', :text_field ],
+        [ :locale ,                   '', :dropdown ],
+        [ :password,                  '', :devise_password_field ],
+        [ :header_user_roles,         '', :header ],
+        [ :roles,                     '', :check_list ],
+        [ :header_user_other_stuff,   '', :header ],
+        [ :encrypted_password,        '', :info ],
+        [ :reset_password_token,      '', :info ],
+        [ :reset_password_sent_at,    '', :info],
+        [ :remember_created_at,       '', :info ],
+        [ :sign_in_count,             '', :info ],
+        [ :current_sign_in_at,        '', :info ],
+        [ :last_sign_in_at,           '', :info ],
+        [ :current_sign_in_ip,        '', :info ],
+        [ :last_sign_in_ip,           '', :info ],
+        [ :created_at,                '', :info ],
+        [ :updated_at,                '', :info ],
       ]
     end
 
@@ -169,14 +183,44 @@ create_file "app/models/user.rb", <<-USER_MODEL.strip_heredoc
     end
 
     def self.order_by_clause
-      'name'
+      nil
     end
 
   end
 USER_MODEL
+say "- Adding admin user with email: #{ENV['email']}, password: #{ENV['password']} to seeds.rb"
+append_to_file "db/seeds.rb", "User.create({ id: 1, email: '#{ENV['email']}', locale_id: 1, name: 'Admin', password: '#{ENV['password']}', password_confirmation: '#{ENV['password']}' }, without_protection: true)"
+
+# Create Locales
+say "- Create locales"
+generate "inline_forms", "Locale name:string title:string users:has_many _enabled:yes _presentation:\#{title} (\#{name})"
+append_to_file "db/seeds.rb", "Locale.create({ id: 1, name: 'en', title: 'English' }, without_protection: true)"
+
+# Create Roles
+say "- Create roles"
+generate "inline_forms", "Role name:string description:text users:has_and_belongs_to_many _enabled:yes _presentation:\#{name}"
+sleep 1 # to get unique migration number
+create_file "db/migrate/" + 
+  Time.now.utc.strftime("%Y%m%d%H%M%S") +
+  "_" +
+  "inline_forms_create_join_table_user_role.rb", <<-ROLES_MIGRATION.strip_heredoc
+  class InlineFormsCreateJoinTableUserRole < ActiveRecord::Migration
+    def self.up
+      create_table "roles_users", :id => false, :force => true do |t|
+        t.integer :role_id
+        t.integer :user_id
+      end
+      execute 'INSERT INTO roles_users VALUES (1,1);'
+    end
+    
+    def self.down
+      drop_table roles_users
+    end
+  end
+ROLES_MIGRATION  
+append_to_file "db/seeds.rb", "Role.create({ id: 1, name: 'superadmin', description: "Super Admin can access all." }, without_protection: true)"
 
 # TODO ROYTJE This above is all that: Devise creates a model. That is a migration, a test, a route and a model. We delete the model, the route, and the test probably too. Is there another way to just create the migration instead of all the stuff that we are going to delete anyway !?
-
 
 say "- Install ckeditor..."
 generate "ckeditor:install --backend=carrierwave"
@@ -189,8 +233,6 @@ route "mount Ckeditor::Engine => '/ckeditor'"
 
 say "- Add ckeditor autoload_paths to application.rb..."
 application "config.autoload_paths += %W(\#{config.root}/app/models/ckeditor)" # TODO ROYTJE is this still needed?
-
-
 
 say "- Add ckeditor/init to application.js..."
 insert_into_file "app/assets/javascripts/application.js",
@@ -209,6 +251,7 @@ generate "paper_trail:install" # TODO One day, we need some management tools so 
 say "- Installaing ZURB Foundation..."
 generate "foundation:install", "-f"
 
+# Create Translations
 say "- Generate models and tables and views for translations..." # TODO Translations need to be done in inline_forms, and then generate a yml file, perhaps 
 generate "inline_forms", "InlineFormsLocale name:string inline_forms_translations:belongs_to _enabled:yes _presentation:\#{name}"
 generate "inline_forms", "InlineFormsKey name:string inline_forms_translations:has_many inline_forms_translations:associated _enabled:yes _presentation:\#{name}"
@@ -236,11 +279,11 @@ create_file "db/migrate/" +
   end
 VIEW_MIGRATION
 
+
 say "- Migrating Database (only when using sqlite)"
 run "bundle exec rake db:migrate" if ENV['using_sqlite'] == 'true'
 
-say "- Adding admin user with email: #{ENV['email']}, password: #{ENV['password']} to seeds.rb"
-append_to_file "db/seeds.rb", "User.create({ :email => '#{ENV['email']}', :name => 'Admin', :password => '#{ENV['password']}', :password_confirmation => '#{ENV['password']}'}, :without_protection => true)"
+
 
 say "- Seeding the database (only when using sqlite)"
 run "bundle exec rake db:seed" if ENV['using_sqlite'] == 'true'
@@ -313,7 +356,7 @@ create_file "app/controllers/application_controller.rb", <<-END_APPCONTROLLER.st
   end
 END_APPCONTROLLER
 
-say "- Creating Ability model so that the user with id = 1 can access all..."
+say "- Creating Ability model so that the superadmin can access all..."
 create_file "app/models/ability.rb", <<-END_ABILITY.strip_heredoc
   class Ability
     include CanCan::Ability
@@ -323,7 +366,10 @@ create_file "app/models/ability.rb", <<-END_ABILITY.strip_heredoc
 
       user ||= user.new # guest user
 
-      if user.id == 1 #quick hack
+      # use this if you get stuck:
+      # if user.id == 1 #quick hack
+      #   can :access, :all
+      if user.role? :superadmin
         can :access, :all
       else
         # put restrictions for other users here
