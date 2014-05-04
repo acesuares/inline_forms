@@ -76,8 +76,6 @@ namespace :deploy do
     run "ln -s #{shared_path}/sockets #{release_path}/tmp/sockets"
     run "cd #{shared_path} && mkdir -p uploads"
     run "ln -s #{shared_path}/uploads #{release_path}/public/uploads"
-    raise "Rails environment not set" unless rails_env
-    run "cd #{release_path} && RAILS_ENV=#{rails_env} bundle exec rails g ckeditor:install -f"
   end
 
 
