@@ -408,7 +408,8 @@ insert_into_file "config/environments/production.rb",
  
 # devise mailer stuff
 say "- Injecting devise mailer stuff in environments/production.rb..."
-insert_into_file "config/environments/production.rb", <<-DEVISE_MAILER_STUFF.strip_heredoc_with_indent(2), :before => "end\n"
+# strip_heredoc_with_indent(2) became strip_heredoc(2), but only in rails 4... :-( 
+insert_into_file "config/environments/production.rb", <<-DEVISE_MAILER_STUFF.strip_heredoc, :before => "end\n"
   # for devise
   config.action_mailer.default_url_options = { :protocol => 'https', :host => 'YOURHOSTNAME' }
   config.action_mailer.delivery_method = :smtp
@@ -440,7 +441,7 @@ copy_file "lib/generators/templates/unicorn.rb", "config/unicorn.rb"
 say "- Initializing git..."
 run 'git init'
 #create_file "#{app_name}/.gitignore", "/tmp\n" if dry_run?
-insert_into_file ".gitignore", <<-GITIGNORE.strip_heredoc_with_indent, :after => "/tmp\n"
+insert_into_file ".gitignore", <<-GITIGNORE.strip_heredoc, :after => "/tmp\n"
   # netbeans
   nbproject
   # remotipart uploads
