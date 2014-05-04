@@ -188,6 +188,7 @@ create_file "app/models/user.rb", <<-USER_MODEL.strip_heredoc
 
   end
 USER_MODEL
+
 say "- Adding admin user with email: #{ENV['email']}, password: #{ENV['password']} to seeds.rb"
 append_to_file "db/seeds.rb", "User.create({ id: 1, email: '#{ENV['email']}', locale_id: 1, name: 'Admin', password: '#{ENV['password']}', password_confirmation: '#{ENV['password']}' }, without_protection: true)"
 
@@ -217,8 +218,9 @@ create_file "db/migrate/" +
       drop_table roles_users
     end
   end
-ROLES_MIGRATION  
-append_to_file "db/seeds.rb", "Role.create({ id: 1, name: 'superadmin', description: "Super Admin can access all." }, without_protection: true)"
+ROLES_MIGRATION
+
+append_to_file "db/seeds.rb", "Role.create({ id: 1, name: 'superadmin', description: 'Super Admin can access all.' }, without_protection: true)"
 
 # TODO ROYTJE This above is all that: Devise creates a model. That is a migration, a test, a route and a model. We delete the model, the route, and the test probably too. Is there another way to just create the migration instead of all the stuff that we are going to delete anyway !?
 
