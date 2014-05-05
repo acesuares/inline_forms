@@ -1,9 +1,59 @@
-/* 
-    Document   : inline_forms
-    Created on : Feb 13, 2011, 10:00:55 AM
-    Author     : Ace Suares
-    Description: Stylessheet for inline_forms
-*/
+@import 'foundation_and_overrides';
+@import 'foundation-icons';
+
+$ffDefault: 'Open Sans', 'Helvetica Neue', Helvetica, Helvetica, Arial, sans-serif !default;
+
+@import 'themes/jquery.ui.sunny';
+@import 'jquery.ui.all';
+
+
+.contain-to-grid {
+  background-color: $body-bg !important;
+}
+
+#inline_forms_application_top_bar {
+    background-color: #A3381E;
+    color: #FFFFFF;
+    .top-bar-section li a {
+      background-color: #A3381E;
+    }
+}
+
+#inline_forms_model_top_bar {
+  background-color: #E1C150;
+  padding-top: 45px;
+  height: 90px;
+  .top-bar-section {
+    .right, li, .has-form {
+      background-color: #E1C150;
+    }
+    .inline_forms_model_top_bar_buttons {
+      top: 4px !important;
+      padding: 7px 0 7px 0 !important;
+      margin: 0 !important;
+    }
+    .new_button  {
+      background-color: #E1C150;
+      color: #B94C32;
+      font-size: 1.3rem;
+      padding: 0 2rem 0 1rem;
+    }
+    .new_button:hover, .new_button:focus {
+      color: white;
+      -webkit-transition-property: color;
+      transition-property: color;
+    }
+    input[type=text]:hover, input[type=text]:focus {
+      background-color: lighten(#fff8e0, 5%);
+      -webkit-transition-property: background-color;
+      transition-property: background-color;
+    }
+  }
+}
+
+#inline_forms_model_top_bar_container {
+    z-index: 9;
+}
 
 
 
