@@ -290,20 +290,20 @@ run "bundle exec rake db:migrate" if ENV['using_sqlite'] == 'true'
 say "- Seeding the database (only when using sqlite)"
 run "bundle exec rake db:seed" if ENV['using_sqlite'] == 'true'
 
-say "- Creating header in app/views/inline_forms/_header.html.erb..."
-create_file "app/views/inline_forms/_header.html.erb", <<-END_HEADER.strip_heredoc
-    <div id='Header'>
-      <div id='title'>
-        #{app_name} v<%= inline_forms_version -%>
-      </div>
-      <% if current_user -%>
-      <div id='logout'>
-        <%= link_to \"Afmelden: \#{current_user.name}\", destroy_user_session_path, :method => :delete %>
-      </div>
-      <% end -%>
-      <div style='clear: both;'></div>
-    </div>
-END_HEADER
+# say "- Creating header in app/views/inline_forms/_header.html.erb..."
+# create_file "app/views/inline_forms/_header.html.erb", <<-END_HEADER.strip_heredoc
+    # <div id='Header'>
+      # <div id='title'>
+        # #{app_name} v<%= inline_forms_version -%>
+      # </div>
+      # <% if current_user -%>
+      # <div id='logout'>
+        # <%= link_to \"Afmelden: \#{current_user.name}\", destroy_user_session_path, :method => :delete %>
+      # </div>
+      # <% end -%>
+      # <div style='clear: both;'></div>
+    # </div>
+# END_HEADER
 
 say "- Recreating ApplicationHelper to set application_name and application_title..."
 remove_file "app/helpers/application_helper.rb" # the one that 'rails new' created
@@ -449,10 +449,18 @@ remove_file 'spec/models/user_spec.rb'
 
 # environments/production.rb
 #create_file "#{app_name}/config/environments/production.rb", "  #config.assets.precompile += %w( search.js )\nend\n" if dry_run?
-say "- Injecting precompile assets stuff in environments/production.rb..."
-insert_into_file "config/environments/production.rb",
-        "  config.assets.precompile += %w(inline_forms_application.js inline_forms_application.css devise.css)\n",
-        :after => "  # config.assets.precompile += %w( search.js )\n"
+# say "- Injecting precompile assets stuff in environments/production.rb..."
+# insert_into_file "config/environments/production.rb",
+        # "  config.assets.precompile += %w(inline_forms_application.js inline_forms_application.css devise.css)\n",
+        # :after => "  # config.assets.precompile += %w( search.js )\n"
+ 
+ 
+# add stuff to application.css
+say "- Injecting stylesheets into app/assets/stylesheets/application.css..."
+insert_into_file  "app/assets/stylesheets/application.css",
+                  "*= require devise\n*= require inline_forms\n",
+                  :before => "*= require_self\n"
+ 
  
 # devise mailer stuff
 say "- Injecting devise mailer stuff in environments/production.rb..."

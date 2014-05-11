@@ -203,14 +203,18 @@ module InlineForms
       end
     end
 
-    def add_tab
-      unless @flag_not_accessible_through_html
-        copy_file "_inline_forms_tabs.html.erb", "app/views/_inline_forms_tabs.html.erb" unless File.exists?('app/views/_inline_forms_tabs.html.erb')
-        inject_into_file "app/views/_inline_forms_tabs.html.erb",
-          "  <%= tab.#{name.underscore} '#{name}', #{name.pluralize.underscore + '_path'} %>\n",
-          :after => "<%= tabs_tag :open_tabs => { :id => \"tabs\" } do |tab| %>\n"
-      end
+    def add_second_top_bar
+      copy_file "_inline_forms_tabs.html.erb", "app/views/_inline_forms_tabs.html.erb" unless File.exists?('app/views/_inline_forms_tabs.html.erb')
     end
+
+    # def add_tab
+      # unless @flag_not_accessible_through_html
+        # copy_file "_inline_forms_tabs.html.erb", "app/views/_inline_forms_tabs.html.erb" unless File.exists?('app/views/_inline_forms_tabs.html.erb')
+        # inject_into_file "app/views/_inline_forms_tabs.html.erb",
+          # "  <%= tab.#{name.underscore} '#{name}', #{name.pluralize.underscore + '_path'} %>\n",
+          # :after => "<%= tabs_tag :open_tabs => { :id => \"tabs\" } do |tab| %>\n"
+      # end
+    # end
     
     def generate_test
       template "test.erb", "test/unit/#{test_file_name}.rb"
