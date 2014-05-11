@@ -335,7 +335,9 @@ create_file "app/controllers/application_controller.rb", <<-END_APPCONTROLLER.st
       sign_out :user if user_signed_in?
       redirect_to new_user_session_path, :alert => exception.message
     end
-
+    
+    ActionView::CompiledTemplates::MODEL_TABS = %w()
+    
     # Uncomment next line if you want I18n (based on subdomain)
     # before_filter :set_locale
 
