@@ -1,0 +1,41 @@
+<div class="contain-to-grid fixed" id="inline_forms_model_top_bar_container">
+  <nav id="inline_forms_model_top_bar" class="top-bar" data-topbar>
+  <ul class="title-area">
+    <li class="name" id="inline_forms_menu">
+      <h1>
+        <a>
+          <%= t(controller_name) %>
+        </a>
+      </h1>
+    </li>
+    <li class="toggle-topbar menu-icon">
+      <a href="#"><span></span></a>
+    </li>
+  </ul>
+  <section class="top-bar-section">
+    <ul class="right">
+      <li class="has-form">
+        <%= form_tag request.path, :method => 'get' do %>
+          <div class="row collapse">
+            <div class="large-1 small-1 columns">
+              <%= link_to "<i class='fi-x'></i>".html_safe, request.path, :title => 'reset', :class => "button expand inline_forms_model_top_bar_buttons" %>
+            </div>
+            <div class="large-6 small-6 columns">
+              <%= text_field_tag :search,  params[:search], :placeholder => 'zoek op naam...', :id => 'input_search' %>
+            </div>
+            <div class="large-3 small-3 columns">
+              <%= submit_tag 'zoek', :class => "button expand inline_forms_model_top_bar_buttons" %>
+            </div>
+            <div class="large-2 small-2 columns">
+              &nbsp;
+            </div>
+          </div>
+        <% end %>
+      </li>
+      <li>
+      <%= link_to_new_record(@Klass, "new_#{@Klass.to_s.singularize.underscore}_path", @Klass.to_s.pluralize.downcase + '_list') %>
+      </li>
+    </ul>
+  </section>
+</nav>
+</div>

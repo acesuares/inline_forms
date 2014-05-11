@@ -1,0 +1,47 @@
+<div class="contain-to-grid fixed">
+  <nav id='inline_forms_application_top_bar' class="top-bar" data-topbar>
+    <ul class="title-area">
+      <li class="name">
+        <h1><a href="/"><%= application_name %> v<%= inline_forms_version %></a></h1>
+      </li>
+      <li class="toggle-topbar menu-icon">
+        <a href="#"><span></span></a>
+      </li>
+    </ul>
+    <section class="top-bar-section">
+      <ul class="right">
+        <% if current_user.role?(:superadmin) && Rails.env.development? %>
+          <li class="has-dropdown">
+            <%= switch_user_select %>
+          </li>
+        <% end %>
+        <% if current_user.role?(:admin) || current_user.role?(:superadmin) %>
+          <li class="has-dropdown">
+            <a href="#">meer...</a>
+            <ul class="dropdown">
+              <% MODEL_TABS.each do |m| %>
+                <% model = m.singularize.camelcase.constantize rescue nil %>
+                  <% unless model.nil? || model.not_accessible_through_html? %>
+                  <% if can? :update, m.to_sym %>
+                    <li>
+                      <%= link_to model.model_name.human, '/' +  m %>
+                    </li>
+                  <% end %>
+                <% end %>
+              <% end %>
+            </ul>
+          </li>
+        <% end %>
+        <li class="has-dropdown">
+          <a href="#"><%= current_user.name %></a>
+          <ul class="dropdown">
+            <li>
+              <%= link_to("Afmelden...", destroy_user_session_path, :method => :delete) if current_user  %>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </section>
+
+  </nav>
+</div>
