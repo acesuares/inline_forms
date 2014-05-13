@@ -121,4 +121,3 @@ module InlineForms
     end
     Creator.start
   end
-end
