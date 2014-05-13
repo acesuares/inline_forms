@@ -16,9 +16,8 @@ module InlineForms
     DATABASE_OPTIONS = %w(sqlite mysql)
     method_option :database, :aliases => "-d", :banner => DATABASE_OPTIONS.join('|'), :desc => 'specify development database'
     # TODO ROYTJE specify sqlite OR mysql, and if none is specified, ASK THE USER.
-    method_option :dry, :type => :boolean, :desc => 'dry run. Do not do most things. Only useful for development of inline_forms'
     # TODO ROYTJE Remove ALL dry run code. We don't do dry runs anymore.
-    method_option :example, :type => :boolean, :desc => 'install the example app. incompatible with --dry and uses sqlite as development database'
+    method_option :example, :type => :boolean, :desc => 'install the example app. uses sqlite as development database'
     method_option :email, :aliases => "-e", :default => "admin@example.com", :desc => 'specify admin email'
     method_option :password, :aliases => "-p", :default => "admin999", :desc => 'specify admin password'
     method_option :runtest, :aliases => "\-\-run-test", :default => false, :desc => 'run tests'
@@ -33,14 +32,9 @@ module InlineForms
         options[:runtest]
       end
 
-      def self.dry_run?
-        options[:dry]
-      end
-
       def self.install_example?
         options[:example]
       end
-
 
       def self.database
         @database ||= options[:database]
@@ -65,17 +59,10 @@ module InlineForms
         options[:password]
       end
 
-      if install_example? && dry_run?
-        say "--example and --dry-run can not be used together", :red
-        exit 1
-      end
-
       if install_example? && !using_sqlite?
         say "--example can only be used with an sqlite development database", :red
         exit 1
       end
-
-      say "This is a dry run. I hope you know what you are doing...", :red if dry_run?
 
       say "Creating #{app_name} with inline_forms v#{VERSION} and development database #{database}...", :green
 
@@ -111,10 +98,8 @@ module InlineForms
 
       say "Installing with #{options[:database]}", :green
 
-      if dry_run?
-        empty_directory(app_name)
-      else
-        empty_directory(app_name)
+      #Creates the app directory
+      empty_directory(app_name)
 
         # need to pass all agruments for app template
         options.each do | k,v |
