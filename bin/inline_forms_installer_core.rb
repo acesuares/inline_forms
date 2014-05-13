@@ -1,4 +1,4 @@
-create_file 'Gemfile', '# created by inline_forms\n' # TODO include version
+create_file 'Gemfile', '# created by inline_forms #{ENV['inline_forms_version']} \n'
 
 add_source 'https://rubygems.org'
 
@@ -53,7 +53,7 @@ gem_group :assets do
   gem 'sass-rails',   '~> 3.2.3'
   gem 'coffee-rails', '~> 3.2.1'
   gem 'compass-rails' # you need this or you get an err
-end 
+end
 
 say "- Running bundle..."
 run "bundle install"
@@ -134,7 +134,7 @@ create_file "app/models/user.rb", <<-USER_MODEL.strip_heredoc
 
     belongs_to :locale
     has_and_belongs_to_many :roles
-    
+
     # validations
     validates :name, :presence => true
 
@@ -201,7 +201,7 @@ append_to_file "db/seeds.rb", "Locale.create({ id: 1, name: 'en', title: 'Englis
 say "- Create roles"
 generate "inline_forms", "Role name:string description:text users:has_and_belongs_to_many _enabled:yes _presentation:\#{name}"
 sleep 1 # to get unique migration number
-create_file "db/migrate/" + 
+create_file "db/migrate/" +
   Time.now.utc.strftime("%Y%m%d%H%M%S") +
   "_" +
   "inline_forms_create_join_table_user_role.rb", <<-ROLES_MIGRATION.strip_heredoc
@@ -213,7 +213,7 @@ create_file "db/migrate/" +
       end
       execute 'INSERT INTO roles_users VALUES (1,1);'
     end
-    
+
     def self.down
       drop_table roles_users
     end
@@ -248,18 +248,18 @@ say "- Add remotipart to application.js..."
 insert_into_file "app/assets/javascripts/application.js", "//= require jquery.remotipart\n", :before => "//= require_tree .\n"
 
 say "- Paper_trail install..."
-generate "paper_trail:install" # TODO One day, we need some management tools so we can actually SEE the versions, restore them etc. 
+generate "paper_trail:install" # TODO One day, we need some management tools so we can actually SEE the versions, restore them etc.
 
 say "- Installaing ZURB Foundation..."
 generate "foundation:install", "-f"
 
 # Create Translations
-say "- Generate models and tables and views for translations..." # TODO Translations need to be done in inline_forms, and then generate a yml file, perhaps 
+say "- Generate models and tables and views for translations..." # TODO Translations need to be done in inline_forms, and then generate a yml file, perhaps
 generate "inline_forms", "InlineFormsLocale name:string inline_forms_translations:belongs_to _enabled:yes _presentation:\#{name}"
 generate "inline_forms", "InlineFormsKey name:string inline_forms_translations:has_many inline_forms_translations:associated _enabled:yes _presentation:\#{name}"
 generate "inline_forms", "InlineFormsTranslation inline_forms_key:belongs_to inline_forms_locale:dropdown value:text interpolations:text is_proc:boolean _presentation:\#{value}"
 sleep 1 # to get unique migration number
-create_file "db/migrate/" + 
+create_file "db/migrate/" +
   Time.now.utc.strftime("%Y%m%d%H%M%S") +
   "_" +
   "inline_forms_create_view_for_translations.rb", <<-VIEW_MIGRATION.strip_heredoc
@@ -335,9 +335,9 @@ create_file "app/controllers/application_controller.rb", <<-END_APPCONTROLLER.st
       sign_out :user if user_signed_in?
       redirect_to new_user_session_path, :alert => exception.message
     end
-    
+
     ActionView::CompiledTemplates::MODEL_TABS = %w()
-    
+
     # Uncomment next line if you want I18n (based on subdomain)
     # before_filter :set_locale
 
@@ -392,12 +392,12 @@ create_file "spec/spec_helper.rb", <<-END_TEST_HELPER.strip_heredoc
   require 'rspec/rails'
   require 'rspec/autorun'
   require 'carrierwave/test/matchers'
-  
-  
+
+
   # Requires supporting ruby files with custom matchers and macros, etc,
   # in spec/support/ and its subdirectories.
   Dir[Rails.root.join("spec/support/**/*.rb")].each { |f| require f }
-  
+
   RSpec.configure do |config|
     config.include FactoryGirl::Syntax::Methods
     # ## Mock Framework
@@ -407,20 +407,20 @@ create_file "spec/spec_helper.rb", <<-END_TEST_HELPER.strip_heredoc
     # config.mock_with :mocha
     # config.mock_with :flexmock
     # config.mock_with :rr
-  
+
     # Remove this line if you're not using ActiveRecord or ActiveRecord fixtures
     config.fixture_path = Rails.root + "/spec/fixtures"
-  
+
     # If you're not using ActiveRecord, or you'd prefer not to run each of your
     # examples within a transaction, remove the following line or assign false
     # instead of true.
     config.use_transactional_fixtures = true
-  
+
     # If true, the base class of anonymous controllers will be inferred
     # automatically. This will be the default behavior in future versions of
     # rspec-rails.
     config.infer_base_class_for_anonymous_controllers = false
-  
+
     # Run specs in random order to surface order dependencies. If you find an
     # order dependency and want to debug it, you can fix the order by providing
     # the seed, which is printed after each run.
@@ -436,17 +436,17 @@ create_file "spec/factories/inline_forms.rb", <<-END_FACTORY_GIRL.strip_heredoc
   FactoryGirl.define do
     factory :apartment do
       name "Luxe House in Bandabou 147A" #string
-      title "A dream house in a dream place" # string 
+      title "A dream house in a dream place" # string
       description "A beatiful House at the edge of the <strong>sea</strong>" #text
     end
     factory :large_text do
       name "Luxe House in Bandabou 147A" #string
-      title "A dream house in a dream place" # string 
+      title "A dream house in a dream place" # string
       description "A beatiful House at the edge of the <strong>sea</strong>" #text
     end
   end
 END_FACTORY_GIRL
-remove_file 'spec/factories/users.rb' 
+remove_file 'spec/factories/users.rb'
 remove_file 'spec/models/user_spec.rb'
 
 # environments/production.rb
@@ -455,18 +455,18 @@ remove_file 'spec/models/user_spec.rb'
 # insert_into_file "config/environments/production.rb",
         # "  config.assets.precompile += %w(inline_forms_application.js inline_forms_application.css devise.css)\n",
         # :after => "  # config.assets.precompile += %w( search.js )\n"
- 
- 
+
+
 # add stuff to application.css
 say "- Injecting stylesheets into app/assets/stylesheets/application.css..."
 insert_into_file  "app/assets/stylesheets/application.css",
                   "*= require devise\n*= require inline_forms\n",
                   :before => "*= require_self\n"
- 
- 
+
+
 # devise mailer stuff
 say "- Injecting devise mailer stuff in environments/production.rb..."
-# strip_heredoc_with_indent(2) became strip_heredoc(2), but only in rails 4... :-( 
+# strip_heredoc_with_indent(2) became strip_heredoc(2), but only in rails 4... :-(
 insert_into_file "config/environments/production.rb", <<-DEVISE_MAILER_STUFF.strip_heredoc, :before => "end\n"
   # for devise
   config.action_mailer.default_url_options = { :protocol => 'https', :host => 'YOURHOSTNAME' }
@@ -530,7 +530,7 @@ if ENV['install_example'] == 'true'
   END_EXAMPLE_TEST
 
   # run tests
-  # if ENV['runtest'] == 'true' # Not Dry 
+  # if ENV['runtest'] == 'true' # Not Dry
   #   run "rspec"
   # end
   run "rspec" if ENV['runtest'] # Drier!

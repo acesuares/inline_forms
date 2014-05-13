@@ -105,6 +105,7 @@ module InlineForms
         ENV['database'] = database
         ENV['install_example'] = install_example?.to_s
         ENV['ruby_version'] = ruby_version
+        ENV['inline_forms_version'] = VERSION
 
 				app_template_file = File.join(File.dirname(__FILE__), 'inline_forms_app_template.rb')
 
