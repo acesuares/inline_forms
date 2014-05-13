@@ -15,8 +15,6 @@ module InlineForms
     desc "create APP", "create an application with inline_forms v#{VERSION}"
     DATABASE_OPTIONS = %w(sqlite mysql)
     method_option :database, :aliases => "-d", :banner => DATABASE_OPTIONS.join('|'), :desc => 'specify development database'
-    # TODO ROYTJE specify sqlite OR mysql, and if none is specified, ASK THE USER.
-    # TODO ROYTJE Remove ALL dry run code. We don't do dry runs anymore.
     method_option :example, :type => :boolean, :desc => 'install the example app. uses sqlite as development database'
     method_option :email, :aliases => "-e", :default => "admin@example.com", :desc => 'specify admin email'
     method_option :password, :aliases => "-p", :default => "admin999", :desc => 'specify admin password'
@@ -40,8 +38,8 @@ module InlineForms
         @database ||= options[:database]
         return @database if DATABASE_OPTIONS.include?(@database)
         say "No Database specified please choose one database #{DATABASE_OPTIONS.join(' | ')}", :red
+        # if the database is not set ask user which database to use
         while ! DATABASE_OPTIONS.include?(@database)
-          # maybe ask only for option 1 or 2 instead of the full database name ?
           @database = ask "Database: "
           return @database if DATABASE_OPTIONS.include?(@database)
         end
@@ -77,9 +75,6 @@ module InlineForms
         exit 1
       end
 
-      # TODO: optioneel, detecteren dat er RVM er is als het niet zo is dan zonder RVM instaleren
-      # Maybe via the method.options (THOR)??
-      # using_rvm = false # for testing purpose only need to do this another way.
       require 'rvm'
       # if RVM is detected and the user has not disabled using rvm via command than use rvm else without
       if RVM.current && !options[:skiprvm]
@@ -98,10 +93,10 @@ module InlineForms
 
       say "Installing with #{options[:database]}", :green
 
-      #Creates the app directory
+      # Creates the app directory
       empty_directory(app_name)
 
-        # need to pass all agruments for app template
+        # puts all options in environment to app_template
         options.each do | k,v |
           ENV[k] = v.to_s
         end
