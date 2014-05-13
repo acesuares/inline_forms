@@ -113,7 +113,7 @@ module InlineForms
           say "Rails could not create the app '#{app_name}', maybe because it is a reserved word...", :red # TODO ROYTJE MAKE ERROR MESSAGE MORE RELEVANT # Rails could not create the app 'MyApp', maybe because it is a reserved word..
           exit 1
         end
-      end
     end
     Creator.start
   end
+end
