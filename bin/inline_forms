@@ -14,9 +14,8 @@ module InlineForms
     end
     desc "create APP", "create an application with inline_forms v#{VERSION}"
     DATABASE_OPTIONS = %w(sqlite mysql)
-    method_option :database, :aliases => "-d", :default => DATABASE_OPTIONS.first, :banner => DATABASE_OPTIONS.join('|'), :desc => 'specify development database'
+    method_option :database, :aliases => "-d", :banner => DATABASE_OPTIONS.join('|'), :desc => 'specify development database'
     # TODO ROYTJE specify sqlite OR mysql, and if none is specified, ASK THE USER.
-   
     method_option :dry, :type => :boolean, :desc => 'dry run. Do not do most things. Only useful for development of inline_forms'
     # TODO ROYTJE Remove ALL dry run code. We don't do dry runs anymore.
     method_option :example, :type => :boolean, :desc => 'install the example app. incompatible with --dry and uses sqlite as development database'
@@ -42,10 +41,18 @@ module InlineForms
         options[:example]
       end
 
+
       def self.database
-        DATABASE_OPTIONS.include?(options[:database]) ? options[:database] : 'sqlite'
+        @database ||= options[:database]
+        return @database if DATABASE_OPTIONS.include?(@database)
+        say "No Database specified please choose one database #{DATABASE_OPTIONS.join(' | ')}", :red
+        while ! DATABASE_OPTIONS.include?(@database)
+          # maybe ask only for option 1 or 2 instead of the full database name ?
+          @database = ask "Database: "
+          return @database if DATABASE_OPTIONS.include?(@database)
+        end
       end
-      
+
       def self.using_sqlite?
         database == 'sqlite'
       end
@@ -84,7 +91,7 @@ module InlineForms
       end
 
       # TODO: optioneel, detecteren dat er RVM er is als het niet zo is dan zonder RVM instaleren
-      # Maybe via the method.options (THOR)?? 
+      # Maybe via the method.options (THOR)??
       # using_rvm = false # for testing purpose only need to do this another way.
       require 'rvm'
       # if RVM is detected and the user has not disabled using rvm via command than use rvm else without
@@ -95,23 +102,27 @@ module InlineForms
         ruby_version = (%x[rvm current]).gsub(/@.*/,'')
         # Create a ruby rvm-file version based on the version detected
         create_file "#{app_name}/.ruby-version", ruby_version
-        # Creat a ruby-gemset rvm-file based on the version detected 
+        # Creat a ruby-gemset rvm-file based on the version detected
         create_file "#{app_name}/.ruby-gemset", app_name
       else
         # Let the user know that he is installing inline_forms without RVM
         say "Installing inline_forms without RVM", :green
       end
 
+      say "Installing with #{options[:database]}", :green
+
       if dry_run?
         empty_directory(app_name)
       else
         empty_directory(app_name)
-        
+
         # need to pass all agruments for app template
-        options.each do | k,v | 
+        options.each do | k,v |
           ENV[k] = v.to_s
         end
+
         ENV['using_sqlite'] = using_sqlite?.to_s
+        ENV['database'] = database
         ENV['install_example'] = install_example?.to_s
         ENV['ruby_version'] = ruby_version
 
