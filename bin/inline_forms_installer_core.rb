@@ -1,4 +1,4 @@
-create_file 'Gemfile', '# created by inline_forms #{ENV['inline_forms_version']} \n'
+create_file 'Gemfile', "# created by inline_forms #{ENV['inline_forms_version']}\n"
 
 add_source 'https://rubygems.org'
 
