@@ -87,7 +87,6 @@ append_file "config/database.yml", <<-END_DATABASEYML.strip_heredoc
     password: #{app_name}444
 END_DATABASEYML
 
-# this is it I was wrong very wrong !!! here is teh token already generated. there was a comment in front of this SH!!T
 say "- Devise install..."
 run "bundle exec rails g devise:install"
 
@@ -270,8 +269,6 @@ create_file "db/migrate/" +
 ROLES_MIGRATION
 
 append_to_file "db/seeds.rb", "Role.create({ id: 1, name: 'superadmin', description: 'Super Admin can access all.' }, without_protection: true)\n"
-
-# TODO ROYTJE This above is all that: Devise creates a model. That is a migration, a test, a route and a model. We delete the model, the route, and the test probably too. Is there another way to just create the migration instead of all the stuff that we are going to delete anyway !?
 
 say "- Install ckeditor..."
 generate "ckeditor:install --backend=carrierwave"
