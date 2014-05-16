@@ -87,21 +87,71 @@ append_file "config/database.yml", <<-END_DATABASEYML.strip_heredoc
     password: #{app_name}444
 END_DATABASEYML
 
+# this is it I was wrong very wrong !!! here is teh token already generated. there was a comment in front of this SH!!T
 say "- Devise install..."
 run "bundle exec rails g devise:install"
 
-# TODO ROYTJE Devise creates a model. That is a migration, a test, a route and a model. We delete the model, the route, and the test probably too. Is there another way to just create the migration instead of all the stuff that we are going to delete anyway !?
-
-say "- Devise User model install with added name and locale field..."
-run "bundle exec rails g devise User name:string locale_id:integer"
-
-say "- Replace Devise route and add path_prefix..."
-gsub_file "config/routes.rb", /devise_for :users/, "devise_for :users, :path_prefix => 'auth'"
-insert_into_file "config/routes.rb", <<-ROUTE.strip_heredoc, :after => "devise_for :users, :path_prefix => 'auth'\n"
+say "- Create Devise route and add path_prefix..."
+insert_into_file "config/routes.rb", <<-ROUTE.strip_heredoc, :after => "Application.routes.draw do\n"
+devise_for :users, :path_prefix => 'auth'
   resources :users do
     post 'revert', :on => :member
-  end
+end
 ROUTE
+
+say "- Create devise migration file"
+
+sleep 1 # to get unique migration number
+create_file "db/migrate/" +
+  Time.now.utc.strftime("%Y%m%d%H%M%S") +
+  "_" +
+  "devise_create_users.rb", <<-DEVISE_MIGRATION.strip_heredoc
+class DeviseCreateUsers < ActiveRecord::Migration
+
+  def change
+    create_table(:users) do |t|
+      ## Database authenticatable
+      t.string :email,              null: false, default: ""
+      t.string :encrypted_password, null: false, default: ""
+
+      ## Recoverable
+      t.string   :reset_password_token
+      t.datetime :reset_password_sent_at
+
+      ## Rememberable
+      t.datetime :remember_created_at
+
+      ## Trackable
+      t.integer  :sign_in_count, default: 0, null: false
+      t.datetime :current_sign_in_at
+      t.datetime :last_sign_in_at
+      t.string   :current_sign_in_ip
+      t.string   :last_sign_in_ip
+
+      ## Confirmable
+      # t.string   :confirmation_token
+      # t.datetime :confirmed_at
+      # t.datetime :confirmation_sent_at
+      # t.string   :unconfirmed_email # Only if using reconfirmable
+
+      ## Lockable
+      # t.integer  :failed_attempts, default: 0, null: false # Only if lock strategy is :failed_attempts
+      # t.string   :unlock_token # Only if unlock strategy is :email or :both
+      # t.datetime :locked_at
+
+      t.string :name
+      t.integer :locale_id
+
+      t.timestamps
+    end
+
+    add_index :users, :email,                unique: true
+    add_index :users, :reset_password_token, unique: true
+    # add_index :users, :confirmation_token,   unique: true
+    # add_index :users, :unlock_token,         unique: true
+  end
+end
+DEVISE_MIGRATION
 
 say "- Create User Controller..."
 create_file "app/controllers/users_controller.rb", <<-USERS_CONTROLLER.strip_heredoc
@@ -110,8 +160,7 @@ create_file "app/controllers/users_controller.rb", <<-USERS_CONTROLLER.strip_her
   end
 USERS_CONTROLLER
 
-say "- Recreate User Model..."
-remove_file "app/models/user.rb" # the one that 'devise:install' created
+say "- Create User Model..."
 create_file "app/models/user.rb", <<-USER_MODEL.strip_heredoc
   class User < ActiveRecord::Base
 
@@ -227,9 +276,6 @@ append_to_file "db/seeds.rb", "Role.create({ id: 1, name: 'superadmin', descript
 say "- Install ckeditor..."
 generate "ckeditor:install --backend=carrierwave"
 
-# TODO ROYTJE urgent, get ckeditor to work with carrierwave (the normal carrierwave, not -db)
-# Thanks for fixing ROYTJE! +1
-
 say "- Mount Ckeditor::Engine to routes..."
 route "mount Ckeditor::Engine => '/ckeditor'"
 
@@ -280,7 +326,6 @@ create_file "db/migrate/" +
     end
   end
 VIEW_MIGRATION
-
 
 say "- Migrating Database (only when using sqlite)"
 run "bundle exec rake db:migrate" if ENV['using_sqlite'] == 'true'
@@ -383,7 +428,7 @@ create_file "app/models/ability.rb", <<-END_ABILITY.strip_heredoc
 END_ABILITY
 
 say "- Generating test files", :green
-# run "bundle exec rspec:install" # TODO: I need do this or simply copy the files in the spec folder ?
+
 create_file "spec/spec_helper.rb", <<-END_TEST_HELPER.strip_heredoc
   # This file is copied to spec/ when you run 'rails generate rspec:install'
   ENV["RAILS_ENV"] ||= 'development' # this need to be changed to test ???
@@ -529,10 +574,6 @@ if ENV['install_example'] == 'true'
     end
   END_EXAMPLE_TEST
 
-  # run tests
-  # if ENV['runtest'] == 'true' # Not Dry
-  #   run "rspec"
-  # end
   run "rspec" if ENV['runtest'] # Drier!
 
   # done!
