@@ -1,3 +1,5 @@
+GENERATOR_PATH = File.dirname(File.expand_path(__FILE__)) +  '/../'
+
 create_file 'Gemfile', "# created by inline_forms #{ENV['inline_forms_version']}\n"
 
 add_source 'https://rubygems.org'
@@ -91,7 +93,8 @@ say "- Devise install..."
 run "bundle exec rails g devise:install"
 
 say "- Create Devise route and add path_prefix..."
-insert_into_file "config/routes.rb", <<-ROUTE.strip_heredoc, :after => "Application.routes.draw do\n"
+
+route <<-ROUTE.strip_heredoc
 devise_for :users, :path_prefix => 'auth'
   resources :users do
     post 'revert', :on => :member
@@ -285,7 +288,7 @@ insert_into_file "app/assets/javascripts/application.js",
                  :before => "//= require_tree .\n"
 
 say "- Create ckeditor config.js"
-copy_file File.join(File.dirname(File.expand_path(__FILE__)) + '/../lib/app/assets/javascripts/ckeditor/config.js'), "app/assets/javascripts/ckeditor/config.js"
+copy_file File.join(GENERATOR_PATH, 'lib/app/assets/javascripts/ckeditor/config.js'), "app/assets/javascripts/ckeditor/config.js"
 
 say "- Add remotipart to application.js..."
 insert_into_file "app/assets/javascripts/application.js", "//= require jquery.remotipart\n", :before => "//= require_tree .\n"
@@ -472,7 +475,7 @@ create_file "spec/spec_helper.rb", <<-END_TEST_HELPER.strip_heredoc
 END_TEST_HELPER
 
 say 'copy test image into rspec folder'
-copy_file File.join(File.dirname(File.expand_path(__FILE__)) + '/../lib/otherstuff/fixtures/rails.png'), "spec/fixtures/images/rails.png"
+copy_file File.join(GENERATOR_PATH,'lib/otherstuff/fixtures/rails.png'), "spec/fixtures/images/rails.png"
 say '- Creating factory_girl file'
 create_file "spec/factories/inline_forms.rb", <<-END_FACTORY_GIRL.strip_heredoc
   FactoryGirl.define do
@@ -527,21 +530,24 @@ say "- Setting config.assets.compile to true in environments/production.rb (need
 #insert_into_file "#{app_name}/config/environments/production.rb", "config.assets.compile = false\n", :before => "end\n" if dry_run?
 gsub_file "config/environments/production.rb", /config.assets.compile = false/, "config.assets.compile = true"
 
+
+
+
 # capify
 say "- Capify..."
 run 'capify .'
 remove_file "config/deploy.rb" # remove the file capify created!
-copy_file File.join(File.dirname(File.expand_path(__FILE__)) + '/../lib/generators/templates/deploy.rb'), "config/deploy.rb"
-# TODO: ROYJE isn't there a better way to find the path?
+copy_file File.join(GENERATOR_PATH,'lib/generators/templates/deploy.rb'), "config/deploy.rb"
 
 # Unicorn
 say "- Unicorn Config..."
-copy_file File.join(File.dirname(File.expand_path(__FILE__)) + '/../lib/generators/templates/unicorn.rb'), "config/unicorn.rb"
+copy_file File.join(GENERATOR_PATH,'lib/generators/templates/unicorn.rb'), "config/unicorn.rb"
+
 
 # Git
 say "- Initializing git..."
 run 'git init'
-#create_file "#{app_name}/.gitignore", "/tmp\n" if dry_run?
+
 insert_into_file ".gitignore", <<-GITIGNORE.strip_heredoc, :after => "/tmp\n"
   # netbeans
   nbproject
@@ -571,7 +577,7 @@ if ENV['install_example'] == 'true'
     end
   END_EXAMPLE_TEST
 
-  run "rspec" if ENV['runtest'] # Drier!
+  run "rspec" if ENV['runtest']
 
   # done!
   say "\nDone! Now point your browser to http://localhost:3000/apartments !", :yellow
@@ -583,6 +589,5 @@ else
   # done!
   say "\nDone! Now make your tables with 'bundle exec rails g inline_forms ...", :yellow
 end
-
 
 #say "- Don't forget: edit .rvmrc, config/{routes.rb, deploy.rb}, .git/config, delete public/index.html\n"
