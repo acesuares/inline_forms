@@ -495,11 +495,11 @@ remove_file 'spec/factories/users.rb'
 remove_file 'spec/models/user_spec.rb'
 
 # environments/production.rb
-#create_file "#{app_name}/config/environments/production.rb", "  #config.assets.precompile += %w( search.js )\nend\n" if dry_run?
-# say "- Injecting precompile assets stuff in environments/production.rb..."
-# insert_into_file "config/environments/production.rb",
-        # "  config.assets.precompile += %w(inline_forms_application.js inline_forms_application.css devise.css)\n",
-        # :after => "  # config.assets.precompile += %w( search.js )\n"
+create_file "#{app_name}/config/environments/production.rb", "  #config.assets.precompile += %w( search.js )\nend\n" if dry_run?
+ say "- Injecting precompile assets stuff in environments/production.rb..."
+ insert_into_file "config/environments/production.rb",
+         "  config.assets.precompile += %w(inline_forms_application.js inline_forms_application.css devise.css)\n",
+         :after => "  # config.assets.precompile += %w( search.js )\n"
 
 
 # add stuff to application.css
