@@ -304,6 +304,7 @@ say "- Generate models and tables and views for translations..." # TODO Translat
 generate "inline_forms", "InlineFormsLocale name:string inline_forms_translations:belongs_to _enabled:yes _presentation:\#{name}"
 generate "inline_forms", "InlineFormsKey name:string inline_forms_translations:has_many inline_forms_translations:associated _enabled:yes _presentation:\#{name}"
 generate "inline_forms", "InlineFormsTranslation inline_forms_key:belongs_to inline_forms_locale:dropdown value:text interpolations:text is_proc:boolean _presentation:\#{value}"
+# TODO: fix text_area into text_area_without_ckeditor
 sleep 1 # to get unique migration number
 create_file "db/migrate/" +
   Time.now.utc.strftime("%Y%m%d%H%M%S") +
@@ -495,7 +496,6 @@ remove_file 'spec/factories/users.rb'
 remove_file 'spec/models/user_spec.rb'
 
 # environments/production.rb
-create_file "#{app_name}/config/environments/production.rb", "  #config.assets.precompile += %w( search.js )\nend\n" if dry_run?
  say "- Injecting precompile assets stuff in environments/production.rb..."
  insert_into_file "config/environments/production.rb",
          "  config.assets.precompile += %w(inline_forms_application.js inline_forms_application.css devise.css)\n",
