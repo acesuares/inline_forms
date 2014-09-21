@@ -46,14 +46,14 @@ module InlineFormsHelper
   # new link
   def link_to_new_record(model, path_to_new, update_span, parent_class = nil, parent_id = nil, html_class = 'button new_button')
     out = (link_to "<i class='fi-plus'></i>".html_safe,
-                   send(path_to_new, 
-                        :update => update_span, 
-                        :parent_class => parent_class, 
+                   send(path_to_new,
+                        :update => update_span,
+                        :parent_class => parent_class,
                         :parent_id => parent_id,
                        ),
                    :remote => true,
                    :class => html_class,
-                   :title => t('inline_forms.view.add_new', :model => model.model_name.human ) 
+                   :title => t('inline_forms.view.add_new', :model => model.model_name.human )
           )
     if cancan_enabled?
       if can? :create, model.to_s.pluralize.underscore.to_sym
@@ -145,13 +145,13 @@ module InlineFormsHelper
     if values.is_a?(Hash)
       temp = Array.new
       values.to_a.each do |k,v|
-        temp << [ k, v ]
+        temp << [ k, t(v) ]
       end
       values = temp.sort {|a,b| a[0]<=>b[0]}
     else
       temp = Array.new
       values.to_a.each_index do |i|
-        temp << [ i, values.to_a[i] ]
+        temp << [ i, t(values.to_a[i]) ]
       end
       values = temp.sort {|a,b| a[1]<=>b[1]}
     end
@@ -176,4 +176,3 @@ module Kernel
     caller[1] =~ /`([^']*)'/ and $1
   end
 end
-
