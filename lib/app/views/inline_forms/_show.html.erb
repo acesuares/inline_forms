@@ -69,14 +69,6 @@
       	      </div>
             <% else %>
               <% if form_element == :has_one %>
-                <div class="row form_element_header associated_auto_header" id="<%= css_class_id -%>_list_auto_header" >
-                  <div class='medium-11 large-11 column' >
-                    <%= @object.class.human_attribute_name(attribute) -%>
-                  </div>
-                  <div class='medium-1 large-1 column'>
-                    &nbsp;
-                  </div>
-                </div>
                 <div class="row <%= cycle('odd', 'even') %>">
                   <div class='medium-1 large-1 column'>
                     &nbsp;
