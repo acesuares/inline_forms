@@ -45,7 +45,7 @@
                                 :attribute    => attribute } %>
               </div>
             </div>
-          <% else -%>
+          <% else %>
             <% if form_element == :associated -%>
       	      <div class="row form_element_header associated_auto_header" id="<%= css_class_id -%>_list_auto_header" >
       	        <div class='medium-11 large-11 column' >
@@ -63,31 +63,55 @@
       	          <%= render  :partial => "inline_forms/list",
       	            :locals => {  :parent_class => @object.class,
       								            :parent_id    => @object.id,
-      								            :attribute    => attribute } %>
+                                  :attribute    => attribute,
+                                  :form_element => form_element } %>
       	        </div>
       	      </div>
-            <% else -%>
-              <div class="row <%= cycle('odd', 'even') %>">
-                <div class='medium-5 large-5 column' >
-                  <% if @object.has_validations_for?(attribute) -%>
-                    <span data-tooltip class="has-tip tip-top" title="<%= validation_hints_as_list_for(@object, attribute).html_safe -%>">
-                      <%= @object.class.human_attribute_name(attribute) -%>
-                    </span>
-                  <% else %>
+            <% else %>
+              <% if form_element == :has_one %>
+                <div class="row form_element_header associated_auto_header" id="<%= css_class_id -%>_list_auto_header" >
+                  <div class='medium-11 large-11 column' >
                     <%= @object.class.human_attribute_name(attribute) -%>
-                  <% end %>
+                  </div>
+                  <div class='medium-1 large-1 column'>
+                    &nbsp;
+                  </div>
                 </div>
-                <div class='medium-7 large-7 column' >
-                  <span id="<%= css_class_id -%>" >
-                    <%= send("#{form_element}_show", @object, attribute) -%>
-                  </span>
+                <div class="row <%= cycle('odd', 'even') %>">
+                  <div class='medium-1 large-1 column'>
+                    &nbsp;
+                  </div>
+                  <div id="<%= css_class_id -%>" class='small-11 column' >
+                    <%= render  :partial => "inline_forms/list",
+                      :locals => {  :parent_class => @object.class,
+                                    :parent_id    => @object.id,
+                                    :attribute    => attribute,
+                                    :form_element => form_element } %>
+                  </div>
                 </div>
-              </div>
-            <% end -%>
-          <% end -%>
-        <% end -%>
-      <% end -%>
-    <% end -%>
+              <% else %>
+                <div class="row <%= cycle('odd', 'even') %>">
+                  <div class='medium-5 large-5 column' >
+                    <% if @object.has_validations_for?(attribute) -%>
+                      <span data-tooltip class="has-tip tip-top" title="<%= validation_hints_as_list_for(@object, attribute).html_safe -%>">
+                        <%= @object.class.human_attribute_name(attribute) -%>
+                      </span>
+                    <% else %>
+                      <%= @object.class.human_attribute_name(attribute) -%>
+                    <% end %>
+                  </div>
+                  <div class='medium-7 large-7 column' >
+                    <span id="<%= css_class_id -%>" >
+                      <%= send("#{form_element}_show", @object, attribute) -%>
+                    </span>
+                  </div>
+                </div>
+              <% end %>
+            <% end %>
+          <% end %>
+        <% end %>
+      <% end %>
+    <% end %>
     <div class="record_footer"></div>
   </div>
 </div>

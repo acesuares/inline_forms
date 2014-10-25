@@ -175,6 +175,10 @@ class InlineFormsController < ApplicationController
         @associated_record = @object.send(@attribute)[@associated_record_id]
       end
     end
+    if @form_element == "has_one"
+      @associated_record = @object.send(@attribute)
+      @associated_record_id = @associated_record.id
+    end
     @update_span = params[:update]
     if @attribute.nil?
       respond_to do |format|
