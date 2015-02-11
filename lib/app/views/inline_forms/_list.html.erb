@@ -1,4 +1,5 @@
 <% ul_needed = true %>
+<% pagination = true %>
 <% if not defined?(parent_class)  %>
   <%   # we didn't come here via _show.html.erb %>
   <%  if @parent_class.nil? %>
@@ -28,7 +29,6 @@
     <% objects = [ parent_class.find(parent_id).send(attribute) ] %>
     <% pagination = false %>
   <% else %>
-    <% pagination = true %>
     <% update_span = "#{parent_class.to_s.underscore}_#{parent_id}_#{attribute}_list" -%>
     <% path_to_new='new_' + attribute.to_s.singularize + '_path' %>
     <% foreign_key = parent_class.reflect_on_association(attribute.to_sym).options[:foreign_key] || parent_class.name.foreign_key -%>
