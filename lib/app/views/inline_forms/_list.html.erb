@@ -37,7 +37,7 @@
     <% objects = parent_class.find(parent_id).send(attribute) %>
     <% objects = parent_class.find(parent_id).send(attribute).accessible_by(current_ability) if cancan_enabled? %>
     <% objects = objects.order(attribute.to_s.singularize.camelcase.constantize.order_by_clause) if attribute.to_s.singularize.camelcase.constantize.respond_to?(:order_by_clause) && ! attribute.to_s.singularize.camelcase.constantize.order_by_clause.nil? %>
-    <% objects = objects.paginate  :page => params[:page], :per_page => @PER_PAGE || 5, :conditions => conditions %>
+    <% objects = objects.paginate  :page => params[:page], :conditions => conditions %>
   <% end %>
 <% end %>
 

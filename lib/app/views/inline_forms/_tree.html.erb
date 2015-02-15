@@ -4,7 +4,7 @@
   <% model = parent_class %>
   <% objects = parent_class.find(parent_id).children %>
   <% objects = parent_class.find(parent_id).children.accessible_by(current_ability) if cancan_enabled? %>
-  <% objects = objects.paginate  :page => params[:page], :per_page => @PER_PAGE || 5 %>
+  <% objects = objects.paginate  :page => params[:page] %>
 
 <div class="list_container" id="<%= update_span %>">
 
