@@ -24,7 +24,9 @@ def chicas_family_photo_list_show(object, attribute)
       photos.each do |photo|
         out << image_tag(photo.image.url(:thumb), 
         	onclick: "this.src='#{photo.image.url(:palm)}'", 
-        	onmouseout: "this.src='#{photo.image.url(:thumb)}'")
+        	onmouseout: "this.src='#{photo.image.url(:thumb)}'",
+        	alt: photo.name,
+        	title: photo.name)
       end
     end
     out << '</div>'

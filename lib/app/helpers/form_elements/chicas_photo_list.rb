@@ -22,7 +22,11 @@ def chicas_photo_list_show(object, attribute)
     out << "<div class='row #{cycle('odd', 'even')}'>"
     photo_list.sort.reverse.each do |rating, photos|
       photos.each do |photo|
-        out << image_tag(photo.image.url(:thumb), onclick: "this.src='#{photo.image.url(:palm)}'", onmouseout: "this.src='#{photo.image.url(:thumb)}'")
+        out << image_tag(photo.image.url(:thumb), 
+        	onclick: "this.src='#{photo.image.url(:palm)}'", 
+        	onmouseout: "this.src='#{photo.image.url(:thumb)}'",
+                alt: photo.name,       
+                title: photo.name)
       end
     end
     out << '</div>'
