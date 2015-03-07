@@ -24,7 +24,7 @@ gem 'rails-i18n'
 gem 'i18n-active_record', :git => 'git://github.com/acesuares/i18n-active_record.git'
 gem 'unicorn'
 gem 'rvm'
-gem 'rvm-capistrano'
+gem 'rvm-capistrano',  require: false
 gem 'foundation-rails'
 gem 'foundation-icons-sass-rails'
 gem 'mysql2'
