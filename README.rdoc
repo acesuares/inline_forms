@@ -16,7 +16,7 @@ If you want to use mysql instead of sqlite as development database:
 
 If you want to install the example application:
 
- inline_forms create MyApp --example
+ inline_forms create MyApp -d sqlite --example
 
 Then point your browser to http://localhost:3000/apartments and log in with admin@example.com / admin999
 
@@ -31,6 +31,28 @@ You can install the example application manually if you like:
  rails s
 
 Then point your browser to http://localhost:3000/apartments and log in with admin@example.com / admin999
+
+= Build a vagrant virtualbox box for easier development
+
+Go ahead and unzip lib/vagrant/vagrantbox-inline_forms.zip. Enter the created directory with
+
+ cd vagrantbox-inline_forms.zip
+ 
+then issue
+
+ vagrant up
+ 
+after a while you should be able to use the created box like this:
+
+ vagrant ssh
+ 
+Once inside the box, goto /vagrant and install_stuff:
+
+ cd /vagrant
+ ./install_stuff
+ 
+This should update your box, install rvm and ruby and inline_forms, and create an example app.
+
 
 == Disclaimer
 
