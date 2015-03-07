@@ -61,5 +61,5 @@ It's work in progress. Until I learn to use git branch, new releases break as ea
 
 == Copyright
 
-Copyright (c) 2011-2013 Ace Suares. See LICENSE.txt for further details.
+Copyright (c) 2011-2015 Ace Suares. See LICENSE.txt for further details.
 
