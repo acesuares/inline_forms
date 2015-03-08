@@ -1,7 +1,7 @@
 # -*- encoding : utf-8 -*-
-InlineForms::SPECIAL_COLUMN_TYPES[:image_field]=:string
+InlineForms::SPECIAL_COLUMN_TYPES[:multi_image_field]=:string
 
-def image_field_show(object, attribute)
+def multi_image_field_show(object, attribute)
   o = object.send(attribute)
   msg = "<i class='fi-plus'></i>".html_safe
   if o.send(:present?)
@@ -14,11 +14,11 @@ def image_field_show(object, attribute)
   link_to_inline_edit object, attribute, msg
 end
 
-def image_field_edit(object, attribute)
-  file_field_tag attribute, class: 'input_text_field'
+def multi_image_field_edit(object, attribute)
+  file_field_tag attribute, multiple: true, class: 'input_text_field multi_image_field'
 end
 
-def image_field_update(object, attribute)
+def multi_image_field_update(object, attribute)
   object.send(attribute.to_s + '=', params[attribute.to_sym])
 end
 
