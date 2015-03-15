@@ -4,7 +4,7 @@ create_file 'Gemfile', "# created by inline_forms #{ENV['inline_forms_version']}
 
 add_source 'https://rubygems.org'
 
-gem 'rails', '3.2.12'
+gem 'rails', '~> 3.2'
 gem 'rake', '10.0.4'
 gem 'jquery-rails', '~> 2.3.0'
 gem 'jquery-ui-sass-rails'
