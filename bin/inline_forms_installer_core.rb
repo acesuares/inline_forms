@@ -4,7 +4,7 @@ create_file 'Gemfile', "# created by inline_forms #{ENV['inline_forms_version']}
 
 add_source 'https://rubygems.org'
 
-gem 'rails', '~> 3.2'
+gem 'rails', '~> 3.2.21'
 gem 'rake', '10.0.4'
 gem 'jquery-rails', '~> 2.3.0'
 gem 'jquery-ui-sass-rails'
@@ -61,7 +61,7 @@ say "- Running bundle..."
 run "bundle install"
 
 say "- Database setup: creating config/database.yml with development database #{ENV['database']}"
-remove_file "config/database.yml" # the one that 'rails _3.2.13_ new' created
+remove_file "config/database.yml" # the one that 'rails _3.2.21_ new' created
 if ENV['using_sqlite'] == 'true'
   create_file "config/database.yml", <<-END_DATABASEYML.strip_heredoc
   development:
@@ -526,10 +526,10 @@ insert_into_file "config/environments/production.rb", <<-DEVISE_MAILER_STUFF.str
 DEVISE_MAILER_STUFF
 
 # assets
-say "- Setting config.assets.compile to true in environments/production.rb (needed for ckeditor)..."
+#say "- Setting config.assets.compile to true in environments/production.rb (needed for ckeditor)..."
 #insert_into_file "#{app_name}/config/environments/production.rb", "config.assets.compile = false\n", :before => "end\n" if dry_run?
-gsub_file "config/environments/production.rb", /config.assets.compile = false/, "config.assets.compile = true"
-
+#gsub_file "config/environments/production.rb", /config.assets.compile = false/, "config.assets.compile = true"
+### we don't do that no more
 
 
 
