@@ -17,7 +17,7 @@
         <% end %>
         <% if current_user.role?(:admin) || current_user.role?(:superadmin) %>
           <li class="has-dropdown">
-            <a href="#">meer...</a>
+            <a href="#"><%= t 'common.more' %></a>
             <ul class="dropdown">
               <% MODEL_TABS.each do |m| %>
                 <% model = m.singularize.camelcase.constantize rescue nil %>
