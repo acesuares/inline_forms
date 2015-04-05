@@ -36,7 +36,7 @@
           <a href="#"><%= current_user.name %></a>
           <ul class="dropdown">
             <li>
-              <%= link_to("Afmelden...", destroy_user_session_path, :method => :delete) if current_user  %>
+              <%= link_to( t("common.logout"), destroy_user_session_path, :method => :delete) if current_user  %>
             </li>
           </ul>
         </li>
