@@ -33,5 +33,6 @@ end
 def check_list_update(object, attribute)
   params[attribute] ||= {}
   object.send(attribute.to_s.singularize + '_ids=', params[attribute].keys)
+  object.touch # TODO we should have a flag to turn this on or of.
 end
 
