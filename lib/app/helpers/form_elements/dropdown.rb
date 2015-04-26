@@ -11,7 +11,7 @@ def dropdown_show(object, attribute)
 end
 
 def dropdown_edit(object, attribute)
-  #object.send('build_' + attribute.to_s) unless object.send(attribute)
+  object.send('build_' + attribute.to_s) unless object.send(attribute) # we really need this!
   attr = object.send attribute
   presentation = "_presentation"
   presentation = "_dropdown_presentation" if attr.respond_to? "_dropdown_presentation"
