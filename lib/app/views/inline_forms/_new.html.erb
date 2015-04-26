@@ -1,15 +1,17 @@
 <div class="new_record"">
-  <% flash.each do |key, value| %>
-    <div id="flash" class="flash <%= key %>">
-      <ul>
-        <% value.each do |m| %>
-        <li>
-          <%= m %>
-        </li>
-        <% end %>
-      </ul>
-    </div>
-  <% end %>
+  <div id="flash" class="row">
+    <% flash.each do |key, value| %>
+      <div class="flash <%= key %>">
+        <ul>
+          <% value.each do |m| %>
+            <li>
+              <%= m %>
+            </li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+  </div>
 
   <div class="row" >
     <div class="large-12 column object_presentation" >
