@@ -1,6 +1,6 @@
 GENERATOR_PATH = File.dirname(File.expand_path(__FILE__)) +  '/../'
 
-create_file 'Gemfile', '# created by inline_forms #{ENV['inline_forms_version']}\n"
+create_file 'Gemfile', "# created by inline_forms #{ENV['inline_forms_version']}\n"
 
 add_source 'https://rubygems.org'
 
@@ -273,6 +273,9 @@ ROLES_MIGRATION
 
 append_to_file "db/seeds.rb", "Role.create({ id: 1, name: 'superadmin', description: 'Super Admin can access all.' }, without_protection: true)\n"
 
+say "- Copy stylesheets..."
+copy_file File.join(GENERATOR_PATH, 'lib/generators/assets/stylesheets/*.scss'), "app/assets/stylesheets/"
+
 say "- Create inline_forms.js..."
 copy_file File.join(GENERATOR_PATH, 'lib/generators/assets/javascripts/inline_forms.js'), "app/assets/javascripts/inline_forms.js"
 
@@ -504,13 +507,6 @@ create_file "spec/factories/inline_forms.rb", <<-END_FACTORY_GIRL.strip_heredoc
 END_FACTORY_GIRL
 remove_file 'spec/factories/users.rb'
 remove_file 'spec/models/user_spec.rb'
-
-# environments/production.rb
- say "- Injecting precompile assets stuff in environments/production.rb..."
- insert_into_file "config/environments/production.rb",
-         "  config.assets.precompile += %w(inline_forms_application.css devise.css)\n",
-         :after => "  # config.assets.precompile += %w( search.js )\n"
-
 
 # add stuff to application.css
 say "- Injecting stylesheets into app/assets/stylesheets/application.css..."
