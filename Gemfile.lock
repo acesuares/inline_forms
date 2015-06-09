@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    inline_forms (3.0.39)
+    inline_forms (3.0.40)
       rails (= 3.2.21)
       rails-i18n
       rvm
