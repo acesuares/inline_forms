@@ -273,8 +273,8 @@ ROLES_MIGRATION
 
 append_to_file "db/seeds.rb", "Role.create({ id: 1, name: 'superadmin', description: 'Super Admin can access all.' }, without_protection: true)\n"
 
-say "- Copy views..."
-directory File.join(GENERATOR_PATH, 'lib/generators/views'), "app/views"
+# say "- Copy views..."
+# directory File.join(GENERATOR_PATH, 'lib/generators/views'), "app/views"
 
 say "- Copy stylesheets..."
 copy_file File.join(GENERATOR_PATH, 'lib/generators/assets/stylesheets/inline_forms.scss'), "app/assets/stylesheets/inline_forms.scss"
