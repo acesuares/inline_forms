@@ -571,9 +571,9 @@ run 'git commit -a -m " * Initial"'
 # example
 if ENV['install_example'] == 'true'
   say "\nInstalling example application..."
-  run 'bundle exec rails g inline_forms Photo name:string caption:string image:image_field description:text apartment:belongs_to _presentation:\'#{name}\'' # FIXME temporary changed because ckeditor is playing dirty
+  run 'bundle exec rails g inline_forms Photo name:string caption:string image:image_field description:ckeditor apartment:belongs_to _presentation:\'#{name}\'' # FIXME temporary changed because ckeditor is playing dirty
   run 'bundle exec rails generate uploader Image'
-  run 'bundle exec rails g inline_forms Apartment name:string title:string description:text photos:has_many photos:associated _enabled:yes _presentation:\'#{name}\'' # FIXME temporary changed because ckeditor is playing dirty
+  run 'bundle exec rails g inline_forms Apartment name:string title:string description:ckeditor photos:has_many photos:associated _enabled:yes _presentation:\'#{name}\'' # FIXME temporary changed because ckeditor is playing dirty
   run 'bundle exec rake db:migrate'
   say '-Adding example test'
   create_file "spec/models/#{app_name}_example.rb", <<-END_EXAMPLE_TEST.strip_heredoc
