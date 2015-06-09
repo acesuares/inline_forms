@@ -1,0 +1,314 @@
+@import 'foundation_and_overrides';
+@import 'foundation-icons';
+
+$ffDefault: 'Open Sans', 'Helvetica Neue', Helvetica, Helvetica, Arial, sans-serif !default;
+
+@import 'themes/jquery.ui.sunny';
+@import 'jquery.ui.all';
+
+
+.contain-to-grid {
+  background-color: $body-bg !important;
+}
+
+input {
+  margin: 2px 0 !important;
+}
+
+select {
+  background-color: #fff8e0 !important;
+  border: 0 !important;
+  margin: 2px 0 !important;
+  font-family: 'Open Sans', 'Helvetica Neue', Helvetica, Helvetica, Arial, sans-serif !important;
+  padding: 0;
+
+}
+select:hover, select:focus {
+  background-color: lighten(#fff8e0, 2%) !important;
+  border: 0 !important;
+}
+
+#inline_forms_application_top_bar {
+    background-color: #A3381E;
+    color: #FFFFFF;
+    .top-bar-section li a {
+      background-color: #A3381E;
+    }
+}
+
+#inline_forms_model_top_bar {
+  background-color: #E1C150;
+  padding-top: 45px;
+  height: 90px;
+  .top-bar-section {
+    .right, li, .has-form {
+      background-color: #E1C150;
+    }
+    .inline_forms_model_top_bar_buttons {
+      top: 4px !important;
+      padding: 7px 0 7px 0 !important;
+      margin: 0 !important;
+    }
+    .new_button  {
+      background-color: #E1C150;
+      color: #B94C32;
+      font-size: 1.3rem;
+      padding: 0 2rem 0 1rem;
+    }
+    .new_button:hover, .new_button:focus {
+      color: white;
+      -webkit-transition-property: color;
+      transition-property: color;
+    }
+    input[type=text]:hover, input[type=text]:focus {
+      background-color: lighten(#fff8e0, 5%);
+      -webkit-transition-property: background-color;
+      transition-property: background-color;
+    }
+  }
+}
+
+#inline_forms_model_top_bar_container {
+    z-index: 9;
+}
+
+#outer_container {
+  width: 100%;
+  position: absolute;
+  top: 90px;
+}
+
+.top-level a {
+  font-weight: bold;
+  font-size: 110%;
+}
+.list_container {
+  .row {
+    font-size: 1.2rem;
+    font-weight: normal;
+    line-height: 2.2rem;
+    margin: 0 auto !important;
+  }
+  .odd {
+    background-color: #FBE38E;
+  }
+  .even { 
+    background-color: #FBEEC1;
+  }
+}
+
+.inline_forms_list, .new_record {
+  .row.odd, .row.even {
+    font-size: 1rem !important;
+    font-weight: normal !important;
+  }
+  .row.form_element_header {
+    border-top: 1px solid #B94C32;
+    background-color: rgb(239, 202, 75);
+    font-weight: normal !important;
+    font-size: 1.3rem !important;
+  }
+}
+
+.new_record {
+  .button {
+    margin: 0;
+    padding: 0.5rem;
+  }
+}
+
+.object_presentation {
+  background-color: #B94C32;
+  color: white;  
+  .close_button  {
+    background-color: #B94C32;
+    font-size: 1.3rem;
+    padding: 0 1rem 0 1rem;
+    margin: 0;
+  }
+  .close_button:hover, .close_button:focus {
+    background-color: #B94C32;
+    color: #FBEEC1;
+    -webkit-transition-property: color;
+    transition-property: color;
+  }
+}
+
+.list_container {
+  .row.odd, .row.even {
+    font-size: 1rem !important;
+    font-weight: normal !important;
+  }
+  .row.form_element_header {
+    border-top: 1px solid #B94C32;
+    background-color: rgb(239, 202, 75);
+    font-weight: normal !important;
+    font-size: 1.3rem !important;
+  }
+}
+
+
+
+.associated_auto_header {
+  border-top: 1px solid #B94C32;
+  .new_button  {
+    background-color: rgb(239, 202, 75);
+    font-size: 1.5rem;
+    color: #B94C32;
+    padding: 0 0.5rem 0 1rem;
+    margin: 0;
+  }
+  .new_button:hover, .new_button:focus {
+    background-color: rgb(239, 202, 75);
+    color: white;
+    -webkit-transition-property: color;
+    transition-property: color;
+  }  
+}
+
+.pagination {
+  font-weight: normal;
+  font-size: 0.9em;
+  a:hover {
+    color: #B94C32;
+    -webkit-transition-property: color;
+    -webkit-transition-duration: 0.3s;
+    transition-property: color;
+    transition-duration: 0.3s;
+  }
+  em {
+    color: #B94C32;
+    font-weight: bold;
+    font-style: normal;
+  }
+  span.disabled {
+    color: #AAA; 
+  }
+}
+
+.record_footer {
+  background-color: rgb(239, 202, 75);
+  height: 0.2em;
+  border-bottom: 1px solid #B94C32;
+  margin-bottom: 1.5em;
+}
+
+.flash {
+  margin-top: 1em;
+  padding: 0.5em;
+  color: #A3381E;
+  font-size: 130%;
+  font-weight: bold;
+  line-height: 120%;
+  background-color: white;
+  border-top: 0.5em solid #fade7a;
+}
+
+  .custom-combobox {
+    position: relative;
+    display: inline-block;
+  }
+  .custom-combobox-toggle {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    margin-left: -1px;
+    padding: 0;
+    /* support: IE7 */
+    *height: 1.7em;
+    *top: 0.1em;
+  }
+  .custom-combobox-input {
+    margin: 0;
+    padding: 0.3em;
+  }
+  
+
+.column {
+    padding-right: 0 !important;
+}
+
+.top-bar input, .top-bar .button {
+  top: 4px !important;
+}
+
+.top-bar-section {
+  padding-left: rem-calc(12) !important;
+  padding-right: rem-calc(12) !important;
+}
+
+.first-bar {
+  margin-bottom: 0 !important;
+}
+.second-bar {
+  margin-top: 1px !important;
+  margin-bottom: 0 !important;
+}
+
+#switch_user_identifier {
+  font-size: smaller;
+  select {
+    width: 5em;
+  }
+}
+
+
+.error {
+    color: #ffffff;
+    font-weight: bold;
+    -moz-border-radius: 10px;
+    -webkit-border-radius: 10px;
+    -webkit-box-shadow: 0 1px 1px rgba(0,0,0, .1);
+    -moz-box-shadow: 0 1px 1px rgba(0,0,0, .1);
+    background-color: #a70f0f;
+    background-image: -moz-linear-gradient(100% 100% 90deg, #a70f0f, #c01313);
+    background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#c01313), to(#a70f0f));
+    padding: 0.7em;
+}
+.success {
+    color: #ffffff;
+    font-weight: bold;
+    -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
+    -webkit-box-shadow: 0 1px 3px rgba(0,0,0, .4);
+    -moz-box-shadow: 0 1px 3px rgba(0,0,0, .4);
+    border-bottom: 1px solid #cccccc;
+    background-color: #4f8d0d;
+    background-image: -moz-linear-gradient(100% 100% 90deg, #4f8d0d, #5ba210);
+    background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#5ba210), to(#4f8d0d));
+    padding: 0.7em;
+    margin-bottom: 0.5em;
+}
+
+.ckeditor_area {
+    position: relative;
+}
+
+.ckeditor_area .glass_plate {
+    position: absolute;
+    top: -1px;
+    width: 100%;
+    height: 232px;
+    border: 0;
+}
+
+.ckeditor_area .cke_top, .ckeditor_area .cke_bottom, .ckeditor_area .cke_border {
+    display: none;
+}
+
+/* jQuery ui Slider 8 */
+.slider {
+    width: 300px;
+    float: left;
+}
+.slider_value {
+    float: left;
+    min-width: 60px;
+    text-align: right;
+    font-family: monospace;
+}
+
+
+/* LEFT */
+
+

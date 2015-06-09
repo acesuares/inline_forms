@@ -1,12 +1,12 @@
 GENERATOR_PATH = File.dirname(File.expand_path(__FILE__)) +  '/../'
 
-create_file 'Gemfile', "# created by inline_forms #{ENV['inline_forms_version']}\n"
+create_file 'Gemfile', '# created by inline_forms #{ENV['inline_forms_version']}\n"
 
 add_source 'https://rubygems.org'
 
 gem 'rails', '~> 3.2.21'
-gem 'rake', '10.0.4'
-gem 'jquery-rails', '~> 2.3.0'
+gem 'rake'          #, '10.0.4'
+gem 'jquery-rails'  #, '~> 2.3.0'
 gem 'jquery-ui-sass-rails'
 gem 'capistrano'
 gem 'will_paginate', :git => 'git://github.com/acesuares/will_paginate.git'
@@ -24,37 +24,37 @@ gem 'rails-i18n'
 gem 'i18n-active_record', :git => 'git://github.com/acesuares/i18n-active_record.git'
 gem 'unicorn'
 gem 'rvm'
-gem 'rvm-capistrano',  require: false
+gem 'rvm-capistrano', require: false
 gem 'foundation-rails'
 gem 'foundation-icons-sass-rails'
 gem 'mysql2'
+
 
 gem_group :development do
   gem 'yaml_db'
   gem 'seed_dump', git: 'git://github.com/acesuares/seed_dump.git'
   gem 'switch_user'
-
-  gem "sqlite3"
-
-  gem "rspec-rails"
-  gem "shoulda", ">= 0"
-  gem "bundler"
-  gem "jeweler"
-  gem "capybara"
-  gem "factory_girl"
-  gem "factory_girl_rails"
-  gem "rspec"
+  gem 'sqlite3'
+  gem 'rspec-rails'
+  gem 'shoulda', '>= 0'
+  gem 'bundler'
+  gem 'jeweler'
+  gem 'capybara'
+  gem 'factory_girl'
+  gem 'factory_girl_rails'
+  gem 'rspec'
 end
 
 gem_group :production do
   gem 'therubyracer'
-  gem 'uglifier', '>= 1.0.3'
+  gem 'uglifier'      #, '>= 1.0.3'
 end
 
 gem_group :assets do
-  gem 'sass-rails',   '~> 3.2.3'
-  gem 'coffee-rails', '~> 3.2.1'
+  gem 'sass-rails'    #,   '~> 3.2.3'
+  gem 'coffee-rails'  #, '~> 3.2.1'
   gem 'compass-rails' # you need this or you get an err
+  gem 'turbo-sprockets-rails3'
 end
 
 say "- Running bundle..."
@@ -273,6 +273,16 @@ ROLES_MIGRATION
 
 append_to_file "db/seeds.rb", "Role.create({ id: 1, name: 'superadmin', description: 'Super Admin can access all.' }, without_protection: true)\n"
 
+say "- Create inline_forms.js..."
+copy_file File.join(GENERATOR_PATH, 'lib/generators/assets/javascripts/inline_forms.js'), "app/assets/javascripts/inline_forms.js"
+
+say "- Add stuff to application.js..."
+insert_into_file "app/assets/javascripts/application.js",
+                 "//= require jquery.ui.all
+                 \n//= require jquery.ui.datepicker-nl.js
+                 \n//= require inline_forms\n",
+                 :before => "//= require_tree .\n"
+
 say "- Install ckeditor..."
 generate "ckeditor:install --backend=carrierwave"
 
@@ -288,7 +298,7 @@ insert_into_file "app/assets/javascripts/application.js",
                  :before => "//= require_tree .\n"
 
 say "- Create ckeditor config.js"
-copy_file File.join(GENERATOR_PATH, 'lib/app/assets/javascripts/ckeditor/config.js'), "app/assets/javascripts/ckeditor/config.js"
+copy_file File.join(GENERATOR_PATH, 'lib/generators/assets/javascripts/ckeditor/config.js'), "app/assets/javascripts/ckeditor/config.js"
 
 say "- Add remotipart to application.js..."
 insert_into_file "app/assets/javascripts/application.js", "//= require jquery.remotipart\n", :before => "//= require_tree .\n"
@@ -498,7 +508,7 @@ remove_file 'spec/models/user_spec.rb'
 # environments/production.rb
  say "- Injecting precompile assets stuff in environments/production.rb..."
  insert_into_file "config/environments/production.rb",
-         "  config.assets.precompile += %w(inline_forms_application.js inline_forms_application.css devise.css)\n",
+         "  config.assets.precompile += %w(inline_forms_application.css devise.css)\n",
          :after => "  # config.assets.precompile += %w( search.js )\n"
 
 
