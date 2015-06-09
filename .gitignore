@@ -43,6 +43,6 @@ pkg
 .project
 .ruby-version
 .ruby-gemset
-.gitignore
 .idea
 bin/LETOVER
+pkg
