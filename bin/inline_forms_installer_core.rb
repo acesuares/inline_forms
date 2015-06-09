@@ -274,7 +274,8 @@ ROLES_MIGRATION
 append_to_file "db/seeds.rb", "Role.create({ id: 1, name: 'superadmin', description: 'Super Admin can access all.' }, without_protection: true)\n"
 
 say "- Copy stylesheets..."
-copy_file File.join(GENERATOR_PATH, 'lib/generators/assets/stylesheets/*.scss'), "app/assets/stylesheets/"
+copy_file File.join(GENERATOR_PATH, 'lib/generators/assets/stylesheets/inline_forms.scss'), "app/assets/stylesheets/inline_forms.scss"
+copy_file File.join(GENERATOR_PATH, 'lib/generators/assets/stylesheets/devise.scss'), "app/assets/stylesheets/devise.scss"
 
 say "- Create inline_forms.js..."
 copy_file File.join(GENERATOR_PATH, 'lib/generators/assets/javascripts/inline_forms.js'), "app/assets/javascripts/inline_forms.js"
