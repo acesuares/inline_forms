@@ -27,7 +27,7 @@ end
 def ckeditor_edit(object, attribute)
     cktext_area_tag( attribute,
                     object[attribute],
-                    :id => "textarea_rw_#{object.class.name.underscore}_#{object.id}_#{attribute.to_s}",
+                    :id => "textarea_#{object.class.name.underscore}_#{object.id}_#{attribute.to_s}",
                     :ckeditor => {  :width => '100%',
                                     :height => '200px'
                                   }
