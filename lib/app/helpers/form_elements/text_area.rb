@@ -36,10 +36,9 @@ def text_area_edit(object, attribute)
       :id => "textarea_#{object.class.name.underscore}_#{object.id}_#{attribute.to_s}",
       :ckeditor => {  :width => '100%',
                       :height => '200px'
-                    } +
-      "<script>delete CKEDITOR.instances['textarea_#{object.class.name.underscore}_#{object.id}_#{attribute.to_s}']</script>".html_safe 
-
-    )
+                    }
+    )  +
+    "<script>delete CKEDITOR.instances['textarea_#{object.class.name.underscore}_#{object.id}_#{attribute.to_s}']</script>".html_safe 
   else
     text_area_tag attribute, object[attribute], :class => 'attribute_text_area'
   end
