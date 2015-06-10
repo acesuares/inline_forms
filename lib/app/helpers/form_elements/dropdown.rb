@@ -15,7 +15,7 @@ def dropdown_edit(object, attribute)
   attr = object.send attribute
   presentation = "_presentation"
   presentation = "_dropdown_presentation" if attr.respond_to? "_dropdown_presentation"
-  klass = attribute.to_s.singularize.camelcase.constantize
+  klass = object.send(attribute).class
   if cancan_enabled?
     values = klass.accessible_by(current_ability)
   else
@@ -30,4 +30,3 @@ def dropdown_update(object, attribute)
   foreign_key = object.class.reflect_on_association(attribute.to_sym).options[:foreign_key] || attribute.to_s.foreign_key.to_sym
   object[foreign_key] = params[('_' + object.class.to_s.underscore).to_sym][attribute.to_s.foreign_key.to_sym]
 end
-
