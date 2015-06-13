@@ -282,6 +282,7 @@ say "- Copy stylesheets..."
 end
 
 say "- Copy javascripts..."
+remove_file 'app/assets/javascripts/application.js'
 %w(application.js inline_forms.js).each do |javascript|
   copy_file File.join(GENERATOR_PATH, 'lib/generators/assets/javascripts' , javascript), File.join('app/assets/javascripts' , javascript)
 end
