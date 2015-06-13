@@ -49,14 +49,14 @@ namespace :deploy do
     run "kill -s KILL `cat #{shared_path}/pids/unicorn.pid`"
     sleep 10
     run "rvm rvmrc trust #{current_release}"
-    run "cd #{current_path} ; bundle exec r193_unicorn -c #{current_path}/config/unicorn.rb -D -E production"
+    run "cd #{current_path} ; bundle exec r200_unicorn -c #{current_path}/config/unicorn.rb -D -E production"
   end
 
 
   desc "Start unicorn"
   task :start, :except => { :no_release => true } do
     run "rvm rvmrc trust #{current_release}"
-    run "cd #{current_path} ; bundle exec r193_unicorn -c #{current_path}/config/unicorn.rb -D -E production"
+    run "cd #{current_path} ; bundle exec r200_unicorn -c #{current_path}/config/unicorn.rb -D -E production"
   end
 
   desc "Stop unicorn"

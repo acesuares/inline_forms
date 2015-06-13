@@ -1,0 +1,11 @@
+@import 'foundation/functions';
+
+$include-html-classes: true;
+$include-html-global-classes: $include-html-classes;
+
+// We use these to define default font stacks
+$font-family-sans-serif: "Open Sans", sans-serif;
+  // $font-family-serif: Georgia, Cambria, "Times New Roman", Times, serif;
+  // $font-family-monospace: Consolas, "Liberation Mono", Courier, monospace;
+
+@import 'foundation';

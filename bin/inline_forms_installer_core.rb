@@ -5,8 +5,8 @@ create_file 'Gemfile', "# created by inline_forms #{ENV['inline_forms_version']}
 add_source 'https://rubygems.org'
 
 gem 'rails', '~> 3.2.21'
-gem 'rake'          #, '10.0.4'
-gem 'jquery-rails'  #, '~> 2.3.0'
+gem 'rake'
+gem 'jquery-rails'
 gem 'jquery-ui-sass-rails'
 gem 'capistrano'
 gem 'will_paginate', :git => 'git://github.com/acesuares/will_paginate.git'
@@ -26,7 +26,6 @@ gem 'unicorn'
 gem 'rvm'
 gem 'rvm-capistrano', require: false
 gem 'foundation-rails'
-gem 'foundation-icons-sass-rails'
 gem 'mysql2'
 
 
@@ -36,25 +35,26 @@ gem_group :development do
   gem 'switch_user'
   gem 'sqlite3'
   gem 'rspec-rails'
-  gem 'shoulda', '>= 0'
+  gem 'shoulda'
   gem 'bundler'
   gem 'jeweler'
   gem 'capybara'
   gem 'factory_girl'
   gem 'factory_girl_rails'
   gem 'rspec'
+  gem 'turbo-sprockets-rails3'
 end
 
 gem_group :production do
   gem 'therubyracer'
-  gem 'uglifier'      #, '>= 1.0.3'
+  gem 'uglifier'
 end
 
 gem_group :assets do
-  gem 'sass-rails'    #,   '~> 3.2.3'
-  gem 'coffee-rails'  #, '~> 3.2.1'
-  gem 'compass-rails' # you need this or you get an err
-  gem 'turbo-sprockets-rails3'
+  gem 'sass-rails'
+  gem 'coffee-rails'
+  gem 'compass-rails'
+  gem 'foundation-icons-sass-rails'
 end
 
 say "- Running bundle..."
@@ -273,48 +273,34 @@ ROLES_MIGRATION
 
 append_to_file "db/seeds.rb", "Role.create({ id: 1, name: 'superadmin', description: 'Super Admin can access all.' }, without_protection: true)\n"
 
-# say "- Copy views..."
-# directory File.join(GENERATOR_PATH, 'lib/generators/views'), "app/views"
+say "- Installaing ZURB Foundation..." #foundation_and_overrides will be overwritten in the next step!
+generate "foundation:install", "-f"
 
 say "- Copy stylesheets..."
-copy_file File.join(GENERATOR_PATH, 'lib/generators/assets/stylesheets/inline_forms.scss'), "app/assets/stylesheets/inline_forms.scss"
-copy_file File.join(GENERATOR_PATH, 'lib/generators/assets/stylesheets/devise.scss'), "app/assets/stylesheets/devise.scss"
+%w(application.scss devise.scss foundation_and_overrides.scss inline_forms.scss).each do |stylesheet|
+  copy_file File.join(GENERATOR_PATH, 'lib/generators/assets/stylesheets' , stylesheet), File.join('app/assets/stylesheets' , stylesheet)
+end
 
-say "- Create inline_forms.js..."
-copy_file File.join(GENERATOR_PATH, 'lib/generators/assets/javascripts/inline_forms.js'), "app/assets/javascripts/inline_forms.js"
-
-say "- Add stuff to application.js..."
-insert_into_file "app/assets/javascripts/application.js",
-                 "//= require jquery.ui.all
-                 \n//= require jquery.ui.datepicker-nl.js
-                 \n//= require inline_forms\n",
-                 :before => "//= require_tree .\n"
+say "- Copy javascripts..."
+%w(application.js inline_forms.js).each do |javascript|
+  copy_file File.join(GENERATOR_PATH, 'lib/generators/assets/javascripts' , javascript), File.join('app/assets/javascripts' , javascript)
+end
 
 say "- Install ckeditor..."
-generate "ckeditor:install --backend=carrierwave"
+generate "ckeditor:install --orm=active_record --backend=carrierwave"
 
 say "- Mount Ckeditor::Engine to routes..."
 route "mount Ckeditor::Engine => '/ckeditor'"
 
 say "- Add ckeditor autoload_paths to application.rb..."
-application "config.autoload_paths += %W(\#{config.root}/app/models/ckeditor)" # TODO ROYTJE is this still needed?
-
-say "- Add ckeditor/init to application.js..."
-insert_into_file "app/assets/javascripts/application.js",
-                 "//= require ckeditor/init\n",
-                 :before => "//= require_tree .\n"
+application "config.autoload_paths += %W(\#{config.root}/app/models/ckeditor)"
 
 say "- Create ckeditor config.js"
 copy_file File.join(GENERATOR_PATH, 'lib/generators/assets/javascripts/ckeditor/config.js'), "app/assets/javascripts/ckeditor/config.js"
 
-say "- Add remotipart to application.js..."
-insert_into_file "app/assets/javascripts/application.js", "//= require jquery.remotipart\n", :before => "//= require_tree .\n"
-
 say "- Paper_trail install..."
 generate "paper_trail:install" # TODO One day, we need some management tools so we can actually SEE the versions, restore them etc.
 
-say "- Installaing ZURB Foundation..."
-generate "foundation:install", "-f"
 
 # Create Translations
 say "- Generate models and tables and views for translations..." # TODO Translations need to be done in inline_forms, and then generate a yml file, perhaps
@@ -347,8 +333,6 @@ VIEW_MIGRATION
 
 say "- Migrating Database (only when using sqlite)"
 run "bundle exec rake db:migrate" if ENV['using_sqlite'] == 'true'
-
-
 
 say "- Seeding the database (only when using sqlite)"
 run "bundle exec rake db:seed" if ENV['using_sqlite'] == 'true'
@@ -512,36 +496,36 @@ END_FACTORY_GIRL
 remove_file 'spec/factories/users.rb'
 remove_file 'spec/models/user_spec.rb'
 
-# add stuff to application.css
-say "- Injecting stylesheets into app/assets/stylesheets/application.css..."
-insert_into_file  "app/assets/stylesheets/application.css",
-                  "*= require devise\n*= require inline_forms\n",
-                  :before => "*= require_self\n"
-
-
 # devise mailer stuff
 say "- Injecting devise mailer stuff in environments/production.rb..."
 # strip_heredoc_with_indent(2) became strip_heredoc(2), but only in rails 4... :-(
 insert_into_file "config/environments/production.rb", <<-DEVISE_MAILER_STUFF.strip_heredoc, :before => "end\n"
   # for devise
-  config.action_mailer.default_url_options = { :protocol => 'https', :host => 'YOURHOSTNAME' }
+  config.action_mailer.default_url_options = { protocol: 'https', host: 'YOURHOSTNAME' }
   config.action_mailer.delivery_method = :smtp
   config.action_mailer.smtp_settings = {
-    :address => 'YOURMAILSERVER',
-    :enable_starttls_auto => true,
-    :password => 'YOURPASSWORD',
-    :user_name => 'YOURUSERNAME'
+    address: 'YOURMAILSERVER',
+    enable_starttls_auto: true,
+    password: 'YOURPASSWORD',
+    user_name: 'YOURUSERNAME'
   }
 
 DEVISE_MAILER_STUFF
 
-# assets
-#say "- Setting config.assets.compile to true in environments/production.rb (needed for ckeditor)..."
-#insert_into_file "#{app_name}/config/environments/production.rb", "config.assets.compile = false\n", :before => "end\n" if dry_run?
-#gsub_file "config/environments/production.rb", /config.assets.compile = false/, "config.assets.compile = true"
-### we don't do that no more
+say "- Injecting devise mailer stuff in environments/development.rb..."
+# strip_heredoc_with_indent(2) became strip_heredoc(2), but only in rails 4... :-(
+insert_into_file "config/environments/development.rb", <<-DEVISE_MAILER_STUFF.strip_heredoc, :before => "end\n"
+  # for devise
+  config.action_mailer.default_url_options = { protocol: 'http', host: 'localhost', port: 3000 }
+  config.action_mailer.delivery_method = :smtp
+  config.action_mailer.smtp_settings = {
+    address: 'YOURMAILSERVER',
+    enable_starttls_auto: true,
+    password: 'YOURPASSWORD',
+    user_name: 'YOURUSERNAME'
+  }
 
-
+DEVISE_MAILER_STUFF
 
 # capify
 say "- Capify..."

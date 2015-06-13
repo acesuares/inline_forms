@@ -1,21 +1,77 @@
-//devise
+@import url(http://fonts.googleapis.com/css?family=Open+Sans:400,400italic);
+@import 'foundation_and_overrides';
 
-#devise_outer_container a {
+.contain-to-grid {
+  background-color: $body-bg !important;
+}
+
+#inline_forms_devise_outer_container a {
   color: #A3381E;
 }
 
-#devise_top_bar {
+#inline_forms_devise_top_nav_bar {
   background-color: #A3381E;
   a {
     color: #FFFFFF;
-  } 
+  }
 }
 
-#devise_login {
+#inline_forms_devise_flash_div {
+  border-top: 0.5em solid #fade7a;
+  .flash {
+    margin-top: 0.2em;
+    padding: 0.5em;
+    color: #A3381E;
+    font-size: 130%;
+    font-weight: bold;
+    line-height: 120%;
+    background-color: white;
+    border: none;
+  }
+}
+
+#inline_forms_devise_welcome_row{
+  h1 {
+    text-align: center;
+    margin: 30px 0;
+    color: #A3381E;
+  }
+}
+
+#inline_forms_devise_new_login_session {
   .row {
     margin-bottom: 30px;
   }
 }
 
+#inline_forms_devise_form {
+  label {
+    padding-bottom: 0.2em;
+    padding-left: 0.3em;
+  }
+  input[type=checkbox] {
+    position: relative;
+    top: 2px;
+  }
+  .lower {
+    top: 15px;
+  }
+}
 
-#devise_flash {}
+#inline_forms_devise_content_column {
+  hr {
+    width: 96%;
+    margin: auto;
+  }
+}
+
+#content_for_devise_login {
+  padding: 0 2em;
+  h1 {
+    text-align: center;
+    margin: 0 0 0.5em 0;
+    color: #A3381E;
+  }
+
+
+}

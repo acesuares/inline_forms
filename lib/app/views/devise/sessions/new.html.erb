@@ -1,29 +1,30 @@
-<div class="row">
 
-  <div class="large-4 columns">
-    <h2>Sign in</h2>
+<%= render 'top-bar-and-flash' %>
+
+<div class="row" id='inline_forms_devise_welcome_row'>
+  <div class="small-11 centered column">
+    <h1><%= t('inline_forms.general.welcome_for_devise') %></h1>
+  </div>
+</div>
+
+<div id='inline_forms_devise_new_login_session' class="row">
+
+  <div id='inline_forms_devise_form_column' class="large-5 columns">
+
+    <%= render 'form' %>
+
   </div>
 
-  <div class="large-4 columns">
-    <%= form_for(resource, :as => resource_name, :url => session_path(resource_name)) do |f| %>
+  <div id='inline_forms_devise_content_column' class="large-7 columns">
 
-      <div><%= f.label :email %><br />
-        <%= f.email_field :email %></div>
+    <div class="hide-for-large-up row text-centered">
+      <hr />
+    </div>
 
-      <div><%= f.label :password %><br />
-        <%= f.password_field :password %></div>
+    <div id='content_for_devise_login' class="row">
+      <%= render '/devise/inline_forms/content_for_devise_login' %>
+    </div>
 
-      <% if devise_mapping.rememberable? -%>
-        <div><%= f.check_box :remember_me %> <%= f.label :remember_me %></div>
-      <% end -%>
-
-      <div><%= f.submit "Sign in" %></div>
-
-    <% end %>
-  </div>
-
-  <div class="large-4 columns">
-    <%= render :partial => "devise/shared/links" %>
   </div>
 
 </div>

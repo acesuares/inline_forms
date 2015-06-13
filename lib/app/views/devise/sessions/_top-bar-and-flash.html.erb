@@ -1,0 +1,18 @@
+<div class='contain-to-grid'>
+  <nav id='inline_forms_devise_top_nav_bar' class='top-bar' data-topbar>
+    <ul class='title-area'>
+      <li class='name'>
+        <h1><a href='/'><%= t('inline_forms.general.title_for_devise') %> <%= InlineForms::VERSION %></a></h1>
+      </li>
+      <li class='toggle-topbar menu-icon'>
+        <a href='#'><span></span></a>
+      </li>
+    </ul>
+  </nav>
+</div>
+
+<div id='inline_forms_devise_flash_div' class='row'>
+  <% flash.each do |name, msg| %>
+    <%= content_tag :div, msg, :id => "flash_#{name}", :class => 'devise flash' %>
+  <% end unless flash.blank? %>
+</div>

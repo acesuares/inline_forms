@@ -1,11 +1,9 @@
-@import 'foundation_and_overrides';
+@import url(http://fonts.googleapis.com/css?family=Open+Sans:400,400italic);
 @import 'foundation-icons';
-
-$ffDefault: 'Open Sans', 'Helvetica Neue', Helvetica, Helvetica, Arial, sans-serif !default;
-
 @import 'themes/jquery.ui.sunny';
 @import 'jquery.ui.all';
 
+@import 'foundation_and_overrides';
 
 .contain-to-grid {
   background-color: $body-bg !important;
@@ -19,7 +17,6 @@ select {
   background-color: #fff8e0 !important;
   border: 0 !important;
   margin: 2px 0 !important;
-  font-family: 'Open Sans', 'Helvetica Neue', Helvetica, Helvetica, Arial, sans-serif !important;
   padding: 0;
 
 }
@@ -92,7 +89,7 @@ select:hover, select:focus {
   .odd {
     background-color: #FBE38E;
   }
-  .even { 
+  .even {
     background-color: #FBEEC1;
   }
 }
@@ -119,7 +116,7 @@ select:hover, select:focus {
 
 .object_presentation {
   background-color: #B94C32;
-  color: white;  
+  color: white;
   .close_button  {
     background-color: #B94C32;
     font-size: 1.3rem;
@@ -163,7 +160,7 @@ select:hover, select:focus {
     color: white;
     -webkit-transition-property: color;
     transition-property: color;
-  }  
+  }
 }
 
 .pagination {
@@ -182,7 +179,7 @@ select:hover, select:focus {
     font-style: normal;
   }
   span.disabled {
-    color: #AAA; 
+    color: #AAA;
   }
 }
 
@@ -222,7 +219,7 @@ select:hover, select:focus {
     margin: 0;
     padding: 0.3em;
   }
-  
+
 
 .column {
     padding-right: 0 !important;
@@ -311,4 +308,15 @@ select:hover, select:focus {
 
 /* LEFT */
 
+#category_id {
+  margin-top: -2px !important;
+}
 
+#input_search {
+  border: none !important;
+  margin-top: -2px;
+}
+
+#inline_forms_model_top_bar .top-bar-section .inline_forms_model_top_bar_buttons {
+  top: 6px !important;
+}
