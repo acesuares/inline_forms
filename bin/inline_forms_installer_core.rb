@@ -273,16 +273,16 @@ ROLES_MIGRATION
 
 append_to_file "db/seeds.rb", "Role.create({ id: 1, name: 'superadmin', description: 'Super Admin can access all.' }, without_protection: true)\n"
 
-say "- Installaing ZURB Foundation..." #foundation_and_overrides will be overwritten in the next step!
+say "- Installaing ZURB Foundation..."
 generate "foundation:install", "-f"
 
 say "- Copy stylesheets..."
+remove_file 'app/assets/stylesheets/foundation_and_overrides.scss'
 %w(application.scss devise.scss foundation_and_overrides.scss inline_forms.scss).each do |stylesheet|
   copy_file File.join(GENERATOR_PATH, 'lib/generators/assets/stylesheets' , stylesheet), File.join('app/assets/stylesheets' , stylesheet)
 end
 
 say "- Copy javascripts..."
-remove_file 'app/assets/javascripts/application.js'
 %w(application.js inline_forms.js).each do |javascript|
   copy_file File.join(GENERATOR_PATH, 'lib/generators/assets/javascripts' , javascript), File.join('app/assets/javascripts' , javascript)
 end
@@ -337,21 +337,6 @@ run "bundle exec rake db:migrate" if ENV['using_sqlite'] == 'true'
 
 say "- Seeding the database (only when using sqlite)"
 run "bundle exec rake db:seed" if ENV['using_sqlite'] == 'true'
-
-# say "- Creating header in app/views/inline_forms/_header.html.erb..."
-# create_file "app/views/inline_forms/_header.html.erb", <<-END_HEADER.strip_heredoc
-    # <div id='Header'>
-      # <div id='title'>
-        # #{app_name} v<%= inline_forms_version -%>
-      # </div>
-      # <% if current_user -%>
-      # <div id='logout'>
-        # <%= link_to \"Afmelden: \#{current_user.name}\", destroy_user_session_path, :method => :delete %>
-      # </div>
-      # <% end -%>
-      # <div style='clear: both;'></div>
-    # </div>
-# END_HEADER
 
 say "- Recreating ApplicationHelper to set application_name and application_title..."
 remove_file "app/helpers/application_helper.rb" # the one that 'rails new' created
@@ -515,7 +500,7 @@ DEVISE_MAILER_STUFF
 
 say "- Injecting devise mailer stuff in environments/development.rb..."
 # strip_heredoc_with_indent(2) became strip_heredoc(2), but only in rails 4... :-(
-insert_into_file "config/environments/development.rb", <<-DEVISE_MAILER_STUFF.strip_heredoc, :before => "end\n"
+insert_into_file "config/environments/development.rb", <<-DEVISE_MAILER_STUFF.strip_heredoc, :before => "\nend\n"
   # for devise
   config.action_mailer.default_url_options = { protocol: 'http', host: 'localhost', port: 3000 }
   config.action_mailer.delivery_method = :smtp
