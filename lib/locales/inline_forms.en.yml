@@ -1,20 +1,20 @@
 en:
-  succes: success.
-  activerecord:
-    models:
-      language: language
-    attributes:
-      client:
-        first_name: first name
-        last_name: last name
-  application_name: application name
   inline_forms:
+    general:
+      application_title: Application Title
+      title_for_devise: Title for Devise
+      welcome_for_devise: Welcome for Devise
     view:
       close: close
       add_new: make a new %{model}
       undo: undo
       trash: trash
     devise:
+      passwords:
+        forgot_your_password: Forgot Your Password?
+        change_your_password: Change your password, if you want!
+        send_me_instructions: send instuctions
+        change_my_password: change password
       send_instructions: send instructions
       sign_up: sign up
       login_with_email_and_password: login with email and password
@@ -28,4 +28,11 @@ en:
         no_instructions: did you not receive instructions?
       signup_with_email_name_and_password: sign up with email name and password
       provide_email_and_we_send_instructions: provide your email and we will send instructions
-
+  succes: success.
+  activerecord:
+    models:
+      language: language
+    attributes:
+      client:
+        first_name: first name
+        last_name: last name

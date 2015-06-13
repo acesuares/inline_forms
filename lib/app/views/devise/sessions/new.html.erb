@@ -1,13 +1,13 @@
 
 <%= render 'top-bar-and-flash' %>
 
-<div class="row" id='inline_forms_devise_welcome_row'>
+<div class="row" id='inline_forms_devise_header_row'>
   <div class="small-11 centered column">
-    <h1><%= t('inline_forms.general.welcome_for_devise') %></h1>
+    <h1><%= t('inline_forms.devise.welcome') %></h1>
   </div>
 </div>
 
-<div id='inline_forms_devise_new_login_session' class="row">
+<div id='inline_forms_devise_container' class="row">
 
   <div id='inline_forms_devise_form_column' class="large-5 columns">
 
@@ -21,7 +21,7 @@
       <hr />
     </div>
 
-    <div id='content_for_devise_login' class="row">
+    <div id='inline_forms_devise_content' class="row">
       <%= render '/devise/inline_forms/content_for_devise_login' %>
     </div>
 

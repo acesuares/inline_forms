@@ -1,24 +1,54 @@
-<div class="row">
+<%= render 'top-bar-and-flash' %>
 
-  <div class="large-4 columns">
-    <h2>Forgot your password?</h2>
+<div class="row" id='inline_forms_devise_header_row'>
+  <div class="small-11 centered column">
+    <h1><%= t('inline_forms.devise.passwords.forgot_your_password') %></h1>
   </div>
+</div>
 
-  <div class="large-4 columns">
+<div id='inline_forms_devise_container' class="row">
 
-    <%= form_for(resource, :as => resource_name, :url => password_path(resource_name), :html => { :method => :post }) do |f| %>
+  <div id='inline_forms_devise_form_column' class="large-5 columns">
+
+    <%= form_for(resource,  as:   resource_name,
+                            url:  password_path(resource_name),
+                            html: { method: :post,
+                                    id: 'inline_forms_devise_form'
+                                  }
+                ) do |f| %>
+
       <%= devise_error_messages! %>
 
-      <div><%= f.label :email %><br />
-        <%= f.email_field :email %></div>
+      <div class="row">
+        <div class="columns">
+          <label><%= t :email %></label>
+          <%= f.email_field :email %>
+        </div>
+      </div>
 
-      <div><%= f.submit "Send me reset password instructions" %></div>
+      <div class="row">
+        <div class="columns text-right">
+          <%= f.submit t('inline_forms.devise.passwords.send_me_instructions'), class: 'button' %>
+        </div>
+      </div>
+
     <% end %>
 
   </div>
 
-  <div class="large-4 columns">
-    <%= render :partial => "devise/shared/links" %>
+  <div id='inline_forms_devise_content_column' class="large-7 columns">
+
+    <div class="hide-for-large-up row text-centered">
+      <hr />
+    </div>
+
+    <div id='inline_forms_devise_content' class="row">
+      <%= render '/devise/inline_forms/content_for_passwords_new' %>
+    </div>
+
   </div>
+
+
+
 
 </div>

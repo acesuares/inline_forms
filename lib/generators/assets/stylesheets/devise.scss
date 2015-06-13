@@ -30,7 +30,7 @@
   }
 }
 
-#inline_forms_devise_welcome_row{
+#inline_forms_devise_header_row{
   h1 {
     text-align: center;
     margin: 30px 0;
@@ -38,10 +38,13 @@
   }
 }
 
-#inline_forms_devise_new_login_session {
+#inline_forms_devise_container {
   .row {
     margin-bottom: 30px;
   }
+}
+
+#inline_forms_devise_form_column {
 }
 
 #inline_forms_devise_form {
@@ -56,6 +59,14 @@
   .lower {
     top: 15px;
   }
+  #error_explanation {
+    color: #A3381E;
+    h2 {
+      color: #A3381E;
+      font-size: 120%;
+      font-weight: bolder;
+    }
+  }
 }
 
 #inline_forms_devise_content_column {
@@ -65,12 +76,13 @@
   }
 }
 
-#content_for_devise_login {
-  padding: 0 2em;
+#inline_forms_devise_content {
+  padding: 0 1em 1em 3em;
   h1 {
     text-align: center;
     margin: 0 0 0.5em 0;
     color: #A3381E;
+    font-weight: bolder;
   }
 
 
