@@ -12,8 +12,8 @@
 </div>
 
 <div id='inline_forms_devise_flash_div' class='row'>
+  <% flash = @flash %>
   <% flash.each do |name, msg| %>
     <%= content_tag :div, msg, :id => "flash_#{name}", :class => 'devise flash' %>
   <% end unless flash.blank? %>
-  <%= devise_error_messages! %>
 </div>
