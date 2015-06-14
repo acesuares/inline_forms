@@ -333,6 +333,16 @@ create_file "db/migrate/" +
   end
 VIEW_MIGRATION
 
+say "- Creating application title via locales..."
+create_file "config/locales/inline_forms_local.en.yml", <<-END_LOCALE.strip_heredoc
+  en:
+    inline_forms:
+      general:
+        application_title: #{app_name}
+        title_for_devise: #{app_name}
+        welcome_for_devise: Welcome to #{app_name}!
+END_LOCALE
+
 say "- Migrating Database (only when using sqlite)"
 run "bundle exec rake db:migrate" if ENV['using_sqlite'] == 'true'
 
