@@ -339,8 +339,9 @@ create_file "config/locales/inline_forms_local.en.yml", <<-END_LOCALE.strip_here
     inline_forms:
       general:
         application_title: #{app_name}
+      devise:
         title_for_devise: #{app_name}
-        welcome_for_devise: Welcome to #{app_name}!
+        welcome: Welcome to #{app_name}!
 END_LOCALE
 
 say "- Migrating Database (only when using sqlite)"
@@ -368,11 +369,10 @@ create_file "app/controllers/application_controller.rb", <<-END_APPCONTROLLER.st
   class ApplicationController < InlineFormsApplicationController
     protect_from_forgery
 
-    # Comment next two lines if you don't want Devise authentication
+    # Comment next line if you don't want Devise authentication
     before_filter :authenticate_user!
-    layout 'devise' if :devise_controller?
 
-    # Comment next 6 lines if you want CanCan authorization
+    # Comment next 6 lines if you do not want CanCan authorization
     enable_authorization :unless => :devise_controller?
 
     rescue_from CanCan::Unauthorized do |exception|
