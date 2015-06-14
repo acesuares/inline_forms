@@ -569,16 +569,18 @@ if ENV['install_example'] == 'true'
   END_EXAMPLE_TEST
 
   run "rspec" if ENV['runtest']
+  remove_file 'public/index.html'
+  route "root :to => 'apartments#index'"
 
   # done!
-  say "\nDone! Now point your browser to http://localhost:3000/apartments !", :yellow
+  say "\nDone! Now point your browser to http://localhost:3000", :yellow
   say "\nPress ctlr-C to quit...", :yellow
   run 'bundle exec rails s'
 else
   # run tests
   run "rspec" if ENV['runtest']
-  # done!
-  say "\nDone! Now make your tables with 'bundle exec rails g inline_forms ...", :yellow
 end
+# done!
+say "\nDone! Now make your tables with 'bundle exec rails g inline_forms ...", :yellow
 
-#say "- Don't forget: edit .rvmrc, config/{routes.rb, deploy.rb}, .git/config, delete public/index.html\n"
+#say "- Don't forget: edit .rvmrc, config/{routes.rb, deploy.rb}, .git/config, delete \n"
