@@ -2,14 +2,14 @@ nl:
   inline_forms:
     general:
       application_title: Application Title
-      title_for_devise: Title for Devise
-      welcome_for_devise: Welcome for Devise
-    view:
-      close: sluiten
-      add_new: Maak een nieuw %{model}
-      undo: terughalen
-      trash: weggooien
     devise:
+      title_for_devise: Title for Devise
+      welcome: Welcome for Devise
+      passwords:
+        forgot_your_password: Wachtwoord Vergeten?
+        change_your_password: Verander wachtwoord, als u wilt!
+        send_me_instructions: stuur instructies
+        change_my_password: verander wachtwoord
       send_instructions: stuur instructies
       sign_up: inschrijven
       login_with_email_and_password: aanmelden door email-adres en wachtwoord in te voeren.
@@ -23,6 +23,11 @@ nl:
         no_instructions: geen instructies ontvangen?
       signup_with_email_name_and_password: inschrijven door naam, email adres en wachtwoord (twee keer) in te voeren.
       provide_email_and_we_send_instructions: geef ons uw email adres, dan sturen wij u instructies
+    view:
+      close: sluiten
+      add_new: Maak een nieuw %{model}
+      undo: terughalen
+      trash: weggooien
   succes: het ding is aangemaakt.
   activerecord:
     models:
@@ -32,3 +37,5 @@ nl:
         first_name: voornaam
         last_name: achternaam
   application_name: naam van de applicatie
+
+
