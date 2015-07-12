@@ -11,7 +11,7 @@ gem 'jquery-ui-sass-rails'
 gem 'capistrano'
 gem 'will_paginate', :git => 'git://github.com/acesuares/will_paginate.git'
 gem 'tabs_on_rails', :git => 'git://github.com/acesuares/tabs_on_rails.git', :branch => 'update_remote'
-gem 'ckeditor'
+gem 'ckeditor_rails'
 gem 'cancan', :git => 'git://github.com/acesuares/cancan.git', :branch => '2.0'
 gem 'carrierwave'
 gem 'remotipart', '~> 1.0'
@@ -287,15 +287,6 @@ remove_file 'app/assets/javascripts/application.js'
 %w(application.js inline_forms.js).each do |javascript|
   copy_file File.join(GENERATOR_PATH, 'lib/generators/assets/javascripts' , javascript), File.join('app/assets/javascripts' , javascript)
 end
-
-say "- Install ckeditor..."
-generate "ckeditor:install --orm=active_record --backend=carrierwave"
-
-say "- Mount Ckeditor::Engine to routes..."
-route "mount Ckeditor::Engine => '/ckeditor'"
-
-say "- Add ckeditor autoload_paths to application.rb..."
-application "config.autoload_paths += %W(\#{config.root}/app/models/ckeditor)"
 
 say "- Create ckeditor config.js"
 copy_file File.join(GENERATOR_PATH, 'lib/generators/assets/javascripts/ckeditor/config.js'), "app/assets/javascripts/ckeditor/config.js"
