@@ -1,7 +1,0 @@
-en:
-  inline_forms:
-    general:
-      application_title: MyApp
-    devise:
-      title_for_devise: MyApp
-      welcome: Welcome to MyApp!

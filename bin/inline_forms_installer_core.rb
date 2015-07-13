@@ -11,7 +11,7 @@ gem 'jquery-ui-sass-rails'
 gem 'capistrano'
 gem 'will_paginate', :git => 'git://github.com/acesuares/will_paginate.git'
 gem 'tabs_on_rails', :git => 'git://github.com/acesuares/tabs_on_rails.git', :branch => 'update_remote'
-gem 'ckeditor_rails'
+gem 'ckeditor'
 gem 'cancan', :git => 'git://github.com/acesuares/cancan.git', :branch => '2.0'
 gem 'carrierwave'
 gem 'remotipart', '~> 1.0'
@@ -288,12 +288,21 @@ remove_file 'app/assets/javascripts/application.js'
   copy_file File.join(GENERATOR_PATH, 'lib/generators/assets/javascripts' , javascript), File.join('app/assets/javascripts' , javascript)
 end
 
+say "- Install ckeditor..."
+generate "ckeditor:install --orm=active_record --backend=carrierwave"
+
+say "- Add ckeditor autoload_paths to application.rb..."
+application "config.autoload_paths += %W(\#{config.root}/app/models/ckeditor)"
+
+# see https://github.com/galetahub/ckeditor/issues/579
+say "- Set languages for ckeditor to ['en', 'nl'] in config/initializers/ckeditor.rb..."
+insert_into_file "config/initializers/ckeditor.rb", "  config.assets_languages = ['en', 'nl']", :after => "config.assets_languages = ['en', 'uk']\n"
+
 say "- Create ckeditor config.js"
 copy_file File.join(GENERATOR_PATH, 'lib/generators/assets/javascripts/ckeditor/config.js'), "app/assets/javascripts/ckeditor/config.js"
 
 say "- Paper_trail install..."
 generate "paper_trail:install" # TODO One day, we need some management tools so we can actually SEE the versions, restore them etc.
-
 
 # Create Translations
 say "- Generate models and tables and views for translations..." # TODO Translations need to be done in inline_forms, and then generate a yml file, perhaps
