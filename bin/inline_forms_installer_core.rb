@@ -296,7 +296,7 @@ application "config.autoload_paths += %W(\#{config.root}/app/models/ckeditor)"
 
 # see https://github.com/galetahub/ckeditor/issues/579
 say "- Set languages for ckeditor to ['en', 'nl'] in config/initializers/ckeditor.rb..."
-insert_into_file "config/initializers/ckeditor.rb", "  config.assets_languages = ['en', 'nl']", :after => "config.assets_languages = ['en', 'uk']\n"
+insert_into_file "config/initializers/ckeditor.rb", "  config.assets_languages = ['en', 'nl']\n", :after => "config.assets_languages = ['en', 'uk']\n"
 
 say "- Create ckeditor config.js"
 copy_file File.join(GENERATOR_PATH, 'lib/generators/assets/javascripts/ckeditor/config.js'), "app/assets/javascripts/ckeditor/config.js"
@@ -492,6 +492,10 @@ create_file "spec/factories/inline_forms.rb", <<-END_FACTORY_GIRL.strip_heredoc
 END_FACTORY_GIRL
 remove_file 'spec/factories/users.rb'
 remove_file 'spec/models/user_spec.rb'
+
+# precompile devise.css
+say "- Precompile devise.css in environments/production.rb..."
+insert_into_file "config/environments/production.rb", "  config.assets.precompile += %w( devise.css )\n", :after => "# config.assets.precompile += %w( search.js )\n"
 
 # devise mailer stuff
 say "- Injecting devise mailer stuff in environments/production.rb..."
