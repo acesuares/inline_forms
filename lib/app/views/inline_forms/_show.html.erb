@@ -1,8 +1,12 @@
 <div class="row">
-  <div class='medium-1 large-1 column'>
-    &nbsp;
-  </div>
-  <div class='small-11 column'>
+  <% if (INLINE_FORMS_SHOW_INDENT rescue true) %>
+    <div class='medium-1 large-1 column'>
+      &nbsp;
+    </div>
+    <div class='small-11 column'>
+  <% else %>
+    <div class='small-12 column'>
+  <% end %>
     <% unless @skip %>
     <div class="row object_presentation">
       <div class="small-11 column object_presentation">
@@ -35,15 +39,19 @@
               </div>
             </div>
             <div class="row <%= cycle('odd', 'even') %>">
-                <div class='medium-1 large-1 column'>
-                  &nbsp;
-                </div>
-              <div id="<%= css_class_id -%>" class='small-11 column' >
+                <% if (INLINE_FORMS_TREE_INDENT rescue true) %>
+                  <div class='medium-1 large-1 column'>
+                    &nbsp;
+                  </div>
+                  <div class='small-11 column'>
+                <% else %>
+      	          <div id="<%= css_class_id -%>" class='small-12 column' >
+                <% end %>
                 <%= render  :partial => "inline_forms/tree",
                   :locals => {  :parent_class => @object.class,
                                 :parent_id    => @object.id,
                                 :attribute    => attribute } %>
-              </div>
+                </div>
             </div>
           <% else %>
             <% if form_element == :associated -%>
@@ -56,16 +64,20 @@
       	        </div>
       	      </div>
       	      <div class="row <%= cycle('odd', 'even') %>">
-                <div class='medium-1 large-1 column'>
-                  &nbsp;
-                </div>
-      	        <div id="<%= css_class_id -%>" class='small-11 column' >
-      	          <%= render  :partial => "inline_forms/list",
+                <% if (INLINE_FORMS_ASSOCIATED_INDENT rescue true) %>
+                  <div class='medium-1 large-1 column'>
+                    &nbsp;
+                  </div>
+                  <div class='small-11 column'>
+                <% else %>
+      	          <div id="<%= css_class_id -%>" class='small-12 column' >
+                <% end %>
+                  <%= render  :partial => "inline_forms/list",
       	            :locals => {  :parent_class => @object.class,
-      								            :parent_id    => @object.id,
+      		                  :parent_id    => @object.id,
                                   :attribute    => attribute,
                                   :form_element => form_element } %>
-      	        </div>
+      	          </div>
       	      </div>
             <% else %>
               <% if form_element == :has_one %>
