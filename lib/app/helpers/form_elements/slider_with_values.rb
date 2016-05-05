@@ -24,7 +24,7 @@ def slider_with_values_show(object, attribute)
                     range: "min",
                     disabled: true,
                     min: 0,
-                    max: ' + values.length + ',
+                    max: ' + values.length.to_s + ',
                     step: 1,
                   }
                 );
