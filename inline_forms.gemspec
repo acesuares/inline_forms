@@ -23,7 +23,7 @@ Gem::Specification.new do |s|
   s.add_dependency('rvm')
   s.add_dependency('thor')
   s.add_dependency('validation_hints')
-  s.add_dependency('rails', '3.2.21')
+  s.add_dependency('rails', '3.2.22')
   s.add_dependency('rails-i18n')
 
   s.add_development_dependency(%q<rspec-rails>)
@@ -33,4 +33,3 @@ Gem::Specification.new do |s|
   #s.add_development_dependency(%q<rcov>)
 
 end
-
