@@ -197,9 +197,16 @@ class InlineFormsController < ApplicationController
   def destroy
     @update_span = params[:update]
     @object = @Klass.find(params[:id])
-    @object.destroy
-    respond_to do |format|
-      format.js { render :show_undo }
+    if current_user.role? :superadmin
+      @object.destroy
+      respond_to do |format|
+        format.js { render :show_undo }
+      end
+    elsif (@Klass.safe_deletable? rescue false)
+      @object.safe_delete(current_user)
+      respond_to do |format|
+        format.js { render :close }
+      end
     end
   end
 
@@ -207,12 +214,20 @@ class InlineFormsController < ApplicationController
   # Thanks Ryan Bates: http://railscasts.com/episodes/255-undo-with-paper-trail
   def revert
     @update_span = params[:update]
-    @version = PaperTrail::Version.find(params[:id])
-    @version.reify.save!
-    @object = @Klass.find(@version.item_id)
-    authorize!(:revert, @object) if cancan_enabled?
-    respond_to do |format|
-      format.js { render :close }
+    if current_user.role? :superadmin
+      @version = PaperTrail::Version.find(params[:id])
+      @version.reify.save!
+      @object = @Klass.find(@version.item_id)
+      authorize!(:revert, @object) if cancan_enabled?
+      respond_to do |format|
+        format.js { render :close }
+      end
+    elsif (@Klass.safe_deletable? rescue false)
+      @object = @Klass.find(params[:id])
+      @object.safe_restore
+      respond_to do |format|
+        format.js { render :close }
+      end
     end
   end
 
