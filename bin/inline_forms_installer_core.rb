@@ -58,6 +58,7 @@ gem_group :assets do
 end
 
 say "- Running bundle..."
+run "gem install bundler"
 run "bundle install"
 
 say "- Database setup: creating config/database.yml with development database #{ENV['database']}"
