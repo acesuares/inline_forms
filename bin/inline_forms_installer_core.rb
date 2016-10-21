@@ -4,7 +4,7 @@ create_file 'Gemfile', "# created by inline_forms #{ENV['inline_forms_version']}
 
 add_source 'https://rubygems.org'
 
-gem 'rails', '~> 3.2.21'
+gem 'rails', '~> 3.2.22'
 gem 'rake'
 gem 'jquery-rails'
 gem 'jquery-ui-sass-rails'
@@ -17,7 +17,7 @@ gem 'carrierwave'
 gem 'remotipart', '~> 1.0'
 gem 'paper_trail'
 gem 'devise'
-gem 'inline_forms', '~> 3.1'
+gem 'inline_forms'
 gem 'validation_hints'
 gem 'mini_magick'
 gem 'rails-i18n'
@@ -25,8 +25,8 @@ gem 'i18n-active_record', :git => 'git://github.com/acesuares/i18n-active_record
 gem 'unicorn'
 gem 'rvm'
 gem 'rvm-capistrano', require: false
-gem 'foundation-rails'
-gem 'mysql2'
+gem 'foundation-rails', '~> 5.5'
+gem 'mysql2', '~> 0.3.19'
 
 
 gem_group :development do
