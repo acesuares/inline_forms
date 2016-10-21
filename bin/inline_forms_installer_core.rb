@@ -35,6 +35,7 @@ gem_group :development do
   gem 'switch_user'
   gem 'sqlite3'
   gem 'rspec-rails'
+  gem 'test-unit', '~> 3.0'
   gem 'shoulda'
   gem 'bundler'
   gem 'jeweler'
