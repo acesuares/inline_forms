@@ -38,7 +38,7 @@ gem_group :development do
   gem 'test-unit', '~> 3.0'
   gem 'shoulda'
   gem 'bundler'
-  gem 'jeweler', '~> 2.2.1'
+  gem 'jeweler', '~> 2.1.2'
   gem 'capybara'
   gem 'factory_girl'
   gem 'factory_girl_rails'
