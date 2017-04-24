@@ -3,17 +3,17 @@ class GeoCodeCuracao
   attr_accessor :street, :neighbourhood, :zone
   
   class Zone < ActiveRecord::Base
-    set_table_name "Zones"
+    self.table_name =  "Zones"
     alias_attribute :name, :NAME
   end
 
   class Neighbourhood < ActiveRecord::Base
-    set_table_name "Buurten"
+    self.table_name =  "Buurten"
     alias_attribute :name, :NAME
   end
 
   class Street < ActiveRecord::Base
-    set_table_name "Straatcode"
+    self.table_name =  "Straatcode"
     alias_attribute :name, :NAME
   end
 

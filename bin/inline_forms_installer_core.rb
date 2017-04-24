@@ -4,7 +4,7 @@ create_file 'Gemfile', "# created by inline_forms #{ENV['inline_forms_version']}
 
 add_source 'https://rubygems.org'
 
-gem 'rails', '~> 3.2.22.5'
+gem 'rails', '~> 5.0.2'
 gem 'rake'
 gem 'jquery-rails'
 gem 'jquery-ui-sass-rails'
@@ -372,7 +372,7 @@ create_file "app/controllers/application_controller.rb", <<-END_APPCONTROLLER.st
     protect_from_forgery
 
     # Comment next line if you don't want Devise authentication
-    before_filter :authenticate_user!
+    before_action :authenticate_user!
 
     # Comment next 6 lines if you do not want CanCan authorization
     enable_authorization :unless => :devise_controller?
@@ -385,7 +385,7 @@ create_file "app/controllers/application_controller.rb", <<-END_APPCONTROLLER.st
     ActionView::CompiledTemplates::MODEL_TABS = %w()
 
     # Uncomment next line if you want I18n (based on subdomain)
-    # before_filter :set_locale
+    # before_action :set_locale
 
     # Uncomment next line and specify default locale
     # I18n.default_locale = :en

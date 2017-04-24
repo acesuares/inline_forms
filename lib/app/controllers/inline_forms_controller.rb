@@ -17,16 +17,16 @@
 # and @Klass will be set to Example by the getKlass before filter.
 #
 # === How it works
-# The getKlass before_filter extracts the class and puts it in @Klass
+# The getKlass before_action extracts the class and puts it in @Klass
 #
 # @Klass is used in the InlineFormsHelper
 #
 class InlineFormsController < ApplicationController
-  before_filter :getKlass
+  before_action :getKlass
 
   def self.cancan_enabled?
     begin
-      ::Ability && true
+      CanCan::Ability && true
     rescue NameError
       false
     end
@@ -63,9 +63,7 @@ class InlineFormsController < ApplicationController
     @objects ||= @Klass.accessible_by(current_ability) if cancan_enabled?
     @objects ||= @Klass
     @objects = @objects.order(@Klass.table_name + "." + @Klass.order_by_clause) if @Klass.respond_to?(:order_by_clause) && ! @Klass.order_by_clause.nil?
-    @objects = @objects.paginate(
-        :page => params[:page],
-        :conditions => conditions )
+    @objects = @objects.where(conditions).paginate(:page => params[:page])
     respond_to do |format|
       format.html { render 'inline_forms/_list', :layout => 'inline_forms' } unless @Klass.not_accessible_through_html?
       format.js { render :list }
@@ -87,19 +85,20 @@ class InlineFormsController < ApplicationController
 
     @object.inline_forms_attribute_list = @inline_forms_attribute_list if @inline_forms_attribute_list
     respond_to do |format|
+      format.html { render 'inline_forms/_new', :layout => 'inline_forms' } unless @Klass.not_accessible_through_html?
       format.js { }
     end
   end
 
   # :edit presents a form to edit one specific attribute from an object
   def edit
-    @object = @Klass.find(params[:id])
+    @object = referenced_object
     @attribute = params[:attribute]
     @form_element = params[:form_element]
     @sub_id = params[:sub_id]
     @update_span = params[:update]
     respond_to do |format|
-      #format.html { } unless @Klass.not_accessible_through_html?
+      format.html { } unless @Klass.not_accessible_through_html?
       format.js { }
     end
   end
@@ -129,7 +128,7 @@ class InlineFormsController < ApplicationController
       @objects = @Klass
       @objects = @Klass.accessible_by(current_ability) if cancan_enabled?
       @objects = @objects.order(@Klass.table_name + "." + @Klass.order_by_clause) if @Klass.respond_to?(:order_by_clause) && ! @Klass.order_by_clause.nil?
-      @objects = @objects.paginate :page => params[:page], :conditions => conditions
+      @objects = @objects.where(conditions).paginate(:page => params[:page])
       @object = nil
       respond_to do |format|
         format.js { render :list}
@@ -146,7 +145,7 @@ class InlineFormsController < ApplicationController
 
   # :update updates a specific attribute from an object.
   def update
-    @object = @Klass.find(params[:id])
+    @object = referenced_object
     @attribute = params[:attribute]
     @form_element = params[:form_element]
     @sub_id = params[:sub_id]
@@ -154,6 +153,7 @@ class InlineFormsController < ApplicationController
     send("#{@form_element.to_s}_update", @object, @attribute)
     @object.save
     respond_to do |format|
+      format.html { } unless @Klass.not_accessible_through_html?
       format.js { }
     end
   end
@@ -161,7 +161,7 @@ class InlineFormsController < ApplicationController
   # :show shows one attribute (attribute) from a record (object).
   # It includes the link to 'edit'
   def show
-    @object = @Klass.find(params[:id])
+    @object = referenced_object
     @attribute = params[:attribute]
     @form_element = params[:form_element]
     close = params[:close] || false
@@ -188,6 +188,7 @@ class InlineFormsController < ApplicationController
       end
     else
       respond_to do |format|
+        format.html { } unless @Klass.not_accessible_through_html?
         format.js { render :show_element }
       end
     end
@@ -196,15 +197,17 @@ class InlineFormsController < ApplicationController
   # :destroy destroys the record, but also shows an undo link (with paper_trail)
   def destroy
     @update_span = params[:update]
-    @object = @Klass.find(params[:id])
+    @object = referenced_object
     if current_user.role? :superadmin
       @object.destroy
       respond_to do |format|
+        format.html { } unless @Klass.not_accessible_through_html?
         format.js { render :show_undo }
       end
     elsif (@Klass.safe_deletable? rescue false)
       @object.safe_delete(current_user)
       respond_to do |format|
+        format.html { } unless @Klass.not_accessible_through_html?
         format.js { render :close }
       end
     end
@@ -220,12 +223,14 @@ class InlineFormsController < ApplicationController
       @object = @Klass.find(@version.item_id)
       authorize!(:revert, @object) if cancan_enabled?
       respond_to do |format|
+        format.html { } unless @Klass.not_accessible_through_html?
         format.js { render :close }
       end
     elsif (@Klass.safe_deletable? rescue false)
-      @object = @Klass.find(params[:id])
+      @object = referenced_object
       @object.safe_restore
       respond_to do |format|
+        format.html { } unless @Klass.not_accessible_through_html?
         format.js { render :close }
       end
     end
@@ -251,6 +256,14 @@ class InlineFormsController < ApplicationController
     @Klass = self.controller_name.classify.constantize
   end
 
+  def referenced_object
+    @Klass.find(object_id_params)
+  end
+
+  def object_id_params
+    params.require(:id)
+  end
+
   def deep_hashify(ary)
     return ary.to_s if ary.length == 1
     { ary.shift => deep_hashify(ary) }
@@ -271,4 +284,7 @@ class InlineFormsController < ApplicationController
     a
   end
 
+  def revert_params
+    params.require(:id).permit(:update, :comchannel)
+  end
 end
