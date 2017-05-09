@@ -123,6 +123,7 @@ class InlineFormsController < ApplicationController
       conditions =  [ "#{foreign_key} = ?", @parent_id ]
       @object[foreign_key] = @parent_id
     end
+
     if @object.save
       flash.now[:success] = t('success', :message => @object.class.model_name.human)
       @objects = @Klass
@@ -286,5 +287,9 @@ class InlineFormsController < ApplicationController
 
   def revert_params
     params.require(:id).permit(:update, :comchannel)
+  end
+
+  def user_params
+    params.permit(:name, :email, :password, :roles)  
   end
 end
