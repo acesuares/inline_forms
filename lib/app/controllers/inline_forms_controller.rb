@@ -126,9 +126,8 @@ class InlineFormsController < ApplicationController
     end
     if @object.save
       flash.now[:success] = t('success', :message => @object.class.model_name.human)
-      @objects = @Klass
-      @objects = @Klass.accessible_by(current_ability) if cancan_enabled?
-      @objects = @objects.order(@Klass.table_name + "." + @Klass.order_by_clause) if @Klass.respond_to?(:order_by_clause) && ! @Klass.order_by_clause.nil?
+      @objects = @Klass.where(id: @object.id)
+      @objects = @objects.accessible_by(current_ability) if cancan_enabled?
       @objects = @objects.paginate :page => params[:page], :conditions => conditions
       @object = nil
       respond_to do |format|
