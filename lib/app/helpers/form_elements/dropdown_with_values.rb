@@ -25,3 +25,8 @@ end
 def dropdown_with_values_update(object, attribute)
   object[attribute.to_sym] = params[('_' + object.class.to_s.underscore).to_sym][attribute.to_sym]
 end
+
+def dropdown_with_values_info(object, attribute)
+  values = attribute_values(object, attribute)
+  t(values.assoc(object.send(attribute))[1]) rescue '-'
+end

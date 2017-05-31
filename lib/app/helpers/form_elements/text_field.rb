@@ -12,3 +12,7 @@ end
 def text_field_update(object, attribute)
   object.send :write_attribute, attribute.to_sym, params[attribute.to_sym]
 end
+
+def text_field_info(object, attribute)
+  object[attribute]
+end

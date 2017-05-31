@@ -20,6 +20,15 @@ def info_update(object, attribute)
   # do absolutely nothing
 end
 
+def info_info(object, attribute)
+  # show the attribute. if it's a date/time, make it nicer. If it has a _presentation, show that instead
+  o = object.send(attribute)
+  o = o.to_s + " (" + distance_of_time_in_words_to_now(o) + ")" if o.is_a?(Time)
+  o = o._presentation if o.respond_to?(:_presentation)
+  o
+end
+
+
 #module ActionView::Helpers::DateHelper
 #
 #  def distance_of_time_in_words_to_now_with_future(from_time, include_seconds = false)
@@ -33,4 +42,3 @@ end
 #  alias_method_chain :distance_of_time_in_words_to_now, :future
 #
 #end
-

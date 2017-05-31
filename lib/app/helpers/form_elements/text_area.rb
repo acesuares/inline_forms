@@ -51,3 +51,7 @@ end
 def text_area_update(object, attribute)
   object[attribute.to_sym] = params[attribute.to_sym]
 end
+
+def text_area_info(object, attribute)
+  object[attribute]
+end
