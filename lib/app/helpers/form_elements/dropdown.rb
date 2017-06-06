@@ -41,3 +41,10 @@ def dropdown_update(object, attribute)
   foreign_key = object.class.reflect_on_association(attribute.to_sym).options[:foreign_key] || attribute.to_s.foreign_key.to_sym
   object[foreign_key] = params[('_' + object.class.to_s.underscore).to_sym][attribute.to_s.foreign_key.to_sym]
 end
+
+def dropdown_info(object, attribute)
+  attr = object.send attribute
+  presentation = "_presentation"
+  presentation = "_dropdown_presentation" if attr.respond_to? "_dropdown_presentation"
+  object.send(attribute).send(presentation) rescue  "-"
+end

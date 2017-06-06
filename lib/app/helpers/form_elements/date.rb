@@ -15,3 +15,7 @@ end
 def date_select_update(object, attribute)
   object[attribute.to_sym] = params[attribute.to_sym]
 end
+
+def date_select_info(object, attribute)
+  object.send(attribute).nil? ? "-" : object.send(attribute).to_date
+end
