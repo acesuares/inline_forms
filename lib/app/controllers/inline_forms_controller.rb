@@ -255,7 +255,6 @@ class InlineFormsController < ApplicationController
   # TODO think about this a bit more.
   def getKlass #:doc:
     @Klass = self.controller_name.classify.constantize
-    Rails.logger.info "Rails object: #{@klass.is_a?(ActiveRecord::Base)}"
     @Klass
   end
 
