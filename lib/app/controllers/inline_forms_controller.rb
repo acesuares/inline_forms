@@ -255,6 +255,8 @@ class InlineFormsController < ApplicationController
   # TODO think about this a bit more.
   def getKlass #:doc:
     @Klass = self.controller_name.classify.constantize
+    Rails.logger.info "Rails object: #{@klass.is_a?(ActiveRecord::Base)}"
+    @Klass
   end
 
   def referenced_object
@@ -286,10 +288,7 @@ class InlineFormsController < ApplicationController
   end
 
   def revert_params
-    params.require(:id).permit(:update, :comchannel)
+    params.require(:id).permit(:update)
   end
 
-  def user_params
-    params.permit(:name, :email, :password, :roles)  
-  end
 end
