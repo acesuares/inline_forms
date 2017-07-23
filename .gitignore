@@ -45,5 +45,6 @@ pkg
 .ruby-gemset
 .idea
 bin/LETOVER
+.vscode
 
 Gemfile.lock
