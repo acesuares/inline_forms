@@ -403,7 +403,7 @@ create_file "app/models/ability.rb", <<-END_ABILITY.strip_heredoc
     def initialize(user)
       # See the wiki for details: https://github.com/ryanb/cancan/wiki/Defining-Abilities
 
-      user ||= user.new # guest user
+      user ||= User.new # guest user
 
       # use this if you get stuck:
       # if user.id == 1 #quick hack
