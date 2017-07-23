@@ -10,6 +10,10 @@
  *
  *= require jquery.ui.core
  *= require jquery.ui.theme
- *= require foundation_and_overrides
+ @import url(http://fonts.googleapis.com/css?family=Open+Sans:400,400italic);
+ @import 'foundation-icons';
+ @import 'themes/jquery.ui.sunny';
+ @import 'jquery.ui.all';
+ @import 'foundation_and_overrides';
  *= require inline_forms
  */
