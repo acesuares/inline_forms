@@ -25,8 +25,14 @@ gem 'i18n-active_record', git: 'https://github.com/acesuares/i18n-active_record.
 gem 'unicorn'
 gem 'rvm'
 gem 'rvm-capistrano', require: false
-gem 'foundation-rails', '~> 5.5'
-gem 'mysql2', '~> 0.3.19'
+gem 'foundation-rails'
+gem 'mysql2'
+gem 'sass-rails'
+gem 'coffee-rails'
+gem 'compass-rails'
+gem 'foundation-icons-sass-rails'
+gem 'therubyracer'
+gem 'uglifier'
 
 
 gem_group :development do
@@ -35,27 +41,10 @@ gem_group :development do
   gem 'switch_user'
   gem 'sqlite3'
   gem 'rspec-rails'
-  gem 'test-unit', '~> 3.0'
   gem 'shoulda'
   gem 'bundler'
-  gem 'jeweler', '~> 2.1.2'
-  gem 'capybara'
-  gem 'factory_girl'
-  gem 'factory_girl_rails'
   gem 'rspec'
   gem 'turbo-sprockets-rails3'
-end
-
-gem_group :production do
-  gem 'therubyracer'
-  gem 'uglifier'
-end
-
-gem_group :assets do
-  gem 'sass-rails'
-  gem 'coffee-rails'
-  gem 'compass-rails'
-  gem 'foundation-icons-sass-rails'
 end
 
 say "- Running bundle..."
@@ -63,7 +52,7 @@ run "gem install bundler"
 run "bundle install"
 
 say "- Database setup: creating config/database.yml with development database #{ENV['database']}"
-remove_file "config/database.yml" # the one that 'rails _3.2.21_ new' created
+remove_file "config/database.yml" # the one that 'rails new' created
 if ENV['using_sqlite'] == 'true'
   create_file "config/database.yml", <<-END_DATABASEYML.strip_heredoc
   development:

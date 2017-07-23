@@ -6,7 +6,7 @@ Gem::Specification.new do |s|
   s.name        = "inline_forms"
   s.version     = InlineForms::VERSION
   s.platform    = Gem::Platform::RUBY
-  s.authors     = ["Ace Suares"]
+  s.authors     = ["Ace Suares", "Lemuel Boyce"]
   s.email       = ["ace@suares.com"]
   s.homepage    = %q{http://github.com/acesuares/inline_forms}
   s.summary     = %q{Inline editing of forms.}
@@ -30,6 +30,5 @@ Gem::Specification.new do |s|
   s.add_development_dependency(%q<shoulda>)
   s.add_development_dependency(%q<bundler>)
   s.add_development_dependency(%q<jeweler>)
-  #s.add_development_dependency(%q<rcov>)
 
 end

@@ -109,7 +109,7 @@ module InlineForms
 
 				app_template_file = File.join(File.dirname(__FILE__), 'inline_forms_app_template.rb')
 
-        if ! run("rails _3.2.22.5_ new #{app_name} -m #{app_template_file} --skip-bundle --skip-gemfile --skip-test-unit")
+        if ! run("rails new #{app_name} -m #{app_template_file} --skip-bundle --skip-gemfile --skip-test-unit")
           say "Rails could not create the app '#{app_name}', maybe because it is a reserved word...", :red # TODO ROYTJE MAKE ERROR MESSAGE MORE RELEVANT # Rails could not create the app 'MyApp', maybe because it is a reserved word..
           exit 1
         end
