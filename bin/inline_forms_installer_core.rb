@@ -180,7 +180,7 @@ create_file "app/models/user.rb", <<-USER_MODEL.strip_heredoc
     # validations
     validates :name, :presence => true
 
-    default_scope order :name
+    default_scope {order :name}
 
     # pagination
     attr_reader :per_page
