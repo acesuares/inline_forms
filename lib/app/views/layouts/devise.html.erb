@@ -6,16 +6,13 @@
     <title>
       <%= t('inline_forms.general.application_title') %> v<%= InlineForms::VERSION %>
     </title>
-    <%= stylesheet_link_tag    "devise" %>
-    <%= javascript_include_tag "vendor/modernizr" %>
+    <%= stylesheet_link_tag "devise" %>
     <%= csrf_meta_tags %>
   </head>
 
   <body>
-
     <div id="inline_forms_devise_outer_container">
       <%= yield %>
     </div>
-
   </body>
 </html>
