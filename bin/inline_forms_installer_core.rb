@@ -172,7 +172,7 @@ create_file "app/models/user.rb", <<-USER_MODEL.strip_heredoc
 
     # Setup accessible (or protected) attributes for your model
     attr_writer :inline_forms_attribute_list
-    attr_accessible :email, :password, :locale, :remember_me
+    #attr_accessible :email, :password, :locale, :remember_me
 
     belongs_to :locale
     has_and_belongs_to_many :roles
