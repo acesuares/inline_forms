@@ -269,7 +269,7 @@ generate "foundation:install", "-f"
 
 say "- Copy stylesheets..."
 remove_file 'app/assets/stylesheets/application.css'
-%w(application.scss devise.scss foundation_and_overrides.scss inline_forms.scss).each do |stylesheet|
+%w(application.scss devise.scss inline_forms.scss).each do |stylesheet|
   copy_file File.join(GENERATOR_PATH, 'lib/generators/assets/stylesheets' , stylesheet), File.join('app/assets/stylesheets' , stylesheet)
 end
 
