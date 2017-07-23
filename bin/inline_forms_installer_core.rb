@@ -232,12 +232,12 @@ create_file "app/models/user.rb", <<-USER_MODEL.strip_heredoc
 USER_MODEL
 
 say "- Adding admin user with email: #{ENV['email']}, password: #{ENV['password']} to seeds.rb"
-append_to_file "db/seeds.rb", "User.create({ id: 1, email: '#{ENV['email']}', locale_id: 1, name: 'Admin', password: '#{ENV['password']}', password_confirmation: '#{ENV['password']}' }, without_protection: true)\n"
+append_to_file "db/seeds.rb", "User.create({ id: 1, email: '#{ENV['email']}', locale_id: 1, name: 'Admin', password: '#{ENV['password']}', password_confirmation: '#{ENV['password']}' })\n"
 
 # Create Locales
 say "- Create locales"
 generate "inline_forms", "Locale name:string title:string users:has_many _enabled:yes _presentation:\#{title}"
-append_to_file "db/seeds.rb", "Locale.create({ id: 1, name: 'en', title: 'English' }, without_protection: true)\n"
+append_to_file "db/seeds.rb", "Locale.create({ id: 1, name: 'en', title: 'English' })\n"
 
 # Create Roles
 say "- Create roles"
@@ -262,7 +262,7 @@ create_file "db/migrate/" +
   end
 ROLES_MIGRATION
 
-append_to_file "db/seeds.rb", "Role.create({ id: 1, name: 'superadmin', description: 'Super Admin can access all.' }, without_protection: true)\n"
+append_to_file "db/seeds.rb", "Role.create({ id: 1, name: 'superadmin', description: 'Super Admin can access all.' })\n"
 
 say "- Installaing ZURB Foundation..."
 generate "foundation:install", "-f"
