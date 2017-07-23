@@ -486,7 +486,7 @@ remove_file 'spec/models/user_spec.rb'
 
 # precompile devise.css
 say "- Precompile devise.css in environments/production.rb... (Since Rails 5 in config/initializers/assets.rb !)"
-append_file "config/initializers/assets.rb", "  config.assets.precompile += %w( devise.css )\n"
+append_file "config/initializers/assets.rb", "  Rails.application.config.assets.precompile += %w( devise.css )\n"
 
 # devise mailer stuff
 say "- Injecting devise mailer stuff in environments/production.rb..."
