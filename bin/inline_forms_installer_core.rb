@@ -44,7 +44,6 @@ gem_group :development do
   gem 'shoulda'
   gem 'bundler'
   gem 'rspec'
-  gem 'turbo-sprockets-rails3'
 end
 
 say "- Running bundle..."
