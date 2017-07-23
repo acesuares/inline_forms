@@ -44,6 +44,7 @@ gem_group :development do
   gem 'shoulda'
   gem 'bundler'
   gem 'rspec'
+  gem 'listen'
 end
 
 say "- Running bundle..."
