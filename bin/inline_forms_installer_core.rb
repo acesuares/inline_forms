@@ -485,13 +485,14 @@ remove_file 'spec/factories/users.rb'
 remove_file 'spec/models/user_spec.rb'
 
 # precompile devise.css
-say "- Precompile devise.css in environments/production.rb..."
-insert_into_file "config/environments/production.rb", "  config.assets.precompile += %w( devise.css )\n", :after => "# config.assets.precompile += %w( search.js )\n"
+say "- Precompile devise.css in environments/production.rb... (Since Rails 5 in config/initializers/assets.rb !)"
+append_file "config/initializers/assets.rb", "  config.assets.precompile += %w( devise.css )\n"
 
 # devise mailer stuff
 say "- Injecting devise mailer stuff in environments/production.rb..."
 # strip_heredoc_with_indent(2) became strip_heredoc(2), but only in rails 4... :-(
 insert_into_file "config/environments/production.rb", <<-DEVISE_MAILER_STUFF.strip_heredoc, :before => "end\n"
+
   # for devise
   config.action_mailer.default_url_options = { protocol: 'https', host: 'YOURHOSTNAME' }
   config.action_mailer.delivery_method = :smtp
