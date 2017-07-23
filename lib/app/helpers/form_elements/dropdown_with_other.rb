@@ -24,7 +24,7 @@ def dropdown_with_other_edit(object, attribute)
   values.each do |v|
     v.name = v._presentation
   end
-  # values.sort_by! &:name
+  # values.sort_by(&:name)
 
   collection = values.map {|v|[v.name, v.id]}
   collection << [object[attribute + '_other'], 0] unless object[attribute + '_other'].nil? || object[attribute + '_other'].empty?

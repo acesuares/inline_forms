@@ -10,7 +10,7 @@ end
 def chicas_dropdown_with_family_members_edit(object, attribute)
   o = object.send(attribute) # the client
   values = o.family.clients
-  values.sort_by! &:_dropdown_presentation
+  values.sort_by(&:_dropdown_presentation)
   # the leading underscore is to avoid name conflicts, like 'email' and 'email_type' will result in 'email' and 'email[email_type_id]' in the form!
   collection_select( ('_' + object.class.to_s.underscore).to_sym, attribute.to_s.foreign_key.to_sym, values, 'id', '_dropdown_presentation', :selected => object.send(attribute).id)
 end

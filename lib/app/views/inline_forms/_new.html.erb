@@ -3,11 +3,9 @@
     <% flash.each do |key, value| %>
       <div class="flash <%= key %>">
         <ul>
-          <% value.each do |m| %>
             <li>
-              <%= m %>
+              <%= value %>
             </li>
-          <% end %>
         </ul>
       </div>
     <% end %>
@@ -27,16 +25,16 @@
     <% attributes.each do | attribute, name, form_element | -%>
       <% unless form_element.to_sym == :associated || form_element.to_sym == :tree || (cancan_enabled? && cannot?(:read, @Klass.to_s.underscore.pluralize.to_sym, attribute)) -%>
         <% css_class_id = "attribute_#{attribute}_#{@object.id}" -%>
-        <% if form_element == :header %>
+        <% if form_element && form_element.to_sym == :header %>
           <div class="row form_element_header" >
             <div class='large-12 column<%= " attribute_name attribute_#{attribute} form_element_#{form_element}" -%>' >
-              <%= @object.class.human_attribute_name(attribute) -%>
+              <%= @object.human_attribute_name(attribute) -%>
             </div>
           </div>
         <% else %>
           <div class="row <%= cycle('odd', 'even') %>">
             <div class='medium-5 large-5 column' >
-              <%= @object.class.human_attribute_name(attribute) -%>
+              <%= @object.human_attribute_name(attribute) -%>
             </div>
             <div class='medium-7 large-7 column' >
               <span id="<%= css_class_id -%>" > <%= send("#{form_element}_edit", @object, attribute) -%> </span>
