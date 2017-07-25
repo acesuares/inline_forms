@@ -5,6 +5,9 @@
 @import 'jquery.ui.all';
 @import 'foundation_and_overrides';
 
+.contain-to-grid {
+  background-color: $body-bg !important;
+}
 
 input {
   margin: 2px 0 !important;
