@@ -1,0 +1,7 @@
+@import 'foundation/functions';
+
+$include-html-classes: true;
+$include-html-global-classes: $include-html-classes;
+$font-family-sans-serif: "Open Sans", sans-serif;
+
+@import 'foundation';
