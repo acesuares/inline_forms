@@ -25,7 +25,7 @@ gem 'i18n-active_record', git: 'https://github.com/acesuares/i18n-active_record.
 gem 'unicorn'
 gem 'rvm'
 gem 'rvm-capistrano', require: false
-gem 'foundation-rails'
+gem 'foundation-rails', '~> 5.5'
 gem 'mysql2'
 gem 'sass-rails'
 gem 'coffee-rails'
@@ -268,7 +268,7 @@ say "- Installaing ZURB Foundation..."
 generate "foundation:install", "-f"
 
 say "- Copy stylesheets..."
-remove_file 'app/assets/stylesheets/application.css'
+# remove_file 'app/assets/stylesheets/application.css'
 %w(application.scss devise.scss inline_forms.scss).each do |stylesheet|
   copy_file File.join(GENERATOR_PATH, 'lib/generators/assets/stylesheets' , stylesheet), File.join('app/assets/stylesheets' , stylesheet)
 end
