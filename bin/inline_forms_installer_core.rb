@@ -267,6 +267,11 @@ append_to_file "db/seeds.rb", "Role.create({ id: 1, name: 'superadmin', descript
 say "- Installaing ZURB Foundation..."
 generate "foundation:install", "-f"
 
+say "- Copy images..."
+%w(glass_plate.gif).each do |image|
+  copy_file File.join(GENERATOR_PATH, 'lib/generators/assets/images' , image), File.join('app/assets/images' , image)
+end
+
 say "- Copy stylesheets..."
 remove_file 'app/assets/stylesheets/application.css'
 remove_file 'app/assets/stylesheets/foundation_and_overrides.scss'
@@ -279,6 +284,9 @@ remove_file 'app/assets/javascripts/application.js'
 %w(application.js inline_forms.js).each do |javascript|
   copy_file File.join(GENERATOR_PATH, 'lib/generators/assets/javascripts' , javascript), File.join('app/assets/javascripts' , javascript)
 end
+
+say "- Monkey patch for human_attribute_name in config/initializers/human_attribute_name.rb"
+copy_file File.join(GENERATOR_PATH, 'lib/generators/initializers/human_attribute_name.rb'), "config/initializers/human_attribute_name.rb"
 
 say "- Install ckeditor..."
 generate "ckeditor:install --orm=active_record --backend=carrierwave"
