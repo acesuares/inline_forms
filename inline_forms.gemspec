@@ -6,7 +6,7 @@ Gem::Specification.new do |s|
   s.name        = "inline_forms"
   s.version     = InlineForms::VERSION
   s.platform    = Gem::Platform::RUBY
-  s.authors     = ["Ace Suares", "Lemuel Boyce"]
+  s.authors     = ["Ace Suares", "Lemuel Boyce", "Manuel Ortega"]
   s.email       = ["ace@suares.com"]
   s.homepage    = %q{http://github.com/acesuares/inline_forms}
   s.summary     = %q{Inline editing of forms.}
@@ -23,7 +23,7 @@ Gem::Specification.new do |s|
   s.add_dependency('rvm')
   s.add_dependency('thor')
   s.add_dependency('validation_hints')
-  s.add_dependency('rails', '5.0.2')
+  s.add_dependency('rails', '>= 5.0')
   s.add_dependency('rails-i18n')
 
   s.add_development_dependency(%q<rspec-rails>)
