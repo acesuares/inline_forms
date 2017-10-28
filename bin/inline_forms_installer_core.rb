@@ -5,7 +5,6 @@ create_file 'Gemfile', "# created by inline_forms #{ENV['inline_forms_version']}
 add_source 'https://rubygems.org'
 
 gem 'cancan', git: 'https://github.com/acesuares/cancan.git', :branch => '2.0'
-gem 'capistrano'
 gem 'carrierwave'
 gem 'ckeditor'
 gem 'coffee-rails'
@@ -25,16 +24,15 @@ gem 'rails-i18n'
 gem 'rails', '~> 5.0.6'
 gem 'rake'
 gem 'remotipart', '~> 1.0'
-gem 'rvm-capistrano', require: false
 gem 'rvm'
 gem 'sass-rails'
 gem 'tabs_on_rails', git: 'https://github.com/acesuares/tabs_on_rails.git', :branch => 'update_remote'
 gem 'therubyracer'
 gem 'uglifier'
+gem 'figaro'
 gem 'unicorn'
 gem 'validation_hints'
 gem 'will_paginate' #, git: 'https://github.com/acesuares/will_paginate.git'
-
 
 gem_group :development do
   gem 'bundler'
@@ -46,6 +44,10 @@ gem_group :development do
   gem 'sqlite3'
   gem 'switch_user'
   gem 'yaml_db'
+  gem 'capistrano', '~> 3.6', require: false
+  gem 'capistrano-rails', '~> 1.3', require: false
+  gem 'capistrano-bundler', '~> 1.3', require: false
+  gem 'capistrano-rvm', require: false
 end
 
 say "- Running bundle..."
@@ -532,9 +534,9 @@ DEVISE_MAILER_STUFF
 
 # capify
 say "- Capify..."
-run 'capify .'
-remove_file "config/deploy.rb" # remove the file capify created!
-copy_file File.join(GENERATOR_PATH,'lib/generators/templates/deploy.rb'), "config/deploy.rb"
+run 'bundle exec cap install'
+#remove_file "config/deploy.rb" # remove the file capify created!
+#copy_file File.join(GENERATOR_PATH,'lib/generators/templates/deploy.rb'), "config/deploy.rb"
 
 # Unicorn
 say "- Unicorn Config..."
@@ -546,11 +548,29 @@ say "- Initializing git..."
 run 'git init'
 
 insert_into_file ".gitignore", <<-GITIGNORE.strip_heredoc, :after => "/tmp\n"
-  # netbeans
-  nbproject
   # remotipart uploads
   public/uploads
+  # Figaro secrets
+  config/application.yml
 GITIGNORE
+
+say "- Installing Figaro..."
+run 'bundle exec figaro install'
+copy_file File.join(GENERATOR_PATH,'lib/generators/templates/application.yml.blank'), "config/application.yml"
+copy_file File.join(GENERATOR_PATH,'lib/generators/templates/application.yml.blank'), "config/application.yml.blank"
+
+say "- Installing config/secrets.yml..."
+remove_file "config/secrets.yml"
+create_file "config/secrets.yml", <<-END_SECRETS_YML.strip_heredoc(2)
+  development:
+    secret_key_base: <%= ENV["SECRET_KEY_BASE"] %>
+
+  test:
+    secret_key_base: <%= ENV["SECRET_KEY_BASE"] %>
+
+  production:
+    secret_key_base: <%= ENV["SECRET_KEY_BASE"] %>
+END_SECRETS_YML
 
 run 'git add .'
 run 'git commit -a -m " * Initial"'
