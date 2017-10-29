@@ -577,13 +577,13 @@ create_file "config/secrets.yml", <<-END_SECRETS_YML.strip_heredoc
     secret_key_base: <%= ENV["SECRET_KEY_BASE"] %>
 END_SECRETS_YML
 
-run "export SECRET_KEY_BASE='#{SecureRandom.hex(64)}"
-
 run 'git add .'
 run 'git commit -a -m " * Initial"'
 
 # example
 if ENV['install_example'] == 'true'
+  run "export SECRET_KEY_BASE='#{SecureRandom.hex(64)}"
+
   say "\nInstalling example application..."
   run 'bundle exec rails g inline_forms Photo name:string caption:string image:image_field description:ckeditor apartment:belongs_to _presentation:\'#{name}\'' # FIXME temporary changed because ckeditor is playing dirty
   run 'bundle exec rails generate uploader Image'
@@ -612,6 +612,7 @@ if ENV['install_example'] == 'true'
 else
   # run tests
   run "rspec" if ENV['runtest']
+  say "- Don't forget: add your secret key base in config/application.yml \n"
 end
 # done!
 say "\nDone! Now make your tables with 'bundle exec rails g inline_forms ...", :yellow
