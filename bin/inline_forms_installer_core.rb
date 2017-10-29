@@ -70,18 +70,18 @@ else
   create_file "config/database.yml", <<-END_DATABASEYML.strip_heredoc
   development:
     adapter: mysql2
-    database: #{app_name}_dev
-    username: #{app_name}
-    password: #{app_name}
+    database: <%= ENV["DATABASE_NAME"] %>
+    username: <%= ENV["DATABASE_USER"] %>
+    password: <%= ENV["DATABASE_PASSWORD"] %>
 
   END_DATABASEYML
 end
 append_file "config/database.yml", <<-END_DATABASEYML.strip_heredoc
   production:
     adapter: mysql2
-    database: #{app_name}_prod
-    username: #{app_name}
-    password: #{app_name}444
+    database: <%= ENV["DATABASE_NAME"] %>
+    username: <%= ENV["DATABASE_USER"] %>
+    password: <%= ENV["DATABASE_PASSWORD"] %>
 END_DATABASEYML
 
 say "- Devise install..."
