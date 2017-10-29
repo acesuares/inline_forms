@@ -73,7 +73,6 @@ else
     database: <%= ENV["DATABASE_NAME"] %>
     username: <%= ENV["DATABASE_USER"] %>
     password: <%= ENV["DATABASE_PASSWORD"] %>
-
   END_DATABASEYML
 end
 append_file "config/database.yml", <<-END_DATABASEYML.strip_heredoc
