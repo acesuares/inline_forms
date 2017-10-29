@@ -577,6 +577,8 @@ create_file "config/secrets.yml", <<-END_SECRETS_YML.strip_heredoc
     secret_key_base: <%= ENV["SECRET_KEY_BASE"] %>
 END_SECRETS_YML
 
+run "export SECRET_KEY_BASE='#{SecureRandom.hex(64)}"
+
 run 'git add .'
 run 'git commit -a -m " * Initial"'
 
