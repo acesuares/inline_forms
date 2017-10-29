@@ -20,3 +20,5 @@ pkg
 
 # Builds
 *.gem
+
+Gemfile.lock

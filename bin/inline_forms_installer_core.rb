@@ -556,6 +556,7 @@ GITIGNORE
 
 say "- Installing Figaro..."
 run 'bundle exec figaro install'
+remove_file "config/application.yml"
 copy_file File.join(GENERATOR_PATH,'lib/generators/templates/application.yml.blank'), "config/application.yml"
 copy_file File.join(GENERATOR_PATH,'lib/generators/templates/application.yml.blank'), "config/application.yml.blank"
 
