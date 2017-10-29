@@ -568,7 +568,7 @@ say "- Installing config/secrets.yml..."
 remove_file "config/secrets.yml"
 create_file "config/secrets.yml", <<-END_SECRETS_YML.strip_heredoc
   development:
-    secret_key_base: <%= ENV["SECRET_KEY_BASE"] %>
+    secret_key_base: #{SecureRandom.hex(64)}
 
   test:
     secret_key_base: <%= ENV["SECRET_KEY_BASE"] %>
@@ -582,8 +582,6 @@ run 'git commit -a -m " * Initial"'
 
 # example
 if ENV['install_example'] == 'true'
-  run "export SECRET_KEY_BASE='#{SecureRandom.hex(64)}"
-
   say "\nInstalling example application..."
   run 'bundle exec rails g inline_forms Photo name:string caption:string image:image_field description:ckeditor apartment:belongs_to _presentation:\'#{name}\'' # FIXME temporary changed because ckeditor is playing dirty
   run 'bundle exec rails generate uploader Image'
