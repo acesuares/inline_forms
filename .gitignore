@@ -17,3 +17,5 @@ pkg
 # other (Lemuel I think)
 .project
 .vscode
+
+Gemfile.lock

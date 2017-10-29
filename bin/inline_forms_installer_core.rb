@@ -556,12 +556,13 @@ GITIGNORE
 
 say "- Installing Figaro..."
 run 'bundle exec figaro install'
+remove_file "config/application.yml"
 copy_file File.join(GENERATOR_PATH,'lib/generators/templates/application.yml.blank'), "config/application.yml"
 copy_file File.join(GENERATOR_PATH,'lib/generators/templates/application.yml.blank'), "config/application.yml.blank"
 
 say "- Installing config/secrets.yml..."
 remove_file "config/secrets.yml"
-create_file "config/secrets.yml", <<-END_SECRETS_YML.strip_heredoc(2)
+create_file "config/secrets.yml", <<-END_SECRETS_YML.strip_heredoc
   development:
     secret_key_base: <%= ENV["SECRET_KEY_BASE"] %>
 
