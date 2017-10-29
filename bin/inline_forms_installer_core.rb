@@ -48,6 +48,7 @@ gem_group :development do
   gem 'capistrano-rails', '~> 1.3', require: false
   gem 'capistrano-bundler', '~> 1.3', require: false
   gem 'capistrano-rvm', require: false
+  gem "capistrano3-unicorn"
 end
 
 say "- Running bundle..."
@@ -535,8 +536,12 @@ DEVISE_MAILER_STUFF
 # capify
 say "- Capify..."
 run 'bundle exec cap install'
-#remove_file "config/deploy.rb" # remove the file capify created!
-#copy_file File.join(GENERATOR_PATH,'lib/generators/templates/deploy.rb'), "config/deploy.rb"
+remove_file "config/deploy.rb" # remove the file capify created!
+copy_file File.join(GENERATOR_PATH,'lib/generators/templates/deploy.rb'), "config/deploy.rb"
+remove_file "config/deploy/production.rb" # remove the production file capify created!
+copy_file File.join(GENERATOR_PATH,'lib/generators/templates/production.rb'), "config/deploy/production.rb"
+remove_file "Capfile" # remove the Capfile file capify created!
+copy_file File.join(GENERATOR_PATH,'lib/generators/templates/Capfile'), "Capfile"
 
 # Unicorn
 say "- Unicorn Config..."

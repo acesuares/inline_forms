@@ -1,82 +1,25 @@
-# -*- encoding : utf-8 -*-
-
-require "bundler/capistrano"
-require "rvm/capistrano"
-
-load 'deploy/assets'
-
-set :rvm_ruby_string, ENV['GEM_HOME'].gsub(/.*\//,"") # Read from local system
-set :rvm_install_ruby_params, '--1.9'      # for jruby/rbx default to 1.9 mode https://github.com/wayneeseguin/rvm-capistrano/commit/663252851a9d6294439a9b501cebe66f8c3150f7
-
 set :application, "YOUR_APPLICATION_NAME"
-set :domain,      "YOUR_HOST_NAME"
-set :user,        "YOUR_USERNAME_ON_THE_HOST"
+set :repo_url, "file:///home/#{user}/git-repos/#{application}.git"
+set :bundle_binstubs, nil
 
-set :bundle_flags,       "--deployment"
+# Default deploy_to directory is /var/www/my_app_name
+set :deploy_to, "/var/www/ror/#{application}"
 
-set :use_sudo,    false
+# Default value for :linked_files is []
+set :linked_files, fetch(:linked_files, [])
+  .push("config/database.yml", "config/secrets.yml")
+# Default value for linked_dirs is []
+set :linked_dirs, fetch(:linked_dirs, [])
+  .push("log", "tmp/pids", "tmp/cache", "tmp/sockets", "public/system", "vendor/bundle")
 
-set :deploy_to,   "/var/www/ror/#{application}"
+# Default value for keep_releases is 5
+set :keep_releases, 5
 
-set :repository,  "file:///home/#{user}/git-repos/#{application}.git"
-set :local_repository, "ssh://#{user}@#{domain}/home/#{user}/git-repos/#{application}.git"
-set :scm,         "git"
+after "deploy:publishing", "deploy:restart"
 
-
-role :app, domain
-role :web, domain
-role :db,  domain, :primary => true
-
-before :deploy do
-  system "bundle install"
-  system "git commit -a"
-  system "git push"
-end
-
-before 'deploy:setup', 'rvm:install_rvm'
-before 'deploy:setup', 'rvm:install_ruby'
-before  "deploy:assets:precompile", "deploy:fix_stuff"
-
-
+# Restart unicorn
 namespace :deploy do
-  desc "Zero-downtime restart of Unicorn"
-  task :zero_restart, :except => { :no_release => true } do
-    run "kill -s USR2 `cat #{shared_path}/pids/unicorn.pid`"
+  task :restart do
+    invoke "unicorn:restart"
   end
-
-  desc "Downtime restart of Unicorn"
-  task :restart, :except => { :no_release => true } do
-    run "kill -s KILL `cat #{shared_path}/pids/unicorn.pid`"
-    sleep 10
-    run "rvm rvmrc trust #{current_release}"
-    run "cd #{current_path} ; bundle exec r200_unicorn -c #{current_path}/config/unicorn.rb -D -E production"
-  end
-
-
-  desc "Start unicorn"
-  task :start, :except => { :no_release => true } do
-    run "rvm rvmrc trust #{current_release}"
-    run "cd #{current_path} ; bundle exec r200_unicorn -c #{current_path}/config/unicorn.rb -D -E production"
-  end
-
-  desc "Stop unicorn"
-  task :stop, :except => { :no_release => true } do
-    run "kill -s QUIT `cat #{shared_path}/pids/unicorn.pid`"
-  end
-
-  desc "Kill unicorn"
-  task :kill, :except => { :no_release => true } do
-    run "kill -s KILL `cat #{shared_path}/pids/unicorn.pid`"
-  end
-
-  desc "Fix Stuff."
-  task :fix_stuff do
-    run "cd #{shared_path} && mkdir -p log"
-    run "cd #{shared_path} && mkdir -p sockets"
-    run "ln -s #{shared_path}/sockets #{release_path}/tmp/sockets"
-    run "cd #{shared_path} && mkdir -p uploads"
-    run "ln -s #{shared_path}/uploads #{release_path}/public/uploads"
-  end
-
-
 end
