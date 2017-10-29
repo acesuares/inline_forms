@@ -12,7 +12,7 @@ This will create:
       create  db/migrate/20110204074707_inline_forms_create_things.rb
 
       app/models/thing.rb:
-        class Thing < ActiveRecord::Base
+        class Thing < ApplicationRecord
           def _presentation
             #define your presentation here
           end

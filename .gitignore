@@ -17,3 +17,6 @@ pkg
 # other (Lemuel I think)
 .project
 .vscode
+
+# Builds
+*.gem

@@ -158,7 +158,7 @@ USERS_CONTROLLER
 
 say "- Create User Model..."
 create_file "app/models/user.rb", <<-USER_MODEL.strip_heredoc
-  class User < ActiveRecord::Base
+  class User < ApplicationRecord
 
     # devise options
     devise :database_authenticatable
@@ -561,7 +561,7 @@ copy_file File.join(GENERATOR_PATH,'lib/generators/templates/application.yml.bla
 
 say "- Installing config/secrets.yml..."
 remove_file "config/secrets.yml"
-create_file "config/secrets.yml", <<-END_SECRETS_YML.strip_heredoc(2)
+create_file "config/secrets.yml", <<-END_SECRETS_YML.strip_heredoc
   development:
     secret_key_base: <%= ENV["SECRET_KEY_BASE"] %>
 

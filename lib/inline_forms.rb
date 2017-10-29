@@ -49,7 +49,7 @@ module InlineForms
   #  rails g inline_forms Example name:string price:integer
   # will result in the following model:
   #
-  #    class Example < ActiveRecord::Base
+  #    class Example < ApplicationRecord
   #      def inline_forms_attribute_list
   #        {
   #          :name  => [ "name", :text_field ],
@@ -91,7 +91,7 @@ module InlineForms
   SPECIAL_COLUMN_TYPES = {
     :associated => :no_migration
   }
-  
+
   # RELATIONS defines a mapping between AR::Migrations columns and the Model.
   #
   # When a column has the type of :references or :belongs_to, then
