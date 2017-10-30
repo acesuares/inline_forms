@@ -1,7 +1,8 @@
 #!/usr/bin/env ruby
 module InlineForms
   require File.join(File.dirname(__FILE__), "../lib/inline_forms/version.rb")
-
+  require 'securerandom'
+  
   # what is this?
   Signal.trap("INT") { puts; exit }
 

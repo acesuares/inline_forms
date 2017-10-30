@@ -48,6 +48,7 @@ gem_group :development do
   gem 'capistrano-rails', '~> 1.3', require: false
   gem 'capistrano-bundler', '~> 1.3', require: false
   gem 'capistrano-rvm', require: false
+  gem "capistrano3-unicorn"
 end
 
 say "- Running bundle..."
@@ -69,18 +70,17 @@ else
   create_file "config/database.yml", <<-END_DATABASEYML.strip_heredoc
   development:
     adapter: mysql2
-    database: #{app_name}_dev
-    username: #{app_name}
-    password: #{app_name}
-
+    database: <%= ENV["DATABASE_NAME"] %>
+    username: <%= ENV["DATABASE_USER"] %>
+    password: <%= ENV["DATABASE_PASSWORD"] %>
   END_DATABASEYML
 end
 append_file "config/database.yml", <<-END_DATABASEYML.strip_heredoc
   production:
     adapter: mysql2
-    database: #{app_name}_prod
-    username: #{app_name}
-    password: #{app_name}444
+    database: <%= ENV["DATABASE_NAME"] %>
+    username: <%= ENV["DATABASE_USER"] %>
+    password: <%= ENV["DATABASE_PASSWORD"] %>
 END_DATABASEYML
 
 say "- Devise install..."
@@ -535,8 +535,12 @@ DEVISE_MAILER_STUFF
 # capify
 say "- Capify..."
 run 'bundle exec cap install'
-#remove_file "config/deploy.rb" # remove the file capify created!
-#copy_file File.join(GENERATOR_PATH,'lib/generators/templates/deploy.rb'), "config/deploy.rb"
+remove_file "config/deploy.rb" # remove the file capify created!
+copy_file File.join(GENERATOR_PATH,'lib/generators/templates/deploy.rb'), "config/deploy.rb"
+remove_file "config/deploy/production.rb" # remove the production file capify created!
+copy_file File.join(GENERATOR_PATH,'lib/generators/templates/production.rb'), "config/deploy/production.rb"
+remove_file "Capfile" # remove the Capfile file capify created!
+copy_file File.join(GENERATOR_PATH,'lib/generators/templates/Capfile'), "Capfile"
 
 # Unicorn
 say "- Unicorn Config..."
@@ -564,7 +568,7 @@ say "- Installing config/secrets.yml..."
 remove_file "config/secrets.yml"
 create_file "config/secrets.yml", <<-END_SECRETS_YML.strip_heredoc
   development:
-    secret_key_base: <%= ENV["SECRET_KEY_BASE"] %>
+    secret_key_base: #{SecureRandom.hex(64)}
 
   test:
     secret_key_base: <%= ENV["SECRET_KEY_BASE"] %>
@@ -606,6 +610,7 @@ if ENV['install_example'] == 'true'
 else
   # run tests
   run "rspec" if ENV['runtest']
+  say "- Don't forget: add your secret key base in config/application.yml \n"
 end
 # done!
 say "\nDone! Now make your tables with 'bundle exec rails g inline_forms ...", :yellow
