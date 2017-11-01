@@ -536,15 +536,15 @@ DEVISE_MAILER_STUFF
 say "- Capify..."
 run 'bundle exec cap install'
 remove_file "config/deploy.rb" # remove the file capify created!
-copy_file File.join(GENERATOR_PATH,'lib/generators/templates/deploy.rb'), "config/deploy.rb"
+copy_file File.join(GENERATOR_PATH,'lib/generators/templates/capistrano/deploy.rb'), "config/deploy.rb"
 remove_file "config/deploy/production.rb" # remove the production file capify created!
-copy_file File.join(GENERATOR_PATH,'lib/generators/templates/production.rb'), "config/deploy/production.rb"
+copy_file File.join(GENERATOR_PATH,'lib/generators/templates/capistrano/production.rb'), "config/deploy/production.rb"
 remove_file "Capfile" # remove the Capfile file capify created!
-copy_file File.join(GENERATOR_PATH,'lib/generators/templates/Capfile'), "Capfile"
+copy_file File.join(GENERATOR_PATH,'lib/generators/templates/capistrano/Capfile'), "Capfile"
 
 # Unicorn
 say "- Unicorn Config..."
-copy_file File.join(GENERATOR_PATH,'lib/generators/templates/unicorn.rb'), "config/unicorn.rb"
+copy_file File.join(GENERATOR_PATH,'lib/generators/templates/unicorn/production.rb'), "config/unicorn/production.rb"
 
 
 # Git
