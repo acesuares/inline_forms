@@ -1,9 +1,9 @@
 set :application, ENV['DEPLOY_APPLICATION']
-set :repo_url, ENV['DEPLO_REPO_URL']
+set :repo_url, ENV['DEPLOY_REPO_URL']
 set :bundle_binstubs, nil
 
 # Default deploy_to directory is /var/www/my_app_name
-set :deploy_to, "/var/www/ror/#{fetch(:application)}"
+set :deploy_to, ENV['DEPLOY_DIRECTORY']
 
 # Default value for :linked_files is []
 set :linked_files, fetch(:linked_files, [])
