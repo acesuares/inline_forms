@@ -43,7 +43,7 @@ module InlineForms
       def attribute_type
         SPECIAL_COLUMN_TYPES.merge(RELATIONS).has_key?(type) ? type : DEFAULT_FORM_ELEMENTS[type] || :unknown
       end
-      
+
       def special_relation?
         SPECIAL_RELATIONS.has_key?(type)
       end
@@ -73,7 +73,7 @@ module InlineForms
     argument :attributes, :type => :array,  :banner => "[name:form_element]..."
 
     source_root File.expand_path(File.join(File.dirname(__FILE__), 'templates'))
-  
+
     # using flags.
     def set_some_flags
       @flag_not_accessible_through_html   = true
@@ -107,7 +107,7 @@ module InlineForms
         @inline_forms_attribute_list  = String.new
 
         for attribute in attributes
-          if attribute.column_type  == :belongs_to 
+          if attribute.column_type  == :belongs_to
             ## :drop_down, :references and :belongs_to all end up with the column_type :belongs_to
             @belongs_to << '  belongs_to :'         + attribute.name + "\n"
           end
@@ -175,7 +175,7 @@ module InlineForms
           end
         ROUTE
       end
-    end 
+    end
 
     def generate_migration
       if @flag_create_migration
@@ -199,6 +199,7 @@ module InlineForms
             end
           end
         end
+        @primary_key_option = @create_id ? '' : ', id: false'
         template "migration.erb", "db/migrate/#{time_stamp}_inline_forms_create_#{table_name}.rb"
       end
     end
@@ -214,14 +215,14 @@ module InlineForms
           :after => "ActionView::CompiledTemplates::MODEL_TABS = %w("
       end
     end
-    
+
     def generate_test
       template "test.erb", "test/unit/#{test_file_name}.rb"
     end
 
     def generate_controller
       template "controller.erb", "app/controllers/#{controller_file_name}.rb" if @flag_create_controller
-    end 
+    end
 
 
     private
@@ -240,11 +241,11 @@ module InlineForms
     def controller_file_name
       controller_name.underscore
     end
-    
+
     def test_name
       name + 'Test'
     end
-    
+
     def test_file_name
       test_name.underscore
     end

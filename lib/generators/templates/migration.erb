@@ -1,8 +1,7 @@
-class InlineFormsCreate<%= table_name.camelize %> < ActiveRecord::Migration
+class InlineFormsCreate<%= table_name.camelize %> < ActiveRecord::Migration[5.0]
 
   def self.up
-    #create_table :<%= table_name + ", :id => " + @create_id.to_s %> do |t|
-    create_table :<%= table_name %> do |t|
+    create_table :<%= table_name + @primary_key_option %> do |t|
 <%= @columns -%>
       t.timestamps
     end
