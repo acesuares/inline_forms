@@ -288,8 +288,9 @@ remove_file 'app/assets/javascripts/application.js'
   copy_file File.join(GENERATOR_PATH, 'lib/generators/assets/javascripts' , javascript), File.join('app/assets/javascripts' , javascript)
 end
 
-say "- Monkey patch for human_attribute_name in config/initializers/human_attribute_name.rb"
-copy_file File.join(GENERATOR_PATH, 'lib/generators/initializers/human_attribute_name.rb'), "config/initializers/human_attribute_name.rb"
+say "- Add human_attribute_name in app/models/application_record.rb"
+remove_file 'app/models/application_record.rb' # the one that 'rails new' created
+copy_file File.join(GENERATOR_PATH, 'lib/generators/templates/application_record.rb'), "app/models/application_record.rb"
 
 say "- Install ckeditor..."
 generate "ckeditor:install --orm=active_record --backend=carrierwave"
