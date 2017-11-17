@@ -7,7 +7,7 @@ set :deploy_to, ENV['DEPLOY_DIRECTORY']
 
 # Default value for :linked_files is []
 set :linked_files, fetch(:linked_files, [])
-  .push("config/database.yml", "config/secrets.yml", "config/application.yml")
+  .push("config/application.yml")
 # Default value for linked_dirs is []
 set :linked_dirs, fetch(:linked_dirs, [])
   .push("log", "tmp/pids", "tmp/cache", "tmp/sockets", "public/system", "vendor/bundle")
@@ -30,9 +30,7 @@ namespace :figaro do
   task :upload do
     on roles(:all) do
       execute "mkdir -p #{shared_path}/config"
-
-      upload! 'config/secrets.yml', "#{shared_path}/config/secrets.yml"
-      upload! 'config/database.yml', "#{shared_path}/config/database.yml"
+      
       upload! 'config/application.yml', "#{shared_path}/config/application.yml"
     end
   end
