@@ -4,7 +4,7 @@ create_file 'Gemfile', "# created by inline_forms #{ENV['inline_forms_version']}
 
 add_source 'https://rubygems.org'
 
-gem 'cancan', git: 'https://github.com/acesuares/cancan.git', :branch => '2.0'
+gem 'cancancan', '~> 2.0'
 gem 'carrierwave'
 gem 'ckeditor'
 gem 'coffee-rails'
@@ -377,11 +377,10 @@ create_file "app/controllers/application_controller.rb", <<-END_APPCONTROLLER.st
     before_action :authenticate_user!
 
     # Comment next 6 lines if you do not want CanCan authorization
-    enable_authorization :unless => :devise_controller?
+    check_authorization unless: :devise_controller?
 
-    rescue_from CanCan::Unauthorized do |exception|
-      sign_out :user if user_signed_in?
-      redirect_to new_user_session_path, :alert => exception.message
+    rescue_from CanCan::AccessDenied do |exception|
+      redirect_to root_path, alert: exception.message
     end
 
     ActionView::CompiledTemplates::MODEL_TABS = %w()
@@ -414,15 +413,15 @@ create_file "app/models/ability.rb", <<-END_ABILITY.strip_heredoc
     include CanCan::Ability
 
     def initialize(user)
-      # See the wiki for details: https://github.com/ryanb/cancan/wiki/Defining-Abilities
+      # See the wiki for details: https://github.com/CanCanCommunity/cancancan/wiki/Defining-Abilities
 
       user ||= User.new # guest user
 
       # use this if you get stuck:
       # if user.id == 1 #quick hack
-      #   can :access, :all
+      #   can :manage, :all
       if user.role? :superadmin
-        can :access, :all
+        can :manage, :all
       else
         # put restrictions for other users here
       end
