@@ -22,25 +22,9 @@
 # @Klass is used in the InlineFormsHelper
 #
 class InlineFormsController < ApplicationController
+  include CancanConcern
+
   before_action :getKlass
-
-  def self.cancan_enabled?
-    begin
-      CanCan::Ability && true
-    rescue NameError
-      false
-    end
-  end
-
-  def cancan_enabled?
-    self.class.cancan_enabled?
-  end
-
-  def cancan_disabled?
-    ! self.class.cancan_enabled?
-  end
-
-  helper_method :cancan_disabled?, :cancan_enabled?
 
   load_and_authorize_resource :except => :revert, :no_params => true if cancan_enabled?
   # :index shows a list of all objects from class @Klass, using will_paginate,
