@@ -1,6 +1,6 @@
 module InlineForms
   module Generators
-    class UpdateCssGenerator < Rails::Generators::Base
+    class StylesheetsGenerator < Rails::Generators::Base
       source_root File.expand_path('../stylesheets', __FILE__)
 
       desc 'Update css in main app from inline_forms file'
