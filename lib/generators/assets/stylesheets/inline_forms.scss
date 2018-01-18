@@ -161,6 +161,19 @@ select:hover, select:focus {
     -webkit-transition-property: color;
     transition-property: color;
   }
+  .close_button  {
+    background-color: rgb(239, 202, 75);
+    font-size: 1.5rem;
+    color: #B94C32;
+    padding: 0 0.5rem 0 1rem;
+    margin: 0;
+  }
+  .close_button:hover, .new_button:focus {
+    background-color: rgb(239, 202, 75);
+    color: white;
+    -webkit-transition-property: color;
+    transition-property: color;
+  }
 }
 
 .pagination {
