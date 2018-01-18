@@ -5,8 +5,8 @@ module InlineForms
 
       desc 'Update css in main app from inline_forms file'
       def update_css
-        remove_file 'app/assets/stylesheeets/inline_forms.scss'
-        copy_file 'stylesheets/inline_forms.scss', 'app/assets/stylesheeets/inline_forms.scss'
+        remove_file 'app/assets/stylesheets/inline_forms.scss'
+        copy_file 'stylesheets/inline_forms.scss', 'app/assets/stylesheets/inline_forms.scss'
       end
     end
   end
