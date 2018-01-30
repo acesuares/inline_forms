@@ -17,7 +17,7 @@ def ckeditor_show(object, attribute)
                       :toolbarCanCollapse => "false"
                     }
     ) +
-      image_tag(  'glass_plate.gif',
+      image_tag(  'inline_forms/glass_plate.gif',
                   :class => "glass_plate",
                   :title => '' ) +
       "<script>delete CKEDITOR.instances['textarea_#{object.class.name.underscore}_#{object.id}_#{attribute.to_s}']</script>".html_safe +
