@@ -1,5 +1,5 @@
 # -*- encoding : utf-8 -*-
-require File.expand_path(File.join(File.dirname(__FILE__),'../app/helpers/inline_forms_helper.rb'))
+require File.expand_path(File.join(File.dirname(__FILE__),'../../app/helpers/inline_forms_helper.rb'))
 module InlineForms
   # == Usage
   # This generator generates a migration, a model and a controller.
