@@ -92,6 +92,8 @@ route <<-ROUTE.strip_heredoc
 devise_for :users, :path_prefix => 'auth'
   resources :users do
     post 'revert', :on => :member
+    get 'list_versions', :on => :member
+    get 'close_versions_list', :on => :member
 end
 ROUTE
 
