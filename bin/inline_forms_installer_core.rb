@@ -275,13 +275,6 @@ say "- Copy images..."
   copy_file File.join(GENERATOR_PATH, 'lib/generators/assets/images' , image), File.join('app/assets/images' , image)
 end
 
-say "- Copy stylesheets..."
-remove_file 'app/assets/stylesheets/application.css'
-remove_file 'app/assets/stylesheets/foundation_and_overrides.scss'
-%w(application.scss devise.scss foundation_and_overrides.scss inline_forms.scss).each do |stylesheet|
-  copy_file File.join(GENERATOR_PATH, 'lib/generators/assets/stylesheets' , stylesheet), File.join('app/assets/stylesheets' , stylesheet)
-end
-
 say "- Copy javascripts..."
 remove_file 'app/assets/javascripts/application.js'
 %w(application.js inline_forms.js).each do |javascript|
