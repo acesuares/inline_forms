@@ -275,19 +275,6 @@ say "- Copy images..."
   copy_file File.join(GENERATOR_PATH, 'lib/generators/assets/images' , image), File.join('app/assets/images' , image)
 end
 
-say "- Copy stylesheets..."
-remove_file 'app/assets/stylesheets/application.css'
-remove_file 'app/assets/stylesheets/foundation_and_overrides.scss'
-%w(application.scss devise.scss foundation_and_overrides.scss inline_forms.scss).each do |stylesheet|
-  copy_file File.join(GENERATOR_PATH, 'lib/generators/assets/stylesheets' , stylesheet), File.join('app/assets/stylesheets' , stylesheet)
-end
-
-say "- Copy javascripts..."
-remove_file 'app/assets/javascripts/application.js'
-%w(application.js inline_forms.js).each do |javascript|
-  copy_file File.join(GENERATOR_PATH, 'lib/generators/assets/javascripts' , javascript), File.join('app/assets/javascripts' , javascript)
-end
-
 say "- Add human_attribute_name in app/models/application_record.rb"
 remove_file 'app/models/application_record.rb' # the one that 'rails new' created
 copy_file File.join(GENERATOR_PATH, 'lib/generators/templates/application_record.rb'), "app/models/application_record.rb"
@@ -301,9 +288,6 @@ application "config.autoload_paths += %W(\#{config.root}/app/models/ckeditor)"
 # see https://github.com/galetahub/ckeditor/issues/579
 say "- Set languages for ckeditor to ['en', 'nl'] in config/initializers/ckeditor.rb..."
 insert_into_file "config/initializers/ckeditor.rb", "  config.assets_languages = ['en', 'nl']\n", :after => "config.assets_languages = ['en', 'uk']\n"
-
-say "- Create ckeditor config.js"
-copy_file File.join(GENERATOR_PATH, 'lib/generators/assets/javascripts/ckeditor/config.js'), "app/assets/javascripts/ckeditor/config.js"
 
 say "- Paper_trail install..."
 generate "paper_trail:install" # TODO One day, we need some management tools so we can actually SEE the versions, restore them etc.
