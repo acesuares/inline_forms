@@ -144,14 +144,6 @@ module InlineForms
     paths["app/views"] << "lib/app/views"
     paths["app/assets"] << "lib/app/assets"
 
-    initializer :append_migrations do |app|
-      unless app.root.to_s.match(root.to_s)
-        config.paths["db/migrate"].expanded.each do |path|
-          app.config.paths["db/migrate"] << path
-        end
-      end
-    end
-
     initializer "inline_forms.assets.precompile" do |app|
       app.config.assets.precompile += %w( inline_forms/inline_forms.scss )
     end
