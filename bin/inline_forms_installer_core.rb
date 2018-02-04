@@ -92,6 +92,8 @@ route <<-ROUTE.strip_heredoc
 devise_for :users, :path_prefix => 'auth'
   resources :users do
     post 'revert', :on => :member
+    get 'list_versions', :on => :member
+    get 'close_versions_list', :on => :member
 end
 ROUTE
 
@@ -275,6 +277,12 @@ say "- Copy images..."
   copy_file File.join(GENERATOR_PATH, 'lib/generators/assets/images' , image), File.join('app/assets/images' , image)
 end
 
+say "- Copy javascripts..."
+remove_file 'app/assets/javascripts/application.js'
+%w(application.js inline_forms.js).each do |javascript|
+  copy_file File.join(GENERATOR_PATH, 'lib/generators/assets/javascripts' , javascript), File.join('app/assets/javascripts' , javascript)
+end
+
 say "- Add human_attribute_name in app/models/application_record.rb"
 remove_file 'app/models/application_record.rb' # the one that 'rails new' created
 copy_file File.join(GENERATOR_PATH, 'lib/generators/templates/application_record.rb'), "app/models/application_record.rb"
@@ -291,6 +299,9 @@ insert_into_file "config/initializers/ckeditor.rb", "  config.assets_languages =
 
 say "- Paper_trail install..."
 generate "paper_trail:install" # TODO One day, we need some management tools so we can actually SEE the versions, restore them etc.
+
+say "- Import migrations from engines"
+run "bundle exec rails railties:install:migrations" # This is needed to add changeset field to the paper_trail versions table
 
 # Create Translations
 say "- Generate models and tables and views for translations..." # TODO Translations need to be done in inline_forms, and then generate a yml file, perhaps

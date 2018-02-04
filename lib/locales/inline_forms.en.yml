@@ -27,7 +27,10 @@ en:
       close: close
       add_new: make a new %{model}
       undo: undo
+      restore: restore
       trash: trash
+      list_versions: List versions
+      close_versions_list: Close versions list
   succes: success.
   activerecord:
     models:
