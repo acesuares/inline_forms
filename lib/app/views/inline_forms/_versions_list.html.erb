@@ -1,0 +1,75 @@
+<% path_to_object = @object.class.to_s.underscore + '_path' %>
+<% css_class_id = "#{@object.class.name.underscore}_#{@object.id}_versions" -%>
+<div class="row form_element_header associated_auto_header callout">
+  <div class='medium-11 large-11 column' >
+    <%= "Versions (#{@object.versions.length})" %>
+  </div>
+  <div class='medium-1 large-1 column'>
+    <%= close_versions_list_link(
+          @object,
+          css_class_id
+        )
+      %>
+  </div>
+</div>
+<div class="row <%= cycle('odd', 'even') %>">
+  <div class='small-12 column'>
+      <div class="small-1 column">
+        &nbsp;
+      </div>
+      <div  class="small-1 column">
+        <strong>Event</strong>
+      </div>
+      <div  class="small-2 column">
+        <strong>Done by</strong>
+      </div>
+      <div  class="small-8 column">
+        <strong>Changeset</strong>
+      </div>
+  </div>
+</div>
+<div class="row <%= cycle('odd', 'even') %>">
+  <% @object.versions.reverse.each do | version | %>
+    <div class='small-12 column'>
+      <div class="small-1 column">
+        <%= link_to t('inline_forms.view.restore'),
+          send('revert_' + @object.class.to_s.underscore + "_path",
+            version,
+            :update => "#{@object.class.name.underscore}_#{@object.id}"
+          ),
+          :remote => true,
+          :method => :post
+        %>
+      </div>
+      <div class="small-1 column">
+        <%= version.event -%>
+      </div>
+      <div  class="small-2 column">
+        <%= version.whodunnit.nil? ? 'nil' : version.author.name -%>
+      </div>
+      <div  class="small-8 column">
+        <% if version.changeset.empty? %>
+          <em>empty</em>
+        <% else %>
+          <% version.changeset.each do |attribute, value| %>
+            <% next if attribute == 'updated_at' %>
+            <table>
+              <tr>
+                <th colspan="2" class="text-center"><%= attribute %></th>
+                <th></th>
+              </tr>
+              <tr>
+                <td>old value</td>
+                <td>new value</td>
+              </tr>
+              <tr>
+                <td><%= value[0] %></td>
+                <td><%= value[1] %></td>
+              </tr>
+            </table>
+          <% end %>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+</div>

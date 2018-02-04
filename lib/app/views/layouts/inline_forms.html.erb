@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title><%= t('application_name') + " v" + InlineForms::VERSION -%></title>
     <%= stylesheet_link_tag "application" %>
+    <%= stylesheet_link_tag "inline_forms/inline_forms" %>
     <%= csrf_meta_tags %>
   </head>
 
@@ -14,6 +15,6 @@
     <div id="outer_container">
       <%= yield %>
     </div>
-    <%= javascript_include_tag 'application', 'data-turbolinks-track' => true %>
+    <%= javascript_include_tag 'inline_forms/inline_forms', 'data-turbolinks-track' => true %>
   </body>
 </html>
