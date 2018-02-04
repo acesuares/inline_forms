@@ -23,6 +23,7 @@
 #
 class InlineFormsController < ApplicationController
   include CancanConcern
+  include VersionsConcern
 
   before_action :getKlass
 

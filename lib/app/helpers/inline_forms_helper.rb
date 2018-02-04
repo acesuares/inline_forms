@@ -88,6 +88,34 @@ module InlineFormsHelper
     end
   end
 
+  # link to versions list
+  def link_to_versions_list(path_to_versions_list, object, update_span, html_class = 'button new_button')
+    out = (link_to "<i class='fi-list'></i>".html_safe,
+                   send(path_to_versions_list,
+                        object,
+                        :update => update_span,
+                       ),
+                   :remote => true,
+                   :class => html_class,
+                   :title => t('inline_forms.view.list_versions')
+          )
+    if current_user.role? :superadmin
+      raw out
+    end
+  end
+
+  # close versions list link
+  def close_versions_list_link(object, update_span, html_class = 'button close_button' )
+    link_to "<i class='fi-x'></i>".html_safe,
+      send('close_versions_list_' + @object.class.to_s.underscore + "_path",
+          object,
+          :update => update_span
+      ),
+      :remote => true,
+      :class => html_class,
+      :title => t('inline_forms.view.close_versions_list')
+  end
+
   # link_to_inline_edit
   def link_to_inline_edit(object, attribute, attribute_value='')
     attribute_value = attribute_value.to_s
