@@ -297,9 +297,6 @@ application "config.autoload_paths += %W(\#{config.root}/app/models/ckeditor)"
 say "- Set languages for ckeditor to ['en', 'nl'] in config/initializers/ckeditor.rb..."
 insert_into_file "config/initializers/ckeditor.rb", "  config.assets_languages = ['en', 'nl']\n", :after => "config.assets_languages = ['en', 'uk']\n"
 
-say "- Create ckeditor config.js"
-copy_file File.join(GENERATOR_PATH, 'lib/generators/assets/javascripts/ckeditor/config.js'), "app/assets/javascripts/ckeditor/config.js"
-
 say "- Paper_trail install..."
 generate "paper_trail:install" # TODO One day, we need some management tools so we can actually SEE the versions, restore them etc.
 
