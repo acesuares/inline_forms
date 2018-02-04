@@ -144,6 +144,10 @@ module InlineForms
     paths["app/views"] << "lib/app/views"
     paths["app/assets"] << "lib/app/assets"
 
+    initializer "inline_forms.assets.precompile" do |app|
+      app.config.assets.precompile += %w( inline_forms/inline_forms.scss )
+    end
+
     I18n.load_path << Dir[File.join(File.expand_path(File.dirname(__FILE__) + '/locales'), '*.yml')]
     I18n.load_path.flatten!
   end

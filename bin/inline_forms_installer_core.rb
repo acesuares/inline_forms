@@ -92,6 +92,8 @@ route <<-ROUTE.strip_heredoc
 devise_for :users, :path_prefix => 'auth'
   resources :users do
     post 'revert', :on => :member
+    get 'list_versions', :on => :member
+    get 'close_versions_list', :on => :member
 end
 ROUTE
 
@@ -307,6 +309,9 @@ copy_file File.join(GENERATOR_PATH, 'lib/generators/assets/javascripts/ckeditor/
 
 say "- Paper_trail install..."
 generate "paper_trail:install" # TODO One day, we need some management tools so we can actually SEE the versions, restore them etc.
+
+say "- Import migrations from engines"
+run "bundle exec rails railties:install:migrations" # This is needed to add changeset field to the paper_trail versions table
 
 # Create Translations
 say "- Generate models and tables and views for translations..." # TODO Translations need to be done in inline_forms, and then generate a yml file, perhaps
