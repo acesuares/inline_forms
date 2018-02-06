@@ -137,12 +137,6 @@ module InlineForms
 
   # Declare as a Rails::Engine, see http://www.ruby-forum.com/topic/211017#927932
   class Engine < Rails::Engine
-    paths["app"] << "lib/app"
-    paths["app/controllers"] << "lib/app/controllers"
-    paths["app/helpers"] << "lib/app/helpers"
-    paths["app/models"] << "lib/app/models"
-    paths["app/views"] << "lib/app/views"
-    paths["app/assets"] << "lib/app/assets"
 
     initializer :append_migrations do |app|
       unless app.root.to_s.match(root.to_s)
