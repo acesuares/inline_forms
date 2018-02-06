@@ -274,6 +274,9 @@ append_to_file "db/seeds.rb", "Role.create({ id: 1, name: 'superadmin', descript
 say "- Installaing ZURB Foundation..."
 generate "foundation:install", "-f"
 
+say "- Copy inline_forms_devise file for custom styles..."
+copy_file File.join(GENERATOR_PATH, 'lib/generators/assets/stylesheets/inline_forms_devise.css'), 'app/assets/stylesheets/inline_forms_devise.css'
+
 say "- Copy images..."
 %w(glass_plate.gif).each do |image|
   copy_file File.join(GENERATOR_PATH, 'lib/generators/assets/images' , image), File.join('app/assets/images' , image)
@@ -496,7 +499,7 @@ remove_file 'spec/models/user_spec.rb'
 
 # precompile devise.css
 say "- Precompile devise.css in environments/production.rb... (Since Rails 5 in config/initializers/assets.rb !)"
-append_file "config/initializers/assets.rb", "  Rails.application.config.assets.precompile += %w( devise.css )\n"
+append_file "config/initializers/assets.rb", "  Rails.application.config.assets.precompile += %w( inline_forms_devise.css )\n"
 
 # devise mailer stuff
 say "- Injecting devise mailer stuff in environments/production.rb..."
