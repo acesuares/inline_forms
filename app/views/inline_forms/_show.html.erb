@@ -115,6 +115,12 @@
         <% end %>
       <% end %>
     <% end %>
+    <% if current_user.role? :superadmin %>
+      <% css_class_id = "#{@object.class.name.underscore}_#{@object.id}_versions" -%>
+      <div id="<%= css_class_id -%>">
+        <%= render 'versions' %>
+      </div>
+    <% end %>
     <div class="record_footer"></div>
   </div>
 </div>
