@@ -277,18 +277,6 @@ generate "foundation:install", "-f"
 say "- Copy inline_forms_devise file for custom styles..."
 copy_file File.join(GENERATOR_PATH, 'lib/generators/assets/stylesheets/inline_forms_devise.css'), 'app/assets/stylesheets/inline_forms_devise.css'
 
-say "- Copy images..."
-%w(glass_plate.gif).each do |image|
-  copy_file File.join(GENERATOR_PATH, 'lib/generators/assets/images' , image), File.join('app/assets/images' , image)
-end
-
-say "- Copy javascripts..."
-remove_file 'app/assets/javascripts/application.js'
-%w(application.js inline_forms.js).each do |javascript|
-  copy_file File.join(GENERATOR_PATH, 'lib/generators/assets/javascripts' , javascript), File.join('app/assets/javascripts' , javascript)
-end
-
-
 say "- Add human_attribute_name in app/models/application_record.rb"
 remove_file 'app/models/application_record.rb' # the one that 'rails new' created
 copy_file File.join(GENERATOR_PATH, 'lib/generators/templates/application_record.rb'), "app/models/application_record.rb"
