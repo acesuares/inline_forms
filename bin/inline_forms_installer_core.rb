@@ -274,18 +274,6 @@ append_to_file "db/seeds.rb", "Role.create({ id: 1, name: 'superadmin', descript
 say "- Installaing ZURB Foundation..."
 generate "foundation:install", "-f"
 
-say "- Copy images..."
-%w(glass_plate.gif).each do |image|
-  copy_file File.join(GENERATOR_PATH, 'lib/generators/assets/images' , image), File.join('app/assets/images' , image)
-end
-
-say "- Copy javascripts..."
-remove_file 'app/assets/javascripts/application.js'
-%w(application.js inline_forms.js).each do |javascript|
-  copy_file File.join(GENERATOR_PATH, 'lib/generators/assets/javascripts' , javascript), File.join('app/assets/javascripts' , javascript)
-end
-
-
 say "- Add human_attribute_name in app/models/application_record.rb"
 remove_file 'app/models/application_record.rb' # the one that 'rails new' created
 copy_file File.join(GENERATOR_PATH, 'lib/generators/templates/application_record.rb'), "app/models/application_record.rb"
