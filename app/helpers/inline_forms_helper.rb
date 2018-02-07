@@ -99,7 +99,7 @@ module InlineFormsHelper
                    :class => html_class,
                    :title => t('inline_forms.view.list_versions')
           )
-    if current_user.role? :superadmin
+    if can? :list_versions, object.class.name.pluralize.underscore.to_sym
       raw out
     end
   end
