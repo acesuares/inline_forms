@@ -206,6 +206,10 @@ module InlineFormsHelper
     values
   end
 
+  def version_done_by id
+    user = User.find_by_id id
+    user.nil? ? 'Unknown' : user.name
+  end
 
 end
 
