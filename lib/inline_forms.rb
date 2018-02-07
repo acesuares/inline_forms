@@ -138,14 +138,6 @@ module InlineForms
   # Declare as a Rails::Engine, see http://www.ruby-forum.com/topic/211017#927932
   class Engine < Rails::Engine
 
-    initializer :append_migrations do |app|
-      unless app.root.to_s.match(root.to_s)
-        config.paths["db/migrate"].expanded.each do |path|
-          app.config.paths["db/migrate"] << path
-        end
-      end
-    end
-
     initializer "inline_forms.assets.precompile" do |app|
       app.config.assets.precompile += %w( inline_forms/inline_forms.scss
         inline_forms/devise.css
