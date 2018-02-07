@@ -115,7 +115,7 @@
         <% end %>
       <% end %>
     <% end %>
-    <% if current_user.role? :superadmin %>
+    <% if can? :list_versions, @object.class.name.pluralize.underscore.to_sym  %>
       <% css_class_id = "#{@object.class.name.underscore}_#{@object.id}_versions" -%>
       <div id="<%= css_class_id -%>">
         <%= render 'versions' %>
