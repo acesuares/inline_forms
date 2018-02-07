@@ -173,7 +173,6 @@ module InlineForms
           resources :#{resource_name} do
             post 'revert', :on => :member
             get 'list_versions', :on => :member
-            get 'close_versions_list', :on => :member
           end
         ROUTE
       end
