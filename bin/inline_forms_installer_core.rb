@@ -6,7 +6,7 @@ add_source 'https://rubygems.org'
 
 gem 'cancancan', '~> 2.0'
 gem 'carrierwave'
-gem 'ckeditor'
+gem 'ckeditor', github: 'galetahub/ckeditor'
 gem 'coffee-rails'
 gem 'compass-rails'
 gem 'devise'
@@ -26,7 +26,7 @@ gem 'rake'
 gem 'remotipart', '~> 1.0'
 gem 'rvm'
 gem 'sass-rails'
-gem 'tabs_on_rails', git: 'https://github.com/acesuares/tabs_on_rails.git', :branch => 'update_remote'
+gem 'tabs_on_rails'
 gem 'therubyracer'
 gem 'uglifier'
 gem 'figaro'
@@ -106,7 +106,7 @@ create_file "db/migrate/" +
   Time.now.utc.strftime("%Y%m%d%H%M%S") +
   "_" +
   "devise_create_users.rb", <<-DEVISE_MIGRATION.strip_heredoc
-class DeviseCreateUsers < ActiveRecord::Migration
+class DeviseCreateUsers < ActiveRecord::Migration[5.0]
 
   def change
     create_table(:users) do |t|
@@ -254,7 +254,7 @@ create_file "db/migrate/" +
   Time.now.utc.strftime("%Y%m%d%H%M%S") +
   "_" +
   "inline_forms_create_join_table_user_role.rb", <<-ROLES_MIGRATION.strip_heredoc
-  class InlineFormsCreateJoinTableUserRole < ActiveRecord::Migration
+  class InlineFormsCreateJoinTableUserRole < ActiveRecord::Migration[5.0]
     def self.up
       create_table  :roles_users, :id => false, :force => true do |t|
         t.integer   :role_id
@@ -308,7 +308,7 @@ create_file "db/migrate/" +
   Time.now.utc.strftime("%Y%m%d%H%M%S") +
   "_" +
   "inline_forms_create_view_for_translations.rb", <<-VIEW_MIGRATION.strip_heredoc
-  class InlineFormsCreateViewForTranslations < ActiveRecord::Migration
+  class InlineFormsCreateViewForTranslations < ActiveRecord::Migration[5.0]
     def self.up
       execute 'CREATE VIEW translations
                AS
