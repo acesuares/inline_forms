@@ -107,9 +107,10 @@ module InlineFormsHelper
   # close versions list link
   def close_versions_list_link(object, update_span, html_class = 'button close_button' )
     link_to "<i class='fi-x'></i>".html_safe,
-      send('close_versions_list_' + @object.class.to_s.underscore + "_path",
+      send('list_versions_' + @object.class.to_s.underscore + "_path",
           object,
-          :update => update_span
+          :update => update_span,
+          :close => true
       ),
       :remote => true,
       :class => html_class,
