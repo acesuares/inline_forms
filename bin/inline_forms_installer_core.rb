@@ -292,10 +292,7 @@ say "- Set languages for ckeditor to ['en', 'nl'] in config/initializers/ckedito
 insert_into_file "config/initializers/ckeditor.rb", "  config.assets_languages = ['en', 'nl']\n", :after => "config.assets_languages = ['en', 'uk']\n"
 
 say "- Paper_trail install..."
-generate "paper_trail:install" # TODO One day, we need some management tools so we can actually SEE the versions, restore them etc.
-
-say "- Import migrations from engines"
-run "bundle exec rails railties:install:migrations" # This is needed to add changeset field to the paper_trail versions table
+generate "paper_trail:install --with-changes"
 
 # Create Translations
 say "- Generate models and tables and views for translations..." # TODO Translations need to be done in inline_forms, and then generate a yml file, perhaps
