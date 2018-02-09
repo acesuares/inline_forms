@@ -12,7 +12,11 @@ def audio_field_show(object, attribute)
     end
   end
   link_to_edit = link_to_inline_edit object, attribute, msg
-  "#{audio_html} #{link_to_edit}".html_safe
+  if cancan_disabled? || ( can? :update, object, attribute )
+    "#{audio_html} #{link_to_edit}".html_safe
+  else
+    audio_html.html_safe
+  end
 end
 
 def audio_field_edit(object, attribute)
