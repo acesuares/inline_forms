@@ -7,7 +7,7 @@ add_source 'https://rubygems.org'
 gem 'cancancan', '~> 2.0'
 gem 'carrierwave'
 gem 'ckeditor', git: 'https://github.com/galetahub/ckeditor'
-gem 'bootsnap'
+gem 'bootsnap', require: false
 gem 'coffee-rails'
 gem 'compass-rails'
 gem 'devise'
