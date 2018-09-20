@@ -12,7 +12,8 @@ $(function(){ $(document).foundation(); });
     $.datepicker.setDefaults({
       changeMonth : true,
       changeYear : true,
-      yearRange: '-100:+100'
+      yearRange: '-100:+100',
+      dateFormat: 'dd-mm-yy'
     });
   });
 
