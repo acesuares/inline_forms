@@ -118,7 +118,7 @@ module InlineFormsHelper
   end
 
   # link_to_inline_edit
-  def link_to_inline_edit(object, attribute, attribute_value='')
+  def link_to_inline_edit(object, attribute, attribute_value='', form_element=nil)
     attribute_value = attribute_value.to_s
     spaces = attribute_value.length > 40 ? 0 : 40 - attribute_value.length
     value = h(attribute_value) + ("&nbsp;" * spaces).html_safe
@@ -128,7 +128,7 @@ module InlineFormsHelper
         send( 'edit_' + object.class.to_s.underscore + '_path',
         object,
         :attribute => attribute.to_s,
-        :form_element => calling_method.sub(/_[a-z]+$/,'').sub(/block in /,''),
+        :form_element => form_element.nil? ? calling_method.sub(/_[a-z]+$/,'').sub(/block in /,'') : form_element,
         :update => css_class_id ),
         :remote => true
     else
