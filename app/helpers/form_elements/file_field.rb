@@ -5,7 +5,7 @@ def file_field_show(object, attribute)
   o = object.send(attribute)
   msg = o.to_s
   if o.send(:present?)
-    msg = "<a href='#{o.send(:url)}'>#{o.send(:path).gsub(/^.*\//,'')}</a>".html_safe
+    msg = "replace | <a href='#{o.send(:url)}'>#{o.send(:path).gsub(/^.*\//,'')}</a>".html_safe
   end
   link_to_inline_edit object, attribute, msg
 end
