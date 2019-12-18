@@ -9,7 +9,7 @@ gem 'carrierwave'
 gem 'ckeditor', git: 'https://github.com/galetahub/ckeditor'
 #gem 'bootsnap', require: false
 gem 'coffee-rails'
-gem 'compass-rails'
+#gem 'compass-rails'
 gem 'devise'
 gem 'foundation-icons-sass-rails'
 gem 'foundation-rails', '~> 5.5'
@@ -85,6 +85,9 @@ append_file "config/database.yml", <<-END_DATABASEYML.strip_heredoc
     username: <%= ENV["DATABASE_USER"] %>
     password: <%= ENV["DATABASE_PASSWORD"] %>
 END_DATABASEYML
+
+say "- Add rails 5.2 defaults to application.rb..."
+gsub_file "config/application.rb", /6\.0/, '5.2'
 
 say "- Devise install..."
 run "bundle exec rails g devise:install"
@@ -238,9 +241,6 @@ create_file "app/models/user.rb", <<-USER_MODEL.strip_heredoc
   end
 USER_MODEL
 
-say "- Adding admin user with email: #{ENV['email']}, password: #{ENV['password']} to seeds.rb"
-append_to_file "db/seeds.rb", "User.create({ id: 1, email: '#{ENV['email']}', locale_id: 1, name: 'Admin', password: '#{ENV['password']}', password_confirmation: '#{ENV['password']}' })\n"
-
 # Create Locales
 say "- Create locales"
 generate "inline_forms", "Locale name:string title:string users:has_many _enabled:yes _presentation:\#{title}"
@@ -249,6 +249,14 @@ append_to_file "db/seeds.rb", "Locale.create({ id: 1, name: 'en', title: 'Englis
 # Create Roles
 say "- Create roles"
 generate "inline_forms", "Role name:string description:text users:has_and_belongs_to_many _enabled:yes _presentation:\#{name}"
+append_to_file "db/seeds.rb", "Role.create({ id: 1, name: 'superadmin', description: 'Super Admin can access all.' })\n"
+
+# Create Admin User
+
+say "- Adding admin user with email: #{ENV['email']}, password: #{ENV['password']} to seeds.rb"
+append_to_file "db/seeds.rb", "User.create({ id: 1, email: '#{ENV['email']}', locale_id: 1, name: 'Admin', password: '#{ENV['password']}', password_confirmation: '#{ENV['password']}' })\n"
+
+
 sleep 1 # to get unique migration number
 create_file "db/migrate/" +
   Time.now.utc.strftime("%Y%m%d%H%M%S") +
@@ -269,10 +277,9 @@ create_file "db/migrate/" +
   end
 ROLES_MIGRATION
 
-append_to_file "db/seeds.rb", "Role.create({ id: 1, name: 'superadmin', description: 'Super Admin can access all.' })\n"
 
 say "- Installaing ZURB Foundation..."
-generate "foundation:install", "-f"
+#generate "foundation:install", "-f"
 
 say "- Copy inline_forms_devise file for custom styles..."
 copy_file File.join(GENERATOR_PATH, 'lib/generators/assets/stylesheets/inline_forms_devise.css'), 'app/assets/stylesheets/inline_forms_devise.css'
