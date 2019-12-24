@@ -602,7 +602,7 @@ if ENV['install_example'] == 'true'
   run 'bundle exec rails s'
 else
   # run tests
-  run "rspec" if ENV['runtest']
+  #run "rspec" if ENV['runtest']
   say "- Don't forget: add your secret key base in config/application.yml \n"
 end
 # done!
