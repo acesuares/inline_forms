@@ -592,7 +592,7 @@ if ENV['install_example'] == 'true'
     end
   END_EXAMPLE_TEST
 
-  run "rspec" if ENV['runtest']
+  #run "rspec" if ENV['runtest']
   remove_file 'public/index.html'
   route "root :to => 'apartments#index'"
 
