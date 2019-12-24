@@ -295,8 +295,8 @@ say "- Add ckeditor autoload_paths to application.rb..."
 application "config.autoload_paths += %W(\#{config.root}/app/models/ckeditor)"
 
 # see https://github.com/galetahub/ckeditor/issues/579
-say "- Set languages for ckeditor to ['en', 'nl'] in config/initializers/ckeditor.rb..."
-insert_into_file "config/initializers/ckeditor.rb", "  config.assets_languages = ['en', 'nl']\n", :after => "config.assets_languages = ['en', 'uk']\n"
+#say "- Set languages for ckeditor to ['en', 'nl'] in config/initializers/ckeditor.rb..."
+#insert_into_file "config/initializers/ckeditor.rb", "  config.assets_languages = ['en', 'nl']\n", :after => "config.assets_languages = ['en', 'uk']\n"
 
 say "- Paper_trail install..."
 generate "paper_trail:install --with-changes"
