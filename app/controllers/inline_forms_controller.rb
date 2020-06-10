@@ -186,12 +186,23 @@ class InlineFormsController < ApplicationController
     @object = referenced_object
     if current_user.role? :superadmin
       if (@object.soft_deletable? rescue false)
-        @object.soft_delete(current_user)
-        respond_to do |format|
-          format.html { } unless @Klass.not_accessible_through_html?
-          format.js { render :close }
+        if @object.deleted?
+          # destroy the object if it was already soft deleted
+          @object.destroy
+          respond_to do |format|
+            format.html { } unless @Klass.not_accessible_through_html?
+            format.js { render :show_undo }
+          end
+        else
+          # soft delete the object
+          @object.soft_delete(current_user)
+          respond_to do |format|
+            format.html { } unless @Klass.not_accessible_through_html?
+            format.js { render :close }
+          end
         end
       elsif
+        # destroy it cuz it wasn't soft deletable
         @object.destroy
         respond_to do |format|
           format.html { } unless @Klass.not_accessible_through_html?
@@ -211,10 +222,11 @@ class InlineFormsController < ApplicationController
   # Thanks Ryan Bates: http://railscasts.com/episodes/255-undo-with-paper-trail
   def revert
     @update_span = params[:update]
+    @object = referenced_object
     if current_user.role? :superadmin
-      if (@object.soft_deletable? rescue false)
-        @object = referenced_object
+      if (@object.soft_deletable? rescue false) && @object.deleted?
         @object.soft_restore
+        authorize!(:soft_restore, @object) if cancan_enabled?
         respond_to do |format|
           format.html { } unless @Klass.not_accessible_through_html?
           format.js { render :close }

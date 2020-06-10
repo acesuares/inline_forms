@@ -32,27 +32,19 @@ module InlineFormsHelper
 
   # destroy link
   def link_to_destroy( object, update_span )
-    if current_user.role? :superadmin
-      if cancan_disabled? || ( can? :delete, object )
-        link_to "<i class='fi-trash'></i>".html_safe,
-          send( object.class.to_s.underscore + '_path',
-          object,
-          :update => update_span ),
-          :method => :delete,
-          :remote => true,
-          :title => t('inline_forms.view.trash')
-      end
-    elsif (object.class.safe_deletable? rescue false)
+    soft=''
+    hard=''
+    if (object.soft_deletable? rescue false)
       if object.deleted?     && (cancan_disabled? || ( can? :revert, object ))
-        link_to "undelete".html_safe,
+        soft = link_to "<i class='fi-refresh'></i>".html_safe,
           send( 'revert_' + object.class.to_s.underscore + '_path',
           object,
           :update => update_span ),
           :method => :post,
           :remote => true,
-          :title => t('inline_forms.view.trash')
+          :title => t('inline_forms.view.undelete')
       elsif !object.deleted? && (cancan_disabled? || ( can? :delete, object ))
-        link_to "<i class='fi-trash'></i>".html_safe,
+        soft = link_to "<i class='fi-trash'></i>".html_safe,
           send( object.class.to_s.underscore + '_path',
           object,
           :update => update_span ),
@@ -61,6 +53,18 @@ module InlineFormsHelper
           :title => t('inline_forms.view.trash')
       end
     end
+    if current_user.role? :superadmin
+      if cancan_disabled? || ( can? :delete, object )
+        hard = link_to "&nbsp;&nbsp;<font color='FF0000'><i class='fi-x'></i></font>".html_safe,
+          send( object.class.to_s.underscore + '_path',
+          object,
+          :update => update_span ),
+          :method => :delete,
+          :remote => true,
+          :title => t('inline_forms.view.trash')
+      end
+    end
+    (soft + hard).html_safe
   end
 
   # new link
