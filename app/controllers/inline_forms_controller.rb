@@ -185,13 +185,21 @@ class InlineFormsController < ApplicationController
     @update_span = params[:update]
     @object = referenced_object
     if current_user.role? :superadmin
-      @object.destroy
-      respond_to do |format|
-        format.html { } unless @Klass.not_accessible_through_html?
-        format.js { render :show_undo }
+      if (@Klass.soft_deletable? rescue false)
+        @object.soft_delete(current_user)
+        respond_to do |format|
+          format.html { } unless @Klass.not_accessible_through_html?
+          format.js { render :close }
+        end
+      elsif
+        @object.destroy
+        respond_to do |format|
+          format.html { } unless @Klass.not_accessible_through_html?
+          format.js { render :show_undo }
+        end
       end
-    elsif (@Klass.safe_deletable? rescue false)
-      @object.safe_delete(current_user)
+    elsif (@Klass.soft_deletable? rescue false)
+      @object.soft_delete(current_user)
       respond_to do |format|
         format.html { } unless @Klass.not_accessible_through_html?
         format.js { render :close }
@@ -204,17 +212,26 @@ class InlineFormsController < ApplicationController
   def revert
     @update_span = params[:update]
     if current_user.role? :superadmin
-      @version = PaperTrail::Version.find(params[:id])
-      @version.reify.save!
-      @object = @Klass.find(@version.item_id)
-      authorize!(:revert, @object) if cancan_enabled?
-      respond_to do |format|
-        format.html { } unless @Klass.not_accessible_through_html?
-        format.js { render :close }
+      if (@Klass.soft_deletable? rescue false)
+        @object = referenced_object
+        @object.soft_restore
+        respond_to do |format|
+          format.html { } unless @Klass.not_accessible_through_html?
+          format.js { render :close }
+        end
+      elsif
+        @version = PaperTrail::Version.find(params[:id])
+        @version.reify.save!
+        @object = @Klass.find(@version.item_id)
+        authorize!(:revert, @object) if cancan_enabled?
+        respond_to do |format|
+          format.html { } unless @Klass.not_accessible_through_html?
+          format.js { render :close }
+        end
       end
-    elsif (@Klass.safe_deletable? rescue false)
+    elsif (@Klass.soft_deletable? rescue false)
       @object = referenced_object
-      @object.safe_restore
+      @object.soft_restore
       respond_to do |format|
         format.html { } unless @Klass.not_accessible_through_html?
         format.js { render :close }
