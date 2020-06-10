@@ -2,7 +2,7 @@ module SoftDeletable
   extend ActiveSupport::Concern
 
 # you need to put this in the model:
-#  include SoftDeletable
+#  include InlineForms::SoftDeletable
 #  enum deleted: { active: 1, deleted: 2 }
 
 # you need a migration like this:
