@@ -185,7 +185,7 @@ class InlineFormsController < ApplicationController
     @update_span = params[:update]
     @object = referenced_object
     if current_user.role? :superadmin
-      if (@Klass.soft_deletable? rescue false)
+      if (@object.soft_deletable? rescue false)
         @object.soft_delete(current_user)
         respond_to do |format|
           format.html { } unless @Klass.not_accessible_through_html?
@@ -198,7 +198,7 @@ class InlineFormsController < ApplicationController
           format.js { render :show_undo }
         end
       end
-    elsif (@Klass.soft_deletable? rescue false)
+    elsif (@object.soft_deletable? rescue false)
       @object.soft_delete(current_user)
       respond_to do |format|
         format.html { } unless @Klass.not_accessible_through_html?
@@ -212,7 +212,7 @@ class InlineFormsController < ApplicationController
   def revert
     @update_span = params[:update]
     if current_user.role? :superadmin
-      if (@Klass.soft_deletable? rescue false)
+      if (@object.soft_deletable? rescue false)
         @object = referenced_object
         @object.soft_restore
         respond_to do |format|
@@ -229,7 +229,7 @@ class InlineFormsController < ApplicationController
           format.js { render :close }
         end
       end
-    elsif (@Klass.soft_deletable? rescue false)
+    elsif (@object.soft_deletable? rescue false)
       @object = referenced_object
       @object.soft_restore
       respond_to do |format|

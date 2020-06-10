@@ -14,21 +14,21 @@ module InlineForms::SoftDeletable
 #   end
 # end
 
-  def self.soft_deletable?
+  def soft_deletable?
     true
   end
 
   def soft_delete(current_user)
-    deleted = 2
-    deleter = current_user
-    deleted_at = Time.current
+    self.deleted = 2
+    self.deleter = current_user
+    self.deleted_at = Time.current
     save
   end
 
   def soft_restore
-    deleted = 1
-    deleted_by = nil
-    deleted_at = nil
+    self.deleted = 1
+    self.deleted_by = nil
+    self.deleted_at = nil
     save
   end
 
