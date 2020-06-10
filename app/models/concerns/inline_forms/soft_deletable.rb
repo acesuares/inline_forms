@@ -1,4 +1,4 @@
-module SoftDeletable
+module InlineForms::SoftDeletable
   extend ActiveSupport::Concern
 
 # you need to put this in the model:
