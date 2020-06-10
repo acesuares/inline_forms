@@ -14,7 +14,7 @@ module InlineForms::SoftDeletable
 #   end
 # end
 
-  def soft_deletable?
+  def self.soft_deletable?
     true
   end
 
