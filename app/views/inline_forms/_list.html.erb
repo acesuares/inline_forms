@@ -53,8 +53,9 @@
     <% path_to_object = attribute.to_s.singularize.underscore + "_path" %>
   <% end %>
   <div class="row <%= cycle('odd', 'even') %><%= " top-level" if parent_class.nil? %>" id="<%= css_class_id -%>">
-    <% if cancan_disabled? || ( can? :delete, object ) %>
+    <% if cancan_disabled? || ( can? :soft_delete, object ) %>
       <div  class="small-1 column">
+        <%= link_to_soft_delete(object, css_class_id) -%>
         <%= link_to_destroy(object, css_class_id) -%>
       </div>
       <div  class="small-11 column">

@@ -1,5 +1,6 @@
-<% if cancan_disabled? || ( can? :delete, @object ) %>
+<% if cancan_disabled? || ( can? :soft_delete, @object ) %>
   <div  class="small-1 column">
+    <%= link_to_soft_delete(@object, @update_span) -%>
     <%= link_to_destroy(@object, @update_span) -%>
   </div>
   <div  class="small-11 column">

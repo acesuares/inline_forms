@@ -180,40 +180,41 @@ class InlineFormsController < ApplicationController
     end
   end
 
-  # :destroy destroys the record, but also shows an undo link (with paper_trail)
+  # :soft_delete
+  def soft_delete
+    @update_span = params[:update]
+    @object = referenced_object
+    # destroy the object
+    @object.soft_delete(current_user)
+    respond_to do |format|
+      format.html { } unless @Klass.not_accessible_through_html?
+      format.js { render :close }
+    end
+  end
+
+  # :soft_restore
+  def soft_restore
+    @update_span = params[:update]
+    @object = referenced_object
+    # restore the object
+    @object.soft_restore
+    respond_to do |format|
+      format.html { } unless @Klass.not_accessible_through_html?
+      format.js { render :close }
+    end
+  end
+
+  # :destroy destroys the record. There is no undo!
   def destroy
     @update_span = params[:update]
     @object = referenced_object
     if current_user.role? :superadmin
-      if (@object.soft_deletable? rescue false)
-        if @object.deleted?
-          # destroy the object if it was already soft deleted
-          @object.destroy
-          respond_to do |format|
-            format.html { } unless @Klass.not_accessible_through_html?
-            format.js { render :show_undo }
-          end
-        else
-          # soft delete the object
-          @object.soft_delete(current_user)
-          respond_to do |format|
-            format.html { } unless @Klass.not_accessible_through_html?
-            format.js { render :close }
-          end
-        end
-      elsif
-        # destroy it cuz it wasn't soft deletable
-        @object.destroy
-        respond_to do |format|
-          format.html { } unless @Klass.not_accessible_through_html?
-          format.js { render :show_undo }
-        end
-      end
-    elsif (@object.soft_deletable? rescue false)
-      @object.soft_delete(current_user)
+      # destroy the object
+      @undo_object = @object.versions.last
+      @object.destroy
       respond_to do |format|
         format.html { } unless @Klass.not_accessible_through_html?
-        format.js { render :close }
+        format.js { render :record_destroyed }
       end
     end
   end
@@ -224,26 +225,10 @@ class InlineFormsController < ApplicationController
     @update_span = params[:update]
     @object = referenced_object
     if current_user.role? :superadmin
-      if (@object.soft_deletable? rescue false) && @object.deleted?
-        @object.soft_restore
-        authorize!(:soft_restore, @object) if cancan_enabled?
-        respond_to do |format|
-          format.html { } unless @Klass.not_accessible_through_html?
-          format.js { render :close }
-        end
-      elsif
-        @version = PaperTrail::Version.find(params[:id])
-        @version.reify.save!
-        @object = @Klass.find(@version.item_id)
-        authorize!(:revert, @object) if cancan_enabled?
-        respond_to do |format|
-          format.html { } unless @Klass.not_accessible_through_html?
-          format.js { render :close }
-        end
-      end
-    elsif (@object.soft_deletable? rescue false)
-      @object = referenced_object
-      @object.soft_restore
+      @version = PaperTrail::Version.find(params[:id])
+      @version.reify.save!
+      @object = @Klass.find(@version.item_id)
+      authorize!(:revert, @object) if cancan_enabled?
       respond_to do |format|
         format.html { } unless @Klass.not_accessible_through_html?
         format.js { render :close }
