@@ -83,7 +83,7 @@ module InlineFormsHelper
                    :title => t('inline_forms.view.add_new', :model => model.model_name.human )
           )
     if cancan_enabled?
-      if can? :create, model.to_s.pluralize.underscore.to_sym
+      if can? :create, model
         if parent_class.nil?
           raw out
         else
@@ -106,7 +106,7 @@ module InlineFormsHelper
                    :class => html_class,
                    :title => t('inline_forms.view.list_versions')
           )
-    if can? :list_versions, object.class.name.pluralize.underscore.to_sym
+    if can? :list_versions, object
       raw out
     end
   end

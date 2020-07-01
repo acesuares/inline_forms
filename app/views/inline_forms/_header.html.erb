@@ -22,7 +22,7 @@
               <% MODEL_TABS.each do |m| %>
                 <% model = m.singularize.camelcase.constantize rescue nil %>
                   <% unless model.nil? || model.not_accessible_through_html? %>
-                  <% if can? :update, m.to_sym %>
+                  <% if can? :update, model %>
                     <li>
                       <%= link_to model.model_name.human, '/' +  m %>
                     </li>

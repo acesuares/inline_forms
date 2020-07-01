@@ -95,7 +95,7 @@ class InlineFormsController < ApplicationController
     @update_span = params[:update]
     attributes = @inline_forms_attribute_list || @object.inline_forms_attribute_list
     attributes.each do | attribute, name, form_element |
-      send("#{form_element.to_s}_update", @object, attribute) unless form_element == :tree || form_element == :associated || (cancan_enabled? && cannot?(:read, @Klass.to_s.underscore.pluralize.to_sym, attribute))
+      send("#{form_element.to_s}_update", @object, attribute) unless form_element == :tree || form_element == :associated || (cancan_enabled? && cannot?(:read, @object, attribute))
     end
     @parent_class = params[:parent_class]
     @parent_id = params[:parent_id]
