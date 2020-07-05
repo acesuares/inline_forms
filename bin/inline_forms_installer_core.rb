@@ -10,6 +10,7 @@ gem 'ckeditor', git: 'https://github.com/galetahub/ckeditor'
 #gem 'bootsnap', require: false
 gem 'coffee-rails'
 #gem 'compass-rails'
+gem 'rails-jquery-autocomplete'
 gem 'devise'
 gem 'foundation-icons-sass-rails'
 gem 'foundation-rails', '~> 5.5'

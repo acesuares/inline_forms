@@ -4,6 +4,7 @@
 //= require jquery.timepicker.js
 //= require foundation
 //= require jquery.remotipart
+//= require autocomplete-rails
 
 $(function(){ $(document).foundation(); });
 // initialize datepickers
