@@ -45,10 +45,13 @@
         <%= version.event -%>
       </div>
       <div  class="small-2 column">
+        <%= version.created_at -%>
+      </div>
+      <div  class="small-2 column">
         <%= version_modified_by version.whodunnit -%>
       </div>
-      <div  class="small-8 column">
-        <% if version.changeset.empty? %>
+      <div  class="small-6 column">
+        <% if version.changeset.nil? || version.changeset.empty? %>
           <em>empty</em>
         <% else %>
           <% version.changeset.each do |attribute, value| %>
