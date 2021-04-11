@@ -27,7 +27,7 @@ gem 'mysql2'
 gem 'paper_trail'
 gem 'rails-i18n', :git => 'https://github.com/svenfuchs/rails-i18n.git'  # since https://github.com/svenfuchs/rails-i18n/pull/794 we don't have to maintain 'https://github.com/acesuares/rails-i18n.git' anymore!
 gem 'rails-jquery-autocomplete'
-gem 'rails', '~> 6.0.3'
+gem 'rails', '6.1.3.1'
 gem 'rake'
 gem 'remotipart', '~> 1.0'
 gem 'rvm'
