@@ -291,9 +291,9 @@ copy_file File.join(GENERATOR_PATH, 'lib/generators/templates/application_record
 say "- Install ckeditor..."
 generate "ckeditor:install --orm=active_record --backend=carrierwave"
 
-# precompile config.js
-say "- Precompile ckeditor config.js"
-append_file "config/initializers/assets.rb", "  Rails.application.config.assets.precompile += %w[ckeditor/config.js]\n"
+# # precompile config.js
+# say "- Precompile ckeditor config.js"
+# append_file "config/initializers/assets.rb", "  Rails.application.config.assets.precompile += %w[ckeditor/config.js]\n"
 
 say "- Paper_trail install..."
 generate "paper_trail:install --with-changes"
@@ -425,9 +425,9 @@ create_file "app/models/ability.rb", <<-END_ABILITY.strip_heredoc
   end
 END_ABILITY
 
-# precompile devise.css
-say "- Precompile devise.css"
-append_file "config/initializers/assets.rb", "  Rails.application.config.assets.precompile += %w( inline_forms_devise.css )\n"
+# # precompile devise.css
+# say "- Precompile devise.css"
+# append_file "config/initializers/assets.rb", "  Rails.application.config.assets.precompile += %w( inline_forms_devise.css )\n"
 
 # devise mailer stuff
 say "- Injecting devise mailer stuff in environments/production.rb..."
