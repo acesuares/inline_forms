@@ -90,13 +90,13 @@ append_file "config/database.yml", <<-END_DATABASEYML.strip_heredoc
 END_DATABASEYML
 
 say "Setting development database in credentials"
-development_database_credentials =
-"development:
-  database: test1
-  username: test1
-  password: ';asldkfaj;lsdkja ;lkj'
-  "
-run "EDITOR='echo #{development_database_credentials} >> ' rails credentials:edit"
+create_file "temp_development_database_credentials", <<-END_DEV_DB_CRED.strip_heredoc
+  development:
+    database: test1
+    username: test1
+    password: ';asldkfaj;lsdkja ;lkj'
+END_DEV_DB_CRED
+run "EDITOR='cat temp_development_database_credentials >> ' rails credentials:edit"
 
 say "- Devise install..."
 run "bundle exec rails g devise:install"
