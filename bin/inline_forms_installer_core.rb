@@ -301,7 +301,7 @@ say "- Install ckeditor..."
 generate "ckeditor:install --orm=active_record --backend=carrierwave"
 
 say "- Paper_trail install..."
-generate "paper_trail:install --with-changes"
+# generate "paper_trail:install --with-changes"
 
 # Create Translations
 say "- Generate models and tables and views for translations..." # TODO Translations need to be done in inline_forms, and then generate a yml file, perhaps
