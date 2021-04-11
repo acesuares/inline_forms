@@ -11,7 +11,7 @@ add_source 'https://rubygems.org'
 
 gem 'cancancan'
 gem 'carrierwave'
-gem 'ckeditor', '~> 4.3.0'
+gem 'ckeditor', github: 'galetahub/ckeditor'
 gem 'coffee-rails'
 gem 'devise-i18n', :git => 'https://github.com/acesuares/devise-i18n.git'
 gem 'devise'
@@ -291,12 +291,9 @@ copy_file File.join(GENERATOR_PATH, 'lib/generators/templates/application_record
 say "- Install ckeditor..."
 generate "ckeditor:install --orm=active_record --backend=carrierwave"
 
-say "- Add ckeditor autoload_paths to application.rb..."
-application "config.autoload_paths += %W(\#{config.root}/app/models/ckeditor)"
-
-# see https://github.com/galetahub/ckeditor/issues/579
-#say "- Set languages for ckeditor to ['en', 'nl'] in config/initializers/ckeditor.rb..."
-#insert_into_file "config/initializers/ckeditor.rb", "  config.assets_languages = ['en', 'nl']\n", :after => "config.assets_languages = ['en', 'uk']\n"
+# precompile config.js
+say "- Precompile ckeditor config.js"
+append_file "config/initializers/assets.rb", "  Rails.application.config.assets.precompile += %w[ckeditor/config.js]\n"
 
 say "- Paper_trail install..."
 generate "paper_trail:install --with-changes"
