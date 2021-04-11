@@ -139,7 +139,8 @@ module InlineForms
   class Engine < Rails::Engine
 
     initializer "inline_forms.assets.precompile" do |app|
-      app.config.assets.precompile += %w( inline_forms/inline_forms.scss
+      app.config.assets.precompile += %w(
+        inline_forms/inline_forms.css
         inline_forms/devise.css
         inline_forms/inline_forms.js
         inline_forms/ckeditor/config.js

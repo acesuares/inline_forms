@@ -291,10 +291,6 @@ copy_file File.join(GENERATOR_PATH, 'lib/generators/templates/application_record
 say "- Install ckeditor..."
 generate "ckeditor:install --orm=active_record --backend=carrierwave"
 
-# # precompile config.js
-# say "- Precompile ckeditor config.js"
-# append_file "config/initializers/assets.rb", "  Rails.application.config.assets.precompile += %w[ckeditor/config.js]\n"
-
 say "- Paper_trail install..."
 generate "paper_trail:install --with-changes"
 
@@ -357,6 +353,13 @@ create_file "app/helpers/application_helper.rb", <<-END_APPHELPER.strip_heredoc
   end
 END_APPHELPER
 
+say "- Creating inline_forms initializer"
+create_file "config/initializers/inline_forms.rb", <<-END_INITIALIZER.strip_heredoc
+  Rails.application.reloader.to_prepare do
+    MODEL_TABS = %w()
+  end
+END_INITIALIZER
+
 say "- Recreating ApplicationController to add devise, cancan, I18n stuff..."
 remove_file "app/controllers/application_controller.rb" # the one that 'rails new' created
 create_file "app/controllers/application_controller.rb", <<-END_APPCONTROLLER.strip_heredoc
@@ -378,8 +381,6 @@ create_file "app/controllers/application_controller.rb", <<-END_APPCONTROLLER.st
       end
     end
     # Comment previous lines if you don't want Devise authentication
-
-    #ActionView::CompiledTemplates::MODEL_TABS = %w()
 
     # Uncomment next line if you want I18n (based on subdomain)
     # before_action :set_locale
@@ -424,10 +425,6 @@ create_file "app/models/ability.rb", <<-END_ABILITY.strip_heredoc
     end
   end
 END_ABILITY
-
-# # precompile devise.css
-# say "- Precompile devise.css"
-# append_file "config/initializers/assets.rb", "  Rails.application.config.assets.precompile += %w( inline_forms_devise.css )\n"
 
 # devise mailer stuff
 say "- Injecting devise mailer stuff in environments/production.rb..."
