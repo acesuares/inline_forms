@@ -15,7 +15,6 @@ gem 'ckeditor', github: 'galetahub/ckeditor'
 gem 'coffee-rails'
 gem 'devise-i18n', :git => 'https://github.com/acesuares/devise-i18n.git'
 gem 'devise'
-gem 'figaro'
 gem 'foundation-icons-sass-rails'
 gem 'foundation-rails', '~> 5.5'
 gem 'i18n-active_record', :git => 'https://github.com/acesuares/i18n-active_record.git'
@@ -374,7 +373,7 @@ create_file "app/controllers/application_controller.rb", <<-END_APPCONTROLLER.st
       redirect_to root_path, alert: exception.message
     end
 
-    ActionView::CompiledTemplates::MODEL_TABS = %w()
+    #ActionView::CompiledTemplates::MODEL_TABS = %w()
 
     # Uncomment next line if you want I18n (based on subdomain)
     # before_action :set_locale
@@ -470,36 +469,14 @@ copy_file File.join(GENERATOR_PATH,'lib/generators/templates/capistrano/Capfile'
 say "- Unicorn Config..."
 copy_file File.join(GENERATOR_PATH,'lib/generators/templates/unicorn/production.rb'), "config/unicorn/production.rb"
 
-
 # Git
 say "- Initializing git..."
 run 'git init'
 
-insert_into_file ".gitignore", <<-GITIGNORE.strip_heredoc, :after => "/tmp\n"
-  # remotipart uploads
-  public/uploads
-  # Figaro secrets
-  config/application.yml
-GITIGNORE
-
-say "- Installing Figaro..."
-run 'bundle exec figaro install'
-remove_file "config/application.yml"
-copy_file File.join(GENERATOR_PATH,'lib/generators/templates/application.yml.blank'), "config/application.yml"
-copy_file File.join(GENERATOR_PATH,'lib/generators/templates/application.yml.blank'), "config/application.yml.blank"
-
-say "- Installing config/secrets.yml..."
-remove_file "config/secrets.yml"
-create_file "config/secrets.yml", <<-END_SECRETS_YML.strip_heredoc
-  development:
-    secret_key_base: #{SecureRandom.hex(64)}
-
-  test:
-    secret_key_base: <%= ENV["SECRET_KEY_BASE"] %>
-
-  production:
-    secret_key_base: <%= ENV["SECRET_KEY_BASE"] %>
-END_SECRETS_YML
+# insert_into_file ".gitignore", <<-GITIGNORE.strip_heredoc, :after => "/tmp\n"
+#   # remotipart uploads
+#   public/uploads
+# GITIGNORE
 
 run 'git add .'
 run 'git commit -a -m " * Initial"'
