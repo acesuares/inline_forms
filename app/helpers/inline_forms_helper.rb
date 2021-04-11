@@ -97,17 +97,19 @@ module InlineFormsHelper
 
   # link to versions list
   def link_to_versions_list(path_to_versions_list, object, update_span, html_class = 'button new_button')
-    out = (link_to "<i class='fi-list'></i>".html_safe,
-                   send(path_to_versions_list,
-                        object,
-                        :update => update_span,
-                       ),
-                   :remote => true,
-                   :class => html_class,
-                   :title => t('inline_forms.view.list_versions')
-          )
     if can? :list_versions, object
-      raw out
+      if defined?(PaperTrail) && object.respond_to?(:versions)
+        out = (link_to "<i class='fi-list'></i>".html_safe,
+                       send(path_to_versions_list,
+                            object,
+                            :update => update_span,
+                           ),
+                       :remote => true,
+                       :class => html_class,
+                       :title => t('inline_forms.view.list_versions')
+              )
+        raw out
+      end
     end
   end
 

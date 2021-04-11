@@ -1,58 +1,60 @@
 GENERATOR_PATH = File.dirname(File.expand_path(__FILE__)) +  '/../'
 
-create_file 'Gemfile', "# created by inline_forms #{ENV['inline_forms_version']} on {Date.today}\n"
+create_file 'Gemfile', "# created by inline_forms #{ENV['inline_forms_version']} on #{Date.today}\n"
 
 add_source 'https://rubygems.org'
 
-gem 'cancancan', '~> 2.0'
-gem 'carrierwave'
-gem 'ckeditor', git: 'https://github.com/galetahub/ckeditor'
+# Turbolinks makes navigating your web application faster. Read more: https://github.com/turbolinks/turbolinks
 #gem 'bootsnap', require: false
-gem 'coffee-rails'
 #gem 'compass-rails'
-gem 'rails-jquery-autocomplete'
+# gem 'modernizr-rails'
+
+gem 'cancancan'
+gem 'carrierwave'
+gem 'ckeditor', '~> 4.3.0'
+gem 'coffee-rails'
+gem 'devise-i18n', :git => 'https://github.com/acesuares/devise-i18n.git'
 gem 'devise'
 gem 'foundation-icons-sass-rails'
 gem 'foundation-rails', '~> 5.5'
-gem 'i18n-active_record', git: 'https://github.com/acesuares/i18n-active_record.git'
-gem 'inline_forms', '>=5'
+gem 'i18n-active_record', :git => 'https://github.com/acesuares/i18n-active_record.git'
+gem 'inline_forms', '~> 6.0'
 gem 'jquery-rails'
 gem 'jquery-timepicker-rails'
 gem 'jquery-ui-sass-rails'
 gem 'mini_magick'
 gem 'mysql2'
 gem 'paper_trail'
-gem 'rails-i18n'
-gem 'rails', '~> 5.2.1'
+gem 'rails-i18n', :git => 'https://github.com/svenfuchs/rails-i18n.git'  # since https://github.com/svenfuchs/rails-i18n/pull/794 we don't have to maintain 'https://github.com/acesuares/rails-i18n.git' anymore!
+gem 'rails-jquery-autocomplete'
+gem 'rails', '~> 6.0.3'
 gem 'rake'
 gem 'remotipart', '~> 1.0'
 gem 'rvm'
 gem 'sass-rails'
-gem 'tabs_on_rails'
-gem 'therubyracer'
-gem 'uglifier'
-gem 'figaro'
+gem 'tabs_on_rails', :git => 'https://github.com/acesuares/tabs_on_rails.git', :branch => 'update_remote_before_action'
 gem 'unicorn'
 gem 'validation_hints'
 gem 'will_paginate' #, git: 'https://github.com/acesuares/will_paginate.git'
-# Turbolinks makes navigating your web application faster. Read more: https://github.com/turbolinks/turbolinks
-gem 'turbolinks', '~> 5'
 
 gem_group :development do
-  gem 'bundler'
+  gem 'capistrano-bundler', require: false
+  gem 'capistrano-rails', require: false
+  gem 'capistrano', require: false
+  gem 'capistrano3-unicorn'
   gem 'listen'
-  gem 'rspec-rails'
-  gem 'rspec'
-  gem 'seed_dump', git: 'https://github.com/acesuares/seed_dump.git'
-  gem 'shoulda'
+  gem 'rvm-capistrano', :require => false
+  gem 'rvm1-capistrano3', require: false
+  gem 'seed_dump', '~> 0.5.3'
   gem 'sqlite3'
   gem 'switch_user'
+  gem 'thin'
   gem 'yaml_db'
-  gem 'capistrano', '~> 3.6', require: false
-  gem 'capistrano-rails', '~> 1.3', require: false
-  gem 'capistrano-bundler', '~> 1.3', require: false
-  gem 'rvm1-capistrano3', require: false
-  gem "capistrano3-unicorn"
+end
+
+gem_group :production do
+  gem 'mini_racer'
+  gem 'uglifier'
 end
 
 say "- Running bundle..."

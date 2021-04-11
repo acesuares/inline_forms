@@ -26,9 +26,4 @@ Gem::Specification.new do |s|
   s.add_dependency('rails', '>= 6.0')
   s.add_dependency('rails-i18n')
 
-  s.add_development_dependency(%q<rspec-rails>)
-  s.add_development_dependency(%q<shoulda>)
-  s.add_development_dependency(%q<bundler>)
-  s.add_development_dependency(%q<jeweler>)
-
 end
