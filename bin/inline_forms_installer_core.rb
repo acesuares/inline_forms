@@ -89,6 +89,15 @@ append_file "config/database.yml", <<-END_DATABASEYML.strip_heredoc
     password: <%= ENV["DATABASE_PASSWORD"] %>
 END_DATABASEYML
 
+say "Setting development database in credentials"
+development_database_credentials =
+"development:
+  database: test1
+  username: test1
+  password: ';asldkfaj;lsdkja ;lkj'
+  "
+run "EDITOR='echo #{development_database_credentials} >> ' rails credentials:edit"
+
 say "- Devise install..."
 run "bundle exec rails g devise:install"
 
