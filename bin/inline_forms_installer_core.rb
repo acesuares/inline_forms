@@ -358,44 +358,50 @@ create_file "app/helpers/application_helper.rb", <<-END_APPHELPER.strip_heredoc
 END_APPHELPER
 
 say "- Recreating ApplicationController to add devise, cancan, I18n stuff..."
-# remove_file "app/controllers/application_controller.rb" # the one that 'rails new' created
-# create_file "app/controllers/application_controller.rb", <<-END_APPCONTROLLER.strip_heredoc
-#   class ApplicationController < InlineFormsApplicationController
-#     protect_from_forgery
-#
-#     # Comment next line if you don't want Devise authentication
-#     before_action :authenticate_user!
-#
-#     # Comment next 6 lines if you do not want CanCan authorization
-#     check_authorization unless: :devise_controller?
-#
-#     rescue_from CanCan::AccessDenied do |exception|
-#       redirect_to root_path, alert: exception.message
-#     end
-#
-#     #ActionView::CompiledTemplates::MODEL_TABS = %w()
-#
-#     # Uncomment next line if you want I18n (based on subdomain)
-#     # before_action :set_locale
-#
-#     # Uncomment next line and specify default locale
-#     # I18n.default_locale = :en
-#
-#     # Uncomment next line and specify available locales
-#     # I18n.available_locales = [ :en, :nl, :pp ]
-#
-#     # Uncomment next nine line if you want locale based on subdomain, like 'it.example.com, de.example.com'
-#     # def set_locale
-#     #   I18n.locale = extract_locale_from_subdomain || I18n.default_locale
-#     # end
-#     #
-#     # def extract_locale_from_subdomain
-#     #   locale = request.subdomains.first
-#     #   return nil if locale.nil?
-#     #   I18n.available_locales.include?(locale.to_sym) ? locale.to_s : nil
-#     # end
-#   end
-# END_APPCONTROLLER
+remove_file "app/controllers/application_controller.rb" # the one that 'rails new' created
+create_file "app/controllers/application_controller.rb", <<-END_APPCONTROLLER.strip_heredoc
+  class ApplicationController < InlineFormsApplicationController
+    protect_from_forgery
+
+    # add whodunnit
+    before_action :set_paper_trail_whodunnit
+
+    # Comment next lines if you don't want Devise authentication
+    before_action :authenticate_user!
+    check_authorization unless: :devise_controller?
+
+    rescue_from CanCan::AccessDenied do |exception|
+      respond_to do |format|
+        format.json { head :forbidden, content_type: 'text/html' }
+        format.html { redirect_to main_app.root_url, notice: exception.message }
+        format.js   { head :forbidden, content_type: 'text/html' }
+      end
+    end
+    # Comment previous lines if you don't want Devise authentication
+
+    #ActionView::CompiledTemplates::MODEL_TABS = %w()
+
+    # Uncomment next line if you want I18n (based on subdomain)
+    # before_action :set_locale
+
+    # Uncomment next line and specify default locale
+    # I18n.default_locale = :en
+
+    # Uncomment next line and specify available locales
+    # I18n.available_locales = [ :en, :nl, :pp ]
+
+    # Uncomment next nine line if you want locale based on subdomain, like 'it.example.com, de.example.com'
+    # def set_locale
+    #   I18n.locale = extract_locale_from_subdomain || I18n.default_locale
+    # end
+    #
+    # def extract_locale_from_subdomain
+    #   locale = request.subdomains.first
+    #   return nil if locale.nil?
+    #   I18n.available_locales.include?(locale.to_sym) ? locale.to_s : nil
+    # end
+  end
+END_APPCONTROLLER
 
 say "- Creating Ability model so that the superadmin can access all..."
 create_file "app/models/ability.rb", <<-END_ABILITY.strip_heredoc
