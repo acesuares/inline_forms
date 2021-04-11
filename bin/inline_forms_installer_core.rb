@@ -18,7 +18,7 @@ gem 'devise'
 gem 'foundation-icons-sass-rails'
 gem 'foundation-rails', '~> 5.5'
 gem 'i18n-active_record', :git => 'https://github.com/acesuares/i18n-active_record.git'
-gem 'inline_forms', '~> 6.0'
+gem 'inline_forms', '~> 6.2'
 gem 'jquery-rails'
 gem 'jquery-timepicker-rails'
 gem 'jquery-ui-sass-rails'
@@ -426,7 +426,7 @@ create_file "app/models/ability.rb", <<-END_ABILITY.strip_heredoc
 END_ABILITY
 
 # precompile devise.css
-say "- Precompile devise.css in environments/production.rb... (Since Rails 5 in config/initializers/assets.rb !)"
+say "- Precompile devise.css"
 append_file "config/initializers/assets.rb", "  Rails.application.config.assets.precompile += %w( inline_forms_devise.css )\n"
 
 # devise mailer stuff
