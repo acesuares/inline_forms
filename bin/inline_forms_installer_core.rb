@@ -89,9 +89,6 @@ append_file "config/database.yml", <<-END_DATABASEYML.strip_heredoc
     password: <%= ENV["DATABASE_PASSWORD"] %>
 END_DATABASEYML
 
-say "- Add rails 5.2 defaults to application.rb..."
-gsub_file "config/application.rb", /6\.0/, '5.2'
-
 say "- Devise install..."
 run "bundle exec rails g devise:install"
 
