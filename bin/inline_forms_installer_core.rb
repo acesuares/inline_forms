@@ -508,7 +508,7 @@ copy_file File.join(GENERATOR_PATH,'lib/generators/templates/unicorn/production.
 say "- adding and committing to git..."
 
 git add: "."
-git commit: "-a -m Initial Commit"
+git commit: " -a -m 'Initial Commit'"
 
 # example
 if ENV['install_example'] == 'true'
