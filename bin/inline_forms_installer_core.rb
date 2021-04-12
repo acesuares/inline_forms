@@ -4,11 +4,6 @@ create_file 'Gemfile', "# created by inline_forms #{ENV['inline_forms_version']}
 
 add_source 'https://rubygems.org'
 
-# Turbolinks makes navigating your web application faster. Read more: https://github.com/turbolinks/turbolinks
-#gem 'bootsnap', require: false
-#gem 'compass-rails'
-# gem 'modernizr-rails'
-
 gem 'cancancan'
 gem 'carrierwave'
 gem 'ckeditor', github: 'galetahub/ckeditor'
@@ -76,27 +71,55 @@ else
   create_file "config/database.yml", <<-END_DATABASEYML.strip_heredoc
   development:
     adapter: mysql2
-    database: <%= ENV["DATABASE_NAME"] %>
-    username: <%= ENV["DATABASE_USER"] %>
-    password: <%= ENV["DATABASE_PASSWORD"] %>
+    database: #{Rails.application.credentials.development[:database]}
+    username: #{Rails.application.credentials.development[:username]}
+    password: #{Rails.application.credentials.development[:password]} %>
   END_DATABASEYML
+
+say "Setting development database in credentials"
+create_file "temp_development_database_credentials", <<-END_DEV_DB_CRED.strip_heredoc
+
+  development:
+    database: #{Rails.application.class.module_parent.name.lower}_dev
+    username: #{Rails.application.class.module_parent.name.lower}_dev_user
+    password: #{Rails.application.class.module_parent.name.lower}_dev_password
+
+END_DEV_DB_CRED
+
+run "EDITOR='cat temp_development_database_credentials >> ' rails credentials:edit"
+
+remove_file 'temp_development_database_credentials'
+
+say "\n *** Please make sure to create a mysql development database with the following credentials:
+    database: #{Rails.application.class.module_parent.name.lower}_dev
+    username: #{Rails.application.class.module_parent.name.lower}_dev_user
+    password: #{Rails.application.class.module_parent.name.lower}_dev_password
+
+    or use 'rails credentials:edit' to change these values.\n", red
+
 end
 append_file "config/database.yml", <<-END_DATABASEYML.strip_heredoc
   production:
     adapter: mysql2
-    database: <%= ENV["DATABASE_NAME"] %>
-    username: <%= ENV["DATABASE_USER"] %>
-    password: <%= ENV["DATABASE_PASSWORD"] %>
+    database: #{Rails.application.credentials.production[:database]}
+    username: #{Rails.application.credentials.production[:username]}
+    password: #{Rails.application.credentials.production[:password]}
 END_DATABASEYML
 
-say "Setting development database in credentials"
-create_file "temp_development_database_credentials", <<-END_DEV_DB_CRED.strip_heredoc
-  development:
-    database: test1
-    username: test1
-    password: ';asldkfaj;lsdkja ;lkj'
-END_DEV_DB_CRED
-run "EDITOR='cat temp_development_database_credentials >> ' rails credentials:edit"
+say "Setting production database in credentials"
+create_file "temp_production_database_credentials", <<-END_PROD_DB_CRED.strip_heredoc
+  production:
+    database: #{Rails.application.class.module_parent.name.lower}_prod
+    username: #{Rails.application.class.module_parent.name.lower}_prod_user
+    password:
+
+END_PROD_DB_CRED
+
+run "EDITOR='cat temp_production_database_credentials >> ' rails credentials:edit"
+
+remove_file 'temp_production_database_credentials'
+
+say "\n *** Please make sure to create a mysql production database and use 'rails credentials:edit' to set the values.\n", red
 
 say "- Devise install..."
 run "bundle exec rails g devise:install"
@@ -483,44 +506,25 @@ copy_file File.join(GENERATOR_PATH,'lib/generators/templates/unicorn/production.
 
 # Git
 say "- adding and committing to git..."
-# run 'git init' # this is already done by rails!
 
-run 'git add .'
-run 'git commit -a -m " * Initial"'
+git add: "."
+git commit: "-a -m * Initial Commit"
 
 # example
 if ENV['install_example'] == 'true'
   say "\nInstalling example application..."
-  run 'bundle exec rails g inline_forms Photo name:string caption:string image:image_field description:ckeditor apartment:belongs_to _presentation:\'#{name}\'' # FIXME temporary changed because ckeditor is playing dirty
+  run 'bundle exec rails g inline_forms Photo name:string caption:string image:image_field description:ckeditor apartment:belongs_to _presentation:\'#{name}\''
   run 'bundle exec rails generate uploader Image'
-  run 'bundle exec rails g inline_forms Apartment name:string title:string description:ckeditor photos:has_many photos:associated _enabled:yes _presentation:\'#{name}\'' # FIXME temporary changed because ckeditor is playing dirty
+  run 'bundle exec rails g inline_forms Apartment name:string title:string description:ckeditor photos:has_many photos:associated _enabled:yes _presentation:\'#{name}\''
   run 'bundle exec rake db:migrate'
-  say '-Adding example test'
-  create_file "spec/models/#{app_name}_example.rb", <<-END_EXAMPLE_TEST.strip_heredoc
-    require "spec_helper"
-    describe Apartment do
-      it "insert an appartment and retrieve it" do
-        appartment_data = create(:apartment)
-        first =  Apartment.first.id
-        expect(Apartment.first.id).to eq(first)
-      end
-    end
-  END_EXAMPLE_TEST
 
-  #run "rspec" if ENV['runtest']
   remove_file 'public/index.html'
+
   route "root :to => 'apartments#index'"
 
-  # done!
   say "\nDone! Now point your browser to http://localhost:3000", :yellow
   say "\nPress ctlr-C to quit...", :yellow
   run 'bundle exec rails s'
-else
-  # run tests
-  #run "rspec" if ENV['runtest']
-  say "- Don't forget: add your secret key base in config/application.yml \n"
 end
 # done!
 say "\nDone! Now make your tables with 'bundle exec rails g inline_forms ...", :yellow
-
-#say "- Don't forget: edit .rvmrc, config/{routes.rb, deploy.rb}, .git/config, delete \n"
