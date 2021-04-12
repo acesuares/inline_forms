@@ -1,8 +1,5 @@
 GENERATOR_PATH = File.dirname(File.expand_path(__FILE__)) +  '/../'
 
-puts app_name
-raise 'hell'
-
 create_file 'Gemfile', "# created by inline_forms #{ENV['inline_forms_version']} on #{Date.today}\n"
 
 add_source 'https://rubygems.org'
@@ -83,9 +80,9 @@ say "- Setting development database in credentials"
 create_file "temp_development_database_credentials", <<-END_DEV_DB_CRED.strip_heredoc
 
   development:
-    database: #{Rails.application.class.module_parent.name.lower}_dev
-    username: #{Rails.application.class.module_parent.name.lower}_dev_user
-    password: #{Rails.application.class.module_parent.name.lower}_dev_password
+    database: #{app_name.lower}_dev
+    username: #{app_name.lower}_dev_user
+    password: #{app_name.lower}_dev_password
 
 END_DEV_DB_CRED
 
@@ -94,9 +91,9 @@ run "EDITOR='cat temp_development_database_credentials >> ' rails credentials:ed
 remove_file 'temp_development_database_credentials'
 
 say "\n *** Please make sure to create a mysql development database with the following credentials:
-    database: #{Rails.application.class.module_parent.name.lower}_dev
-    username: #{Rails.application.class.module_parent.name.lower}_dev_user
-    password: #{Rails.application.class.module_parent.name.lower}_dev_password
+    database: #{app_name.lower}_dev
+    username: #{app_name.lower}_dev_user
+    password: #{app_name.lower}_dev_password
 
     or use 'rails credentials:edit' to change these values.\n", :red
 
@@ -112,8 +109,8 @@ END_DATABASEYML
 say "Setting production database in credentials"
 create_file "temp_production_database_credentials", <<-END_PROD_DB_CRED.strip_heredoc
   production:
-    database: #{Rails.application.class.module_parent.name.lower}_prod
-    username: #{Rails.application.class.module_parent.name.lower}_prod_user
+    database: #{app_name.lower}_prod
+    username: #{app_name.lower}_prod_user
     password:
 
 END_PROD_DB_CRED
