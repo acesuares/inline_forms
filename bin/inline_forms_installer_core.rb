@@ -76,7 +76,7 @@ else
     password: #{Rails.application.credentials.development[:password]} %>
   END_DATABASEYML
 
-say "Setting development database in credentials"
+say "- Setting development database in credentials"
 create_file "temp_development_database_credentials", <<-END_DEV_DB_CRED.strip_heredoc
 
   development:
@@ -95,7 +95,7 @@ say "\n *** Please make sure to create a mysql development database with the fol
     username: #{Rails.application.class.module_parent.name.lower}_dev_user
     password: #{Rails.application.class.module_parent.name.lower}_dev_password
 
-    or use 'rails credentials:edit' to change these values.\n", red
+    or use 'rails credentials:edit' to change these values.\n", :red
 
 end
 append_file "config/database.yml", <<-END_DATABASEYML.strip_heredoc
@@ -119,7 +119,7 @@ run "EDITOR='cat temp_production_database_credentials >> ' rails credentials:edi
 
 remove_file 'temp_production_database_credentials'
 
-say "\n *** Please make sure to create a mysql production database and use 'rails credentials:edit' to set the values.\n", red
+say "\n *** Please make sure to create a mysql production database and use 'rails credentials:edit' to set the values.\n", :red
 
 say "- Devise install..."
 run "bundle exec rails g devise:install"
