@@ -1,5 +1,8 @@
 GENERATOR_PATH = File.dirname(File.expand_path(__FILE__)) +  '/../'
 
+puts app_name
+raise 'hell'
+
 create_file 'Gemfile', "# created by inline_forms #{ENV['inline_forms_version']} on #{Date.today}\n"
 
 add_source 'https://rubygems.org'
