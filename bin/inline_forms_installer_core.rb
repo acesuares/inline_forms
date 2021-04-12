@@ -71,9 +71,9 @@ else
   create_file "config/database.yml", <<-END_DATABASEYML.strip_heredoc
   development:
     adapter: mysql2
-    database: #{Rails.application.credentials.development[:database]}
-    username: #{Rails.application.credentials.development[:username]}
-    password: #{Rails.application.credentials.development[:password]} %>
+    database: Rails.application.credentials.development[:database]
+    username: Rails.application.credentials.development[:username]
+    password: Rails.application.credentials.development[:password]
   END_DATABASEYML
 
 say "- Setting development database in credentials"
@@ -101,9 +101,9 @@ end
 append_file "config/database.yml", <<-END_DATABASEYML.strip_heredoc
   production:
     adapter: mysql2
-    database: #{Rails.application.credentials.production[:database]}
-    username: #{Rails.application.credentials.production[:username]}
-    password: #{Rails.application.credentials.production[:password]}
+    database: Rails.application.credentials.production[:database]
+    username: Rails.application.credentials.production[:username]
+    password: Rails.application.credentials.production[:password]
 END_DATABASEYML
 
 say "Setting production database in credentials"
