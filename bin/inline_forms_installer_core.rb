@@ -24,7 +24,7 @@ gem 'jquery-timepicker-rails'
 gem 'jquery-ui-sass-rails'
 gem 'mini_magick'
 gem 'mysql2'
-gem 'paper_trail'
+gem 'paper_trail', git: 'https://github.com/acesuares/paper_trail.git'
 gem 'rails-i18n', :git => 'https://github.com/svenfuchs/rails-i18n.git'  # since https://github.com/svenfuchs/rails-i18n/pull/794 we don't have to maintain 'https://github.com/acesuares/rails-i18n.git' anymore!
 gem 'rails-jquery-autocomplete'
 gem 'rails', '6.1.3.1'
@@ -301,7 +301,7 @@ say "- Install ckeditor..."
 generate "ckeditor:install --orm=active_record --backend=carrierwave"
 
 say "- Paper_trail install..."
-# generate "paper_trail:install --with-changes"
+generate "paper_trail:install --with-changes --with-mysql"
 
 # Create Translations
 say "- Generate models and tables and views for translations..." # TODO Translations need to be done in inline_forms, and then generate a yml file, perhaps
