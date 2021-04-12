@@ -71,9 +71,9 @@ else
   create_file "config/database.yml", <<-END_DATABASEYML.strip_heredoc
   development:
     adapter: mysql2
-    database: Rails.application.credentials.development[:database]
-    username: Rails.application.credentials.development[:username]
-    password: Rails.application.credentials.development[:password]
+    database: <%= Rails.application.credentials.development[:database] %>
+    username: <%= Rails.application.credentials.development[:username] %>
+    password: <%= Rails.application.credentials.development[:password] %>
   END_DATABASEYML
 
 say "- Setting development database in credentials"
@@ -95,15 +95,15 @@ say "\n *** Please make sure to create a mysql development database with the fol
     username: #{app_name.downcase}_dev_user
     password: #{app_name.downcase}_dev_password
 
-    or use 'rails credentials:edit' to change these values.\n", :red
+    or use 'rails credentials:edit' to change these values.\n\n", :red
 
 end
 append_file "config/database.yml", <<-END_DATABASEYML.strip_heredoc
   production:
     adapter: mysql2
-    database: Rails.application.credentials.production[:database]
-    username: Rails.application.credentials.production[:username]
-    password: Rails.application.credentials.production[:password]
+    database: <%= Rails.application.credentials.production[:database] %>
+    username: <%= Rails.application.credentials.production[:username] %>
+    password: <%= Rails.application.credentials.production[:password] %>
 END_DATABASEYML
 
 say "Setting production database in credentials"
@@ -119,7 +119,7 @@ run "EDITOR='cat temp_production_database_credentials >> ' rails credentials:edi
 
 remove_file 'temp_production_database_credentials'
 
-say "\n *** Please make sure to create a mysql production database and use 'rails credentials:edit' to set the values.\n", :red
+say "\n *** Please make sure to create a mysql production database and use 'rails credentials:edit' to set the password.\n\n", :red
 
 say "- Devise install..."
 run "bundle exec rails g devise:install"
@@ -508,7 +508,7 @@ copy_file File.join(GENERATOR_PATH,'lib/generators/templates/unicorn/production.
 say "- adding and committing to git..."
 
 git add: "."
-git commit: "-a -m * Initial Commit"
+git commit: "-a -m Initial Commit"
 
 # example
 if ENV['install_example'] == 'true'
