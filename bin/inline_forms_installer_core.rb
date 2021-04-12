@@ -80,9 +80,9 @@ say "- Setting development database in credentials"
 create_file "temp_development_database_credentials", <<-END_DEV_DB_CRED.strip_heredoc
 
   development:
-    database: #{app_name.lower}_dev
-    username: #{app_name.lower}_dev_user
-    password: #{app_name.lower}_dev_password
+    database: #{app_name.downcase}_dev
+    username: #{app_name.downcase}_dev_user
+    password: #{app_name.downcase}_dev_password
 
 END_DEV_DB_CRED
 
@@ -91,9 +91,9 @@ run "EDITOR='cat temp_development_database_credentials >> ' rails credentials:ed
 remove_file 'temp_development_database_credentials'
 
 say "\n *** Please make sure to create a mysql development database with the following credentials:
-    database: #{app_name.lower}_dev
-    username: #{app_name.lower}_dev_user
-    password: #{app_name.lower}_dev_password
+    database: #{app_name.downcase}_dev
+    username: #{app_name.downcase}_dev_user
+    password: #{app_name.downcase}_dev_password
 
     or use 'rails credentials:edit' to change these values.\n", :red
 
@@ -109,8 +109,8 @@ END_DATABASEYML
 say "Setting production database in credentials"
 create_file "temp_production_database_credentials", <<-END_PROD_DB_CRED.strip_heredoc
   production:
-    database: #{app_name.lower}_prod
-    username: #{app_name.lower}_prod_user
+    database: #{app_name.downcase}_prod
+    username: #{app_name.downcase}_prod_user
     password:
 
 END_PROD_DB_CRED
