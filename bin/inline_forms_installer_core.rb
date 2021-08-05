@@ -464,13 +464,13 @@ say "- Injecting devise mailer stuff in environments/production.rb..."
 insert_into_file "config/environments/production.rb", <<-DEVISE_MAILER_PROD_STUFF.strip_heredoc, :before => "end\n"
 
   # for devise
-  config.action_mailer.default_url_options = { protocol: 'https', host: Rails.application.credentials.production.smtp[:app_host] }
+  config.action_mailer.default_url_options = { protocol: 'https', host: Rails.application.credentials.production[:smtp][:app_host] }
   config.action_mailer.delivery_method = :smtp
   config.action_mailer.smtp_settings = {
-    address: Rails.application.credentials.production.smtp[:host],
+    address: Rails.application.credentials.production[:smtp][:host],
     enable_starttls_auto: true,
-    password: Rails.application.credentials.production.smtp[:password] ,
-    user_name: Rails.application.credentials.production.smtp[:username]
+    password: Rails.application.credentials.production[:smtp][:password] ,
+    user_name: Rails.application.credentials.production[:smtp][:username]
   }
 
 DEVISE_MAILER_PROD_STUFF
@@ -497,10 +497,10 @@ insert_into_file "config/environments/development.rb", <<-DEVISE_MAILER_DEV_STUF
   config.action_mailer.default_url_options = { protocol: 'http', host: 'localhost', port: 3000 }
   config.action_mailer.delivery_method = :smtp
   config.action_mailer.smtp_settings = {
-    address: Rails.application.credentials.development.smtp[:host],
+    address: Rails.application.credentials.development[:smtp][:host],
     enable_starttls_auto: true,
-    password: Rails.application.credentials.development.smtp[:password] ,
-    user_name: Rails.application.credentials.development.smtp[:username]
+    password: Rails.application.credentials.development[:smtp][:password] ,
+    user_name: Rails.application.credentials.development[:smtp][:username]
   }
 
 DEVISE_MAILER_DEV_STUFF
