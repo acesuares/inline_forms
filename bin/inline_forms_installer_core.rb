@@ -71,18 +71,18 @@ else
   create_file "config/database.yml", <<-END_DATABASEYML.strip_heredoc
   development:
     adapter: mysql2
-    database: <%= Rails.application.credentials.development[:database] %>
-    username: <%= Rails.application.credentials.development[:username] %>
-    password: <%= Rails.application.credentials.development[:password] %>
+    database: <%= Rails.application.credentials[:db_name] %>
+    username: <%= Rails.application.credentials[:db_username] %>
+    password: <%= Rails.application.credentials[:db_password] %>
   END_DATABASEYML
 
 say "- Setting development database in credentials"
 create_file "temp_development_database_credentials", <<-END_DEV_DB_CRED.strip_heredoc
 
-  development:
-    database: #{app_name.downcase}_dev
-    username: #{app_name.downcase}_dev_user
-    password: #{app_name.downcase}_dev_password
+  # development database
+  db_name: #{app_name.downcase}_dev
+  db_username: #{app_name.downcase}_dev_user
+  db_password: #{app_name.downcase}_dev_password
 
 END_DEV_DB_CRED
 
@@ -91,9 +91,9 @@ run "EDITOR='cat temp_development_database_credentials >> ' rails credentials:ed
 remove_file 'temp_development_database_credentials'
 
 say "\n *** Please make sure to create a mysql development database with the following credentials:
-    database: #{app_name.downcase}_dev
-    username: #{app_name.downcase}_dev_user
-    password: #{app_name.downcase}_dev_password
+    db_name: #{app_name.downcase}_dev
+    db_username: #{app_name.downcase}_dev_user
+    db_password: #{app_name.downcase}_dev_password
 
     or use 'rails credentials:edit' to change these values.\n\n", :red
 
@@ -101,21 +101,22 @@ end
 append_file "config/database.yml", <<-END_DATABASEYML.strip_heredoc
   production:
     adapter: mysql2
-    database: <%= Rails.application.credentials.production[:database] %>
-    username: <%= Rails.application.credentials.production[:username] %>
-    password: <%= Rails.application.credentials.production[:password] %>
+    database: <%= Rails.application.credentials[:db_name] %>
+    username: <%= Rails.application.credentials[:db_username] %>
+    password: <%= Rails.application.credentials[:db_password] %>
 END_DATABASEYML
 
 say "Setting production database in credentials"
 create_file "temp_production_database_credentials", <<-END_PROD_DB_CRED.strip_heredoc
-  production:
-    database: #{app_name.downcase}_prod
-    username: #{app_name.downcase}_prod_user
-    password:
+
+  # production database
+  db_name: #{app_name.downcase}_prod
+  db_username: #{app_name.downcase}_prod_user
+  db_password:
 
 END_PROD_DB_CRED
 
-run "EDITOR='cat temp_production_database_credentials >> ' rails credentials:edit"
+run "EDITOR='cat temp_production_database_credentials >> ' rails credentials:edit --environment production"
 
 remove_file 'temp_production_database_credentials'
 
@@ -464,29 +465,29 @@ say "- Injecting devise mailer stuff in environments/production.rb..."
 insert_into_file "config/environments/production.rb", <<-DEVISE_MAILER_PROD_STUFF.strip_heredoc, :before => "end\n"
 
   # for devise
-  config.action_mailer.default_url_options = { protocol: 'https', host: Rails.application.credentials.production[:smtp][:app_host] }
+  config.action_mailer.default_url_options = { protocol: 'https', host: Rails.application.credentials[:smtp_app_host] }
   config.action_mailer.delivery_method = :smtp
   config.action_mailer.smtp_settings = {
-    address: Rails.application.credentials.production[:smtp][:host],
+    address: Rails.application.credentials[:smtp_host],
     enable_starttls_auto: true,
-    password: Rails.application.credentials.production[:smtp][:password] ,
-    user_name: Rails.application.credentials.production[:smtp][:username]
+    password: Rails.application.credentials[:smtp_password] ,
+    user_name: Rails.application.credentials[:smtp_username]
   }
 
 DEVISE_MAILER_PROD_STUFF
 
 say "Setting production smtp settings in credentials"
 create_file "temp_production_smtp_credentials", <<-END_PROD_SMTP_CRED.strip_heredoc
-  production:
-    smtp:
-      app_host: APP_HOST
-      host: SMTP_HOST
-      username: USERNAME
-      password: PASSWORD
+
+  # devise mailer stuff for production:
+  smtp_app_host: APP_HOST
+  smtp_host: SMTP_HOST
+  smtp_username: USERNAME
+  smtp_password: PASSWORD
 
 END_PROD_SMTP_CRED
 
-run "EDITOR='cat temp_production_smtp_credentials >> ' rails credentials:edit"
+run "EDITOR='cat temp_production_smtp_credentials >> ' rails credentials:edit --environment production"
 
 remove_file 'temp_production_smtp_credentials'
 
@@ -497,21 +498,22 @@ insert_into_file "config/environments/development.rb", <<-DEVISE_MAILER_DEV_STUF
   config.action_mailer.default_url_options = { protocol: 'http', host: 'localhost', port: 3000 }
   config.action_mailer.delivery_method = :smtp
   config.action_mailer.smtp_settings = {
-    address: Rails.application.credentials.development[:smtp][:host],
+    address: Rails.application.credentials[:smtp_host],
     enable_starttls_auto: true,
-    password: Rails.application.credentials.development[:smtp][:password] ,
-    user_name: Rails.application.credentials.development[:smtp][:username]
+    password: Rails.application.credentials[:smtp_password] ,
+    user_name: Rails.application.credentials[:smtp_username]
   }
 
 DEVISE_MAILER_DEV_STUFF
 
 say "Setting development smtp settings in credentials"
 create_file "temp_development_smtp_credentials", <<-END_DEV_SMTP_CRED.strip_heredoc
-  development:
-    smtp:
-      host: SMTP_HOST
-      username: USERNAME
-      password: PASSWORD
+
+  # devise mailers stuff for development:
+  smtp_app_host: APP_HOST
+  smtp_host: SMTP_HOST
+  smtp_username: USERNAME
+  smtp_password: PASSWORD
 
 END_DEV_SMTP_CRED
 
