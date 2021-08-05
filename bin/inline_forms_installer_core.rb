@@ -461,34 +461,66 @@ END_ABILITY
 # devise mailer stuff
 say "- Injecting devise mailer stuff in environments/production.rb..."
 # strip_heredoc_with_indent(2) became strip_heredoc(2), but only in rails 4... :-(
-insert_into_file "config/environments/production.rb", <<-DEVISE_MAILER_STUFF.strip_heredoc, :before => "end\n"
+insert_into_file "config/environments/production.rb", <<-DEVISE_MAILER_PROD_STUFF.strip_heredoc, :before => "end\n"
 
   # for devise
-  config.action_mailer.default_url_options = { protocol: 'https', host: 'YOURHOSTNAME' }
+  config.action_mailer.default_url_options = { protocol: 'https', host: Rails.application.credentials.smtp.production[:app_host] }
   config.action_mailer.delivery_method = :smtp
   config.action_mailer.smtp_settings = {
-    address: 'YOURMAILSERVER',
+    address: Rails.application.credentials.smtp.production[:host],
     enable_starttls_auto: true,
-    password: 'YOURPASSWORD',
-    user_name: 'YOURUSERNAME'
+    password: Rails.application.credentials.smtp.production[:password] ,
+    user_name: Rails.application.credentials.smtp.production[:username]
   }
 
-DEVISE_MAILER_STUFF
+DEVISE_MAILER_PROD_STUFF
+
+say "Setting production smtp settings in credentials"
+create_file "temp_production_smtp_credentials", <<-END_PROD_SMTP_CRED.strip_heredoc
+  production:
+    smtp:
+      app_host: APP_HOST
+      host: SMTP_HOST
+      username: USERNAME
+      password: PASSWORD
+
+END_PROD_SMTP_CRED
+
+run "EDITOR='cat temp_production_smtp_credentials >> ' rails credentials:edit"
+
+remove_file 'temp_production_smtp_credentials'
 
 say "- Injecting devise mailer stuff in environments/development.rb..."
 # strip_heredoc_with_indent(2) became strip_heredoc(2), but only in rails 4... :-(
-insert_into_file "config/environments/development.rb", <<-DEVISE_MAILER_STUFF.strip_heredoc, :before => "\nend\n"
+insert_into_file "config/environments/development.rb", <<-DEVISE_MAILER_DEV_STUFF.strip_heredoc, :before => "\nend\n"
   # for devise
   config.action_mailer.default_url_options = { protocol: 'http', host: 'localhost', port: 3000 }
   config.action_mailer.delivery_method = :smtp
   config.action_mailer.smtp_settings = {
-    address: 'YOURMAILSERVER',
+    address: Rails.application.credentials.smtp.development[:host],
     enable_starttls_auto: true,
-    password: 'YOURPASSWORD',
-    user_name: 'YOURUSERNAME'
+    password: Rails.application.credentials.smtp.development[:password] ,
+    user_name: Rails.application.credentials.smtp.development[:username]
   }
 
-DEVISE_MAILER_STUFF
+DEVISE_MAILER_DEV_STUFF
+
+say "Setting development smtp settings in credentials"
+create_file "temp_development_smtp_credentials", <<-END_DEV_SMTP_CRED.strip_heredoc
+  development:
+    smtp:
+      app_host: APP_HOST
+      host: SMTP_HOST
+      username: USERNAME
+      password: PASSWORD
+
+END_DEV_SMTP_CRED
+
+run "EDITOR='cat temp_development_smtp_credentials >> ' rails credentials:edit"
+
+remove_file 'temp_development_smtp_credentials'
+
+
 
 # capify
 say "- Capify..."

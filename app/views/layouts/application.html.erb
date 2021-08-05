@@ -13,5 +13,6 @@
   <body>
     <%= yield %>
     <%= javascript_include_tag "application", 'data-turbolinks-track' => true %>
+    <%= javascript_include_tag Ckeditor.cdn_url %>
   </body>
 </html>
