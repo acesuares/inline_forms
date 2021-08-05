@@ -326,7 +326,7 @@ generate "ckeditor:install --orm=active_record --backend=carrierwave"
 
 say "- Add ckeditor/config.js to precompile assets..."
 append_to_file 'config/initializers/assets.rb',
-  '  Rails.application.config.assets.precompile += %w[ckeditor/config.js]'
+  'Rails.application.config.assets.precompile += %w[ckeditor/config.js]'
 
 say "- Paper_trail install..."
 generate "paper_trail:install --with-changes --with-mysql"
