@@ -324,6 +324,11 @@ copy_file File.join(GENERATOR_PATH, 'lib/generators/templates/application_record
 say "- Install ckeditor..."
 generate "ckeditor:install --orm=active_record --backend=carrierwave"
 
+say "- Add ckeditor/config.js to precompile assets..."
+insert_into_file 'config/initializers/assets.rb',
+  '    Rails.application.config.assets.precompile += %w[ckeditor/config.js]',
+  before: /^\tend\n/
+
 say "- Paper_trail install..."
 generate "paper_trail:install --with-changes --with-mysql"
 
