@@ -326,7 +326,7 @@ generate "ckeditor:install --orm=active_record --backend=carrierwave"
 
 say "- Copy ckeditor/config.js to app/javascripts..."
 empty_directory "app/assets/javascripts/ckeditor"
-# directory File.join(GENERATOR_PATH,'lib/generators/assets/javascripts'), "app/assets"
+copy_file File.join(GENERATOR_PATH,'lib/generators/assets/javascripts/ckeditor/config.js'), "app/assets/javascripts/ckeditor/"
 
 say "- Add ckeditor/config.js to precompile assets..."
 append_to_file 'config/initializers/assets.rb',
