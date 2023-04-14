@@ -71,7 +71,7 @@ module InlineForms
         exit 1
       end
 
-      if File.exists?(app_name)
+      if File.exist?(app_name)
         say "Error: APP exists", :red
         exit 1
       end

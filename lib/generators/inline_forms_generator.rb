@@ -207,7 +207,7 @@ module InlineForms
     end
 
     def add_second_top_bar
-      copy_file "_inline_forms_tabs.html.erb", "app/views/_inline_forms_tabs.html.erb" unless File.exists?('app/views/_inline_forms_tabs.html.erb')
+      copy_file "_inline_forms_tabs.html.erb", "app/views/_inline_forms_tabs.html.erb" unless File.exist?('app/views/_inline_forms_tabs.html.erb')
     end
 
     def add_tab
