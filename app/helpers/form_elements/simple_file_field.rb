@@ -9,7 +9,7 @@ def simple_file_field_show(object, attribute)
     model = object.class.to_s.pluralize.underscore
     link_to filename, "/#{model}/dl/#{object.id}" # route must exist!!
   else
-    link_to_inline_edit object, attribute, msg
+    link_to_inline_edit object, attribute, ''
   end
 end
 
