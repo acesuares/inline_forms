@@ -3,13 +3,13 @@ InlineForms::SPECIAL_COLUMN_TYPES[:simple_file_field]=:string
 
 def simple_file_field_show(object, attribute)
   o = object.send(attribute)
-  
+  method = attribute_values(object, attribute)[0][1]
   if o.send(:present?)
     filename = o.to_s
     model = object.class.to_s.pluralize.underscore
-    link_to filename, "/#{model}/dl/#{object.id}" # route must exist!!
+    link_to filename, "/#{model}/#{method}/#{object.id}" # route must exist!!
   else
-    link_to_inline_edit object, attribute, ''
+    link_to_inline_edit object, attribute, "<i class='fi-plus'></i>".html_safe
   end
 end
 
