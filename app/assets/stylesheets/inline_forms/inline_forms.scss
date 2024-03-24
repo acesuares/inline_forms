@@ -203,17 +203,6 @@ select:hover, select:focus {
   margin-bottom: 1.5em;
 }
 
-.flash {
-  margin-top: 1em;
-  padding: 0.5em;
-  color: #A3381E;
-  font-size: 130%;
-  font-weight: bold;
-  line-height: 120%;
-  background-color: white;
-  border-top: 0.5em solid #fade7a;
-}
-
   .custom-combobox {
     position: relative;
     display: inline-block;
@@ -262,32 +251,30 @@ select:hover, select:focus {
   }
 }
 
+.flash {
+  padding: 0.3em;
+  color: #A3381E;
+  font-size: 130%;
+  font-weight: bold;
+  line-height: 120%;
+  background-color: white;
+  border-top: 0.3em solid #fade7a;
+}
 
 .error {
-    color: #ffffff;
-    font-weight: bold;
-    -moz-border-radius: 10px;
-    -webkit-border-radius: 10px;
-    -webkit-box-shadow: 0 1px 1px rgba(0,0,0, .1);
-    -moz-box-shadow: 0 1px 1px rgba(0,0,0, .1);
-    background-color: #a70f0f;
-    background-image: -moz-linear-gradient(100% 100% 90deg, #a70f0f, #c01313);
-    background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#c01313), to(#a70f0f));
-    padding: 0.7em;
+  color: #ffffff;
+  font-weight: bold;
+  background-color: #a70f0f;
+  padding: 0.3em;
+  margin-bottom: 0.5em;
 }
 .success {
-    color: #ffffff;
-    font-weight: bold;
-    -moz-border-radius: 5px;
-    -webkit-border-radius: 5px;
-    -webkit-box-shadow: 0 1px 3px rgba(0,0,0, .4);
-    -moz-box-shadow: 0 1px 3px rgba(0,0,0, .4);
-    border-bottom: 1px solid #cccccc;
-    background-color: #4f8d0d;
-    background-image: -moz-linear-gradient(100% 100% 90deg, #4f8d0d, #5ba210);
-    background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#5ba210), to(#4f8d0d));
-    padding: 0.7em;
-    margin-bottom: 0.5em;
+  color: #ffffff;
+  font-weight: bold;
+  border-bottom: 1px solid #cccccc;
+  background-color: #4f8d0d;
+  padding: 0.3em;
+  margin-bottom: 0.5em;
 }
 
 .ckeditor_area {

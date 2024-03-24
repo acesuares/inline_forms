@@ -1,11 +1,13 @@
 <div class="new_record"">
-  <div id="flash" class="row">
+ <div id="flash" class="row">
     <% flash.each do |key, value| %>
       <div class="flash <%= key %>">
         <ul>
+          <% value.each do |msg| %>
             <li>
-              <%= value %>
+              <%= msg %>
             </li>
+          <% end %>
         </ul>
       </div>
     <% end %>
