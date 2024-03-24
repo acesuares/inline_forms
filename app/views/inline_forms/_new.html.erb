@@ -3,9 +3,15 @@
     <% flash.each do |key, value| %>
       <div class="flash <%= key %>">
         <ul>
-          <% value.each do |msg| %>
+          <% if value.is_a?(Array) %>
+            <% value.each do |msg| %>
+              <li>
+                <%= msg %>
+              </li>
+            <% end %>
+          <% else %>
             <li>
-              <%= msg %>
+              <%= value %>
             </li>
           <% end %>
         </ul>

@@ -8,6 +8,20 @@
     :class  => "edit_form",
     :abide => true,
     :remote => true do -%>
+            <div id="flash" class="row">
+          <% flash.each do |key, value| %>
+            <div class="flash <%= key %>">
+              <ul>
+                <% value.each do |msg| %>
+                  <li>
+                    <%= msg %>
+                  </li>
+                <% end %>
+              </ul>
+            </div>
+          <% end %>
+        </div>
+
   <% if @BUTTONS_UNDER.include? @form_element %>
     <div class="row collapse">
       <div class="small-12 columns">
