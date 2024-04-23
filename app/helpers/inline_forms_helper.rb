@@ -87,7 +87,7 @@ module InlineFormsHelper
         if parent_class.nil?
           raw out
         else
-          raw out if can? :update, parent_class.find(parent_id) # can update this specific parent object???
+          raw out if can? :update, parent_class.find(parent_id), (model.to_s.tableize) # can update this specific attribute??? https://github.com/CanCanCommunity/cancancan/issues/845
         end
       end
     else
