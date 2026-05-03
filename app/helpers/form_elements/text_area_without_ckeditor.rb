@@ -2,7 +2,7 @@
 InlineForms::SPECIAL_COLUMN_TYPES[:text_area_without_ckeditor]=:text
 
 def text_area_without_ckeditor_show(object, attribute)
-  link_to_inline_edit object, attribute, (object[attribute].nil? || object[attribute].empty?) ? "<i class='fi-plus'></i>".html_safe : object[attribute]
+  link_to_inline_edit object, attribute, (object[attribute].nil? || object[attribute].empty?) ? "<i class='fi-plus'></i>".html_safe : object[attribute], from_callee: __callee__
 end
 
 def text_area_without_ckeditor_edit(object, attribute)

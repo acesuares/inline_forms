@@ -3,7 +3,7 @@
 
   # time
   def time_select_show(object, attribute)
-    link_to_inline_edit object, attribute, object.send(attribute).nil? ? "<i class='fi-plus'></i>".html_safe : object.send(attribute).to_datetime.strftime("%l:%M%P")
+    link_to_inline_edit object, attribute, object.send(attribute).nil? ? "<i class='fi-plus'></i>".html_safe : object.send(attribute).to_datetime.strftime("%l:%M%P"), from_callee: __callee__
   end
 
   def time_select_edit(object, attribute)

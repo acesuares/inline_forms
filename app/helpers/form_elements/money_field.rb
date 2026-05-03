@@ -2,7 +2,7 @@
 InlineForms::SPECIAL_COLUMN_TYPES[:money_field]=:integer
 
 def money_field_show(object, attribute)
-  link_to_inline_edit object, attribute, humanized_money_with_symbol(object.send attribute)
+  link_to_inline_edit object, attribute, humanized_money_with_symbol(object.send attribute), from_callee: __callee__
 end
 
 def money_field_edit(object, attribute)

@@ -1,5 +1,6 @@
 # -*- encoding : utf-8 -*-
 require ('inline_forms/version.rb')
+require_relative ('inline_forms/form_element_from_callee')
 # InlineForms is a Rails Engine that let you setup an admin interface quick and
 # easy. Please install it as a gem or include it in your Gemfile.
 module InlineForms
@@ -152,17 +153,4 @@ module InlineForms
     I18n.load_path.flatten!
   end
 
-end
-
-# make the current method and the calling method available
-#   http://www.ruby-forum.com/topic/75258
-#   supposedly, this is fixed in 1.9
-module Kernel
-  private
-  def this_method
-    caller[0] =~ /`([^']*)'/ and $1
-  end
-  def calling_method
-    caller[1] =~ /`([^']*)'/ and $1
-  end
 end

@@ -2,7 +2,7 @@
 InlineForms::SPECIAL_COLUMN_TYPES[:devise_password_field]=:string
 
 def devise_password_field_show(object, attribute)
-  link_to_inline_edit object, attribute, ''
+  link_to_inline_edit object, attribute, '', from_callee: __callee__
 end
 
 def devise_password_field_edit(object, attribute)

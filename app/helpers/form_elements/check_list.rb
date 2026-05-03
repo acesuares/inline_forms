@@ -4,10 +4,10 @@ InlineForms::SPECIAL_COLUMN_TYPES[:check_list]=:no_migration
 # checklist
 def check_list_show(object, attribute)
   out = ''
-  out = link_to_inline_edit(object, attribute, "<i class='fi-plus'></i>".html_safe) if object.send(attribute).empty?
+  out = link_to_inline_edit(object, attribute, "<i class='fi-plus'></i>".html_safe, from_callee: __callee__) if object.send(attribute).empty?
   object.send(attribute).sort.each do | item |
     out << "<div class='row #{cycle('odd', 'even')}'>"
-    out << link_to_inline_edit(object, attribute, item._presentation )
+    out << link_to_inline_edit(object, attribute, item._presentation, from_callee: __callee__ )
     out << '</div>'
   end
   out.html_safe

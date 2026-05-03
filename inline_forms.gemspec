@@ -26,4 +26,6 @@ Gem::Specification.new do |s|
   s.add_dependency('rails', '>= 6.1.3.1', '< 7')
   s.add_dependency('rails-i18n')
 
+  s.add_development_dependency("minitest", "~> 5.0")
+
 end

@@ -3,7 +3,7 @@ InlineForms::SPECIAL_COLUMN_TYPES[:month_year_picker]=:date
 
 # date
 def month_year_picker_show(object, attribute)
-  link_to_inline_edit object, attribute, object.send(attribute).nil? ? "<i class='fi-plus'></i>".html_safe : object.send(attribute).strftime("%B %Y")
+  link_to_inline_edit object, attribute, object.send(attribute).nil? ? "<i class='fi-plus'></i>".html_safe : object.send(attribute).strftime("%B %Y"), from_callee: __callee__
 end
 
 def month_year_picker_edit(object, attribute)

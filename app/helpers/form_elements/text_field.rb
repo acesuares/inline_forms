@@ -2,7 +2,7 @@
 InlineForms::SPECIAL_COLUMN_TYPES[:text_field]=:string
 
 def text_field_show(object, attribute)
-  link_to_inline_edit object, attribute, object[attribute].blank? ? "<i class='fi-plus'></i>".html_safe : object[attribute]
+  link_to_inline_edit object, attribute, object[attribute].blank? ? "<i class='fi-plus'></i>".html_safe : object[attribute], from_callee: __callee__
 end
 
 def text_field_edit(object, attribute)

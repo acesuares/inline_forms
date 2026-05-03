@@ -4,7 +4,7 @@ InlineForms::SPECIAL_COLUMN_TYPES[:dropdown]=:belongs_to
 # dropdown
 def chicas_dropdown_with_family_members_show(object, attribute)
   attribute_value = object.send(attribute)._dropdown_presentation rescue  "<i class='fi-plus'></i>".html_safe
-  link_to_inline_edit object, attribute, attribute_value
+  link_to_inline_edit object, attribute, attribute_value, from_callee: __callee__
 end
 
 def chicas_dropdown_with_family_members_edit(object, attribute)

@@ -7,7 +7,7 @@ def dropdown_show(object, attribute)
   presentation = "_presentation"
   presentation = "_dropdown_presentation" if attr.respond_to? "_dropdown_presentation"
   attribute_value = object.send(attribute).send(presentation) rescue  "<i class='fi-plus'></i>".html_safe
-  link_to_inline_edit object, attribute, attribute_value
+  link_to_inline_edit object, attribute, attribute_value, from_callee: __callee__
 end
 
 def dropdown_edit(object, attribute)

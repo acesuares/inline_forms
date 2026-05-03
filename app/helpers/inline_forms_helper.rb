@@ -127,7 +127,10 @@ module InlineFormsHelper
   end
 
   # link_to_inline_edit
-  def link_to_inline_edit(object, attribute, attribute_value='', form_element=nil)
+  #
+  # Pass +from_callee:+ +__callee__+ from the enclosing +*_show+ method so the edit route receives the correct form element name.
+  def link_to_inline_edit(object, attribute, attribute_value='', from_callee:)
+    form_element = InlineForms.form_element_string_from_callee(from_callee)
     attribute_value = attribute_value.to_s
     spaces = attribute_value.length > 40 ? 0 : 40 - attribute_value.length
     value = h(attribute_value) + ("&nbsp;" * spaces).html_safe
@@ -138,7 +141,7 @@ module InlineFormsHelper
         send( 'edit_' + object.class.to_s.underscore + '_path',
         object,
         :attribute => attribute.to_s,
-        :form_element => form_element.nil? ? calling_method.sub(/_[a-z]+$/,'').sub(/block in /,'') : form_element,
+        :form_element => form_element,
         :update => css_class_id ),
         :remote => true
     else
@@ -222,20 +225,4 @@ module InlineFormsHelper
     user.nil? ? 'Unknown' : user.name
   end
 
-end
-
-module Kernel
-  private
-  # make the current method available
-  #   http://www.ruby-forum.com/topic/75258
-  #   supposedly, this is fixed in 1.9
-  def this_method
-    caller[0] =~ /`([^']*)'/ and $1
-  end
-  # make the calling method available
-  #   http://www.ruby-forum.com/topic/75258
-  #   supposedly, this is fixed in 1.9
-  def calling_method
-    caller[1] =~ /`([^']*)'/ and $1
-  end
 end

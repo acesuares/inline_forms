@@ -11,7 +11,7 @@ def image_field_show(object, attribute)
       msg = image_tag(o.send(:url))
     end
   end
-  link_to_inline_edit object, attribute, msg
+  link_to_inline_edit object, attribute, msg, from_callee: __callee__
 end
 
 def image_field_edit(object, attribute)

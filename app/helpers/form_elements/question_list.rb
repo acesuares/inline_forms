@@ -4,10 +4,10 @@
 # checklist
 def question_list_show(object, attribute)
   out = '<ul class="question_list">'
-  out << link_to_inline_edit(object, attribute) if object.send(attribute).empty?
+  out << link_to_inline_edit(object, attribute, from_callee: __callee__) if object.send(attribute).empty?
   object.send(attribute).sort.each do | item |
     out << '<li>'
-    out << link_to_inline_edit(object, attribute, item._presentation )
+    out << link_to_inline_edit(object, attribute, item._presentation, from_callee: __callee__ )
     out << '</li>'
   end
   out <<  '</ul>'

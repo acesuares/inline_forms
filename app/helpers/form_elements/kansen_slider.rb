@@ -30,7 +30,7 @@ def kansen_slider_show(object, attribute)
              </script>').html_safe
     out << "</div>".html_safe
   end
-  link_to_inline_edit object, attribute, out
+  link_to_inline_edit object, attribute, out, from_callee: __callee__
 end
 
 def kansen_slider_edit(object, attribute)

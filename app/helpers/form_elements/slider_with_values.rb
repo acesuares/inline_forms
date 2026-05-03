@@ -31,7 +31,7 @@ def slider_with_values_show(object, attribute)
               });
              </script>').html_safe
   end
-  link_to_inline_edit object, attribute, out
+  link_to_inline_edit object, attribute, out, from_callee: __callee__
 end
 
 def slider_with_values_edit(object, attribute)

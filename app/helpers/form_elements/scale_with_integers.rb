@@ -8,7 +8,7 @@ InlineForms::SPECIAL_COLUMN_TYPES[:scale_with_integers]=:integer
 #
 def scale_with_integers_show(object, attribute)
   values = attribute_values(object, attribute)
-  link_to_inline_edit object, attribute, values[object.send(attribute).to_s]
+  link_to_inline_edit object, attribute, values[object.send(attribute).to_s], from_callee: __callee__
 end
 
 def scale_with_integers_edit(object, attribute)

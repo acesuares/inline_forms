@@ -21,7 +21,8 @@ def ckeditor_show(object, attribute)
                   :class => "glass_plate",
                   :title => '' ) +
       "<script>delete CKEDITOR.instances['textarea_#{object.class.name.underscore}_#{object.id}_#{attribute.to_s}']</script>".html_safe +
-      '</div>'.html_safe
+      '</div>'.html_safe,
+      from_callee: __callee__
 end
 
 def ckeditor_edit(object, attribute)

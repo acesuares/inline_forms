@@ -2,7 +2,7 @@
 InlineForms::SPECIAL_COLUMN_TYPES[:integer_field]=:integer
 
 def integer_field_show(object, attribute)
-  link_to_inline_edit object, attribute, object[attribute].nil? ? "<i class='fi-plus'></i>".html_safe : object[attribute]
+  link_to_inline_edit object, attribute, object[attribute].nil? ? "<i class='fi-plus'></i>".html_safe : object[attribute], from_callee: __callee__
 end
 
 def integer_field_edit(object, attribute)

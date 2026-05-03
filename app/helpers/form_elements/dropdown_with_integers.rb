@@ -7,7 +7,7 @@ InlineForms::SPECIAL_COLUMN_TYPES[:dropdown_with_integers]=:integer
 # values must be a Range or a one-dimensional array of Integers
 def dropdown_with_integers_show(object, attribute)
   values = attribute_values(object, attribute)
-  link_to_inline_edit object, attribute, values[object.send(attribute)][1]
+  link_to_inline_edit object, attribute, values[object.send(attribute)][1], from_callee: __callee__
 end
 
 def dropdown_with_integers_edit(object, attribute)

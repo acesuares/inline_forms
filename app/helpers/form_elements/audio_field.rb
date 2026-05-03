@@ -11,7 +11,7 @@ def audio_field_show(object, attribute)
       audio_html = audio_tag(o.send(:url), autoplay: false, controls: true)
     end
   end
-  link_to_edit = link_to_inline_edit object, attribute, msg
+  link_to_edit = link_to_inline_edit object, attribute, msg, from_callee: __callee__
   if cancan_disabled? || ( can? :update, object, attribute )
     "#{audio_html} #{link_to_edit}".html_safe
   else

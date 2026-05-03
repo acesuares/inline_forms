@@ -3,7 +3,7 @@ InlineForms::SPECIAL_COLUMN_TYPES[:text_area]=:text
 
 def text_area_show(object, attribute)
   if object.send(attribute).blank?
-    link_to_inline_edit object, attribute, "<i class='fi-plus'></i>".html_safe
+    link_to_inline_edit object, attribute, "<i class='fi-plus'></i>".html_safe, from_callee: __callee__
   else
     if defined? Ckeditor
       link_to_inline_edit object,
@@ -25,9 +25,10 @@ def text_area_show(object, attribute)
         :class => "glass_plate",
         :title => '' ) +
         "<script>delete CKEDITOR.instances['textarea_#{object.class.name.underscore}_#{object.id}_#{attribute.to_s}']</script>".html_safe +
-        '</div>'.html_safe
+        '</div>'.html_safe,
+        from_callee: __callee__
     else
-      link_to_inline_edit object, attribute, object[attribute]
+      link_to_inline_edit object, attribute, object[attribute], from_callee: __callee__
     end
   end
 end

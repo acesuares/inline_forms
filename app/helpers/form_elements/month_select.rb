@@ -3,7 +3,7 @@ InlineForms::SPECIAL_COLUMN_TYPES[:month_select]=:integer
 
 # date
 def month_select_show(object, attribute)
-  link_to_inline_edit object, attribute, (1..12).include?(object[attribute]) ?  I18n.localize(Date.new(1970,object[attribute],1), :format => '%B') : "<i class='fi-plus'></i>".html_safe
+  link_to_inline_edit object, attribute, (1..12).include?(object[attribute]) ?  I18n.localize(Date.new(1970,object[attribute],1), :format => '%B') : "<i class='fi-plus'></i>".html_safe, from_callee: __callee__
 end
 
 def month_select_edit(object, attribute)
