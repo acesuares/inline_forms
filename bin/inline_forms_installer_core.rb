@@ -44,7 +44,8 @@ gem_group :development do
   gem 'rvm-capistrano', :require => false
   gem 'rvm1-capistrano3', require: false
   gem 'seed_dump', '~> 0.5.3'
-  gem 'sqlite3'
+  # Rails 6.1 ActiveRecord's sqlite3 adapter requires sqlite3 ~> 1.4; 2.x activates first and breaks.
+  gem 'sqlite3', '~> 1.4'
   gem 'switch_user'
   gem 'thin'
   gem 'yaml_db'
