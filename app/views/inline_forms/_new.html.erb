@@ -25,7 +25,7 @@
     </div>
   </div>
 
-  <%= form_tag  send(@Klass.to_s.underscore.pluralize + '_path',  :update => @update_span,
+  <%= form_tag  polymorphic_path(@Klass,  :update => @update_span,
                                                                   :parent_class => @parent_class,
                                                                   :parent_id => @parent_id ),
                                                                   :multipart => true, :remote => true, :class  => "edit_form" do -%>
@@ -56,7 +56,7 @@
                   &nbsp;
                 </div>
     <div class='small-11  column' >
-        <%= link_to( send(@Klass.to_s.underscore.pluralize + '_path', :update => @update_span,
+        <%= link_to( polymorphic_path(@Klass, :update => @update_span,
                                                                       :parent_class => @parent_class,
                                                                       :parent_id => @parent_id,
                                                                       :ul_needed => true ),

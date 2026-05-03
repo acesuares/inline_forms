@@ -4,10 +4,10 @@
     <%= link_to_destroy(@object, @update_span) -%>
   </div>
   <div  class="small-11 column">
-    <%= link_to h(@object._presentation), send(@object.class.to_s.underscore + "_path", @object, :update => @update_span), :remote => true -%>
+    <%= link_to h(@object._presentation), polymorphic_path(@object, :update => @update_span), :remote => true -%>
   </div>
 <% else %>
   <div  class="small-12 column">
-    <%= link_to h(@object._presentation), send(@object.class.to_s.underscore + "_path", @object, :update => @update_span), :remote => true -%>
+    <%= link_to h(@object._presentation), polymorphic_path(@object, :update => @update_span), :remote => true -%>
   </div>
 <% end %>

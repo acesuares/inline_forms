@@ -1,5 +1,6 @@
 <%  @BUTTONS_UNDER = [ "text_area", "kansen_slider" ] %>
-<%= form_tag send(@object.class.to_s.underscore + '_path', :update => @update_span,
+<%= form_tag polymorphic_path(@object,
+    :update => @update_span,
     :attribute => @attribute,
     :form_element => @form_element,
     :sub_id => @sub_id ),
@@ -42,7 +43,7 @@
         <%= submit_tag "ok", :class => "postfix button"-%>
       </div>
       <div class="small-2 columns">
-        <%= link_to( send( @object.class.to_s.underscore + '_path', :update => @update_span || "field_#{@attribute}_#{@object.id.to_s}",
+        <%= link_to( polymorphic_path( @object, :update => @update_span || "field_#{@attribute}_#{@object.id.to_s}",
         :attribute => @attribute,
         :form_element => @form_element,
         :sub_id => @sub_id ),
@@ -61,7 +62,7 @@
         <%= submit_tag "ok", :class => "postfix button"-%>
       </div>
       <div class="small-2 columns">
-        <%= link_to( send( @object.class.to_s.underscore + '_path', :update => @update_span || "field_#{@attribute}_#{@object.id.to_s}",
+        <%= link_to( polymorphic_path( @object, :update => @update_span || "field_#{@attribute}_#{@object.id.to_s}",
         :attribute => @attribute,
         :form_element => @form_element,
         :sub_id => @sub_id ),

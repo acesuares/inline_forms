@@ -21,10 +21,10 @@ module InlineFormsHelper
   # close link
   def close_link( object, update_span, html_class = 'button close_button' )
     link_to "<i class='fi-x'></i>".html_safe,
-      send( object.class.to_s.underscore + '_path',
-      object,
-      :update => update_span,
-      :close => true ),
+      polymorphic_path(
+        object,
+        :update => update_span,
+        :close => true ),
       :remote => true,
       :class => html_class,
       :title => t('inline_forms.view.close')
@@ -60,9 +60,9 @@ module InlineFormsHelper
     hard=''
     if cancan_disabled? || ( can? :destroy, object )
       hard = link_to "&nbsp;&nbsp;<font color='FF0000'><i class='fi-x'></i></font>".html_safe,
-        send( object.class.to_s.underscore + '_path',
-        object,
-        :update => update_span ),
+        polymorphic_path(
+          object,
+          :update => update_span ),
         :method => :delete,
         :remote => true,
         :title => t('inline_forms.view.trash')
@@ -138,11 +138,11 @@ module InlineFormsHelper
     if (cancan_disabled? rescue true) || ( can? :update, object, attribute )
       # some problem with concerns makes this function not available when called direct. FIXME
       link_to value,
-        send( 'edit_' + object.class.to_s.underscore + '_path',
-        object,
-        :attribute => attribute.to_s,
-        :form_element => form_element,
-        :update => css_class_id ),
+        edit_polymorphic_path(
+          object,
+          :attribute => attribute.to_s,
+          :form_element => form_element,
+          :update => css_class_id ),
         :remote => true
     else
       h(attribute_value)
