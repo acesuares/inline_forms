@@ -20,7 +20,10 @@ gem 'jquery-ui-sass-rails'
 gem 'mini_magick'
 gem 'mysql2'
 gem 'paper_trail', git: 'https://github.com/acesuares/paper_trail.git'
-gem 'rails-i18n', :git => 'https://github.com/svenfuchs/rails-i18n.git'  # since https://github.com/svenfuchs/rails-i18n/pull/794 we don't have to maintain 'https://github.com/acesuares/rails-i18n.git' anymore!
+# RubyGems 7.0.x requires railties >= 6, < 8 (works with Rails 6.1). The default branch of
+# https://github.com/svenfuchs/rails-i18n.git targets Rails 8+ (railties >= 8) and breaks bundle
+# resolution next to rails 6.1.3.1. Same approach as the Papiamentu app.
+gem 'rails-i18n', '~> 7.0'
 gem 'rails-jquery-autocomplete'
 gem 'rails', '6.1.3.1'
 gem 'rake'

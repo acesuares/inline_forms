@@ -32,6 +32,10 @@ You can install the example application manually if you like:
 
 Then point your browser to http://localhost:3000/apartments and log in with admin@example.com / admin999
 
+== Generated application +rails-i18n+
+
+New apps get +rails-i18n+ from RubyGems (+ '~> 7.0'+), not from the +svenfuchs/rails-i18n+ Git repository. Release line 7.0.x declares +railties+ between 6 and 8, which matches the template’s Rails 6.1.3.1. The upstream repository’s default branch is aimed at newer Rails and would pull in +railties+ 8+, which cannot be resolved together with Rails 6.1.
+
 = Build a vagrant virtualbox box for easier development
 
 Go ahead and unzip lib/vagrant/vagrantbox-inline_forms.zip. Enter the created directory with
