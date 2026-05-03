@@ -338,11 +338,15 @@ append_to_file 'config/initializers/assets.rb',
 
 say "- Paper_trail install..."
 generate "paper_trail:install --with-changes --with-mysql"
+# paper_trail emits two migrations in one second; the next generator would reuse that timestamp.
+sleep 1
 
 # Create Translations
 say "- Generate models and tables and views for translations..." # TODO Translations need to be done in inline_forms, and then generate a yml file, perhaps
 generate "inline_forms", "InlineFormsLocale name:string inline_forms_translations:belongs_to _enabled:yes _presentation:\#{name}"
+sleep 1 # unique migration timestamps per generator
 generate "inline_forms", "InlineFormsKey name:string inline_forms_translations:has_many inline_forms_translations:associated _enabled:yes _presentation:\#{name}"
+sleep 1
 generate "inline_forms", "InlineFormsTranslation inline_forms_key:belongs_to inline_forms_locale:dropdown value:text interpolations:text is_proc:boolean _presentation:\#{value}"
 # TODO: fix text_area into text_area_without_ckeditor
 sleep 1 # to get unique migration number
