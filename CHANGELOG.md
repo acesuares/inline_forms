@@ -14,6 +14,10 @@ All notable changes to this project are documented in this file.
 
 - **Example installer** no longer runs **`bundle exec rails s`** at the end (it blocked the shell). Start the server manually when you want to use the browser.
 
+### Fixed
+
+- **Sqlite `database.yml`** now includes a **`test`** database (`db/test.sqlite3`) so **`bundle exec rails test`** works in generated sqlite apps.
+
 ## [6.3.2] - 2026-05-03
 
 ### Fixed
