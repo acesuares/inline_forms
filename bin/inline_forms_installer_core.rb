@@ -35,6 +35,11 @@ gem 'unicorn'
 gem 'validation_hints'
 gem 'will_paginate' #, git: 'https://github.com/acesuares/will_paginate.git'
 
+gem_group :test do
+  # Rails 6.1.3 expects Minitest 5; 6.x breaks railties test runner (run arity, parallelization).
+  gem 'minitest', '~> 5.25'
+end
+
 gem_group :development do
   gem 'capistrano-bundler', require: false
   gem 'capistrano-rails', require: false
@@ -588,10 +593,6 @@ if ENV['install_example'] == 'true'
     rel = abs.delete_prefix(example_tests_root + File::SEPARATOR).tr("\\", "/")
     create_file rel, File.read(abs)
   end
-  # Rails 6.1 parallelize + Minitest 6 raises Minitest.run_one_method NoMethodError; single worker avoids it.
-  gsub_file "test/test_helper.rb",
-    "parallelize(workers: :number_of_processors)",
-    "parallelize(workers: 1)"
 
   say "\nDone! Example app (Photo + Apartment) is ready.", :yellow
   say "  bundle exec rails test     # example regression tests", :yellow

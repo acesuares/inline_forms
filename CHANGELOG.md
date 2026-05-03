@@ -17,7 +17,7 @@ All notable changes to this project are documented in this file.
 ### Fixed
 
 - **Sqlite `database.yml`** now includes a **`test`** database (`db/test.sqlite3`) so **`bundle exec rails test`** works in generated sqlite apps.
-- **`--example` installs** set **`parallelize(workers: 1)`** in `test/test_helper.rb` so the suite runs under Minitest 6 without **`Minitest.run_one_method`** errors from Rails 6.1’s default parallel worker setup.
+- Generated apps add a **`test`** Bundler group with **`minitest ~> 5.25`** so Rails 6.1’s test runner stays compatible (avoids Minitest 6 / **`railties`** **`line_filtering`** and parallelization API mismatches).
 
 ## [6.3.2] - 2026-05-03
 
