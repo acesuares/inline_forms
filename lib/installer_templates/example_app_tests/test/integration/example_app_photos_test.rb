@@ -7,9 +7,11 @@ class ExampleAppPhotosTest < ExampleAppIntegrationTestCase
     @apartment = Apartment.create!(name: "Beach", title: "Ocean view")
   end
 
-  test "photos index responds when signed in" do
-    get photos_path
-    assert_response :success
+  test "photos are not served as standalone html resource" do
+    assert Photo.not_accessible_through_html?
+    assert_raises(ActionController::UnknownFormat) do
+      get photos_path
+    end
   end
 
   test "can create a photo for an apartment" do
