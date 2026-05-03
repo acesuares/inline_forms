@@ -576,9 +576,17 @@ if ENV['install_example'] == 'true'
 
   route "root :to => 'apartments#index'"
 
-  say "\nDone! Now point your browser to http://localhost:3000", :yellow
-  say "\nPress ctlr-C to quit...", :yellow
-  run 'bundle exec rails s'
+  say "- Adding example app regression tests (bundle exec rails test)..."
+  example_tests_root = File.join(GENERATOR_PATH, "lib/installer_templates/example_app_tests")
+  Dir.glob(File.join(example_tests_root, "**", "*.rb")).sort.each do |abs|
+    rel = abs.delete_prefix(example_tests_root + File::SEPARATOR).tr("\\", "/")
+    create_file rel, File.read(abs)
+  end
+
+  say "\nDone! Example app (Photo + Apartment) is ready.", :yellow
+  say "  bundle exec rails test     # example regression tests", :yellow
+  say "  bundle exec rails s        # then http://localhost:3000/apartments", :yellow
+  say "  Log in: #{ENV["email"]} / #{ENV["password"]}", :yellow
 end
 # done!
 say "\nDone! Now make your tables with 'bundle exec rails g inline_forms ...", :yellow

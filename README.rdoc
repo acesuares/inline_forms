@@ -18,7 +18,7 @@ If you want to install the example application:
 
  inline_forms create MyApp -d sqlite --example
 
-Then point your browser to http://localhost:3000/apartments and log in with admin@example.com / admin999
+Then point your browser to http://localhost:3000/apartments and log in with admin@example.com / admin999. The example also adds integration and model tests; run +bundle exec rails test+ in +MyApp+, then start the server with +bundle exec rails s+ when you want the UI.
 
 You can install the example application manually if you like:
 
