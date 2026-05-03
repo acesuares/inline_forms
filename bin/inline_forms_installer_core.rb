@@ -337,7 +337,12 @@ append_to_file 'config/initializers/assets.rb',
   'Rails.application.config.assets.precompile += %w[ckeditor/config.js]'
 
 say "- Paper_trail install..."
-generate "paper_trail:install --with-changes --with-mysql"
+# --with-mysql embeds InnoDB options in create_table; that SQL is invalid on SQLite (example app).
+if ENV['using_sqlite'] == 'true'
+  generate "paper_trail:install --with-changes"
+else
+  generate "paper_trail:install --with-changes --with-mysql"
+end
 # paper_trail emits two migrations in one second; the next generator would reuse that timestamp.
 sleep 1
 
