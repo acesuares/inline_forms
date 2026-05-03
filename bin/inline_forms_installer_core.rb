@@ -588,6 +588,10 @@ if ENV['install_example'] == 'true'
     rel = abs.delete_prefix(example_tests_root + File::SEPARATOR).tr("\\", "/")
     create_file rel, File.read(abs)
   end
+  # Rails 6.1 parallelize + Minitest 6 raises Minitest.run_one_method NoMethodError; single worker avoids it.
+  gsub_file "test/test_helper.rb",
+    "parallelize(workers: :number_of_processors)",
+    "parallelize(workers: 1)"
 
   say "\nDone! Example app (Photo + Apartment) is ready.", :yellow
   say "  bundle exec rails test     # example regression tests", :yellow
