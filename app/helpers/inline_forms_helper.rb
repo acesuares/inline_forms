@@ -12,6 +12,46 @@ module InlineFormsHelper
     InlineForms::VERSION
   end
 
+  # Returns versions for `object`, merged with versions of any associated
+  # `ActionText::RichText` records (Rails `has_rich_text :foo` declarations).
+  #
+  # Rich-text bodies live in the polymorphic `action_text_rich_texts` table,
+  # so `has_paper_trail` on the parent model (e.g. Apartment) never sees
+  # rich-text edits. The generated app installs an initializer
+  # (`config/initializers/rich_text_paper_trail.rb`) that declares
+  # `has_paper_trail` on `ActionText::RichText` itself; this helper is what
+  # surfaces those versions inside the parent's versions list view
+  # (`app/views/inline_forms/_versions_list.html.erb`).
+  #
+  # Each entry is a Hash:
+  #   :version        => the PaperTrail::Version
+  #   :kind           => :primary (parent model) or :rich_text
+  #   :rich_text_name => for :rich_text entries, the attribute name
+  #                      (e.g. "description"); nil for :primary
+  #
+  # Sorted oldest-first (callers can `.reverse` for newest-first display).
+  def inline_forms_versions_for(object)
+    entries = object.versions.map do |v|
+      { version: v, kind: :primary, rich_text_name: nil }
+    end
+
+    if defined?(ActionText::RichText)
+      ActionText::RichText
+        .where(record_type: object.class.base_class.name, record_id: object.id)
+        .each do |rich_text|
+          rich_text.versions.each do |v|
+            entries << {
+              version: v,
+              kind: :rich_text,
+              rich_text_name: rich_text.name
+            }
+          end
+        end
+    end
+
+    entries.sort_by { |entry| entry[:version].created_at }
+  end
+
   private
 
   def validation_hints_as_list_for(object, attribute)

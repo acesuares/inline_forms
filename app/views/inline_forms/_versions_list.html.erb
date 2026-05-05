@@ -1,8 +1,9 @@
 <% path_to_object = @object.class.to_s.underscore + '_path' %>
 <% css_class_id = "#{@object.class.name.underscore}_#{@object.id}_versions" -%>
+<% entries = inline_forms_versions_for(@object) -%>
 <div class="row form_element_header associated_auto_header callout">
   <div class='medium-11 large-11 column' >
-    <%= "Versions (#{@object.versions.length})" %>
+    <%= "Versions (#{entries.length})" %>
   </div>
   <div class='medium-1 large-1 column'>
     <%= close_versions_list_link(
@@ -29,20 +30,26 @@
   </div>
 </div>
 <div class="row <%= cycle('odd', 'even') %>">
-  <% @object.versions.reverse.each do | version | %>
+  <% entries.reverse.each do |entry| %>
+    <% version = entry[:version] -%>
+    <% rich_text_name = entry[:rich_text_name] -%>
     <div class='small-12 column'>
       <div class="small-1 column">
-        <%= link_to t('inline_forms.view.restore'),
-          send('revert_' + @object.class.to_s.underscore + "_path",
-            version,
-            :update => "#{@object.class.name.underscore}_#{@object.id}"
-          ),
-          :remote => true,
-          :method => :post
-        %>
+        <% if entry[:kind] == :primary %>
+          <%= link_to t('inline_forms.view.restore'),
+            send('revert_' + @object.class.to_s.underscore + "_path",
+              version,
+              :update => "#{@object.class.name.underscore}_#{@object.id}"
+            ),
+            :remote => true,
+            :method => :post
+          %>
+        <% else %>
+          &nbsp;
+        <% end %>
       </div>
       <div class="small-1 column">
-        <%= version.event -%>
+        <%= version.event -%><% if entry[:kind] == :rich_text %> <em>(rich text)</em><% end %>
       </div>
       <div  class="small-2 column">
         <%= version.created_at -%>
@@ -56,9 +63,13 @@
         <% else %>
           <% version.changeset.each do |attribute, value| %>
             <% next if attribute == 'updated_at' %>
+            <% next if entry[:kind] == :rich_text && attribute == 'record_id' %>
+            <% next if entry[:kind] == :rich_text && attribute == 'record_type' %>
+            <% next if entry[:kind] == :rich_text && attribute == 'name' %>
+            <% display_attribute = entry[:kind] == :rich_text && attribute == 'body' ? rich_text_name : attribute -%>
             <table>
               <tr>
-                <th colspan="2" class="text-center"><%= attribute %></th>
+                <th colspan="2" class="text-center"><%= display_attribute %></th>
                 <th></th>
               </tr>
               <tr>
@@ -66,8 +77,13 @@
                 <td>new value</td>
               </tr>
               <tr>
-                <td><%= value[0] %></td>
-                <td><%= value[1] %></td>
+                <% if entry[:kind] == :rich_text && attribute == 'body' %>
+                  <td><%= raw value[0] %></td>
+                  <td><%= raw value[1] %></td>
+                <% else %>
+                  <td><%= value[0] %></td>
+                  <td><%= value[1] %></td>
+                <% end %>
               </tr>
             </table>
           <% end %>
