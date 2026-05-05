@@ -1,0 +1,5 @@
+# Keep this directory for checked-in prompt docs.
+# Ignore local scratch files by default.
+*
+!.gitignore
+!*.md

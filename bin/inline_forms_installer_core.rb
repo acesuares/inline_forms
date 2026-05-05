@@ -6,14 +6,13 @@ add_source 'https://rubygems.org'
 
 gem 'cancancan'
 gem 'carrierwave'
-gem 'ckeditor', github: 'galetahub/ckeditor'
 gem 'coffee-rails'
 gem 'devise-i18n', :git => 'https://github.com/acesuares/devise-i18n.git'
 gem 'devise'
 gem 'foundation-icons-sass-rails'
 gem 'foundation-rails', '~> 5.5'
 gem 'i18n-active_record', :git => 'https://github.com/acesuares/i18n-active_record.git'
-gem 'inline_forms', '~> 6.2'
+gem 'inline_forms', path: "#{File.expand_path(GENERATOR_PATH)}"
 gem 'jquery-rails'
 gem 'jquery-timepicker-rails'
 gem 'jquery-ui-sass-rails'
@@ -336,16 +335,10 @@ say "- Add human_attribute_name in app/models/application_record.rb"
 remove_file 'app/models/application_record.rb' # the one that 'rails new' created
 copy_file File.join(GENERATOR_PATH, 'lib/generators/templates/application_record.rb'), "app/models/application_record.rb"
 
-say "- Install ckeditor..."
-generate "ckeditor:install --orm=active_record --backend=carrierwave"
-
-say "- Copy ckeditor/config.js to app/javascripts..."
-empty_directory "app/assets/javascripts/ckeditor"
-copy_file File.join(GENERATOR_PATH,'lib/generators/assets/javascripts/ckeditor/config.js'), "app/assets/javascripts/ckeditor/config.js"
-
-say "- Add ckeditor/config.js to precompile assets..."
-append_to_file 'config/initializers/assets.rb',
-  'Rails.application.config.assets.precompile += %w[ckeditor/config.js]'
+say "- Install ActionText..."
+generate "active_storage:install"
+run "bundle exec rails action_text:install:migrations"
+run "bundle install"
 
 say "- Paper_trail install..."
 # --with-mysql embeds InnoDB options in create_table; that SQL is invalid on SQLite (example app).
@@ -578,9 +571,9 @@ git commit: " -a -m 'Initial Commit'"
 # example
 if ENV['install_example'] == 'true'
   say "\nInstalling example application..."
-  run 'bundle exec rails g inline_forms Photo name:string caption:string image:image_field description:ckeditor apartment:belongs_to _presentation:\'#{name}\''
+  run 'bundle exec rails g inline_forms Photo name:string caption:string image:image_field description:rich_text apartment:belongs_to _presentation:\'#{name}\''
   run 'bundle exec rails generate uploader Image'
-  run 'bundle exec rails g inline_forms Apartment name:string title:string description:ckeditor photos:has_many photos:associated _enabled:yes _presentation:\'#{name}\''
+  run 'bundle exec rails g inline_forms Apartment name:string title:string description:rich_text photos:has_many photos:associated _enabled:yes _presentation:\'#{name}\''
   run 'bundle exec rake db:migrate'
 
   remove_file 'public/index.html'

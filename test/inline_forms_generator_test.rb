@@ -89,6 +89,17 @@ class InlineFormsGeneratorTest < Minitest::Test
     assert_includes(migration, "#     t.unknown :payload")
   end
 
+  def test_rich_text_adds_has_rich_text_without_migration_column
+    run_generator("Article", "title:string", "content:rich_text")
+
+    model = read("app/models/article.rb")
+    migration = read_single_migration_for("articles")
+
+    assert_includes(model, "has_rich_text :content")
+    refute_includes(migration, "t.no_migration :content")
+    refute_includes(migration, "t.text :content")
+  end
+
   private
 
   def build_destination_skeleton!

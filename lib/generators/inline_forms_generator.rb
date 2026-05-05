@@ -110,6 +110,7 @@ module InlineForms
         @has_many                 = "\n"
         @has_one                  = "\n"
         @habtm                    = "\n"
+        @has_rich_text            = "\n"
         @has_attached_files       = "\n"
         @presentation             = "\n"
         @order                    = "\n"
@@ -142,6 +143,9 @@ module InlineForms
               attribute.type         == :has_and_belongs_to_many ||
               attribute.type         == :check_list
             @habtm << '  has_and_belongs_to_many :' + attribute.name + "\n"
+          end
+          if attribute.type == :rich_text
+            @has_rich_text << '  has_rich_text :' + attribute.name + "\n"
           end
           if attribute.name == '_presentation'
             @presentation <<  "  def _presentation\n" +
