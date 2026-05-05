@@ -22,3 +22,6 @@ pkg
 *.gem
 
 Gemfile.lock
+
+# Local notes / analysis (not tracked)
+stuff/

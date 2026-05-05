@@ -34,6 +34,11 @@ gem 'sass-rails'
 gem 'sprockets-rails'
 # Rails 7 default JavaScript tooling: importmap-rails replaces Webpacker.
 gem 'importmap-rails'
+# Hotwire/Turbo. Loaded into the Sprockets bundle by inline_forms.js with
+# Turbo Drive disabled by default so existing UJS-driven links/forms keep
+# working; turbo-rails also registers the `turbo_stream` Mime type and view
+# format so future controllers can opt in to Turbo Stream responses.
+gem 'turbo-rails'
 gem 'tabs_on_rails', :git => 'https://github.com/acesuares/tabs_on_rails.git', :branch => 'update_remote_before_action'
 gem 'unicorn'
 gem 'validation_hints'
