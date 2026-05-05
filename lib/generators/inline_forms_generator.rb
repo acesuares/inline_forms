@@ -71,6 +71,7 @@ module InlineForms
 
     end
     argument :attributes, :type => :array,  :banner => "[name:form_element]..."
+    class_option :allow_unknown, :type => :boolean, :default => false, :desc => "Allow unknown field types (legacy behavior: comment generated lines instead of failing)."
 
     source_root File.expand_path(File.join(File.dirname(__FILE__), 'templates'))
 
@@ -80,11 +81,24 @@ module InlineForms
       @flag_create_migration              = true
       @flag_create_model                  = true
       @create_id                          = true
+      @unknown_attributes                 = []
       for attribute in attributes
         @flag_not_accessible_through_html = false if attribute.name == '_enabled'
         @flag_create_migration            = false if attribute.name == '_no_migration'
         @flag_create_model                = false if attribute.name == '_no_model'
         @create_id                        = false if attribute.name == "_id" && attribute.type == :false
+        if !attribute.name.start_with?('_') && (
+            (attribute.attribute? && attribute.attribute_type == :unknown) ||
+            (attribute.migration? && attribute.column_type == :unknown)
+          )
+          @unknown_attributes << "#{attribute.name}:#{attribute.type}"
+        end
+      end
+      allow_unknown = options[:allow_unknown].to_s == 'true'
+      if !allow_unknown && !@unknown_attributes.empty?
+        raise Thor::Error,
+          "Unknown field type(s): #{@unknown_attributes.uniq.join(', ')}. " +
+          "Add a valid form element type or pass --allow-unknown to keep legacy commented output."
       end
       @flag_create_controller             = @flag_create_model
       @flag_create_resource_route         = @flag_create_model
