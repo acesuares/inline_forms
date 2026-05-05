@@ -2,15 +2,28 @@
 InlineForms::SPECIAL_COLUMN_TYPES[:rich_text]=:no_migration
 
 def rich_text_show(object, attribute)
-  value = object.respond_to?(attribute) ? object.public_send(attribute) : nil
-  text = value.respond_to?(:to_plain_text) ? value.to_plain_text : value.to_s
-  display_value = text.blank? ? "<i class='fi-plus'></i>".html_safe : value.to_s.html_safe
+  rich = object.respond_to?(attribute) ? object.public_send(attribute) : nil
+  is_blank =
+    rich.nil? ||
+    (rich.respond_to?(:blank?) && rich.blank?) ||
+    (rich.respond_to?(:to_plain_text) && rich.to_plain_text.to_s.strip.empty?)
+  display_value = is_blank ? "<i class='fi-plus'></i>".html_safe : rich.to_s.html_safe
   link_to_inline_edit object, attribute, display_value, from_callee: __callee__
 end
 
 def rich_text_edit(object, attribute)
-  value = object.respond_to?(attribute) ? object.public_send(attribute) : nil
-  rich_text_area_tag attribute, value.to_s, :class => 'attribute_text_area'
+  rich = object.respond_to?(attribute) ? object.public_send(attribute) : nil
+  body =
+    if rich.respond_to?(:body) && !rich.body.nil?
+      rich.body.to_s
+    elsif rich.respond_to?(:to_s)
+      rich.to_s
+    else
+      ''
+    end
+  input_id = "trix_input_#{object.class.name.underscore}_#{object.id || 'new'}_#{attribute}"
+  hidden_field_tag(attribute, body, id: input_id) +
+    content_tag(:'trix-editor', ''.html_safe, input: input_id, class: 'trix-content attribute_rich_text_area')
 end
 
 def rich_text_update(object, attribute)

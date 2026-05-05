@@ -336,7 +336,7 @@ remove_file 'app/models/application_record.rb' # the one that 'rails new' create
 copy_file File.join(GENERATOR_PATH, 'lib/generators/templates/application_record.rb'), "app/models/application_record.rb"
 
 say "- Install ActionText..."
-generate "active_storage:install"
+run "bundle exec rails active_storage:install"
 run "bundle exec rails action_text:install:migrations"
 run "bundle install"
 
