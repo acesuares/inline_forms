@@ -1,12 +1,14 @@
 GENERATOR_PATH = File.dirname(File.expand_path(__FILE__)) +  '/../'
 
+# Rails 7 dropped --skip-gemfile, so `rails new` always writes its own Gemfile.
+# Remove it so our `create_file` below does not prompt for overwrite.
+remove_file 'Gemfile' if File.exist?('Gemfile')
 create_file 'Gemfile', "# created by inline_forms #{ENV['inline_forms_version']} on #{Date.today}\n"
 
 add_source 'https://rubygems.org'
 
 gem 'cancancan'
 gem 'carrierwave'
-gem 'coffee-rails'
 gem 'devise-i18n', :git => 'https://github.com/acesuares/devise-i18n.git'
 gem 'devise'
 gem 'foundation-icons-sass-rails'
@@ -19,23 +21,26 @@ gem 'jquery-ui-sass-rails'
 gem 'mini_magick'
 gem 'mysql2'
 gem 'paper_trail', git: 'https://github.com/acesuares/paper_trail.git'
-# RubyGems 7.0.x requires railties >= 6, < 8 (works with Rails 6.1). The default branch of
-# https://github.com/svenfuchs/rails-i18n.git targets Rails 8+ (railties >= 8) and breaks bundle
-# resolution next to rails 6.1.3.1. Same approach as the Papiamentu app.
 gem 'rails-i18n', '~> 7.0'
 gem 'rails-jquery-autocomplete'
-gem 'rails', '6.1.3.1'
+gem 'rails', '~> 7.0.0'
 gem 'rake'
 gem 'remotipart', '~> 1.0'
 gem 'rvm'
 gem 'sass-rails'
+# Rails 7 no longer adds sprockets-rails to the default Gemfile; declare it
+# explicitly because the gem's own assets (foundation, jquery, etc.) live in
+# app/assets and rely on the Sprockets pipeline.
+gem 'sprockets-rails'
+# Rails 7 default JavaScript tooling: importmap-rails replaces Webpacker.
+gem 'importmap-rails'
 gem 'tabs_on_rails', :git => 'https://github.com/acesuares/tabs_on_rails.git', :branch => 'update_remote_before_action'
 gem 'unicorn'
 gem 'validation_hints'
 gem 'will_paginate' #, git: 'https://github.com/acesuares/will_paginate.git'
 
 gem_group :test do
-  # Rails 6.1.3 expects Minitest 5; 6.x breaks railties test runner (run arity, parallelization).
+  # Rails 7 still expects Minitest 5; 6.x breaks the railties test runner.
   gem 'minitest', '~> 5.25'
 end
 
@@ -156,7 +161,7 @@ create_file "db/migrate/" +
   Time.now.utc.strftime("%Y%m%d%H%M%S") +
   "_" +
   "devise_create_users.rb", <<-DEVISE_MIGRATION.strip_heredoc
-class DeviseCreateUsers < ActiveRecord::Migration[5.0]
+class DeviseCreateUsers < ActiveRecord::Migration[7.0]
 
   def change
     create_table(:users) do |t|
@@ -309,7 +314,7 @@ create_file "db/migrate/" +
   Time.now.utc.strftime("%Y%m%d%H%M%S") +
   "_" +
   "inline_forms_create_join_table_user_role.rb", <<-ROLES_MIGRATION.strip_heredoc
-  class InlineFormsCreateJoinTableUserRole < ActiveRecord::Migration[5.0]
+  class InlineFormsCreateJoinTableUserRole < ActiveRecord::Migration[7.0]
     def self.up
       create_table  :roles_users, :id => false, :force => true do |t|
         t.integer   :role_id
@@ -363,7 +368,7 @@ create_file "db/migrate/" +
   Time.now.utc.strftime("%Y%m%d%H%M%S") +
   "_" +
   "inline_forms_create_view_for_translations.rb", <<-VIEW_MIGRATION.strip_heredoc
-  class InlineFormsCreateViewForTranslations < ActiveRecord::Migration[5.0]
+  class InlineFormsCreateViewForTranslations < ActiveRecord::Migration[7.0]
     def self.up
       execute 'CREATE VIEW translations
                AS

@@ -19,6 +19,18 @@ module InlineForms
   #
   class InlineFormsGenerator < Rails::Generators::NamedBase
     Rails::Generators::GeneratedAttribute.class_eval do #:doc:
+      # Override Rails::Generators::GeneratedAttribute.valid_type? so that our
+      # custom field types (dropdown, check_list, image_field, rich_text, ...)
+      # pass through parsing. We do our own unknown-type detection later (with
+      # Thor::Error + --allow-unknown), so it is safe to accept everything here.
+      #
+      # Rails 6.1 used to rescue ActiveRecord::Base.connection failures, which
+      # masked the issue; Rails 7+ raises NameError when ActiveRecord is not
+      # loaded yet, breaking generator unit tests.
+      def self.valid_type?(_type)
+        true
+      end
+
       # Deducts the column_type for migrations from the type.
       #
       # We first merge the Special Column Types with the Default Column Types,

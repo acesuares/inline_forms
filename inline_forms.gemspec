@@ -23,7 +23,7 @@ Gem::Specification.new do |s|
   s.add_dependency('rvm')
   s.add_dependency('thor')
   s.add_dependency('validation_hints')
-  s.add_dependency('rails', '>= 6.1.3.1', '< 7')
+  s.add_dependency('rails', '>= 7.0.0', '< 7.1')
   s.add_dependency('rails-i18n')
 
   s.add_development_dependency("minitest", "~> 5.0")
