@@ -25,3 +25,7 @@ Gemfile.lock
 
 # Local notes / analysis (not tracked)
 stuff/
+
+# Local sample images for the example app (not tracked; copied into
+# generated MyApp by the installer when --example is used)
+pics/

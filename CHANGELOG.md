@@ -4,6 +4,34 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [7.2.0] - 2026-05-05
+
+Rollout step 2 of `stuff/ujs-to-turbo.md` (gitignored): "One vertical slice in the gem (e.g. list + pagination) expressed as a frame; use it as the pattern for the rest." Picks the nested has_many list (apartments -> photos) as that slice.
+
+### Changed
+
+- **`app/views/inline_forms/_list.html.erb` — nested has_many list now renders as a `<turbo-frame>` instead of a `remote: true` UJS `<div>`**. The container that used to be `<div class="list_container" id="…">` is now `<turbo-frame id="…" class="list_container">` whenever `parent_class` is set (i.e. lists shown inside a parent's edit page, e.g. an Apartment's Photos). Top-level lists (`apartments#index` etc.) keep the classic `<div>` and full-page navigation they already had.
+- **Pagination on the nested list dropped `:remote => true`**. Inside the surrounding `<turbo-frame>` the page-link's same-URL GET returns a fresh frame and Turbo swaps just that region, so the `format.js { render :list }` + `list.js.erb` path is no longer the pagination transport (it stays in place for the `create` redirect, per the doc's "brief overlap" guidance).
+- **Per-row inline-edit links now carry `data-turbo="false"`** (in addition to `data-remote="true"`). Without that, Turbo Frames would intercept inline-edit clicks as in-frame navigation before jQuery UJS could turn them into the existing `format.js` XHR + `show.js.erb` toggle. The `data-turbo="false"` opt-out lets the per-row inline-edit flow keep working unchanged until its own conversion in rollout step 3.
+- **`app/controllers/inline_forms_controller.rb#index` now serves HTML for the nested case even when `Klass.not_accessible_through_html?` is true**. The flag exists to block direct top-level HTML CRUD on resources that should only be reachable through their parent (Photo is a typical example). Before this slice the flag short-circuited *all* HTML, which meant a `<turbo-frame>` GET from inside an Apartment edit page raised `ActionController::UnknownFormat`. The branch now reads: when the flag is set AND `parent_class` is supplied, render the partial with `layout: false` (a frame fragment is exactly what Turbo needs to swap); when the flag is set AND there is no parent, no HTML format is registered (existing security boundary preserved); when the flag is unset, behaviour is unchanged. cancan's `accessible_by` filter and the existing `load_and_authorize_resource` callback continue to gate the rows themselves.
+
+### Added
+
+- **Sample photo bundle for the example app**. The gem source ships a gitignored `pics/` directory (12 small jpgs). When `inline_forms create … --example` runs, the installer copies those into the generated app's `db/seed_images/` and emits a `SeedKonferenshaPhotos` migration that creates an Apartment named "Konferensha" and one Photo per file in `db/seed_images/`, attaching the jpg via the existing `image:image_field` CarrierWave mount. Because migrations run against both the development DB (`db:migrate`) and the test DB (`db:test:prepare`), `bundle exec rails test` sees the seeded gallery without any test-side fixture work.
+- **`Photo.per_page = 5` override (installer-injected)**. The model template at `lib/generators/templates/model.erb` emits the long-standing `attr_reader :per_page; @per_page = 7` pair, which is a no-op for will_paginate (it reads `Klass.per_page` as a class method, but the template defines it on instances). The installer now `inject_into_class`-es a real `self.per_page = 5` into the example app's `app/models/photo.rb` so 12 seeded photos paginate 5 / 5 / 2 and the new pagination test has actual page links to assert against. The shared model template is left alone for now; a broader fix is a separate slice.
+- **Integration test (`test/integration/example_app_apartment_photos_pagination_test.rb` in `--example` apps)** — new. Its `setup` block re-seeds the Konferensha gallery from `db/seed_images/` because `bundle exec rails test` loads the test DB from `db/schema.rb` (DDL-only), so the `SeedKonferenshaPhotos` migration's row inserts that landed in `db/development.sqlite3` never reach `db/test.sqlite3`. The test then asserts:
+  - The seeded gallery has ≥ 6 photos under Konferensha.
+  - `Photo.per_page` is the overridden 5.
+  - `GET /photos?parent_class=Apartment&parent_id=…&update=…&ul_needed=1` renders a `<turbo-frame id="apartment_<id>_photos_list">`, NOT a legacy `<div class="list_container" id="…">`.
+  - The same response includes a `.pagination` element (proving the gallery overflowed `per_page` and will_paginate emitted page links).
+  - Per-row links carry both `data-remote="true"` AND `data-turbo="false"` so UJS keeps handling them.
+
+### Notes
+
+- Top-level lists (`/apartments`) intentionally stay on the legacy `<div>` for this slice. They already paginated full-page (no `:remote => true`), so wrapping them in a frame would not be a UJS conversion at all and would change pagination behavior to in-frame swap, which is a UX decision that belongs in a later slice rather than slipping in alongside the JS-transport conversion.
+- `_tree.html.erb` and `_versions_list.html.erb` follow the same UJS+`js.erb` pattern as the nested branch of `_list.html.erb`. They are deliberately untouched in 7.2.0; this slice is meant as the pattern other lists copy.
+- Drive remains globally disabled (`Turbo.session.drive = false` from 7.1.2). Frames work independently of Drive, so the nested list's frame swap is unaffected by that setting; full-page navigation in the rest of the app continues to be Rails defaults + UJS.
+
 ## [7.1.2] - 2026-05-05
 
 ### Added

@@ -1,0 +1,113 @@
+# frozen_string_literal: true
+
+require_relative "../example_app/example_integration_test_case"
+
+# Smoke test for rollout step 2 of stuff/ujs-to-turbo.md (gem-side):
+# the nested has_many list (apartments -> photos) is now wrapped in a
+# <turbo-frame> and pagination is no longer remote: true. Relies on
+# the SeedKonferenshaPhotos migration that the inline_forms installer
+# generates when invoked with --example: it creates a "Konferensha"
+# Apartment with one Photo per file in db/seed_images/, and the gem
+# ships 12 sample jpgs in pics/, so combined with `Photo.per_page = 5`
+# (also set by the installer) this gallery paginates 5 / 5 / 2.
+class ExampleAppApartmentPhotosPaginationTest < ExampleAppIntegrationTestCase
+  # `bundle exec rails test` loads the test DB from db/schema.rb, which is
+  # DDL-only -- the SeedKonferenshaPhotos migration's row inserts never
+  # land in db/test.sqlite3. We re-seed here from the same db/seed_images/
+  # the installer copied into the app so the test asserts against real
+  # records (and real CarrierWave file mounts) without depending on
+  # development-DB state.
+  setup do
+    @apartment = Apartment.find_or_create_by!(name: "Konferensha") do |a|
+      a.title = "Konferensha sobre Papiamentu"
+    end
+    seed_dir = Rails.root.join("db", "seed_images")
+    if seed_dir.directory?
+      Dir.glob(seed_dir.join("*.{jpg,jpeg,png,gif}"), File::FNM_CASEFOLD).sort.each do |abs|
+        base = File.basename(abs)
+        next if Photo.exists?(name: base, apartment_id: @apartment.id)
+        File.open(abs, "rb") do |io|
+          Photo.create!(
+            name: base,
+            caption: "Konferensha foto #{base}",
+            apartment: @apartment,
+            image: io
+          )
+        end
+      end
+    end
+    @update_span = "apartment_#{@apartment.id}_photos_list"
+  end
+
+  test "seed migration left at least 6 photos under Konferensha so pagination triggers" do
+    assert @apartment.photos.count >= 6,
+      "expected SeedKonferenshaPhotos to seed >= 6 photos for Konferensha; " \
+      "got #{@apartment.photos.count}. Check db/seed_images/ and the migration."
+  end
+
+  test "Photo.per_page is overridden so will_paginate splits the gallery" do
+    assert_equal 5, Photo.per_page,
+      "expected the installer to set `self.per_page = 5` on Photo so the seeded gallery paginates"
+  end
+
+  test "nested photos index is wrapped in a <turbo-frame> instead of remote-UJS <div>" do
+    get photos_path(
+      parent_class: "Apartment",
+      parent_id: @apartment.id,
+      update: @update_span,
+      ul_needed: true
+    )
+    assert_response :success
+
+    assert_match(
+      %r{<turbo-frame\s+id="#{Regexp.escape(@update_span)}"},
+      @response.body,
+      "expected the nested photos list to render as <turbo-frame id=\"#{@update_span}\">"
+    )
+
+    refute_match(
+      %r{<div[^>]+class="list_container"[^>]+id="#{Regexp.escape(@update_span)}"},
+      @response.body,
+      "nested photos list should no longer use the legacy <div class=\"list_container\"> wrapper"
+    )
+  end
+
+  test "nested photos pagination renders will_paginate links inside the frame" do
+    get photos_path(
+      parent_class: "Apartment",
+      parent_id: @apartment.id,
+      update: @update_span,
+      ul_needed: true
+    )
+    assert_response :success
+
+    assert_match(
+      /<(?:div|nav)[^>]+class="[^"]*\bpagination\b[^"]*"/,
+      @response.body,
+      "expected will_paginate to render a .pagination element (gallery has more rows than Photo.per_page)"
+    )
+
+    refute_match(
+      /class="next"[^>]*data-remote="true"/,
+      @response.body,
+      "pagination links should no longer carry data-remote=\"true\" (Turbo Frame handles in-frame nav)"
+    )
+  end
+
+  test "per-row inline-edit link opts out of Turbo so UJS keeps handling it" do
+    get photos_path(
+      parent_class: "Apartment",
+      parent_id: @apartment.id,
+      update: @update_span,
+      ul_needed: true
+    )
+    assert_response :success
+
+    assert_match(
+      /data-remote="true"[^>]*data-turbo="false"|data-turbo="false"[^>]*data-remote="true"/,
+      @response.body,
+      "per-row links must keep data-remote=true AND opt out of Turbo with data-turbo=false " \
+      "(otherwise Turbo Frames would intercept inline-edit clicks before UJS sees them)"
+    )
+  end
+end

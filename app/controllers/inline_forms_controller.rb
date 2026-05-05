@@ -50,7 +50,18 @@ class InlineFormsController < ApplicationController
     @objects = @objects.order(@Klass.table_name + "." + @Klass.order_by_clause) if @Klass.respond_to?(:order_by_clause) && ! @Klass.order_by_clause.nil?
     @objects = @objects.where(conditions).paginate(:page => params[:page])
     respond_to do |format|
-      format.html { render 'inline_forms/_list', :layout => 'inline_forms' } unless @Klass.not_accessible_through_html?
+      # `not_accessible_through_html?` is about preventing direct top-level
+      # HTML CRUD on this resource (e.g. /photos when only Apartment is the
+      # public surface). The *nested* HTML render -- where `parent_class`
+      # was supplied and the response is destined for a parent page's
+      # `<turbo-frame>` -- is gated by the parent already (and by cancan
+      # above), so we still serve it, just without the inline_forms layout
+      # so Turbo Frames swaps only the frame in the response.
+      if @Klass.not_accessible_through_html?
+        format.html { render 'inline_forms/_list', layout: false } if @parent_class.present?
+      else
+        format.html { render 'inline_forms/_list', :layout => 'inline_forms' }
+      end
       format.js { render :list }
     end
   end

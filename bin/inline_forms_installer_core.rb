@@ -626,7 +626,99 @@ if ENV['install_example'] == 'true'
   run 'bundle exec rails g inline_forms Photo name:string caption:string image:image_field description:rich_text apartment:belongs_to _presentation:\'#{name}\''
   run 'bundle exec rails generate uploader Image'
   run 'bundle exec rails g inline_forms Apartment name:string title:string description:rich_text photos:has_many photos:associated _enabled:yes _presentation:\'#{name}\''
+
+  say "- Lower Photo.per_page so the seeded gallery paginates..."
+  # The model template (lib/generators/templates/model.erb) emits
+  #   attr_reader :per_page
+  #   @per_page = 7
+  # which is a long-standing typo: `attr_reader :per_page` defines an
+  # *instance* method, then `@per_page = 7` (executed in the class body)
+  # actively *clobbers* the class-level per_page that will_paginate
+  # exposes via `class_attribute :per_page` (its singleton-ivar storage
+  # also lives on `@per_page`). Net effect: nothing reads 7 anywhere,
+  # and the class-level per_page silently reverts to will_paginate's
+  # 30-default. Replace the pair on Photo with a real `self.per_page = 5`
+  # so the seeded gallery (12 photos) actually paginates 5/5/2.
+  gsub_file "app/models/photo.rb",
+            /^\s*attr_reader\s+:per_page\s*\n\s*@per_page\s*=\s*\d+\s*\n/,
+            "  self.per_page = 5\n"
+
   run 'bundle exec rake db:migrate'
+
+  # Seed the photos gallery from a local `pics/` folder. The folder is
+  # *gitignored* in the gem source (so the built .gem stays small and
+  # the gallery images are not committed) which means GENERATOR_PATH/pics
+  # exists only when the installer is run from the source repo, not when
+  # it is run from an installed gem on the developer's box. We therefore
+  # check, in order:
+  #   1. ENV['INLINE_FORMS_SEED_PICS']  -- explicit override path
+  #   2. GENERATOR_PATH/pics            -- gem source repo checkout
+  #   3. /home/code/inline_forms/pics   -- local dev convention
+  # and copy whichever is found into the generated app's db/seed_images/.
+  # The migration generated below is what reads from db/seed_images at
+  # `db:migrate` / `db:test:prepare` time, so this copy is only ever a
+  # one-shot at app generation.
+  pics_candidates = [
+    ENV["INLINE_FORMS_SEED_PICS"],
+    File.join(GENERATOR_PATH, "pics"),
+    "/home/code/inline_forms/pics",
+  ].compact
+  pics_src = pics_candidates.find { |p| Dir.exist?(p) }
+  if pics_src
+    seed_pics = Dir.glob(File.join(pics_src, "*.{jpg,jpeg,JPG,JPEG,png,PNG,gif,GIF}")).sort
+    if seed_pics.any?
+      say "- Copying #{seed_pics.size} sample photo(s) into db/seed_images/..."
+      empty_directory "db/seed_images"
+      seed_pics.each do |abs|
+        copy_file abs, File.join("db/seed_images", File.basename(abs))
+      end
+
+      say "- Generating Konferensha apartment + photos seed migration..."
+      sleep 1 # unique migration timestamp
+      seed_ts = Time.now.utc.strftime("%Y%m%d%H%M%S")
+      create_file "db/migrate/#{seed_ts}_seed_konferensha_photos.rb", <<-SEED_MIGRATION.strip_heredoc
+        class SeedKonferenshaPhotos < ActiveRecord::Migration[7.0]
+          # Seed an Apartment with a gallery of photos so the nested
+          # has_many list (apartments -> photos) has enough rows to
+          # trigger pagination. Driven by db/seed_images/, which the
+          # inline_forms installer copies from the gem's pics/ dir.
+          # Runs in development (via db:migrate) and against the test
+          # DB (via db:test:prepare), so integration tests can assert
+          # the paginated <turbo-frame> renders without seeding manually.
+          def up
+            apartment = Apartment.find_or_create_by!(name: "Konferensha") do |a|
+              a.title = "Konferensha sobre Papiamentu"
+            end
+
+            seed_dir = Rails.root.join("db", "seed_images")
+            return unless seed_dir.directory?
+
+            Dir.glob(seed_dir.join("*.{jpg,jpeg,png,gif}"), File::FNM_CASEFOLD).sort.each do |abs|
+              base = File.basename(abs)
+              next if Photo.exists?(name: base, apartment_id: apartment.id)
+              File.open(abs, "rb") do |io|
+                Photo.create!(
+                  name: base,
+                  caption: "Konferensha foto \#{base}",
+                  apartment: apartment,
+                  image: io
+                )
+              end
+            end
+          end
+
+          def down
+            apartment = Apartment.find_by(name: "Konferensha")
+            return unless apartment
+            apartment.photos.destroy_all
+            apartment.destroy
+          end
+        end
+      SEED_MIGRATION
+
+      run "bundle exec rake db:migrate"
+    end
+  end
 
   remove_file 'public/index.html'
 

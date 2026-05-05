@@ -41,7 +41,20 @@
   <% end %>
 <% end %>
 
-<%= raw "<div class=\"list_container\" id=\"#{update_span}\">" if ul_needed -%>
+<%#
+  Container element. For the nested has_many case (parent_class set) we
+  emit a `<turbo-frame>` so pagination clicks (and any future in-frame
+  re-render of this list) swap only the matching frame instead of doing
+  a full-page navigation. Top-level lists (parent_class.nil?) keep the
+  classic <div> + full-page pagination they already had.
+-%>
+<% if ul_needed -%>
+  <% if parent_class.nil? -%>
+    <%= raw "<div class=\"list_container\" id=\"#{update_span}\">" -%>
+  <% else -%>
+    <%= raw "<turbo-frame id=\"#{update_span}\" class=\"list_container\">" -%>
+  <% end -%>
+<% end -%>
 
 <!--  # list of objects -->
 <% for object in objects %>
@@ -59,15 +72,24 @@
         <%= link_to_destroy(object, css_class_id) -%>
       </div>
       <div  class="small-11 column">
+        <%#
+          The per-row inline-edit link is still UJS (remote: true +
+          format.js + show.js.erb). Inside a <turbo-frame> Turbo would
+          otherwise intercept the click as a frame navigation, so we
+          opt out with data-turbo=false until that flow has its own
+          Turbo conversion (rollout step 3 of stuff/ujs-to-turbo.md).
+        -%>
         <%= link_to h(object._presentation),
           send( path_to_object, object, :update => css_class_id),
-          :remote => true -%>
+          :remote => true,
+          :data => { :turbo => false } -%>
       </div>
     <% else %>
       <div  class="small-12 column">
         <%= link_to h(object._presentation),
           send( path_to_object, object, :update => css_class_id),
-          :remote => true -%>
+          :remote => true,
+          :data => { :turbo => false } -%>
       </div>
     <% end %>
   </div>
@@ -77,7 +99,13 @@
   <% pagination = will_paginate objects -%>
 <% else %>
   <% if pagination %>
-    <% pagination = will_paginate objects, :remote => true, :params => {:controller => attribute, :action => :index, :id => nil, :parent_class => parent_class, :parent_id => parent_id, :update => "#{parent_class.to_s.underscore}_#{parent_id}_#{attribute}", :ul_needed => true  } %>
+    <%#
+      Nested pagination is now driven by the surrounding <turbo-frame>:
+      the link's same-URL GET returns a fresh frame and Turbo swaps
+      just that region. No more remote: true + list.js.erb on the
+      pagination path.
+    -%>
+    <% pagination = will_paginate objects, :params => {:controller => attribute, :action => :index, :id => nil, :parent_class => parent_class, :parent_id => parent_id, :update => "#{parent_class.to_s.underscore}_#{parent_id}_#{attribute}", :ul_needed => true } %>
   <% end %>
 <% end %>
 <% if pagination %>
@@ -87,4 +115,10 @@
     </div>
   </div>
 <% end %>
-<%= raw "</div>" if ul_needed -%>
+<% if ul_needed -%>
+  <% if parent_class.nil? -%>
+    <%= raw "</div>" -%>
+  <% else -%>
+    <%= raw "</turbo-frame>" -%>
+  <% end -%>
+<% end -%>
