@@ -14,12 +14,11 @@
 // HTML POST and inline_forms controllers respond with `format.js` only,
 // raising `ActionController::UnknownFormat`).
 //
-// This foundation slice only relies on `turbo-rails` registering the
-// `turbo_stream` Mime type and view format on the server. When the first
-// view/flow is actually converted to a Turbo Frame or Stream (rollout
-// step 2 in stuff/ujs-to-turbo.md), Turbo JS will be loaded as an ES module
-// in the layout (`type="module"`) so the existing Sprockets bundle stays
-// intact and UJS keeps working alongside it.
+// Turbo is loaded separately by `app/views/layouts/inline_forms.html.erb`
+// (and `application.html.erb`) as `<script type="module">`, with
+// `Turbo.session.drive = false` so existing UJS-driven links/forms keep
+// working unchanged. `<turbo-frame>` and `format.turbo_stream` are
+// available for the per-view conversions that follow.
 
 $(function(){ $(document).foundation(); });
 // initialize datepickers
