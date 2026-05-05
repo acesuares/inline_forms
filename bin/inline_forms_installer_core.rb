@@ -8,7 +8,7 @@ create_file 'Gemfile', "# created by inline_forms #{ENV['inline_forms_version']}
 add_source 'https://rubygems.org'
 
 gem 'cancancan'
-gem 'carrierwave'
+gem 'carrierwave', '~> 3.1'
 gem 'devise-i18n', :git => 'https://github.com/acesuares/devise-i18n.git'
 gem 'devise'
 gem 'foundation-icons-sass-rails'
