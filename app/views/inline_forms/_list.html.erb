@@ -110,8 +110,20 @@
       the link's same-URL GET returns a fresh frame and Turbo swaps
       just that region. No more remote: true + list.js.erb on the
       pagination path.
+
+      The `update:` param must match the frame's id (`<update_span>`,
+      which is `…_list`). The legacy UJS pagination passed the OUTER
+      wrapper's id (`…` without `_list`) because list.js.erb did
+      `$('#<outer>').html(<rendered _list partial>)` and needed the
+      outer container, not the inner one. Turbo Frames swaps the
+      element with the matching id, so the param now carries the
+      frame id itself; otherwise the response (`<turbo-frame
+      id="…_list">`) and the request expectation (`Turbo-Frame:
+      <update_span>` derived from the URL `update=…` param) would
+      disagree and Turbo would log "the response did not contain the
+      expected <turbo-frame>" and ignore the page.
     -%>
-    <% pagination = will_paginate objects, :params => {:controller => attribute, :action => :index, :id => nil, :parent_class => parent_class, :parent_id => parent_id, :update => "#{parent_class.to_s.underscore}_#{parent_id}_#{attribute}", :ul_needed => true } %>
+    <% pagination = will_paginate objects, :params => {:controller => attribute, :action => :index, :id => nil, :parent_class => parent_class, :parent_id => parent_id, :update => "#{parent_class.to_s.underscore}_#{parent_id}_#{attribute}_list", :ul_needed => true } %>
   <% end %>
 <% end %>
 <% if pagination %>

@@ -4,6 +4,21 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [7.2.2] - 2026-05-05
+
+### Fixed
+
+- **Pagination "Next" / "Previous" / page-N links inside the nested-list `<turbo-frame>` did nothing**. Repro: open an Apartment with > 5 photos, click "Next" (or "2") under the gallery -- network tab shows the GET completing 200, but the page does not change. Turbo logs `the response (200) did not contain the expected <turbo-frame id="apartment_<id>_photos_list"> and will be ignored`. Root cause is a long-standing legacy id mismatch: `_show.html.erb` wraps `_list` in `<div id="apartment_<id>_photos">` (outer), `_list.html.erb` wraps its rows in `<div id="apartment_<id>_photos_list">` (inner), and `will_paginate(..., :update => "...#{attribute}")` historically targeted the OUTER id because legacy `list.js.erb` did `$('#<outer>').html(<rendered _list partial>)`. Turbo Frames does its swap by frame-id match between the response and the DOM, so the URL's `update=apartment_<id>_photos` produced `<turbo-frame id="apartment_<id>_photos">` server-side while the live page held `<turbo-frame id="apartment_<id>_photos_list">`, and Turbo refused to swap.
+- **`app/views/inline_forms/_list.html.erb`**: pagination's `:update` param on the nested branch now carries the same `_list` suffix the surrounding `<turbo-frame>` uses (`"#{parent_class.to_s.underscore}_#{parent_id}_#{attribute}_list"` instead of `"…#{attribute}"`). The URL is just metadata for the next render -- the partial recomputes `update_span` from `parent_class` / `parent_id` / `attribute` regardless -- so the only behavioural effect is that the `<turbo-frame id="…">` rendered server-side now matches the `Turbo-Frame:` header Turbo derives from the link's enclosing frame, the swap succeeds, and Next/Prev/page-N actually paginate in place.
+
+### Added
+
+- **Test `pagination links carry the same update= as the surrounding turbo-frame id`** in `test/integration/example_app_apartment_photos_pagination_test.rb`: scrapes every `?…update=…` value out of the rendered pagination block and asserts at least one equals the frame id (`apartment_<id>_photos_list`) AND none equal the legacy outer id (`apartment_<id>_photos`). This is the exact regression class 7.2.1 shipped with -- the existing `data-remote="true"` refute did not catch it because the bug was in the param value, not the data-remote attribute. The earlier "no data-remote" check is also tightened from `class="next"` to `class="next_page"` (the actual will_paginate CSS class).
+
+### Notes
+
+- `_show.html.erb`'s outer `<div id="apartment_<id>_photos">` wrapper is deliberately left in place. Removing it would simplify the markup but ripple into anything else still keyed off that id; the slice's contract is unchanged: pagination targets the frame, the frame holds the list, and the per-row UJS swap (`$('#<row_id>').html(...)`) is still gated by the row's `data-turbo="false"` ancestor opt-out from 7.2.1.
+
 ## [7.2.1] - 2026-05-05
 
 ### Fixed

@@ -88,10 +88,42 @@ class ExampleAppApartmentPhotosPaginationTest < ExampleAppIntegrationTestCase
     )
 
     refute_match(
-      /class="next"[^>]*data-remote="true"/,
+      /class="next_page"[^>]*data-remote="true"/,
       @response.body,
       "pagination links should no longer carry data-remote=\"true\" (Turbo Frame handles in-frame nav)"
     )
+  end
+
+  test "pagination links carry the same update= as the surrounding turbo-frame id" do
+    # This is the regression class that broke "Next" in 7.2.1: the
+    # legacy UJS pagination passed `update=apartment_<id>_photos`
+    # (the OUTER wrapper id from _show.html.erb, which list.js.erb
+    # used as the swap target). Turbo Frames swaps by id-match between
+    # the frame in the DOM and a frame in the response, so when a Next
+    # click re-rendered _list with update_span derived from the URL,
+    # the response contained `<turbo-frame id="apartment_<id>_photos">`
+    # while the page held `<turbo-frame id="apartment_<id>_photos_list">`,
+    # and Turbo logged "the response did not contain the expected
+    # <turbo-frame>" and dropped the swap. The `update=` param on every
+    # pagination link must be the same id as the surrounding frame.
+    get photos_path(
+      parent_class: "Apartment",
+      parent_id: @apartment.id,
+      update: @update_span,
+      ul_needed: true
+    )
+    assert_response :success
+
+    page_link_updates =
+      @response.body.scan(/href="[^"]*\?[^"]*update=([^&"]+)[^"]*"/).flatten
+
+    assert page_link_updates.any? { |u| u == @update_span },
+      "expected at least one pagination link to carry update=#{@update_span} " \
+      "(matching the <turbo-frame id=\"#{@update_span}\">), got updates=#{page_link_updates.inspect}"
+
+    refute page_link_updates.any? { |u| u == @update_span.sub(/_list\z/, "") },
+      "no pagination link should still carry the legacy outer-wrapper id " \
+      "(#{@update_span.sub(/_list\z/, "")}) -- Turbo Frame can't swap on that id"
   end
 
   test "row container opts out of Turbo so swapped-in UJS forms (replace photo etc.) keep working" do
