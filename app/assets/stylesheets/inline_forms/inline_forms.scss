@@ -6,7 +6,7 @@
 @import 'foundation_and_overrides';
 
 .contain-to-grid {
-  background-color: $body-bg !important;
+  background-color: $body-background !important;
 }
 
 input {
@@ -26,42 +26,47 @@ select:hover, select:focus {
 }
 
 #inline_forms_application_top_bar {
+  background-color: #A3381E;
+  color: #FFFFFF;
+  &,
+  .menu,
+  .menu li,
+  .menu a {
     background-color: #A3381E;
     color: #FFFFFF;
-    .top-bar-section li a {
-      background-color: #A3381E;
-    }
+  }
 }
 
 #inline_forms_model_top_bar {
   background-color: #E1C150;
   padding-top: 45px;
   height: 90px;
-  .top-bar-section {
-    .right, li, .has-form {
-      background-color: #E1C150;
-    }
-    .inline_forms_model_top_bar_buttons {
-      top: 4px !important;
-      padding: 7px 0 7px 0 !important;
-      margin: 0 !important;
-    }
-    .new_button  {
-      background-color: #E1C150;
-      color: #B94C32;
-      font-size: 1.3rem;
-      padding: 0 2rem 0 1rem;
-    }
-    .new_button:hover, .new_button:focus {
-      color: white;
-      -webkit-transition-property: color;
-      transition-property: color;
-    }
-    input[type=text]:hover, input[type=text]:focus {
-      background-color: lighten(#fff8e0, 5%);
-      -webkit-transition-property: background-color;
-      transition-property: background-color;
-    }
+  .top-bar-right,
+  .menu,
+  .menu li,
+  .menu > li > a {
+    background-color: #E1C150;
+  }
+  .inline_forms_model_top_bar_buttons {
+    top: 4px !important;
+    padding: 7px 0 7px 0 !important;
+    margin: 0 !important;
+  }
+  .new_button {
+    background-color: #E1C150;
+    color: #B94C32;
+    font-size: 1.3rem;
+    padding: 0 2rem 0 1rem;
+  }
+  .new_button:hover, .new_button:focus {
+    color: white;
+    -webkit-transition-property: color;
+    transition-property: color;
+  }
+  input[type=text]:hover, input[type=text]:focus {
+    background-color: lighten(#fff8e0, 5%);
+    -webkit-transition-property: background-color;
+    transition-property: background-color;
   }
 }
 
@@ -231,7 +236,8 @@ select:hover, select:focus {
   top: 4px !important;
 }
 
-.top-bar-section {
+#inline_forms_model_top_bar .top-bar-right,
+#inline_forms_application_top_bar .top-bar-right {
   padding-left: rem-calc(12) !important;
   padding-right: rem-calc(12) !important;
 }
@@ -317,6 +323,6 @@ select:hover, select:focus {
   margin-top: -2px;
 }
 
-#inline_forms_model_top_bar .top-bar-section .inline_forms_model_top_bar_buttons {
+#inline_forms_model_top_bar .inline_forms_model_top_bar_buttons {
   top: 6px !important;
 }

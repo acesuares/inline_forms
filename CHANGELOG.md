@@ -4,6 +4,13 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [7.2.4] - 2026-05-06
+
+### Changed
+
+- **ZURB Foundation**: generated apps now use **Foundation for Sites 6** (`foundation-rails` **~> 6.6.2**) instead of the legacy 5.5 line. Stylesheets use the Foundation 6 mixin entrypoint (`settings/settings` + selective `@include`s), **flex grid** (`foundation-flex-grid`) so existing `.row` / `.column` / `.columns` markup keeps working, plus small shims for Foundation 5 helpers (`.button.expand`, `.column.centered`). Top-bar partials were updated to the Foundation 6 layout (`top-bar-left` / `top-bar-right`, `ul.menu`, `ul.dropdown.menu` with `data-dropdown-menu`). Visibility / alignment classes were renamed where needed (`hide-for-large-up` → `hide-for-large`, `text-centered` → `text-center`). `$body-bg` references in SCSS now use **`$body-background`** (Foundation 6 settings).
+- **Installer Gemfile** (`bin/inline_forms_installer_core.rb`): add **`autoprefixer-rails`** (recommended by foundation-rails). **`foundation-rails` is pinned to ~> 6.6.2** rather than 6.9+: newer foundation-rails releases assume Dart Sass (`math.*` in SCSS), which does not compile under **sassc** (the path still used here via `sass-rails`).
+
 ## [7.2.3] - 2026-05-06
 
 ### Fixed

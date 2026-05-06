@@ -11,8 +11,10 @@ gem 'cancancan'
 gem 'carrierwave', '~> 3.1'
 gem 'devise-i18n', :git => 'https://github.com/acesuares/devise-i18n.git'
 gem 'devise'
+gem 'autoprefixer-rails'
 gem 'foundation-icons-sass-rails'
-gem 'foundation-rails', '~> 5.5'
+# 6.7+ targets Dart Sass (`math.*`); this stack still uses sassc via sass-rails.
+gem 'foundation-rails', '~> 6.6.2'
 gem 'i18n-active_record', :git => 'https://github.com/acesuares/i18n-active_record.git'
 gem 'inline_forms', path: "#{File.expand_path(GENERATOR_PATH)}"
 gem 'jquery-rails'

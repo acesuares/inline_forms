@@ -1,47 +1,43 @@
 <div class="contain-to-grid fixed">
-  <nav id='inline_forms_application_top_bar' class="top-bar" data-topbar>
-    <ul class="title-area">
-      <li class="name">
-        <h1><a href="/"><%= application_name %> v<%= inline_forms_version %> <%= current_user.name %></a></h1>
-      </li>
-      <li class="toggle-topbar menu-icon">
-        <a href="#"><span></span></a>
-      </li>
-    </ul>
-    <section class="top-bar-section">
-      <ul class="right">
+  <nav id='inline_forms_application_top_bar' class="top-bar">
+    <div class="top-bar-left">
+      <ul class="menu">
+        <li class="menu-text">
+          <h1 style="margin: 0; font-size: inherit;"><a href="/"><%= application_name %> v<%= inline_forms_version %> <%= current_user.name %></a></h1>
+        </li>
+      </ul>
+    </div>
+    <div class="top-bar-right">
+      <ul class="dropdown menu" data-dropdown-menu>
         <% if current_user.role?(:superadmin) && Rails.env.development? %>
-          <li class="has-dropdown">
-            <%= switch_user_select %>
-          </li>
+          <li class="menu-text"><%= switch_user_select %></li>
         <% end %>
         <% if current_user.role?(:admin) || current_user.role?(:superadmin) %>
-          <li class="has-dropdown">
+          <li>
             <a href="#"><%= t 'common.more' %></a>
-            <ul class="dropdown">
+            <ul class="menu">
               <% MODEL_TABS.each do |m| %>
                 <% model = m.singularize.camelcase.constantize rescue nil %>
                   <% unless model.nil? || model.not_accessible_through_html? %>
                   <% if can? :update, model %>
-                    <li>
-                      <%= link_to model.model_name.human, '/' +  m %>
-                    </li>
+                  <li>
+                    <%= link_to model.model_name.human, '/' +  m %>
+                  </li>
                   <% end %>
                 <% end %>
               <% end %>
             </ul>
           </li>
         <% end %>
-        <li class="has-dropdown">
+        <li>
           <a href="#"><%= current_user.name %></a>
-          <ul class="dropdown">
+          <ul class="menu">
             <li>
               <%= link_to( t("common.logout"), destroy_user_session_path, :method => :delete) if current_user  %>
             </li>
           </ul>
         </li>
       </ul>
-    </section>
-
+    </div>
   </nav>
 </div>
