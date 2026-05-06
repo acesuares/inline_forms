@@ -12,14 +12,19 @@ gem 'carrierwave', '~> 3.1'
 gem 'devise-i18n', :git => 'https://github.com/acesuares/devise-i18n.git'
 gem 'devise'
 gem 'autoprefixer-rails'
-gem 'foundation-icons-sass-rails'
-# 6.7+ targets Dart Sass (`math.*`); this stack still uses sassc via sass-rails.
-gem 'foundation-rails', '~> 6.6.2'
+# foundation-rails 6.7+ uses Dart Sass (`sass:math`); sass-rails/sassc removed.
+# Visually tuned against foundation-rails ~> 6.6.2; current pin ~> 6.9 (6.9.0.x).
+gem 'foundation-rails', '~> 6.9'
 gem 'i18n-active_record', :git => 'https://github.com/acesuares/i18n-active_record.git'
 gem 'inline_forms', path: "#{File.expand_path(GENERATOR_PATH)}"
 gem 'jquery-rails'
 gem 'jquery-timepicker-rails'
-gem 'jquery-ui-sass-rails'
+# jQuery UI JavaScript (`//= require jquery.ui.all` in inline_forms.js). SCSS + PNGs
+# are vendored in the inline_forms engine (Dart Sass cannot evaluate sass-rails
+# `image-path()`). Pin matches former jquery-ui-sass-rails 4.0.3.x stack.
+gem 'jquery-ui-rails', '4.0.3'
+# Foundation Icons SCSS + fonts are vendored in the inline_forms engine (Dart Sass;
+# foundation-icons-sass-rails depended on sass-rails).
 gem 'mini_magick'
 gem 'mysql2'
 gem 'paper_trail', '~> 16.0'
@@ -29,7 +34,7 @@ gem 'rails', '~> 7.0.0'
 gem 'rake'
 gem 'remotipart', '~> 1.0'
 gem 'rvm'
-gem 'sass-rails'
+gem 'dartsass-rails'
 # Rails 7 no longer adds sprockets-rails to the default Gemfile; declare it
 # explicitly because the gem's own assets (foundation, jquery, etc.) live in
 # app/assets and rely on the Sprockets pipeline.
@@ -74,6 +79,27 @@ end
 say "- Running bundle..."
 run "gem install bundler"
 run "bundle install"
+
+say "- Dart Sass: inline_forms stylesheet entrypoints + initializer..."
+copy_file File.join(GENERATOR_PATH, "lib/installer_templates/dartsass/inline_forms_dartsass_builds.rb"),
+          "config/initializers/inline_forms_dartsass_builds.rb"
+copy_file File.join(GENERATOR_PATH, "lib/installer_templates/dartsass/inline_forms_main.scss"),
+          "app/assets/stylesheets/inline_forms_install/inline_forms_main.scss"
+copy_file File.join(GENERATOR_PATH, "lib/installer_templates/dartsass/devise_main.scss"),
+          "app/assets/stylesheets/inline_forms_install/devise_main.scss"
+
+say "- Dart Sass: rails dartsass:install (builds/, manifest, Procfile.dev)..."
+run "bundle exec rails dartsass:install"
+
+say "- Dart Sass: drop default application.css (manifest links builds/*.css only)..."
+remove_file "app/assets/stylesheets/application.css"
+
+insert_into_file "test/test_helper.rb", <<~'DARTSASS_TEST', after: %(require "rails/test_help"\n)
+
+  # Dart Sass writes CSS to app/assets/builds; Sprockets does not compile .scss.
+  Rails.application.load_tasks
+  Rake::Task["dartsass:build"].invoke
+DARTSASS_TEST
 
 say "- Database setup: creating config/database.yml with development database #{ENV['database']}"
 remove_file "config/database.yml" # the one that 'rails new' created
@@ -341,6 +367,9 @@ say "- Installaing ZURB Foundation..."
 
 say "- Copy inline_forms_devise file for custom styles..."
 copy_file File.join(GENERATOR_PATH, 'lib/generators/assets/stylesheets/inline_forms_devise.css'), 'app/assets/stylesheets/inline_forms_devise.css'
+
+say "- Sprockets: link inline_forms_devise.css (logical path; dartsass:install drops link_directory ../stylesheets)..."
+append_to_file "app/assets/config/manifest.js", "//= link inline_forms_devise.css\n"
 
 say "- Add human_attribute_name in app/models/application_record.rb"
 remove_file 'app/models/application_record.rb' # the one that 'rails new' created

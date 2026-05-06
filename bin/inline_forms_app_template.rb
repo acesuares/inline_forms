@@ -2,7 +2,9 @@ require 'rvm'
 
 if RVM.current && ENV['skiprvm'] !='true'
   rvm_version = "#{ENV['ruby_version']}@#{app_name}"
-  RVM.chdir "../#{app_name}" do
+  # Rails' `app_name` is underscored (e.g. my_app) while the directory may be
+  # camel-cased (MyApp); `../#{app_name}` breaks on case-sensitive filesystems.
+  RVM.chdir(File.expand_path(".")) do
     say "Working directory is #{`pwd`}"
     RVM.use_from_path! '.' # TODO ROYTJE FIX THIS BELOW
 # Warning! PATH is not properly set up, '/home/vagrant/.rvm/gems/ruby-2.0.0-p247@MyApp/bin' is not available,

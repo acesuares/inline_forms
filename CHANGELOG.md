@@ -4,6 +4,22 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [7.2.10] - 2026-05-06
+
+### Changed
+
+- **Generated apps: Dart Sass instead of sass-rails (sassc)**. The installer Gemfile (`bin/inline_forms_installer_core.rb`) replaces **`sass-rails`** with **`dartsass-rails`**, runs **`rails dartsass:install`**, drops the default **`app/assets/stylesheets/application.css`** (Sprockets must not compile `.scss`), copies **`config/initializers/inline_forms_dartsass_builds.rb`** plus Dart Sass entry files under **`app/assets/stylesheets/inline_forms_install/`**, and appends **`test/test_helper.rb`** with **`Rake::Task["dartsass:build"].invoke`** so CI/tests materialize **`app/assets/builds/*.css`** before integration tests. The initializer documents the prior visually tuned stack (**`foundation-rails` ~> 6.6.2** + sassc) beside the new pin (**`foundation-rails` ~> 6.9** + Dart Sass) for regression comparison.
+- **`foundation-rails` ~> 6.9** (e.g. 6.9.0.x on RubyGems): Foundation 6.7+ relies on Dart Sass `sass:math`; that path is incompatible with sassc, which motivated the dartsass migration.
+- **jQuery UI**: SCSS and PNGs from the former **`jquery-ui-sass-rails`** stack are **vendored** under **`app/assets/stylesheets/jquery_ui/`** and **`app/assets/images/jquery-ui/`**, with every `url(image-path("jquery-ui/…"))` rewritten to **`url("jquery-ui/…")`** so Dart Sass can compile without Ruby asset helpers. **`gem 'jquery-ui-rails', '4.0.3'`** is added for the same JavaScript pin that **`jquery-ui-sass-rails`** used (`//= require jquery.ui.all` in **`inline_forms.js`**). **`jquery-ui-sass-rails`** is removed from the generated Gemfile.
+- **Foundation Icons**: **`foundation-icons-sass-rails`** is removed (it hard-depends on **`sass-rails`**). Icons are vendored as **`app/assets/stylesheets/inline_forms/_foundation_icons.scss`** (plain **`url()`** in `@font-face`) plus fonts under **`app/assets/fonts/`** (woff/ttf from cdnjs **foundicons 3.0.0**, svg from the original gem). **`inline_forms.scss`** (and the generator mirror) now **`@import 'inline_forms/foundation_icons'`** instead of **`foundation-icons`**.
+- **Dart Sass entrypoints** (`lib/installer_templates/dartsass/*.scss`): use **`@use "inline_forms/…" as *`** instead of **`@import`** to avoid top-level Dart Sass deprecation noise on those two files only (Foundation and vendored jQuery UI still use `@import` internally until a wider migration).
+
+### Fixed
+
+- **`bin/inline_forms_app_template.rb`**: RVM **`chdir`** no longer uses **`../#{app_name}`** (Rails exposes **`app_name`** underscored, e.g. **`my_app`**, while the directory may be **`MyApp`**), which broke on case-sensitive filesystems. The block now **`chdir`s the current app root** (`File.expand_path(".")`).
+- **Dart Sass could not resolve `themes/jquery.ui.sunny`**: **`dartsass-rails`** builds **`--load-path`** only from **`Rails.application.config.assets.paths`**, not from **`config.dartsass.extra_load_paths`**. **`lib/inline_forms.rb`** now appends the engine’s **`app/assets/stylesheets/jquery_ui`** directory to **`config.assets.paths`** when that directory exists.
+- **Devise layout / Sprockets**: after **`dartsass:install`**, **`manifest.js`** no longer includes **`link_directory ../stylesheets .css`**, so the host app’s plain **`inline_forms_devise.css`** was not linked. The installer appends **`//= link inline_forms_devise.css`** (logical path, not a path relative to **`config/`**).
+
 ## [7.2.8] - 2026-05-06
 
 ### Fixed
