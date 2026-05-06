@@ -62,7 +62,6 @@ gem_group :development do
   gem 'seed_dump', '~> 0.5.3'
   # Rails 6.1 ActiveRecord's sqlite3 adapter requires sqlite3 ~> 1.4; 2.x activates first and breaks.
   gem 'sqlite3', '~> 1.4'
-  gem 'switch_user'
   gem 'thin'
   gem 'yaml_db'
 end

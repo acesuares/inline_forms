@@ -4,6 +4,12 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [7.2.7] - 2026-05-06
+
+### Removed
+
+- **`switch_user` gem and the user-switcher dropdown it added to the application top bar**. The dropdown was rendered conditionally in `app/views/inline_forms/_header.html.erb` (`<li class="menu-text"><%= switch_user_select %></li>` inside `if current_user.role?(:superadmin) && Rails.env.development?`); it pulled in `switch_user` (https://github.com/flyerhzm/switch_user) which mounts an admin-only "switch user" `<select>` for impersonating other accounts during local development. **`bin/inline_forms_installer_core.rb` no longer adds `gem 'switch_user'` to the generated Gemfile**, the `<%= switch_user_select %>` `<li>` is removed from `_header.html.erb`, and the dead `#switch_user_identifier { ... }` rule is dropped from both `app/assets/stylesheets/inline_forms/inline_forms.scss` and `lib/generators/assets/stylesheets/inline_forms.scss`. The application top bar's right-hand dropdowns (More / current user / Logout) are unchanged.
+
 ## [7.2.6] - 2026-05-06
 
 ### Fixed

@@ -9,9 +9,6 @@
     </div>
     <div class="top-bar-right">
       <ul class="dropdown menu" data-dropdown-menu>
-        <% if current_user.role?(:superadmin) && Rails.env.development? %>
-          <li class="menu-text"><%= switch_user_select %></li>
-        <% end %>
         <% if current_user.role?(:admin) || current_user.role?(:superadmin) %>
           <li>
             <a href="#"><%= t 'common.more' %></a>
