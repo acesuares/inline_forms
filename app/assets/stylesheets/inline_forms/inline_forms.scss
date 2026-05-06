@@ -5,6 +5,20 @@
 @import 'jquery.ui.all';
 @import 'foundation_and_overrides';
 
+// Foundation 6 makes `.row` a flex container (`display: flex`); a nested
+// `.row` is therefore a flex item and shrinks to its content's intrinsic
+// width unless we tell it otherwise. Foundation 5's float-based `.row`
+// was a block element that filled its parent's width by default. The
+// inline-edit UJS swap (`show.js.erb`) inserts `_show.html.erb`'s outer
+// `<div class="row">` directly inside the list's `<div class="row top-level">`,
+// so without this override the inline-edit panel collapses to ~340px wide
+// and right-aligns inside the gold band instead of filling the row.
+.row .row {
+  flex: 1 1 100%;
+  width: 100%;
+  max-width: 100%;
+}
+
 .contain-to-grid {
   background-color: $body-background !important;
 }
@@ -51,6 +65,15 @@
   .menu > li > a {
     line-height: 45px;
     padding: 0 1rem;
+    color: #FFFFFF;
+  }
+  // F6 dropdown-menu paints the `::after` triangle indicator with
+  // `border-color: $primary-color transparent ...` (default blue). The
+  // app top bar is dark red, so the blue arrow next to "More" / "Admin"
+  // looks broken; force the triangle to white to match the link text.
+  .is-dropdown-submenu-parent > a::after {
+    border-top-color: #FFFFFF;
+    border-color: #FFFFFF transparent transparent;
   }
 }
 
@@ -62,6 +85,11 @@
   min-height: 0;
   .menu-text {
     padding: 0 1rem;
+  }
+  .menu-text,
+  .menu-text h1,
+  .menu-text h1 a {
+    color: #FFFFFF;
   }
   .menu-text h1 {
     margin: 0 !important;
@@ -114,10 +142,23 @@ select:hover, select:focus {
   .menu > li > a {
     background-color: #E1C150;
   }
+  // F6 buttons (`.button`) and inputs (`input[type=text]`) ship with
+  // different default heights -- buttons size to padding+line-height
+  // (~30px), inputs to F6's `$input-height` (default 2.4375rem ≈ 39px).
+  // In the search row that puts `[x]` and `[zoek]` shorter than the
+  // `zoek op naam...` input. Pin all three to the same 32px box so they
+  // line up like the F5 chrome did when `$topbar-height` was 45px.
   .inline_forms_model_top_bar_buttons {
     top: 4px !important;
-    padding: 7px 0 7px 0 !important;
+    height: 32px;
+    line-height: 32px;
+    padding: 0 0.5rem !important;
     margin: 0 !important;
+  }
+  #input_search {
+    height: 32px;
+    line-height: 32px;
+    padding: 0 0.5rem;
   }
   .new_button {
     background-color: #E1C150;
@@ -251,6 +292,19 @@ select:hover, select:focus {
 .pagination {
   font-weight: normal;
   font-size: 0.9em;
+  // Foundation 6's `_pagination.scss` (line 120) sets `.pagination a,
+  // .pagination button { display: block }` because it expects the
+  // canonical `<ul class="pagination"><li><a>...</a></li>...</ul>`
+  // markup, where the `<li>` is `display: inline-block` and the inner
+  // `<a>` fills it. will_paginate (used by `_list.html.erb` for nested
+  // has_many lists) emits flat `<a>`/`<span>`/`<em>` directly under
+  // `<div class="pagination">`, with no surrounding `<li>` to control
+  // layout, so F6's `display: block` makes every page link stack
+  // vertically -- in F5 (where the equivalent rule did not exist) they
+  // sat horizontally. Force inline-block here to match the F5 visuals.
+  a, span, em, button {
+    display: inline-block;
+  }
   a:hover {
     color: #B94C32;
     -webkit-transition-property: color;
