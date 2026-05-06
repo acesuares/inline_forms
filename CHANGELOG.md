@@ -4,6 +4,10 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+
+- **Installer Gemfile source for `inline_forms` now switches by context**: when the generator is launched from a git checkout, generated apps still use `gem 'inline_forms', path: ...` so local unreleased development changes are picked up. When launched from an installed gem (no `.git` at `GENERATOR_PATH`), generated apps now pin `gem 'inline_forms', ENV['inline_forms_version']` instead. This avoids Bundler evaluating `inline_forms.gemspec` from a non-repo `path` source, which previously emitted repeated `fatal: not a git repository` lines from the gemspec's `git ls-files` calls during app generation.
+
 ## [7.2.10] - 2026-05-06
 
 ### Changed

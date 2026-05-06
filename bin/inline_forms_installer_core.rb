@@ -16,7 +16,14 @@ gem 'autoprefixer-rails'
 # Visually tuned against foundation-rails ~> 6.6.2; current pin ~> 6.9 (6.9.0.x).
 gem 'foundation-rails', '~> 6.9'
 gem 'i18n-active_record', :git => 'https://github.com/acesuares/i18n-active_record.git'
-gem 'inline_forms', path: "#{File.expand_path(GENERATOR_PATH)}"
+generator_repo = File.expand_path(GENERATOR_PATH)
+if Dir.exist?(File.join(generator_repo, ".git"))
+  # Dev mode (generator launched from a git checkout): use live local code.
+  gem 'inline_forms', path: generator_repo
+else
+  # Installed-gem mode: pin to this released version (no path gemspec eval).
+  gem 'inline_forms', ENV.fetch('inline_forms_version')
+end
 gem 'jquery-rails'
 gem 'jquery-timepicker-rails'
 # jQuery UI JavaScript (`//= require jquery.ui.all` in inline_forms.js). SCSS + PNGs
