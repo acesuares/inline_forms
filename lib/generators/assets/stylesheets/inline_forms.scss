@@ -23,6 +23,12 @@
   background-color: $body-background !important;
 }
 
+// Foundation 5 used to position .contain-to-grid.fixed at the top of the
+// viewport. Foundation 6 doesn't style that legacy class, so we reproduce
+// the stacking explicitly: the application top bar floats on top (z-index
+// 99, 45px tall) and the model top bar sits beneath it starting at top:0
+// with a 45px top-padding so its visible band runs 45..90px. Body content
+// is then positioned absolute at top:90px (see #outer_container).
 .contain-to-grid.fixed {
   position: fixed;
   top: 0;
@@ -30,7 +36,7 @@
   right: 0;
   margin-left: auto;
   margin-right: auto;
-  max-width: 62.5rem;
+  max-width: 62.5rem; // F5 $row-width (1000px); F6 $global-width is 1200px
   width: 100%;
   z-index: 99;
 }
@@ -39,6 +45,9 @@
   z-index: 9;
 }
 
+// Compact the Foundation 6 `.top-bar` (default uses flex + 0.5rem padding +
+// natural line-height on the inner <h1>, which produces an ~80px tall bar)
+// so the application top bar matches the original 45px row.
 #inline_forms_application_top_bar.top-bar {
   padding: 0;
   min-height: 0;
@@ -66,8 +75,21 @@
     border-top-color: #FFFFFF;
     border-color: #FFFFFF transparent transparent;
   }
+  // F6 ships `.is-dropdown-submenu-parent > a { padding-right: 1.5rem }`
+  // to reserve space for the `::after` triangle, but our `.menu > li > a`
+  // override above clamps padding to `0 1rem` for ALL links and wins on
+  // specificity (id + 4 classes/elements). That leaves the triangle
+  // overlapping the text. Restore the extra right-padding for dropdown
+  // parents so there is a clear gap (>= 3px) between "More"/"Admin"
+  // and the triangle indicator.
+  .menu > li.is-dropdown-submenu-parent > a {
+    padding-right: 1.5rem;
+  }
 }
 
+// Match: model top bar is the wider gold band (height 90px, padded so its
+// usable area is in the lower 45px). Override Foundation 6's default
+// `.top-bar { padding: 0.5rem }` so our 45/90px math holds.
 #inline_forms_model_top_bar.top-bar {
   padding: 45px 0 0 0;
   min-height: 0;
@@ -89,6 +111,22 @@
   .menu > li > a {
     line-height: 45px;
     padding: 0 1rem;
+  }
+  // F6's `.menu` is `display: flex` with default `align-items: stretch`,
+  // which makes every <li> fill the bar's 45px content band. The search
+  // form's <li> contains a `.row.collapse` whose columns/buttons/input
+  // then sit at the top of the band, so the [x] / [zoek op naam...] /
+  // [zoek] trio looks 5..7px higher than "Apartments" (line-height 45px,
+  // centered) and the "+" new-record button (visually centered via its
+  // own padding). Center every <li> vertically and let the search row
+  // also center its column children, so the form chrome aligns with the
+  // rest of the bar without resorting to per-element `top: Npx` shims.
+  .top-bar-right > .menu {
+    align-items: center;
+  }
+  .top-bar-right > .menu > li > .row,
+  .top-bar-right > .menu > li form > .row {
+    align-items: center;
   }
 }
 
@@ -136,17 +174,22 @@ select:hover, select:focus {
   // In the search row that puts `[x]` and `[zoek]` shorter than the
   // `zoek op naam...` input. Pin all three to the same 32px box so they
   // line up like the F5 chrome did when `$topbar-height` was 45px.
+  // The vertical centering is handled by `align-items: center` above, so
+  // explicitly clear the legacy `top: 4px / 6px` shims that used to
+  // approximate centering on the F5 float-based bar.
   .inline_forms_model_top_bar_buttons {
-    top: 4px !important;
+    top: 0 !important;
     height: 32px;
     line-height: 32px;
     padding: 0 0.5rem !important;
     margin: 0 !important;
   }
   #input_search {
+    top: 0 !important;
     height: 32px;
     line-height: 32px;
     padding: 0 0.5rem;
+    margin: 0 !important;
   }
   .new_button {
     background-color: #E1C150;
@@ -317,17 +360,6 @@ select:hover, select:focus {
   margin-bottom: 1.5em;
 }
 
-.flash {
-  margin-top: 1em;
-  padding: 0.5em;
-  color: #A3381E;
-  font-size: 130%;
-  font-weight: bold;
-  line-height: 120%;
-  background-color: white;
-  border-top: 0.5em solid #fade7a;
-}
-
   .custom-combobox {
     position: relative;
     display: inline-block;
@@ -352,8 +384,14 @@ select:hover, select:focus {
     padding-right: 0 !important;
 }
 
+// Legacy F5 vertical-centering hack: `.top-bar` was 45px tall and floats
+// pushed inputs/buttons against the top, so this `top: 4px` shim nudged
+// them down. The F6 model top bar centers its menu items via flex
+// (`align-items: center` on `.top-bar-right > .menu`), so this rule is
+// no longer needed; we keep `top: 0` to defuse any other site CSS that
+// might still reach in with a `top` shift.
 .top-bar input, .top-bar .button {
-  top: 4px !important;
+  top: 0 !important;
 }
 
 #inline_forms_model_top_bar .top-bar-right,
@@ -370,31 +408,30 @@ select:hover, select:focus {
   margin-bottom: 0 !important;
 }
 
+.flash {
+  padding: 0.3em;
+  color: #A3381E;
+  font-size: 130%;
+  font-weight: bold;
+  line-height: 120%;
+  background-color: white;
+  border-top: 0.3em solid #fade7a;
+}
+
 .error {
-    color: #ffffff;
-    font-weight: bold;
-    -moz-border-radius: 10px;
-    -webkit-border-radius: 10px;
-    -webkit-box-shadow: 0 1px 1px rgba(0,0,0, .1);
-    -moz-box-shadow: 0 1px 1px rgba(0,0,0, .1);
-    background-color: #a70f0f;
-    background-image: -moz-linear-gradient(100% 100% 90deg, #a70f0f, #c01313);
-    background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#c01313), to(#a70f0f));
-    padding: 0.7em;
+  color: #ffffff;
+  font-weight: bold;
+  background-color: #a70f0f;
+  padding: 0.3em;
+  margin-bottom: 0.5em;
 }
 .success {
-    color: #ffffff;
-    font-weight: bold;
-    -moz-border-radius: 5px;
-    -webkit-border-radius: 5px;
-    -webkit-box-shadow: 0 1px 3px rgba(0,0,0, .4);
-    -moz-box-shadow: 0 1px 3px rgba(0,0,0, .4);
-    border-bottom: 1px solid #cccccc;
-    background-color: #4f8d0d;
-    background-image: -moz-linear-gradient(100% 100% 90deg, #4f8d0d, #5ba210);
-    background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#5ba210), to(#4f8d0d));
-    padding: 0.7em;
-    margin-bottom: 0.5em;
+  color: #ffffff;
+  font-weight: bold;
+  border-bottom: 1px solid #cccccc;
+  background-color: #4f8d0d;
+  padding: 0.3em;
+  margin-bottom: 0.5em;
 }
 
 .ckeditor_area {
@@ -434,9 +471,4 @@ select:hover, select:focus {
 
 #input_search {
   border: none !important;
-  margin-top: -2px;
-}
-
-#inline_forms_model_top_bar .inline_forms_model_top_bar_buttons {
-  top: 6px !important;
 }

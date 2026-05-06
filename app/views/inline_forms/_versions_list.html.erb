@@ -13,82 +13,91 @@
       %>
   </div>
 </div>
+<%#
+  Header / per-entry rows: every entry was previously wrapped in a single
+  `<div class='small-12 column'>` whose direct children were `.small-N
+  column` divs. F5's float-based grid floated them side-by-side because
+  every `.column` was `float: left`; F6's flex grid only makes the direct
+  children of `.row` flex items, so once those `.small-N column` divs sit
+  inside a plain `.column` (not a `.row`) they collapse to stacked blocks
+  -- which is why opening Versions on F6 rendered Event/Done by/Changeset
+  vertically and the per-entry restore/timestamp/changeset cells one per
+  line. Each entry is now its own `<div class="row">` whose direct
+  children ARE the cell columns, so F6's flex grid lays them out
+  horizontally and the partial keeps F5's visual layout.
+-%>
 <div class="row <%= cycle('odd', 'even') %>">
-  <div class='small-12 column'>
-      <div class="small-1 column">
-        &nbsp;
-      </div>
-      <div  class="small-1 column">
-        <strong>Event</strong>
-      </div>
-      <div  class="small-2 column">
-        <strong>Done by</strong>
-      </div>
-      <div  class="small-8 column">
-        <strong>Changeset</strong>
-      </div>
+  <div class="small-1 column">
+    &nbsp;
+  </div>
+  <div class="small-1 column">
+    <strong>Event</strong>
+  </div>
+  <div class="small-2 column">
+    <strong>Done by</strong>
+  </div>
+  <div class="small-8 column">
+    <strong>Changeset</strong>
   </div>
 </div>
-<div class="row <%= cycle('odd', 'even') %>">
-  <% entries.reverse.each do |entry| %>
-    <% version = entry[:version] -%>
-    <% rich_text_name = entry[:rich_text_name] -%>
-    <div class='small-12 column'>
-      <div class="small-1 column">
-        <% if entry[:kind] == :primary %>
-          <%= link_to t('inline_forms.view.restore'),
-            send('revert_' + @object.class.to_s.underscore + "_path",
-              version,
-              :update => "#{@object.class.name.underscore}_#{@object.id}"
-            ),
-            :remote => true,
-            :method => :post
-          %>
-        <% else %>
-          &nbsp;
-        <% end %>
-      </div>
-      <div class="small-1 column">
-        <%= version.event -%><% if entry[:kind] == :rich_text %> <em>(rich text)</em><% end %>
-      </div>
-      <div  class="small-2 column">
-        <%= version.created_at -%>
-      </div>
-      <div  class="small-2 column">
-        <%= version_modified_by version.whodunnit -%>
-      </div>
-      <div  class="small-6 column">
-        <% if version.changeset.nil? || version.changeset.empty? %>
-          <em>empty</em>
-        <% else %>
-          <% version.changeset.each do |attribute, value| %>
-            <% next if attribute == 'updated_at' %>
-            <% next if entry[:kind] == :rich_text && attribute == 'record_id' %>
-            <% next if entry[:kind] == :rich_text && attribute == 'record_type' %>
-            <% next if entry[:kind] == :rich_text && attribute == 'name' %>
-            <% display_attribute = entry[:kind] == :rich_text && attribute == 'body' ? rich_text_name : attribute -%>
-            <table>
-              <tr>
-                <th colspan="2" class="text-center"><%= display_attribute %></th>
-                <th></th>
-              </tr>
-              <tr>
-                <td>old value</td>
-                <td>new value</td>
-              </tr>
-              <tr>
-                <% if entry[:kind] == :rich_text && attribute == 'body' %>
-                  <td><%= raw value[0] %></td>
-                  <td><%= raw value[1] %></td>
-                <% else %>
-                  <td><%= value[0] %></td>
-                  <td><%= value[1] %></td>
-                <% end %>
-              </tr>
-            </table>
-          <% end %>
-        <% end %>
-      </div>
+<% entries.reverse.each do |entry| %>
+  <% version = entry[:version] -%>
+  <% rich_text_name = entry[:rich_text_name] -%>
+  <div class="row <%= cycle('odd', 'even') %>">
+    <div class="small-1 column">
+      <% if entry[:kind] == :primary %>
+        <%= link_to t('inline_forms.view.restore'),
+          send('revert_' + @object.class.to_s.underscore + "_path",
+            version,
+            :update => "#{@object.class.name.underscore}_#{@object.id}"
+          ),
+          :remote => true,
+          :method => :post
+        %>
+      <% else %>
+        &nbsp;
+      <% end %>
     </div>
-  <% end %>
-</div>
+    <div class="small-1 column">
+      <%= version.event -%><% if entry[:kind] == :rich_text %> <em>(rich text)</em><% end %>
+    </div>
+    <div class="small-2 column">
+      <%= version.created_at -%>
+    </div>
+    <div class="small-2 column">
+      <%= version_modified_by version.whodunnit -%>
+    </div>
+    <div class="small-6 column">
+      <% if version.changeset.nil? || version.changeset.empty? %>
+        <em>empty</em>
+      <% else %>
+        <% version.changeset.each do |attribute, value| %>
+          <% next if attribute == 'updated_at' %>
+          <% next if entry[:kind] == :rich_text && attribute == 'record_id' %>
+          <% next if entry[:kind] == :rich_text && attribute == 'record_type' %>
+          <% next if entry[:kind] == :rich_text && attribute == 'name' %>
+          <% display_attribute = entry[:kind] == :rich_text && attribute == 'body' ? rich_text_name : attribute -%>
+          <table>
+            <tr>
+              <th colspan="2" class="text-center"><%= display_attribute %></th>
+              <th></th>
+            </tr>
+            <tr>
+              <td>old value</td>
+              <td>new value</td>
+            </tr>
+            <tr>
+              <% if entry[:kind] == :rich_text && attribute == 'body' %>
+                <td><%= raw value[0] %></td>
+                <td><%= raw value[1] %></td>
+              <% else %>
+                <td><%= value[0] %></td>
+                <td><%= value[1] %></td>
+              <% end %>
+            </tr>
+          </table>
+        <% end %>
+      <% end %>
+    </div>
+  </div>
+<% end %>

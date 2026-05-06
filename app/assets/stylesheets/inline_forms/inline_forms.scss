@@ -75,6 +75,16 @@
     border-top-color: #FFFFFF;
     border-color: #FFFFFF transparent transparent;
   }
+  // F6 ships `.is-dropdown-submenu-parent > a { padding-right: 1.5rem }`
+  // to reserve space for the `::after` triangle, but our `.menu > li > a`
+  // override above clamps padding to `0 1rem` for ALL links and wins on
+  // specificity (id + 4 classes/elements). That leaves the triangle
+  // overlapping the text. Restore the extra right-padding for dropdown
+  // parents so there is a clear gap (>= 3px) between "More"/"Admin"
+  // and the triangle indicator.
+  .menu > li.is-dropdown-submenu-parent > a {
+    padding-right: 1.5rem;
+  }
 }
 
 // Match: model top bar is the wider gold band (height 90px, padded so its
@@ -101,6 +111,22 @@
   .menu > li > a {
     line-height: 45px;
     padding: 0 1rem;
+  }
+  // F6's `.menu` is `display: flex` with default `align-items: stretch`,
+  // which makes every <li> fill the bar's 45px content band. The search
+  // form's <li> contains a `.row.collapse` whose columns/buttons/input
+  // then sit at the top of the band, so the [x] / [zoek op naam...] /
+  // [zoek] trio looks 5..7px higher than "Apartments" (line-height 45px,
+  // centered) and the "+" new-record button (visually centered via its
+  // own padding). Center every <li> vertically and let the search row
+  // also center its column children, so the form chrome aligns with the
+  // rest of the bar without resorting to per-element `top: Npx` shims.
+  .top-bar-right > .menu {
+    align-items: center;
+  }
+  .top-bar-right > .menu > li > .row,
+  .top-bar-right > .menu > li form > .row {
+    align-items: center;
   }
 }
 
@@ -148,17 +174,22 @@ select:hover, select:focus {
   // In the search row that puts `[x]` and `[zoek]` shorter than the
   // `zoek op naam...` input. Pin all three to the same 32px box so they
   // line up like the F5 chrome did when `$topbar-height` was 45px.
+  // The vertical centering is handled by `align-items: center` above, so
+  // explicitly clear the legacy `top: 4px / 6px` shims that used to
+  // approximate centering on the F5 float-based bar.
   .inline_forms_model_top_bar_buttons {
-    top: 4px !important;
+    top: 0 !important;
     height: 32px;
     line-height: 32px;
     padding: 0 0.5rem !important;
     margin: 0 !important;
   }
   #input_search {
+    top: 0 !important;
     height: 32px;
     line-height: 32px;
     padding: 0 0.5rem;
+    margin: 0 !important;
   }
   .new_button {
     background-color: #E1C150;
@@ -353,8 +384,14 @@ select:hover, select:focus {
     padding-right: 0 !important;
 }
 
+// Legacy F5 vertical-centering hack: `.top-bar` was 45px tall and floats
+// pushed inputs/buttons against the top, so this `top: 4px` shim nudged
+// them down. The F6 model top bar centers its menu items via flex
+// (`align-items: center` on `.top-bar-right > .menu`), so this rule is
+// no longer needed; we keep `top: 0` to defuse any other site CSS that
+// might still reach in with a `top` shift.
 .top-bar input, .top-bar .button {
-  top: 4px !important;
+  top: 0 !important;
 }
 
 #inline_forms_model_top_bar .top-bar-right,
@@ -434,9 +471,4 @@ select:hover, select:focus {
 
 #input_search {
   border: none !important;
-  margin-top: -2px;
-}
-
-#inline_forms_model_top_bar .inline_forms_model_top_bar_buttons {
-  top: 6px !important;
 }
