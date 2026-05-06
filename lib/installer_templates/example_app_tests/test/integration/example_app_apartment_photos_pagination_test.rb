@@ -94,7 +94,7 @@ class ExampleAppApartmentPhotosPaginationTest < ExampleAppIntegrationTestCase
     )
   end
 
-  test "per-row inline-edit link opts out of Turbo so UJS keeps handling it" do
+  test "row container opts out of Turbo so swapped-in UJS forms (replace photo etc.) keep working" do
     get photos_path(
       parent_class: "Apartment",
       parent_id: @apartment.id,
@@ -103,11 +103,23 @@ class ExampleAppApartmentPhotosPaginationTest < ExampleAppIntegrationTestCase
     )
     assert_response :success
 
+    # The container-level opt-out is what protects the inline-edit /
+    # replace-photo flow: when a user replaces a photo, show.js.erb /
+    # edit.js.erb does $('#<row_id>').html(<form>), so the multipart
+    # form that submits the upload is a descendant of this row. With
+    # data-turbo="false" on the row, Turbo doesn't intercept that
+    # submission -- jquery-ujs + remotipart do, the request goes out
+    # with Accept: text/javascript, and the controller's format.js
+    # branch handles it. Without this, Turbo Frames would send
+    # Accept: text/html and the update action (no format.html for
+    # not_accessible_through_html? models like Photo) raises
+    # UnknownFormat AFTER the DB write -- a 406 with a corrupted UI.
+    sample_row_id = "apartment_#{@apartment.id}_photo_#{@apartment.photos.first.id}"
     assert_match(
-      /data-remote="true"[^>]*data-turbo="false"|data-turbo="false"[^>]*data-remote="true"/,
+      %r{<div[^>]+id="#{Regexp.escape(sample_row_id)}"[^>]*data-turbo="false"|<div[^>]+data-turbo="false"[^>]*id="#{Regexp.escape(sample_row_id)}"},
       @response.body,
-      "per-row links must keep data-remote=true AND opt out of Turbo with data-turbo=false " \
-      "(otherwise Turbo Frames would intercept inline-edit clicks before UJS sees them)"
+      "expected the per-row container (id=\"#{sample_row_id}\") to carry data-turbo=\"false\" " \
+      "so swapped-in UJS forms inherit the Turbo opt-out"
     )
   end
 end

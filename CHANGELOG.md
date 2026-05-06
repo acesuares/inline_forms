@@ -4,6 +4,17 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [7.2.1] - 2026-05-05
+
+### Fixed
+
+- **Regression introduced by 7.2.0: replacing a Photo (and any other inline-edit / inline-update flow on a model whose `not_accessible_through_html?` returns true) raised `ActionController::UnknownFormat` (HTTP 406) AFTER the DB write, leaving a corrupted UI**. Repro: open an Apartment, click an existing Photo, click the image field, choose a new file, click OK -- the `UPDATE "photos" …` statement and the `PaperTrail::Version` insert both committed, then the response failed with `ActionController::UnknownFormat` from `inline_forms_controller.rb#update`. Root cause: 7.2.0 wrapped the nested has_many list in `<turbo-frame id="…">`. Inside that frame, `<turbo-frame>` intercepts every link click AND every form submission as in-frame navigation -- including the multipart `<form>` that `_edit.html.erb` renders for image replacement, which is swapped into the row by `edit.js.erb`'s `$('#<row_id>').html(<form>)` and is therefore a descendant of the frame. Turbo sent the request with `Accept: text/html, application/xhtml+xml`, but `InlineFormsController#update` only declares `format.html` when `Klass.not_accessible_through_html?` is false (Photo's is true), so `respond_to` ran out of registered formats and 406'd. The `data-turbo="false"` 7.2.0 added to the per-row inline-edit *link* did not cover this because it only opted out the link itself -- not the form that UJS later swaps into the same row.
+- **Fix in `app/views/inline_forms/_list.html.erb`: `data-turbo="false"` is now on the row container `<div id="…">` itself**, not on the inline-edit link. Turbo walks ancestors to find `[data-turbo]`, so every link AND form swapped into that row by `show.js.erb` / `edit.js.erb` / `new.js.erb` (all of which call `$('#<row_id>').html(...)`, leaving the swapped HTML inside the row) inherits the opt-out. Pagination lives in its own row that does NOT carry the opt-out, so frame-pagination -- the actual point of the 7.2.0 slice -- still works. The previous per-link `data-turbo="false"` is gone (redundant with the inherited row-level setting).
+
+### Changed
+
+- **`test/integration/example_app_apartment_photos_pagination_test.rb`**: the assertion that used to look for `data-remote="true"` + `data-turbo="false"` on the per-row link now looks for `data-turbo="false"` on the row container `<div id="apartment_<id>_photo_<pid>">`. The new assertion explicitly documents (in a comment) that this is the safety net for the replace-photo / inline-edit form submission, since that's the regression class it was unable to catch in 7.2.0.
+
 ## [7.2.0] - 2026-05-05
 
 Rollout step 2 of `stuff/ujs-to-turbo.md` (gitignored): "One vertical slice in the gem (e.g. list + pagination) expressed as a frame; use it as the pattern for the rest." Picks the nested has_many list (apartments -> photos) as that slice.

@@ -65,31 +65,37 @@
     <% css_class_id = parent_class.to_s.underscore + '_' + parent_id.to_s + '_' + attribute.to_s.singularize.underscore + "_" + object.id.to_s -%>
     <% path_to_object = attribute.to_s.singularize.underscore + "_path" %>
   <% end %>
-  <div class="row <%= cycle('odd', 'even') %><%= " top-level" if parent_class.nil? %>" id="<%= css_class_id -%>">
+  <%#
+    `data-turbo="false"` on the row container opts every link/form
+    inside (including the ones UJS swaps in via show.js.erb /
+    edit.js.erb / new.js.erb -- they all do `$('#<row_id>').html(...)`,
+    so the swapped content stays a descendant of this row) out of
+    Turbo. UJS keeps handling them as it always has: remote: true ->
+    format.js -> *.js.erb. Without this, the surrounding <turbo-frame>
+    (added for nested-list pagination) would intercept inline-edit
+    clicks AND the multipart `<form>` in _edit.html.erb, sending the
+    request with `Accept: text/html` -- which inline_forms_controller's
+    update / create / destroy actions only respond to via format.js,
+    raising `ActionController::UnknownFormat` (HTTP 406) AFTER the DB
+    write already happened. Top-level lists (no surrounding frame)
+    treat this as a no-op since global Turbo Drive is already off.
+  -%>
+  <div class="row <%= cycle('odd', 'even') %><%= " top-level" if parent_class.nil? %>" id="<%= css_class_id -%>" data-turbo="false">
     <% if cancan_disabled? || ( can? :soft_delete, object ) %>
       <div  class="small-1 column">
         <%= link_to_soft_delete(object, css_class_id) -%>
         <%= link_to_destroy(object, css_class_id) -%>
       </div>
       <div  class="small-11 column">
-        <%#
-          The per-row inline-edit link is still UJS (remote: true +
-          format.js + show.js.erb). Inside a <turbo-frame> Turbo would
-          otherwise intercept the click as a frame navigation, so we
-          opt out with data-turbo=false until that flow has its own
-          Turbo conversion (rollout step 3 of stuff/ujs-to-turbo.md).
-        -%>
         <%= link_to h(object._presentation),
           send( path_to_object, object, :update => css_class_id),
-          :remote => true,
-          :data => { :turbo => false } -%>
+          :remote => true -%>
       </div>
     <% else %>
       <div  class="small-12 column">
         <%= link_to h(object._presentation),
           send( path_to_object, object, :update => css_class_id),
-          :remote => true,
-          :data => { :turbo => false } -%>
+          :remote => true -%>
       </div>
     <% end %>
   </div>
