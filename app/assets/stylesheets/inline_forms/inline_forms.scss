@@ -9,6 +9,73 @@
   background-color: $body-background !important;
 }
 
+// Foundation 5 used to position .contain-to-grid.fixed at the top of the
+// viewport. Foundation 6 doesn't style that legacy class, so we reproduce
+// the stacking explicitly: the application top bar floats on top (z-index
+// 99, 45px tall) and the model top bar sits beneath it starting at top:0
+// with a 45px top-padding so its visible band runs 45..90px. Body content
+// is then positioned absolute at top:90px (see #outer_container).
+.contain-to-grid.fixed {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 62.5rem; // F5 $row-width (1000px); F6 $global-width is 1200px
+  width: 100%;
+  z-index: 99;
+}
+
+#inline_forms_model_top_bar_container.contain-to-grid.fixed {
+  z-index: 9;
+}
+
+// Compact the Foundation 6 `.top-bar` (default uses flex + 0.5rem padding +
+// natural line-height on the inner <h1>, which produces an ~80px tall bar)
+// so the application top bar matches the original 45px row.
+#inline_forms_application_top_bar.top-bar {
+  padding: 0;
+  min-height: 0;
+  height: 45px;
+  .menu-text {
+    padding: 0 1rem;
+  }
+  .menu-text h1 {
+    margin: 0 !important;
+    padding: 0;
+    font-size: 1rem;
+    line-height: 45px;
+    font-weight: normal;
+  }
+  .menu > li > a {
+    line-height: 45px;
+    padding: 0 1rem;
+  }
+}
+
+// Match: model top bar is the wider gold band (height 90px, padded so its
+// usable area is in the lower 45px). Override Foundation 6's default
+// `.top-bar { padding: 0.5rem }` so our 45/90px math holds.
+#inline_forms_model_top_bar.top-bar {
+  padding: 45px 0 0 0;
+  min-height: 0;
+  .menu-text {
+    padding: 0 1rem;
+  }
+  .menu-text h1 {
+    margin: 0 !important;
+    padding: 0;
+    font-size: 1rem;
+    line-height: 45px;
+    font-weight: normal;
+  }
+  .menu > li > a {
+    line-height: 45px;
+    padding: 0 1rem;
+  }
+}
+
 input {
   margin: 2px 0 !important;
 }

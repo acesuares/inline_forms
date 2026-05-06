@@ -9,6 +9,61 @@
   background-color: $body-background !important;
 }
 
+.contain-to-grid.fixed {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 62.5rem;
+  width: 100%;
+  z-index: 99;
+}
+
+#inline_forms_model_top_bar_container.contain-to-grid.fixed {
+  z-index: 9;
+}
+
+#inline_forms_application_top_bar.top-bar {
+  padding: 0;
+  min-height: 0;
+  height: 45px;
+  .menu-text {
+    padding: 0 1rem;
+  }
+  .menu-text h1 {
+    margin: 0 !important;
+    padding: 0;
+    font-size: 1rem;
+    line-height: 45px;
+    font-weight: normal;
+  }
+  .menu > li > a {
+    line-height: 45px;
+    padding: 0 1rem;
+  }
+}
+
+#inline_forms_model_top_bar.top-bar {
+  padding: 45px 0 0 0;
+  min-height: 0;
+  .menu-text {
+    padding: 0 1rem;
+  }
+  .menu-text h1 {
+    margin: 0 !important;
+    padding: 0;
+    font-size: 1rem;
+    line-height: 45px;
+    font-weight: normal;
+  }
+  .menu > li > a {
+    line-height: 45px;
+    padding: 0 1rem;
+  }
+}
+
 input {
   margin: 2px 0 !important;
 }

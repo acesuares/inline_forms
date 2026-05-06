@@ -2,6 +2,14 @@
 
 @import 'settings/settings';
 
+// Match F5 visual proportions: F5 `$row-width` was 62.5rem (1000px); F6
+// defaults to 75rem (1200px), which makes every `.row` 200px wider than
+// the inline_forms admin chrome was designed for. Override AFTER importing
+// settings (settings/_settings.scss assigns these without !default, so
+// pre-import overrides would lose).
+$global-width: 62.5rem;
+$grid-row-width: $global-width;
+
 $body-font-family: 'Open Sans', 'Helvetica Neue', Helvetica, Roboto, Arial, sans-serif;
 
 @import 'foundation';
