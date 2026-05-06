@@ -17,13 +17,10 @@ gem 'autoprefixer-rails'
 gem 'foundation-rails', '~> 6.9'
 gem 'i18n-active_record', :git => 'https://github.com/acesuares/i18n-active_record.git'
 generator_repo = File.expand_path(GENERATOR_PATH)
-if Dir.exist?(File.join(generator_repo, ".git"))
-  # Dev mode (generator launched from a git checkout): use live local code.
-  gem 'inline_forms', path: generator_repo
-else
-  # Installed-gem mode: pin to this released version (no path gemspec eval).
-  gem 'inline_forms', ENV.fetch('inline_forms_version')
-end
+# Always use the generator source path (repo checkout OR installed gem dir).
+# This guarantees the generated app uses the exact inline_forms code that
+# launched `inline_forms create`, including unreleased local builds.
+gem 'inline_forms', path: generator_repo
 gem 'jquery-rails'
 gem 'jquery-timepicker-rails'
 # jQuery UI JavaScript (`//= require jquery.ui.all` in inline_forms.js). SCSS + PNGs

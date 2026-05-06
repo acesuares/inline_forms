@@ -14,8 +14,20 @@ Gem::Specification.new do |s|
   s.licenses    = ["MIT"]
   s.required_ruby_version = ">= 3.2.0"
 
-  s.files         = `git ls-files`.split("\n")
-  s.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")
+  if File.directory?(File.join(__dir__, ".git"))
+    s.files      = `git ls-files`.split("\n")
+    s.test_files = `git ls-files -- {test,spec,features}/*`.split("\n")
+  else
+    s.files = Dir.chdir(__dir__) do
+      Dir.glob("**/*", File::FNM_DOTMATCH).reject do |f|
+        f.start_with?(".git/", ".bundle/", "pkg/") ||
+          f == ".git" || f == ".bundle"
+      end
+    end
+    s.test_files = Dir.chdir(__dir__) do
+      Dir.glob("{test,spec,features}/**/*")
+    end
+  end
   s.executables   = ["inline_forms"]
   s.require_paths = ["lib"]
 
