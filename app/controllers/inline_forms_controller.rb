@@ -55,10 +55,27 @@ class InlineFormsController < ApplicationController
       # public surface). The *nested* HTML render -- where `parent_class`
       # was supplied and the response is destined for a parent page's
       # `<turbo-frame>` -- is gated by the parent already (and by cancan
-      # above), so we still serve it, just without the inline_forms layout
-      # so Turbo Frames swaps only the frame in the response.
+      # above), so we still serve it.
+      #
+      # Layout choice (was `layout: false` in 7.2.0):
+      # - Turbo frame requests (`Turbo-Frame` header) use
+      #   `turbo_rails/frame` — minimal `<html><body>` wrapper so the
+      #   response parses as a document (turbo-rails default; see
+      #   Turbo::Frames::FrameRequest). A bare fragment from `layout: false`
+      #   is supposed to work but has been brittle for some clients; the
+      #   gem layout is the supported path.
+      # - Full-page visits (user opens /photos?... in the tab, or any
+      #   navigation without the header) use `inline_forms` so the page is
+      #   styled and bootstrapped instead of a naked `<turbo-frame>`.
+      #   Turbo still extracts the matching frame when the request *is*
+      #   a frame visit, regardless of outer layout (turbo-rails README).
       if @Klass.not_accessible_through_html?
-        format.html { render 'inline_forms/_list', layout: false } if @parent_class.present?
+        format.html do
+          if @parent_class.present?
+            frame_layout = turbo_frame_request? ? "turbo_rails/frame" : "inline_forms"
+            render "inline_forms/_list", layout: frame_layout
+          end
+        end
       else
         format.html { render 'inline_forms/_list', :layout => 'inline_forms' }
       end

@@ -50,6 +50,51 @@ class ExampleAppApartmentPhotosPaginationTest < ExampleAppIntegrationTestCase
       "expected the installer to set `self.per_page = 5` on Photo so the seeded gallery paginates"
   end
 
+  test "nested photos index without Turbo-Frame header renders full inline_forms layout (bookmark / full navigation)" do
+    get photos_path(
+      parent_class: "Apartment",
+      parent_id: @apartment.id,
+      update: @update_span,
+      ul_needed: true
+    )
+    assert_response :success
+
+    assert_match(
+      /id="outer_container"/,
+      @response.body,
+      "direct or full-page GET /photos?... must use the inline_forms layout " \
+      "so the page is styled; `layout: false` used to emit only a bare <turbo-frame> " \
+      "which looks broken in the address bar."
+    )
+    assert_match(
+      %r{<turbo-frame\s+id="#{Regexp.escape(@update_span)}"},
+      @response.body,
+      "expected the gallery frame inside the layout body"
+    )
+  end
+
+  test "nested photos index with Turbo-Frame header uses minimal layout without app chrome" do
+    get photos_path(
+      parent_class: "Apartment",
+      parent_id: @apartment.id,
+      update: @update_span,
+      ul_needed: true
+    ),
+        headers: { "Turbo-Frame" => @update_span }
+    assert_response :success
+
+    assert_match(
+      %r{<turbo-frame\s+id="#{Regexp.escape(@update_span)}"},
+      @response.body,
+      "expected Turbo frame navigation to receive a matching <turbo-frame id=\"#{@update_span}\">"
+    )
+    refute_match(
+      /id="outer_container"/,
+      @response.body,
+      "frame requests should not pay for the full inline_forms chrome; use turbo_rails/frame layout"
+    )
+  end
+
   test "nested photos index is wrapped in a <turbo-frame> instead of remote-UJS <div>" do
     get photos_path(
       parent_class: "Apartment",
@@ -124,6 +169,32 @@ class ExampleAppApartmentPhotosPaginationTest < ExampleAppIntegrationTestCase
     refute page_link_updates.any? { |u| u == @update_span.sub(/_list\z/, "") },
       "no pagination link should still carry the legacy outer-wrapper id " \
       "(#{@update_span.sub(/_list\z/, "")}) -- Turbo Frame can't swap on that id"
+  end
+
+  test "top-level apartment rows do NOT carry data-turbo=\"false\" (would poison nested frames)" do
+    # 7.2.2 broke pagination of the inner photos <turbo-frame> because
+    # the top-level apartment row was emitting data-turbo="false" too.
+    # When show.js.erb swaps the inline edit (containing the nested
+    # <turbo-frame>) into that row, every link inside the nested frame
+    # -- including pagination links -- has the row as an ancestor.
+    # Turbo's Session.elementIsNavigatable does
+    # `findClosestRecursively(link, "[data-turbo]")` and does NOT stop
+    # at the intervening <turbo-frame>; it picks up the row's
+    # data-turbo="false" and refuses to intercept the click, so the
+    # browser does a full-page navigation to /photos?page=N&... and
+    # the user sees the bare partial without a layout. The attribute
+    # must stay scoped to NESTED rows (which need the opt-out for
+    # their swapped-in inline-edit forms); top-level rows must NOT
+    # carry it.
+    get apartments_path
+    assert_response :success
+
+    refute_match(
+      /<div[^>]+class="[^"]*\btop-level\b[^"]*"[^>]*data-turbo="false"|<div[^>]+data-turbo="false"[^>]*class="[^"]*\btop-level\b[^"]*"/,
+      @response.body,
+      "top-level list rows must not carry data-turbo=\"false\"; that attribute would " \
+      "be inherited by every link inside any nested <turbo-frame> swapped into the row"
+    )
   end
 
   test "row container opts out of Turbo so swapped-in UJS forms (replace photo etc.) keep working" do
