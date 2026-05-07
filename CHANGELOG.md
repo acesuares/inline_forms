@@ -4,6 +4,8 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [7.3.3] - 2026-05-07
+
 ### Fixed
 
 - **Session flash no longer appears inside inline-edit fields**: `_edit.html.erb` was injected into the field span via UJS and iterated the full `flash` hash, so an unconsumed Devise notice (for example after sign-in) could show up inside the Trix/rich-text editor when opening a field. The edit partial no longer renders global flash; `_new.html.erb` only shows `flash.now` keys used by `create` (`header`, `error`, `success`). **`layouts/inline_forms.html.erb`** now renders **`flash["notice"]` / `flash["alert"]`** under the header so redirect flash is shown once and consumed on normal pages.
