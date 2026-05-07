@@ -10,7 +10,7 @@ All notable changes to this project are documented in this file.
 
 - **Long text form element naming is now explicit**: `:plain_text` is the canonical non-WYSIWYG textarea form element (backed by a DB `text` column), while `:rich_text` remains the ActionText/Trix element.
 - **Default mapping for migration type `:text` now emits form element `:plain_text`** (instead of `:text_area`) so newly generated models use the explicit name.
-- **Legacy aliases remain supported**: `:text_area`, `:text_area_without_ckeditor`, and `:plain_text_area` now delegate to `:plain_text`; legacy `:ckeditor` delegates to `:rich_text`.
+- **Legacy aliases remain supported**: `:text_area_without_ckeditor` and `:plain_text_area` delegate to `:plain_text`; legacy `:text_area` and `:ckeditor` delegate to `:rich_text`.
 
 ### Fixed
 

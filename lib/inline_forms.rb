@@ -98,7 +98,6 @@ module InlineForms
   PLAIN_TEXT_FORM_ELEMENTS = %i[
     plain_text
     plain_text_area
-    text_area
     text_area_without_ckeditor
   ].freeze
 

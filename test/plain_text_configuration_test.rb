@@ -83,4 +83,8 @@ class PlainTextConfigurationTest < Minitest::Test
   def test_configuration_check_allows_rich_text_without_column
     InlineForms.validate_plain_text_configuration_for!(RichTextModelWithoutColumn)
   end
+
+  def test_text_area_alias_is_not_treated_as_plain_text_column_requirement
+    refute InlineForms.plain_text_form_element?(:text_area)
+  end
 end
