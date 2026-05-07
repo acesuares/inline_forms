@@ -12,10 +12,14 @@
 
   <body>
     <%= render "inline_forms/header" %>
-    <% if notice.present? || alert.present? %>
+    <%# Read string keys (FlashHash stores strings); avoid `notice`/`alert` helpers %>
+    <%# so we do not depend on add_flash_types wiring in every layout context. %>
+    <% flash_notice = flash["notice"] %>
+    <% flash_alert = flash["alert"] %>
+    <% if flash_notice.present? || flash_alert.present? %>
       <div class="row" id="inline_forms_layout_flash" role="status">
-        <% if notice.present? %><div class="flash notice"><%= notice %></div><% end %>
-        <% if alert.present? %><div class="flash alert"><%= alert %></div><% end %>
+        <% if flash_notice.present? %><div class="flash notice"><%= flash_notice %></div><% end %>
+        <% if flash_alert.present? %><div class="flash alert"><%= flash_alert %></div><% end %>
       </div>
     <% end %>
     <%= render "/inline_forms_tabs" %>

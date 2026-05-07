@@ -6,7 +6,9 @@ All notable changes to this project are documented in this file.
 
 ### Fixed
 
-- **Session flash no longer appears inside inline-edit fields**: `_edit.html.erb` was injected into the field span via UJS and iterated the full `flash` hash, so an unconsumed Devise notice (for example after sign-in) could show up inside the Trix/rich-text editor when opening a field. The edit partial no longer renders global flash; `_new.html.erb` only shows `flash.now` keys used by `create` (`header`, `error`, `success`). **`layouts/inline_forms.html.erb`** now renders `notice` / `alert` under the header so redirect flash is shown once and consumed on normal pages.
+- **Session flash no longer appears inside inline-edit fields**: `_edit.html.erb` was injected into the field span via UJS and iterated the full `flash` hash, so an unconsumed Devise notice (for example after sign-in) could show up inside the Trix/rich-text editor when opening a field. The edit partial no longer renders global flash; `_new.html.erb` only shows `flash.now` keys used by `create` (`header`, `error`, `success`). **`layouts/inline_forms.html.erb`** now renders **`flash["notice"]` / `flash["alert"]`** under the header so redirect flash is shown once and consumed on normal pages.
+- **`InlineFormsApplicationController` default layout**: `layout 'devise' if :devise_controller?` was ineffective because `:devise_controller?` is a Symbol (always truthy), so every controller defaulted to `layouts/devise`. Replaced with `layout ->(c) { c.devise_controller? ? "devise" : "inline_forms" }` so app controllers use the full **`inline_forms`** chrome unless an action overrides `render` layout.
+- **Devise sign-in form** (`app/views/devise/sessions/_form.html.erb`): added `data-turbo="false"` on the form so a Turbo-enabled asset bundle cannot turn the POST into a non-navigational request (which would skip Devise’s `set_flash_message!` for `:signed_in`).
 
 ## [7.3.2] - 2026-05-07
 

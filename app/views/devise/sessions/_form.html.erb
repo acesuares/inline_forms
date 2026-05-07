@@ -1,6 +1,9 @@
 <%= form_for(resource,  as:  resource_name,
                         url: session_path(resource_name),
-                        html: { id:  'inline_forms_devise_form' }
+                        html: {
+                          id: 'inline_forms_devise_form',
+                          data: { turbo: false }
+                        }
             ) do |f| %>
 
   <div class="row">

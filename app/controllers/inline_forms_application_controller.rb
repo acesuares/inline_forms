@@ -1,7 +1,11 @@
 # -*- encoding : utf-8 -*-
 class InlineFormsApplicationController < ActionController::Base
   protect_from_forgery
-  layout 'devise' if :devise_controller?
+  # `layout 'devise' if :devise_controller?` was wrong: `:devise_controller?` is a
+  # Symbol (always truthy), so every controller used the Devise layout. Use a
+  # callable so only Devise controllers get `layouts/devise`; everything else
+  # defaults to `layouts/inline_forms` (actions may still override via `render`).
+  layout ->(controller) { controller.devise_controller? ? "devise" : "inline_forms" }
 
   # limit available locales by setting this. Override in applicaton_controller.
   I18n.available_locales = [ :en, :nl, :pp ]
