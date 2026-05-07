@@ -9,8 +9,8 @@ add_source 'https://rubygems.org'
 
 gem 'cancancan'
 gem 'carrierwave', '~> 3.1'
-gem 'devise-i18n', :git => 'https://github.com/acesuares/devise-i18n.git'
-gem 'devise'
+gem 'devise', '~> 5.0'
+gem 'devise-i18n', '~> 1.16'
 gem 'autoprefixer-rails'
 # foundation-rails 6.7+ uses Dart Sass (`sass:math`); sass-rails/sassc removed.
 # Visually tuned against foundation-rails ~> 6.6.2; current pin ~> 6.9 (6.9.0.x).

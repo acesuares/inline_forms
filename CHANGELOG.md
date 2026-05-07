@@ -4,6 +4,10 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+### Changed
+
+- **Installer Gemfile**: `devise-i18n` is taken from RubyGems (`~> 1.16`, current release **1.16.0**) instead of the obsolete `https://github.com/acesuares/devise-i18n.git` fork (which matched upstream only through 2018). `devise` is pinned to **`~> 5.0`** so it satisfies `devise-i18n` 1.16’s runtime dependency on Devise 5+.
+
 ## [7.3.3] - 2026-05-07
 
 ### Fixed
