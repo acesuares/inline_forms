@@ -12,6 +12,12 @@
 
   <body>
     <%= render "inline_forms/header" %>
+    <% if notice.present? || alert.present? %>
+      <div class="row" id="inline_forms_layout_flash" role="status">
+        <% if notice.present? %><div class="flash notice"><%= notice %></div><% end %>
+        <% if alert.present? %><div class="flash alert"><%= alert %></div><% end %>
+      </div>
+    <% end %>
     <%= render "/inline_forms_tabs" %>
     <div id="outer_container">
       <%= yield %>

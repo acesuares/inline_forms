@@ -1,6 +1,10 @@
 <div class="new_record"">
  <div id="flash" class="row">
-    <% flash.each do |key, value| %>
+    <%# Only validation feedback from InlineFormsController#create (flash.now); %>
+    <%# never dump session flash (:notice / :alert from Devise, etc.). %>
+    <% %w[header error success].each do |key| %>
+      <% value = flash[key] %>
+      <% next if value.blank? %>
       <div class="flash <%= key %>">
         <ul>
           <% if value.is_a?(Array) %>
