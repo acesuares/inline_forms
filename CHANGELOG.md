@@ -4,6 +4,12 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [7.3.2] - 2026-05-07
+
+### Fixed
+
+- **Legacy `:text_area` alias no longer triggers plain-text column checks**: `:text_area` is treated as the rich-text alias path, while plain-text column enforcement remains limited to `:plain_text`, `:plain_text_area`, and `:text_area_without_ckeditor`. This prevents false `InlineForms::PlainTextColumnMissingError` when switching an ActionText-backed attribute from `:rich_text` to `:text_area`.
+
 ## [7.3.1] - 2026-05-07
 
 ### Changed
