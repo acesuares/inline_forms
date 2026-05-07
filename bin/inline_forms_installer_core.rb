@@ -443,7 +443,7 @@ sleep 1 # unique migration timestamps per generator
 generate "inline_forms", "InlineFormsKey name:string inline_forms_translations:has_many inline_forms_translations:associated _enabled:yes _presentation:\#{name}"
 sleep 1
 generate "inline_forms", "InlineFormsTranslation inline_forms_key:belongs_to inline_forms_locale:dropdown value:text interpolations:text is_proc:boolean _presentation:\#{value}"
-# TODO: fix text_area into text_area_without_ckeditor
+# Plain :text_area is used for long text fields (CKEditor removed).
 sleep 1 # to get unique migration number
 create_file "db/migrate/" +
   Time.now.utc.strftime("%Y%m%d%H%M%S") +

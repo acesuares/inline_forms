@@ -5,48 +5,12 @@ def text_area_show(object, attribute)
   if object.send(attribute).blank?
     link_to_inline_edit object, attribute, "<i class='fi-plus'></i>".html_safe, from_callee: __callee__
   else
-    if defined? Ckeditor
-      link_to_inline_edit object,
-        attribute,
-        '<div class="ckeditor_area">'.html_safe +
-        cktext_area_tag(
-        attribute,
-        object[attribute],
-        :id => "textarea_#{object.class.name.underscore}_#{object.id}_#{attribute.to_s}",
-        :ckeditor => {  :width => '100%',
-                        :height => '200px',
-                        :toolbar => "None",
-                        :readOnly => "true",
-                        :resize_enabled => "false",
-                        :toolbarCanCollapse => "false"
-                      }
-      ) +
-        image_tag(  'inline_forms/glass_plate.gif',
-        :class => "glass_plate",
-        :title => '' ) +
-        "<script>delete CKEDITOR.instances['textarea_#{object.class.name.underscore}_#{object.id}_#{attribute.to_s}']</script>".html_safe +
-        '</div>'.html_safe,
-        from_callee: __callee__
-    else
-      link_to_inline_edit object, attribute, object[attribute], from_callee: __callee__
-    end
+    link_to_inline_edit object, attribute, object[attribute], from_callee: __callee__
   end
 end
 
 def text_area_edit(object, attribute)
-  if defined? Ckeditor
-    cktext_area_tag(
-      attribute,
-      object[attribute],
-      :id => "textarea_#{object.class.name.underscore}_#{object.id}_#{attribute.to_s}",
-      :ckeditor => {  :width => '100%',
-                      :height => '200px'
-                    }
-    )  +
-    "<script>delete CKEDITOR.instances['textarea_#{object.class.name.underscore}_#{object.id}_#{attribute.to_s}']</script>".html_safe
-  else
-    text_area_tag attribute, object[attribute], :class => 'attribute_text_area'
-  end
+  text_area_tag attribute, object[attribute], :class => 'attribute_text_area'
 end
 
 def text_area_update(object, attribute)

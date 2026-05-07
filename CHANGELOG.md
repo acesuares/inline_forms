@@ -4,6 +4,17 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [7.3.0] - 2026-05-07
+
+### Removed
+
+- **CKEditor**: no CDN script tags in engine layouts, no `cktext_area_tag` / `CKEDITOR` usage, no `.ckeditor_area` styles, and no `inline_forms/ckeditor/config.js` asset precompile entry. Long text uses the same plain `<textarea>` path as before when the CKEditor gem was absent.
+
+### Changed
+
+- **`:text_area`** always renders a plain multiline field (equivalent to the old non-CKEditor path and to **`:text_area_without_ckeditor`**).
+- **`:ckeditor`** remains a valid generator/model type name but now delegates to **`:text_area`** behavior (plain text); migrate to **`:text_area`** or **`:rich_text`** when convenient.
+
 ## [7.2.11] - 2026-05-07
 
 ### Changed

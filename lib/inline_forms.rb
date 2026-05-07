@@ -144,7 +144,6 @@ module InlineForms
         inline_forms/inline_forms.css
         inline_forms/devise.css
         inline_forms/inline_forms.js
-        inline_forms/ckeditor/config.js
         inline_forms/glass_plate.gif
       )
     end

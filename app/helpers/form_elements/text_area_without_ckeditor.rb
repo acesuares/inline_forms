@@ -1,18 +1,19 @@
 # -*- encoding : utf-8 -*-
+# Legacy alias for plain :text_area (CKEditor removed).
 InlineForms::SPECIAL_COLUMN_TYPES[:text_area_without_ckeditor]=:text
 
 def text_area_without_ckeditor_show(object, attribute)
-  link_to_inline_edit object, attribute, (object[attribute].nil? || object[attribute].empty?) ? "<i class='fi-plus'></i>".html_safe : object[attribute], from_callee: __callee__
+  text_area_show(object, attribute)
 end
 
 def text_area_without_ckeditor_edit(object, attribute)
-  text_area_tag attribute, object[attribute], :class => 'attribute_text_area'
+  text_area_edit(object, attribute)
 end
 
 def text_area_without_ckeditor_update(object, attribute)
-  object[attribute.to_sym] = params[attribute.to_sym]
+  text_area_update(object, attribute)
 end
 
 def text_area_without_ckeditor_info(object, attribute)
-  object[attribute]
+  text_area_info(object, attribute)
 end
