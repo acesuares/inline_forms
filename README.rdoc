@@ -2,6 +2,12 @@
 
 Inline Forms is almost a complete admin application. You can try it out easily.
 
+= Release status notice
+
+All gem versions after +6.2.14+ are currently broken.
+
+We will post a notice when the gem is good again.
+
 = Usage
 
  gem install inline_forms

@@ -4,6 +4,12 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [7.2.11] - 2026-05-07
+
+### Changed
+
+- **Release status notice added to user-facing docs and gem metadata**: `README.rdoc` now includes a top-level notice that versions after `6.2.14` are currently broken and that a follow-up notice will be posted when the gem is good again. `inline_forms.gemspec` now mirrors this status in both `summary` and `description` so the same warning is visible on RubyGems.
+
 ### Fixed
 
 - **Generated apps now always source `inline_forms` from the exact generator path** (`gem 'inline_forms', path: generator_repo`) so local unreleased builds are used consistently during `inline_forms create`. To support that safely outside git checkouts, `inline_forms.gemspec` now falls back to globbed file lists when `.git` is absent (instead of shelling out to `git ls-files` unconditionally), while keeping the warning cleanup (`required_ruby_version`, bounded runtime deps, deprecated `rubyforge_project` removal, and executables limited to `inline_forms`).

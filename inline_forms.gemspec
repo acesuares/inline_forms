@@ -9,8 +9,8 @@ Gem::Specification.new do |s|
   s.authors     = ["Ace Suares", "Lemuel Boyce", "Manuel Ortega"]
   s.email       = ["ace@suares.com"]
   s.homepage    = %q{http://github.com/acesuares/inline_forms}
-  s.summary     = %q{Inline editing of forms.}
-  s.description = %q{Inline Forms aims to ease the setup of forms that provide inline editing. The field list can be specified in the model.}
+  s.summary     = %q{Inline editing of forms. Versions after 6.2.14 are currently broken.}
+  s.description = %q{Inline Forms aims to ease the setup of forms that provide inline editing. The field list can be specified in the model. Versions after 6.2.14 are currently broken, and we will post a notice when the gem is good again.}
   s.licenses    = ["MIT"]
   s.required_ruby_version = ">= 3.2.0"
 
