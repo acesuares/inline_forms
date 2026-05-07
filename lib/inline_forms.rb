@@ -4,6 +4,8 @@ require_relative ('inline_forms/form_element_from_callee')
 # InlineForms is a Rails Engine that let you setup an admin interface quick and
 # easy. Please install it as a gem or include it in your Gemfile.
 module InlineForms
+  class PlainTextColumnMissingError < StandardError; end
+
   # DEFAULT_COLUMN_TYPES holds the standard ActiveRecord::Migration column types.
   # This list provides compatability with the standard types, but we add our own
   # later in 'Special Column Types'.
@@ -62,7 +64,7 @@ module InlineForms
   #
   DEFAULT_FORM_ELEMENTS = {
     :string     => :text_field,
-    :text       => :text_area,
+    :text       => :plain_text,
     :integer    => :text_field,
     :float      => :text_field,
     :decimal    => :text_field,
@@ -92,6 +94,46 @@ module InlineForms
   SPECIAL_COLUMN_TYPES = {
     :associated => :no_migration
   }
+
+  PLAIN_TEXT_FORM_ELEMENTS = %i[
+    plain_text
+    plain_text_area
+    text_area
+    text_area_without_ckeditor
+  ].freeze
+
+  def self.plain_text_form_element?(form_element)
+    PLAIN_TEXT_FORM_ELEMENTS.include?(form_element.to_sym)
+  rescue NoMethodError
+    false
+  end
+
+  def self.assert_plain_text_column!(object:, attribute:, form_element:)
+    return unless plain_text_form_element?(form_element)
+    return if object.class.column_names.include?(attribute.to_s)
+
+    raise PlainTextColumnMissingError,
+      "#{object.class.name}##{attribute} uses #{form_element} but has no DB column `#{attribute}`. " \
+      "Use :rich_text for ActionText-backed attributes, or add a text column for :plain_text."
+  end
+
+  def self.validate_plain_text_configuration_for!(klass)
+    return unless klass.respond_to?(:table_exists?) &&
+                  klass.respond_to?(:column_names) &&
+                  klass.instance_methods.include?(:inline_forms_attribute_list)
+    return unless klass.table_exists?
+
+    attributes = klass.new.inline_forms_attribute_list
+    attributes.each do |attribute, _label, form_element|
+      next unless plain_text_form_element?(form_element)
+      next if klass.column_names.include?(attribute.to_s)
+
+      raise PlainTextColumnMissingError,
+        "#{klass.name} inline_forms_attribute_list declares #{attribute}:#{form_element}, " \
+        "but table `#{klass.table_name}` has no `#{attribute}` column. " \
+        "Use :rich_text for ActionText-backed attributes."
+    end
+  end
 
   # RELATIONS defines a mapping between AR::Migrations columns and the Model.
   #
@@ -156,6 +198,22 @@ module InlineForms
       next unless path.directory?
 
       app.config.assets.paths << path unless app.config.assets.paths.include?(path)
+    end
+
+    config.to_prepare do
+      next unless defined?(ActiveRecord::Base)
+
+      ActiveRecord::Base.descendants.each do |klass|
+        begin
+          InlineForms.validate_plain_text_configuration_for!(klass)
+        rescue InlineForms::PlainTextColumnMissingError
+          raise
+        rescue StandardError
+          # Some descendants might be abstract or temporarily unresolved while
+          # the app boots/reloads; runtime checks in controllers still enforce
+          # plain_text column presence for active resources.
+        end
+      end
     end
 
     I18n.load_path << Dir[File.join(File.expand_path(File.dirname(__FILE__) + '/locales'), '*.yml')]

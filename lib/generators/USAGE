@@ -3,7 +3,7 @@ Description:
     We will generate a model, a migration, a controller and a route. Please do check the migration and the model because they will likely need tweaking.
 
 Example:
-    rails generate inline_forms Thing name:text_field description:text_area yesno:check_box gender:boolean_with_values
+    rails generate inline_forms Thing name:text_field description:plain_text yesno:check_box gender:boolean_with_values
 
 This will create:
       create  app/models/thing.rb
@@ -19,7 +19,7 @@ This will create:
           def inline_forms_field_list
             [
                 [ :name, 'name', :text_field ],
-                [ :description, 'description', :text_area ],
+                [ :description, 'description', :plain_text ],
                 [ :yesno, 'yesno', :check_box ],
                 [ :gender, 'gender', :boolean_with_values ],
             ]

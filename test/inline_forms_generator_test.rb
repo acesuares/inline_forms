@@ -100,6 +100,16 @@ class InlineFormsGeneratorTest < Minitest::Test
     refute_includes(migration, "t.text :content")
   end
 
+  def test_plain_text_generates_text_column_and_plain_text_form_element
+    run_generator("Note", "title:string", "description:plain_text")
+
+    model = read("app/models/note.rb")
+    migration = read_single_migration_for("notes")
+
+    assert_includes(model, "[ :description , \"description\", :plain_text ]")
+    assert_includes(migration, "t.text :description")
+  end
+
   private
 
   def build_destination_skeleton!

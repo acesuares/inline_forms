@@ -4,6 +4,20 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [7.3.1] - 2026-05-07
+
+### Changed
+
+- **Long text form element naming is now explicit**: `:plain_text` is the canonical non-WYSIWYG textarea form element (backed by a DB `text` column), while `:rich_text` remains the ActionText/Trix element.
+- **Default mapping for migration type `:text` now emits form element `:plain_text`** (instead of `:text_area`) so newly generated models use the explicit name.
+- **Legacy aliases remain supported**: `:text_area`, `:text_area_without_ckeditor`, and `:plain_text_area` now delegate to `:plain_text`; legacy `:ckeditor` delegates to `:rich_text`.
+
+### Fixed
+
+- **Misconfigured `plain_text` attributes now fail fast with a clear error**: inline_forms now raises `InlineForms::PlainTextColumnMissingError` when a `plain_text`-style form element targets an attribute without a DB column (for example, an ActionText-only attribute such as `description` after switching from `:rich_text` to `:text_area`/`:plain_text` without adding a column).
+- **Checks run both during app boot/reload (for loaded models) and at request runtime** (`getKlass`, `create`, `update`) to prevent late `ActiveModel::MissingAttributeError` failures.
+- **Generated example-app tests now cover rich_text/plain_text edge cases**, including the failure path above and the reverse direction (`plain_text` -> `rich_text`) staying non-failing from inline_forms' perspective.
+
 ## [7.3.0] - 2026-05-07
 
 ### Removed

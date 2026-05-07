@@ -30,9 +30,9 @@ You can install the example application manually if you like:
 
  inline_forms create MyApp
  cd MyApp
- rails g inline_forms Picture name:string caption:string image:image_field description:text apartment:belongs_to _presentation:'#{name}'
+ rails g inline_forms Picture name:string caption:string image:image_field description:plain_text apartment:belongs_to _presentation:'#{name}'
  rails generate uploader Image
- rails g inline_forms Apartment name:string title:string description:text pictures:has_many pictures:associated _enabled:yes _presentation:'#{name}'
+ rails g inline_forms Apartment name:string title:string description:rich_text pictures:has_many pictures:associated _enabled:yes _presentation:'#{name}'
  bundle exec rake db:migrate
  rails s
 
@@ -47,6 +47,8 @@ New apps get +rails-i18n+ from RubyGems (+ '~> 7.0'+), not from the +svenfuchs/r
 The +:image_field+ form element uses CarrierWave. Generated apps depend on +carrierwave '~> 3.1'+ from RubyGems, store uploads on the local filesystem under +public/uploads/+, and use the default uploader produced by +rails generate uploader Image+. CarrierWave 3.1 supports Rails 6.0 through 8.0 and is the upstream maintenance line.
 
 To switch to S3, add +carrierwave-aws+ (or use the bundled fog backend) and configure a +CarrierWave.configure+ block in +config/initializers/carrierwave.rb+; nothing in inline_forms hard-codes local storage.
+
+For long text fields, use +:plain_text+ for a plain textarea backed by a DB +text+ column, or +:rich_text+ for ActionText/Trix content. +:plain_text+ requires an actual column on the model table; if the column is missing, inline_forms now raises +InlineForms::PlainTextColumnMissingError+ during controller boot/runtime checks.
 
 Note: generated apps also depend on ActiveStorage transitively because the +:rich_text+ form element uses ActionText (+active_storage:install+ runs during +inline_forms create+). Image uploads still go through CarrierWave; ActiveStorage is only there to back ActionText embeds.
 

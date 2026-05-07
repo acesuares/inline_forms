@@ -2,13 +2,17 @@
 InlineForms::SPECIAL_COLUMN_TYPES[:plain_text_area]=:text
 
 def plain_text_area_show(object, attribute)
-  link_to_inline_edit object, attribute, (object[attribute].nil? || object[attribute].empty?) ? "<i class='fi-plus'></i>".html_safe : object[attribute], from_callee: __callee__
+  plain_text_show(object, attribute)
 end
 
 def plain_text_area_edit(object, attribute)
-  text_area_tag attribute, object[attribute], :class => 'attribute_text_area'
+  plain_text_edit(object, attribute)
 end
 
 def plain_text_area_update(object, attribute)
-  object[attribute.to_sym] = params[attribute.to_sym]
+  plain_text_update(object, attribute)
+end
+
+def plain_text_area_info(object, attribute)
+  plain_text_info(object, attribute)
 end

@@ -123,6 +123,7 @@ class InlineFormsController < ApplicationController
     @update_span = params[:update]
     attributes = @inline_forms_attribute_list || @object.inline_forms_attribute_list
     attributes.each do | attribute, name, form_element |
+      InlineForms.assert_plain_text_column!(object: @object, attribute: attribute, form_element: form_element)
       send("#{form_element.to_s}_update", @object, attribute) unless form_element == :tree || form_element == :associated || (cancan_enabled? && cannot?(:read, @object, attribute))
     end
     @parent_class = params[:parent_class]
@@ -164,6 +165,7 @@ class InlineFormsController < ApplicationController
     @form_element = params[:form_element]
     @sub_id = params[:sub_id]
     @update_span = params[:update]
+    InlineForms.assert_plain_text_column!(object: @object, attribute: @attribute, form_element: @form_element)
     send("#{@form_element.to_s}_update", @object, @attribute)
     @object.save
     respond_to do |format|
@@ -282,6 +284,7 @@ class InlineFormsController < ApplicationController
   # TODO think about this a bit more.
   def getKlass #:doc:
     @Klass = self.controller_name.classify.constantize
+    InlineForms.validate_plain_text_configuration_for!(@Klass)
     @Klass
   end
 
