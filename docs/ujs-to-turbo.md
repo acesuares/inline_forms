@@ -1,0 +1,180 @@
+# UJS → Turbo migration checklist
+
+Track progress toward full Turbo integration and removal of jQuery UJS from inline_forms generated apps.
+
+**Current gem version:** see `lib/inline_forms/version.rb`
+
+**Architecture today:** almost every inline interaction is `remote: true` → `format.js` → `*.js.erb` doing `$('#<update_span>').html(...)`. Turbo is loaded as an ES module with **`Turbo.session.drive = false`**. One vertical slice (nested has_many list pagination) uses **`<turbo-frame>`**.
+
+**Target end state:** Turbo Frames/Streams for all swaps; **`format.html`** / **`format.turbo_stream`** responses; no `*.js.erb`; no `jquery_ujs` or `jquery.remotipart`; Drive enabled.
+
+---
+
+## Step 1 — Turbo wired (DONE)
+
+- [x] `gem 'turbo-rails'` in installer Gemfile (`bin/inline_forms_installer_core.rb`)
+- [x] Turbo loaded as `<script type="module">` in `layouts/inline_forms.html.erb` and `layouts/application.html.erb`
+- [x] `Turbo.session.drive = false` (UJS still owns navigation)
+- [x] Turbo **not** in Sprockets bundle (`app/assets/javascripts/inline_forms/inline_forms.js`) — ESM parse-error lesson from 7.1.1
+- [x] Smoke test: `lib/installer_templates/example_app_tests/test/integration/example_app_turbo_layout_test.rb`
+
+---
+
+## Step 2 — Nested list + pagination as Turbo Frame (DONE)
+
+- [x] `_list.html.erb`: nested has_many container is `<turbo-frame id="…_list">` when `parent_class` present
+- [x] Nested pagination: no `:remote => true`; `update=` param matches frame id (`…_list` suffix)
+- [x] `InlineFormsController#index`: HTML for nested frame requests; `turbo_rails/frame` vs `inline_forms` layout negotiation
+- [x] `data-turbo="false"` on **nested** rows only (UJS inline-edit coexists with frame pagination)
+- [x] Top-level rows must **not** carry `data-turbo="false"` (would poison inner frames — 7.2.3)
+- [x] Smoke test: `example_app_apartment_photos_pagination_test.rb`
+- [x] Example seed data (Konferensha + photos) for pagination assertions
+
+**Explicitly deferred in this step:** top-level index lists (`/apartments`) stay full-page + UJS row open.
+
+---
+
+## Step 3 — Per-row / per-field inline-edit lifecycle
+
+Convert the **`show → edit → update → show_element → close`** cycle without UJS.
+
+### DOM contract (unchanged)
+
+- Every editable region needs a stable id: `{model}_{id}_{attribute}` (e.g. `apartment_5_name`)
+- `params[:update]` must match that id (set by `link_to_inline_edit`, `_edit.html.erb`, etc.)
+
+### Row-level (stock list → full `_show` panel)
+
+- [ ] Wrap each list row (or swap target) in `<turbo-frame id="apartment_<id>">`
+- [ ] Row title link: GET `show` → HTML `_show` partial inside frame (no `remote: true`)
+- [ ] `InlineFormsController#show`: `format.html` renders partial for frame requests
+- [ ] `close`, `soft_delete`, `soft_restore`, `destroy`, `revert`: HTML or `turbo_stream` instead of `close.js.erb`, etc.
+- [ ] Remove `show.js.erb`, `close.js.erb`, `record_destroyed.js.erb`, `show_undo.js.erb`
+- [ ] Remove `:remote => true` from `_list.html.erb` row links, `_close.html.erb`
+- [ ] Remove `data-turbo="false"` from nested rows once row forms are Turbo-native
+
+### Field-level (`link_to_inline_edit` / `*_show` helpers)
+
+- [ ] `link_to_inline_edit`: drop `:remote => true`; use frame-targeted GET or stream
+- [ ] `InlineFormsController#edit`, `#update`, `#show` (single attribute): `format.html` / `turbo_stream`
+- [ ] `_edit.html.erb`: Turbo form submit (no `:remote => true`); multipart still works via Turbo
+- [ ] Remove `edit.js.erb`, `update.js.erb`, `show_element.js.erb`
+- [ ] **`not_accessible_through_html?` models** (e.g. Photo): add `format.html` on update/create when reached via parent frame (7.2.1 regression class)
+
+### Widget re-init after swap
+
+- [ ] ActionText/Trix: hook `turbo:frame-load` (or Stimulus) to attach editors after frame replace
+- [ ] jQuery UI datepicker / timepicker / autocomplete: re-bind on frame load, or migrate to Stimulus
+
+### Helpers (`app/helpers/inline_forms_helper.rb`)
+
+- [ ] `close_link`, `link_to_soft_delete`, `link_to_destroy`, `link_to_new_record`, `link_to_versions_list`, `close_versions_list_link`: convert off `:remote => true`
+
+### Tests
+
+- [ ] Integration: open apartment row → edit text field → save → cancel
+- [ ] Integration: replace photo image (multipart) inside nested frame
+- [ ] Integration: custom field-only page (see `ApartmentsController#name_list` plan) — edit name without opening full `_show`
+- [ ] Assert no `406 UnknownFormat` on Turbo form posts
+
+---
+
+## Step 4 — Remaining UJS surfaces
+
+### Lists and create flow
+
+- [ ] Top-level index: wrap in `<turbo-frame id="apartments_list">`; in-frame pagination
+- [ ] `new` / `create`: frame refresh or stream replacing list container
+- [ ] Remove `new.js.erb`, `list.js.erb` (keep `format.js` only until Step 5 if needed for overlap)
+- [ ] `_new.html.erb`: drop `:remote => true`
+
+### Tree
+
+- [ ] `_tree.html.erb`: same frame pattern as `_list`; remote pagination → frame pagination
+- [ ] Remove tree-related UJS if any dedicated `*.js.erb` remain
+
+### Versions panel
+
+- [ ] `VersionsConcern#list_versions`: HTML frame / stream
+- [ ] Remove `versions.js.erb`, `versions_list.js.erb`
+- [ ] `_versions_list.html.erb`: drop `:remote => true` on revert links (or stream revert)
+
+### Geo / misc
+
+- [ ] `geo_code_curacao/list_streets.js.erb`: frame or stream for street dropdown
+
+### Controller cleanup
+
+- [ ] Every action in `InlineFormsController` + `VersionsConcern` has a non-JS response path
+- [ ] Audit `respond_to` blocks: parallel `format.turbo_stream` where stream is cleaner than full frame
+
+### Tests
+
+- [ ] Top-level list pagination in frame
+- [ ] Create apartment → list frame updates
+- [ ] Versions panel open/close
+- [ ] Assert zero `data-remote="true"` in rendered HTML for inline_forms flows
+
+---
+
+## Step 5 — Enable Drive, remove UJS
+
+- [ ] Remove `Turbo.session.drive = false` from both layouts
+- [ ] Delete `//= require jquery_ujs` from `inline_forms.js`
+- [ ] Delete `//= require jquery.remotipart` from `inline_forms.js`
+- [ ] Delete all `app/views/inline_forms/*.js.erb` (and geo `list_streets.js.erb`)
+- [ ] Remove `format.js` branches from controllers (or empty stubs, then delete)
+- [ ] Update `example_app_turbo_layout_test.rb`: Drive enabled (or line removed)
+- [ ] Full `bundle exec rails test` in `--example` app
+
+### jQuery (optional follow-up — not required to drop UJS)
+
+These can remain while UJS is gone; separate migration if desired:
+
+- [ ] `jquery.ui.all` (datepicker)
+- [ ] `jquery.timepicker.js`
+- [ ] `autocomplete-rails`
+- [ ] `foundation` jQuery plugin → consider Foundation JS without jQuery or Stimulus
+
+---
+
+## Reference — UJS inventory
+
+### `*.js.erb` (all to delete by Step 5)
+
+| File | Effect |
+|------|--------|
+| `show.js.erb` | Replace row with `_show` |
+| `edit.js.erb` | Replace `#update_span` with `_edit` form |
+| `update.js.erb` | Replace with `{form_element}_show` |
+| `show_element.js.erb` | Single-field show after update |
+| `new.js.erb` | Replace with `_new` form |
+| `list.js.erb` | Replace list container |
+| `close.js.erb` | Fade + `_close` partial |
+| `record_destroyed.js.erb` | Fade out row |
+| `show_undo.js.erb` | Undo link after destroy |
+| `versions.js.erb` | Fade + versions partial |
+| `versions_list.js.erb` | Versions table |
+| `geo_code_curacao/list_streets.js.erb` | Street list dropdown |
+
+### Controller actions still on `format.js`
+
+`index`, `show`, `edit`, `update`, `new`, `create`, `soft_delete`, `soft_restore`, `destroy`, `revert`, `list_versions`
+
+### Key files
+
+- `app/controllers/inline_forms_controller.rb`
+- `app/controllers/concerns/versions_concern.rb`
+- `app/views/inline_forms/_list.html.erb`, `_show.html.erb`, `_edit.html.erb`, `_new.html.erb`
+- `app/helpers/inline_forms_helper.rb`
+- `app/helpers/form_elements/*.rb` (`*_show` → `link_to_inline_edit`)
+- `app/assets/javascripts/inline_forms/inline_forms.js`
+- `app/views/layouts/inline_forms.html.erb`
+
+---
+
+## Custom field-only pages (helper bypass)
+
+Stock `_show` / `_list` are not required for inline edit. Any page can call form-element helpers (e.g. `text_field_show(apartment, :name)`) inside a container with id `apartment_<id>_name`. Edit/update still hit `ApartmentsController#edit` / `#update` via polymorphic paths.
+
+Example app demo (**`--example` only**): **`GET /apartments/name_list`** (`ApartmentsController#name_list`) — lists the first 10 apartment names via `text_field_show`; linked from the **More** menu. Useful as a **Step 3 regression target**: proves field-level Turbo conversion works outside the stock list UI.

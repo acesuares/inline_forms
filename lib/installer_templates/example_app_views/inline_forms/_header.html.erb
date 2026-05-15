@@ -1,0 +1,45 @@
+<div class="contain-to-grid fixed">
+  <nav id='inline_forms_application_top_bar' class="top-bar">
+    <div class="top-bar-left">
+      <ul class="menu">
+        <li class="menu-text">
+          <h1 style="margin: 0; font-size: inherit;"><a href="/"><%= application_name %> v<%= inline_forms_version %> <%= current_user.name %></a></h1>
+        </li>
+      </ul>
+    </div>
+    <div class="top-bar-right">
+      <ul class="dropdown menu" data-dropdown-menu>
+        <% if current_user.role?(:admin) || current_user.role?(:superadmin) %>
+          <li>
+            <a href="#"><%= t 'common.more' %></a>
+            <ul class="menu">
+              <% MODEL_TABS.each do |m| %>
+                <% model = m.singularize.camelcase.constantize rescue nil %>
+                  <% unless model.nil? || model.not_accessible_through_html? %>
+                  <% if can? :update, model %>
+                  <li>
+                    <%= link_to model.model_name.human, '/' +  m %>
+                  </li>
+                  <% end %>
+                <% end %>
+              <% end %>
+              <% if can? :read, Apartment %>
+              <li>
+                <%= link_to "Apartment names (first 10)", apartment_name_list_path %>
+              </li>
+              <% end %>
+            </ul>
+          </li>
+        <% end %>
+        <li>
+          <a href="#"><%= current_user.name %></a>
+          <ul class="menu">
+            <li>
+              <%= link_to( t("common.logout"), destroy_user_session_path, :method => :delete) if current_user  %>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </nav>
+</div>

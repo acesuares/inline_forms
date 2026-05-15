@@ -1,0 +1,23 @@
+<div class="row">
+  <div class="small-12 columns">
+    <h2>Apartment names (first 10)</h2>
+    <p>
+      <%= link_to "Back to full apartment list", apartments_path %>
+    </p>
+    <p class="help-text">
+      Each name is an inline edit via <code>text_field_show</code> — no stock
+      <code>_show</code> panel. Click a name to edit it in place.
+    </p>
+  </div>
+</div>
+
+<% @apartments.each do |apartment| %>
+  <div class="row">
+    <div class="small-2 columns">
+      <%= apartment.id %>
+    </div>
+    <div class="small-10 columns" id="apartment_<%= apartment.id %>_name">
+      <%= text_field_show(apartment, :name) %>
+    </div>
+  </div>
+<% end %>

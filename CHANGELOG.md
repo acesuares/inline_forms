@@ -4,6 +4,15 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [7.4.0] - 2026-05-15
+
+### Added
+
+- **`--example` demo: field-level inline edit without the stock `_show` UI** (`ApartmentsController#name_list`, **`GET /apartments/name_list`**). Lists the first 10 apartments with each **`name`** rendered via **`text_field_show`** inside a wrapper `id="apartment_<id>_name"`, so edit/update use the normal polymorphic paths without opening the full inline-edit panel. Installer copies **`app/views/apartments/name_list.html.erb`**, injects the controller action (with CanCan **`skip_load_and_authorize_resource`** / **`authorize! :read, Apartment`**), and adds the route.
+- **More menu link** in the example app only: installer overrides **`app/views/inline_forms/_header.html.erb`** with an extra item **“Apartment names (first 10)”** pointing at **`apartment_name_list_path`**.
+- **UJS → Turbo migration checklist** at **`docs/ujs-to-turbo.md`** (Steps 1–2 done, 3–5 tracked).
+- **Regression test** **`test/integration/example_app_apartment_name_list_test.rb`**: page render, More menu link, and UJS edit-link **`update=`** contract.
+
 ## [7.3.4] - 2026-05-15
 
 ### Changed

@@ -756,6 +756,19 @@ if ENV['install_example'] == 'true'
 
   remove_file 'public/index.html'
 
+  say "- Apartment name list demo (field-level inline edit without _show)..."
+  inject_into_file "app/controllers/apartments_controller.rb",
+                   "\n  skip_load_and_authorize_resource only: :name_list\n\n  def name_list\n    authorize! :read, Apartment\n    @apartments = Apartment.accessible_by(current_ability).order(:id).limit(10)\n  end\n",
+                   after: "set_tab :apartment\n"
+
+  example_views_root = File.join(GENERATOR_PATH, "lib/installer_templates/example_app_views")
+  Dir.glob(File.join(example_views_root, "**", "*")).sort.each do |abs|
+    next unless File.file?(abs)
+    rel = abs.delete_prefix(example_views_root + File::SEPARATOR).tr("\\", "/")
+    create_file File.join("app/views", rel), File.read(abs)
+  end
+
+  route 'get "apartments/name_list", to: "apartments#name_list", as: :apartment_name_list'
   route "root :to => 'apartments#index'"
 
   say "- Adding example app regression tests (bundle exec rails test)..."
@@ -768,6 +781,7 @@ if ENV['install_example'] == 'true'
   say "\nDone! Example app (Photo + Apartment) is ready.", :yellow
   say "  bundle exec rails test     # example regression tests", :yellow
   say "  bundle exec rails s        # then http://localhost:3000/apartments", :yellow
+  say "  More menu → Apartment names (first 10)  # /apartments/name_list", :yellow
   say "  Log in: #{ENV["email"]} / #{ENV["password"]}", :yellow
 end
 # done!
