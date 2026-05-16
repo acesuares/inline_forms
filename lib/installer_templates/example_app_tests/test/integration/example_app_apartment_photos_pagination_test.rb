@@ -220,6 +220,28 @@ class ExampleAppApartmentPhotosPaginationTest < ExampleAppIntegrationTestCase
     assert_select %(turbo-frame##{sample_row_id} a[data-turbo='true'][data-turbo-frame='#{sample_row_id}']), minimum: 1
   end
 
+  test "nested Photo versions restore targets nested row turbo-frame not bare photo id" do
+    photo = @apartment.photos.first!
+    original_name = photo.name
+    photo.update!(name: "#{original_name}-changed")
+    row_id = "apartment_#{@apartment.id}_photo_#{photo.id}"
+    versions_frame = "photo_#{photo.id}_versions"
+    version = photo.versions.where(event: "update").order(:id).last
+    assert version, "expected an update version to revert"
+
+    get list_versions_photo_path(photo, update: versions_frame),
+        headers: { "Turbo-Frame" => versions_frame, "Accept" => "text/html" }
+    assert_response :success
+    assert_includes @response.body, "data-turbo-frame=\"#{row_id}\"",
+      "restore must target the nested row frame (#{row_id}), not photo_#{photo.id}"
+
+    post revert_photo_path(version.id, update: row_id),
+         headers: { "Turbo-Frame" => row_id, "Accept" => "text/html" }
+    assert_response :success
+    assert_includes @response.body, %(<turbo-frame id="#{row_id}">)
+    assert_equal original_name, photo.reload.name
+  end
+
   test "nested Photo row opens and closes via Turbo HTML (not_accessible_through_html model)" do
     photo = @apartment.photos.first!
     row_id = "apartment_#{@apartment.id}_photo_#{photo.id}"

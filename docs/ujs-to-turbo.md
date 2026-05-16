@@ -2,7 +2,7 @@
 
 Track progress toward full Turbo integration and removal of jQuery UJS from inline_forms generated apps.
 
-**Current gem version:** see `lib/inline_forms/version.rb` (Step 3 complete in **7.5.0** except tree-related `*.js.erb` — Step 4)
+**Current gem version:** see `lib/inline_forms/version.rb` (Step 4 nearly complete — versions panel done in **7.7.3**)
 
 **Architecture today:** almost every inline interaction is `remote: true` → `format.js` → `*.js.erb` doing `$('#<update_span>').html(...)`. Turbo is loaded as an ES module with **`Turbo.session.drive = false`**. One vertical slice (nested has_many list pagination) uses **`<turbo-frame>`**.
 
@@ -107,9 +107,9 @@ Convert the **`show → edit → update → show_element → close`** cycle with
 
 ### Versions panel
 
-- [ ] `VersionsConcern#list_versions`: HTML frame / stream
-- [ ] Remove `versions.js.erb`, `versions_list.js.erb`
-- [ ] `_versions_list.html.erb`: drop `:remote => true` on revert links (or stream revert)
+- [x] `VersionsConcern#list_versions`: HTML frame (`versions_panel` / `versions_list_panel`, `turbo_rails/frame` layout) — **7.7.3** drops `format.js`
+- [x] Remove `versions.js.erb`, `versions_list.js.erb` (**7.7.3**)
+- [x] `_versions_list.html.erb`: revert uses `inline_forms_turbo_link_data` (row frame), not `:remote => true`
 
 ### Geo / misc
 
@@ -124,8 +124,8 @@ Convert the **`show → edit → update → show_element → close`** cycle with
 
 - [x] Top-level list pagination in frame (`example_app_apartment_top_level_pagination_test.rb`)
 - [x] Create apartment → list frame updates (`example_app_apartment_top_level_new_test.rb`)
-- [ ] Versions panel open/close
-- [ ] Assert zero `data-remote="true"` in rendered HTML for inline_forms flows
+- [x] Versions panel open/close + revert from list (`example_app_apartment_versions_turbo_test.rb`, **7.7.3**)
+- [ ] Assert zero `data-remote="true"` in rendered HTML for inline_forms flows (spot-checked per slice; full-page audit deferred to Step 5)
 
 ---
 
@@ -165,13 +165,13 @@ These can remain while UJS is gone; separate migration if desired:
 | `close.js.erb` | Fade + `_close` partial |
 | `record_destroyed.js.erb` | Fade out row |
 | `show_undo.js.erb` | Undo link after destroy |
-| `versions.js.erb` | Fade + versions partial |
-| `versions_list.js.erb` | Versions table |
+| ~~`versions.js.erb`~~ | Removed **7.7.3** — versions panel HTML frame |
+| ~~`versions_list.js.erb`~~ | Removed **7.7.3** — versions list HTML frame |
 | ~~`geo_code_curacao/list_streets.js.erb`~~ | Archived 7.6.0 — street autocomplete JSON |
 
 ### Controller actions still on `format.js`
 
-`index`, `show`, `edit`, `update`, `new`, `create`, `soft_delete`, `soft_restore`, `destroy`, `revert`, `list_versions`
+None in active inline_forms views (all `*.js.erb` removed through **7.7.3**). Controllers may still register `format.js` only where legacy callers exist — audit before Step 5.
 
 ### Key files
 

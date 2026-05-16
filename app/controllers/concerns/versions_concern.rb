@@ -12,12 +12,10 @@ module VersionsConcern
     if close
       respond_to do |format|
         format.html { render "inline_forms/versions_panel", layout: "turbo_rails/frame" }
-        format.js { render :versions }
       end
     else
       respond_to do |format|
         format.html { render "inline_forms/versions_list_panel", layout: "turbo_rails/frame" }
-        format.js { render :versions_list }
       end
     end
   end

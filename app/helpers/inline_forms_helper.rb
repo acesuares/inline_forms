@@ -59,6 +59,24 @@ module InlineFormsHelper
     { data: data }
   end
 
+  # +<turbo-frame>+ id for a list row's open/close/revert target.
+  # Top-level models: +apartment_5+. Nested +not_accessible_through_html?+ children
+  # (e.g. Photo under Apartment): +apartment_5_photo_2+ — must match +_list.html.erb+.
+  def inline_forms_row_turbo_frame_id(object)
+    frame_id = "#{object.class.name.underscore}_#{object.id}"
+    return frame_id unless object.class.respond_to?(:not_accessible_through_html?) &&
+      object.class.not_accessible_through_html?
+
+    belongs_to = object.class.reflect_on_all_associations(:belongs_to)
+      .find { |assoc| !assoc.polymorphic? }
+    return frame_id unless belongs_to
+
+    parent = object.public_send(belongs_to.name)
+    return frame_id unless parent
+
+    "#{parent.class.name.underscore}_#{parent.id}_#{object.class.name.underscore}_#{object.id}"
+  end
+
   private
 
   def validation_hints_as_list_for(object, attribute)

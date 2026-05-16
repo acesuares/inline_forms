@@ -4,6 +4,24 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [7.7.3] - 2026-05-16
+
+### Changed
+
+- **Step 4 (UJS → Turbo) — versions panel:** `VersionsConcern#list_versions` is **HTML-only** (`versions_panel` / `versions_list_panel` inside matching `<turbo-frame>`). Removed **`versions.js.erb`** and **`versions_list.js.erb`**.
+
+### Fixed
+
+- **Nested Photo (and other `not_accessible_through_html?` children) versions restore:** `_versions_list` revert links targeted `photo_<id>` but nested list rows use `apartment_<aid>_photo_<id>`. Turbo could not find that frame, fell back to `photo_<id>_versions`, and `revert` returned **406** (`row_html_turbo_allowed?` false for bare `photo_<id>`). **`inline_forms_row_turbo_frame_id`** now matches `_list.html.erb` row ids.
+
+### Added
+
+- **Regression tests:** expanded-row versions open link (Turbo, not `data-remote`); revert from versions list via Turbo POST (`example_app_apartment_versions_turbo_test.rb`); nested Photo versions list restore + Turbo POST revert (`example_app_apartment_photos_pagination_test.rb`).
+
+### Verified
+
+- **`bundle exec rails test`** in `--example` MyApp — **65 runs, 330 assertions, 0 failures**.
+
 ## [7.7.0] - 2026-05-16
 
 ### Changed
