@@ -9,6 +9,7 @@ This directory is the **versioned archive** for inline_forms capabilities that a
 | `:geo_code_curacao` | **Archived** | **7.6.0** | [`form_elements/geo_code_curacao/`](form_elements/geo_code_curacao/) |
 | `:chicas_photo_list`, `:chicas_family_photo_list`, `:chicas_dropdown_with_family_members` | **Archived** | **7.6.0** | [`form_elements/chicas/`](form_elements/chicas/) |
 | `:kansen_slider` | **Archived** | **7.6.0** | [`form_elements/kansen_slider/`](form_elements/kansen_slider/) |
+| `:tree`, `:move` | **Archived** | **7.7.0** | [`form_elements/tree/`](form_elements/tree/) — host `#children`, `#hash_tree_to_collection`, `#add_child` |
 | `:absence_list` | **Removed** (source not in repo) | **6.3.0** | See [CHANGELOG](../CHANGELOG.md#630---2026-05-03); vendor from git history or app copy |
 
 Programmatic registry: `InlineForms::ARCHIVED_FORM_ELEMENTS` in `lib/inline_forms.rb` (boot-time check if a model still declares an archived symbol).

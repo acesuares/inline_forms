@@ -44,7 +44,12 @@ class InlineFormsController < ApplicationController
       foreign_key = @Klass.reflect_on_association(@parent_class.underscore.to_sym).options[:foreign_key] || @parent_class.foreign_key
       conditions =  [ "#{foreign_key} = ?", @parent_id ]
     end
-    # if we are using cancan, then make sure to select only accessible records
+    # CanCan's load_and_authorize_resource sets @apartments (etc.); keep @objects in sync.
+    collection_ivar = :"@#{controller_name}"
+    if instance_variable_defined?(collection_ivar)
+      loaded = instance_variable_get(collection_ivar)
+      @objects = loaded unless loaded.nil?
+    end
     @objects ||= @Klass.accessible_by(current_ability) if cancan_enabled?
     @objects ||= @Klass
     @objects = @objects.order(@Klass.table_name + "." + @Klass.order_by_clause) if @Klass.respond_to?(:order_by_clause) && ! @Klass.order_by_clause.nil?
@@ -79,12 +84,14 @@ class InlineFormsController < ApplicationController
         format.html do
           if @parent_class.present?
             render_nested_associated_list_html
+          elsif turbo_frame_request? && list_frame_id?(params[:update])
+            @ul_needed = true
+            render "inline_forms/_list", layout: "turbo_rails/frame"
           else
             render "inline_forms/_list", layout: "inline_forms"
           end
         end
       end
-      format.js { render :list }
     end
   end
 
@@ -103,8 +110,7 @@ class InlineFormsController < ApplicationController
 
     @object.inline_forms_attribute_list = @inline_forms_attribute_list if @inline_forms_attribute_list
     respond_to do |format|
-      format.html { render_turbo_new } if associated_list_html_allowed? || !@Klass.not_accessible_through_html?
-      format.js { }
+      format.html { render_turbo_new } if html_list_flow_allowed?
     end
   end
 
@@ -128,7 +134,7 @@ class InlineFormsController < ApplicationController
     attributes = @inline_forms_attribute_list || @object.inline_forms_attribute_list
     attributes.each do | attribute, name, form_element |
       InlineForms.assert_plain_text_column!(object: @object, attribute: attribute, form_element: form_element)
-      send("#{form_element.to_s}_update", @object, attribute) unless form_element == :tree || form_element == :associated || (cancan_enabled? && cannot?(:read, @object, attribute))
+      send("#{form_element.to_s}_update", @object, attribute) unless form_element == :associated || (cancan_enabled? && cannot?(:read, @object, attribute))
     end
     @parent_class = params[:parent_class]
     @parent_id = params[:parent_id]
@@ -150,16 +156,14 @@ class InlineFormsController < ApplicationController
       @objects = @objects.where(conditions).paginate(:page => params[:page])
       @object = nil
       respond_to do |format|
-        format.html { render_associated_list_frame } if associated_list_html_allowed?
-        format.js { render :list }
+        format.html { render_list_frame_after_save } if html_list_flow_allowed?
       end
     else
       flash.now[:header] = ["Kan #{@object.class.to_s.underscore} niet aanmaken."]
       flash.now[:error] = @object.errors.to_a
       respond_to do |format|
         @object.inline_forms_attribute_list = attributes
-        format.html { render_turbo_new } if associated_list_html_allowed? || !@Klass.not_accessible_through_html?
-        format.js { render :new }
+        format.html { render_turbo_new } if html_list_flow_allowed?
       end
     end
   end
@@ -203,10 +207,8 @@ class InlineFormsController < ApplicationController
         @attributes = @object.inline_forms_attribute_list
         if close
           format.html { render_row_turbo(:close) } if row_html_turbo_allowed?
-          format.js { render :close }
         else
           format.html { render_row_turbo(:show) } if row_html_turbo_allowed?
-          format.js { render :show }
         end
       end
     else
@@ -223,7 +225,6 @@ class InlineFormsController < ApplicationController
     @object.soft_delete(current_user)
     respond_to do |format|
       format.html { render_row_turbo(:close) } if row_html_turbo_allowed?
-      format.js { render :close }
     end
   end
 
@@ -234,7 +235,6 @@ class InlineFormsController < ApplicationController
     @object.soft_restore
     respond_to do |format|
       format.html { render_row_turbo(:close) } if row_html_turbo_allowed?
-      format.js { render :close }
     end
   end
 
@@ -247,7 +247,6 @@ class InlineFormsController < ApplicationController
       @object.destroy
       respond_to do |format|
         format.html { render_row_turbo_destroyed } if row_html_turbo_allowed?
-        format.js { render :record_destroyed }
       end
     end
   end
@@ -263,7 +262,6 @@ class InlineFormsController < ApplicationController
       authorize!(:revert, @object) if cancan_enabled?
       respond_to do |format|
         format.html { render_row_turbo(:close) } if row_html_turbo_allowed?
-        format.js { render :close }
       end
     end
   end
@@ -315,8 +313,21 @@ class InlineFormsController < ApplicationController
   end
 
   # Nested has_many +new+ / cancel / +create+ inside a parent +<turbo-frame>+ (e.g. Apartment → Photo).
+  def html_list_flow_allowed?
+    params[:update].present? && (@parent_class.present? || !@Klass.not_accessible_through_html?)
+  end
+
   def associated_list_html_allowed?
     @parent_class.present? && params[:update].present?
+  end
+
+  def list_frame_id?(update)
+    update.present? && update.to_s.end_with?("_list")
+  end
+
+  def render_list_frame_after_save
+    @ul_needed = true
+    render "inline_forms/create_list_frame", layout: associated_list_frame_layout
   end
 
   def associated_list_frame_layout

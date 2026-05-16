@@ -114,13 +114,8 @@ module InlineFormsHelper
 
   # new link
   #
-  # +turbo_row:+ controls Turbo opt-in. Default +true+ matches the nested has_many
-  # contract (parent +<turbo-frame>+ swap). The top-level callsite (+_inline_forms_tabs+)
-  # passes no +parent_class+; for that case we fall back to UJS (+remote: true+) so
-  # +new.js.erb+ / +list.js.erb+ swap +#apartments_list+ contents instead of trying
-  # to navigate a Turbo frame the page does not have. Without this the Turbo data
-  # attributes either logged "Content missing" on cancel/create or fell back to a
-  # full-page navigation that broke the inline-edit experience (7.5.1 regression).
+  # +turbo_row:+ when true (default), +new+ / cancel / +create+ target +update_span+
+  # as a +<turbo-frame>+ (top-level +apartments_list+ or nested associated list).
   def link_to_new_record(model, path_to_new, update_span, parent_class = nil, parent_id = nil, html_class = "button new_button", turbo_row: true)
     path = send(
       path_to_new,
@@ -132,7 +127,7 @@ module InlineFormsHelper
       class: html_class,
       title: t("inline_forms.view.add_new", model: model.model_name.human)
     }
-    opts.merge!(turbo_row && parent_class.present? ? inline_forms_turbo_link_data(update_span) : { remote: true })
+    opts.merge!(turbo_row ? inline_forms_turbo_link_data(update_span) : { remote: true })
     out = link_to "<i class='fi-plus'></i>".html_safe, path, opts
     if cancan_enabled?
       if can? :create, model

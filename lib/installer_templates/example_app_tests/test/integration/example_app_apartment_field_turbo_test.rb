@@ -13,16 +13,15 @@ class ExampleAppApartmentFieldTurboTest < ExampleAppIntegrationTestCase
     @turbo_headers = { "Turbo-Frame" => @frame_id }
   end
 
-  test "show panel partial wraps scalar fields in turbo-frame" do
-    get apartment_path(@apartment, update: "apartment_#{@apartment.id}"),
-        headers: {
-          "Accept" => "text/javascript, application/javascript",
-          "X-Requested-With" => "XMLHttpRequest"
-        }
+  test "show panel opens as HTML inside row turbo-frame" do
+    row_frame = "apartment_#{@apartment.id}"
+    get apartment_path(@apartment, update: row_frame),
+        headers: { "Turbo-Frame" => row_frame, "Accept" => "text/html" }
 
     assert_response :success
+    assert_includes @response.body, %(<turbo-frame id="#{row_frame}">)
     assert_includes @response.body, "turbo-frame",
-      "UJS show.js.erb should embed _show with turbo-frame field wrappers"
+      "row show should embed _show with per-field turbo-frame wrappers"
     assert_includes @response.body, @frame_id
   end
 

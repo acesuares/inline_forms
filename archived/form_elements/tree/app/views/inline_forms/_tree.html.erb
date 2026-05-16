@@ -5,14 +5,17 @@
   <% objects = parent_class.find(parent_id).children %>
   <% objects = parent_class.find(parent_id).children.accessible_by(current_ability) if cancan_enabled? %>
   <% objects = objects.paginate  :page => params[:page] %>
+  <% list_controller = parent_class.model_name.route_key %>
 
-<div class="list_container" id="<%= update_span %>">
+<turbo-frame id="<%= update_span %>" class="list_container">
 
 <!--  # list of objects -->
 <% for object in objects %>
     <% css_class_id = parent_class.to_s.underscore + '_' + parent_id.to_s + '_' + attribute.to_s.singularize.underscore + "_" + object.id.to_s -%>
     <% path_to_object = parent_class.to_s.singularize.underscore + "_path" %>
-  <div class="row <%= cycle('odd', 'even') %><%= " top-level" if parent_class.nil? %>" id="<%= css_class_id -%>">
+    <% row_open_link_opts = { data: { turbo: true, turbo_frame: css_class_id } } %>
+  <%= tag.turbo_frame(id: css_class_id) do %>
+  <div class="row <%= cycle('odd', 'even') %>">
     <% if cancan_disabled? || ( can? :delete, object ) %>
       <div  class="small-1 column">
         <%= link_to_destroy(object, css_class_id) -%>
@@ -20,22 +23,31 @@
       <div  class="small-11 column">
         <%= link_to h(object._presentation),
           send( path_to_object, object, :update => css_class_id),
-          :remote => true -%>
+          row_open_link_opts -%>
       </div>
     <% else %>
       <div  class="small-12 column">
         <%= link_to h(object._presentation),
           send( path_to_object, object, :update => css_class_id),
-          :remote => true -%>
+          row_open_link_opts -%>
       </div>
     <% end %>
   </div>
+  <% end %>
 <% end -%>
 <!--  # pagination -->
 <% if parent_id.nil? -%>
   <% pagination = will_paginate objects -%>
 <% else %>
-  <% pagination = will_paginate objects, :remote => true, :params => {:controller => attribute, :action => :index, :id => nil, :parent_class => parent_class, :parent_id => parent_id, :update => "#{parent_class.to_s.underscore}_#{parent_id}_#{attribute}", :ul_needed => true  } -%>
+  <% pagination = will_paginate objects, params: {
+    controller: list_controller,
+    action: :index,
+    id: nil,
+    parent_class: parent_class,
+    parent_id: parent_id,
+    update: update_span,
+    ul_needed: true
+  } %>
 <% end %>
 <% if pagination %>
   <div class="row <%= cycle('odd', 'even') %>">
@@ -44,3 +56,4 @@
     </div>
   </div>
 <% end %>
+</turbo-frame>

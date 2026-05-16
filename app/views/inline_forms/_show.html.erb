@@ -30,31 +30,6 @@
             </div>
           </div>
         <% else %>
-          <% if form_element == :tree -%>
-            <div class="row form_element_header associated_auto_header" id="<%= css_class_id -%>_list_auto_header" >
-              <div class='medium-11 large-11 column' >
-                Children
-              </div>
-              <div class='medium-1 large-1 column'>
-                  <%= link_to_new_record(@object.class, "new_#{@object.class.to_s.underscore.singularize}_path", css_class_id, @object.class, @object.id) -%>
-              </div>
-            </div>
-            <div class="row <%= cycle('odd', 'even') %>">
-                <% if (INLINE_FORMS_TREE_INDENT rescue true) %>
-                  <div class='medium-1 large-1 column'>
-                    &nbsp;
-                  </div>
-                  <div id="<%= css_class_id -%>" class='small-11 column'>
-                <% else %>
-      	          <div id="<%= css_class_id -%>" class='small-12 column' >
-                <% end %>
-                <%= render  :partial => "inline_forms/tree",
-                  :locals => {  :parent_class => @object.class,
-                                :parent_id    => @object.id,
-                                :attribute    => attribute } %>
-                </div>
-            </div>
-          <% else %>
             <% if form_element == :associated -%>
       	      <div class="row form_element_header associated_auto_header" id="<%= css_class_id -%>_list_auto_header" >
       	        <div class='medium-11 large-11 column' >
@@ -113,7 +88,6 @@
                 </div>
               <% end %>
             <% end %>
-          <% end %>
         <% end %>
       <% end %>
     <% end %>

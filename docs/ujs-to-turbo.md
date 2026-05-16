@@ -51,8 +51,8 @@ Convert the **`show → edit → update → show_element → close`** cycle with
 - [x] `close_link` and `_close` presentation link: Turbo when `@inline_forms_turbo_row` (row HTML path)
 - [x] `soft_delete`, `soft_restore`, `destroy`, `revert`: `format.html` → `row_close` / `row_destroyed` (+ Turbo toolbar links); `format.js` kept for non-frame callers only
 - [x] Remove `edit.js.erb`, `update.js.erb`, `show_element.js.erb` (field lifecycle is Turbo HTML only)
-- [ ] Remove `show.js.erb`, `close.js.erb`, `record_destroyed.js.erb`, `show_undo.js.erb` — **`_tree.html.erb` still uses UJS row open (Step 4)**
-- [x] Remove `:remote => true` from nested `_list` / `_close` / toolbar where migrated (row toolbar, versions, nested `+` use Turbo; `_tree` / top-level `new` UJS deferred to Step 4)
+- [x] Remove `show.js.erb`, `close.js.erb`, `record_destroyed.js.erb`, `show_undo.js.erb` (7.7.0; tree migrated)
+- [x] Remove `:remote => true` from nested `_list` / `_close` / toolbar where migrated (row toolbar, versions, nested `+` use Turbo; top-level `new` was Step 4)
 - [x] Remove `data-turbo="false"` from nested rows once nested inline-edit is Turbo-native (7.4.2)
 
 ### Nested associated lists (e.g. Apartment → Photo)
@@ -96,15 +96,14 @@ Convert the **`show → edit → update → show_element → close`** cycle with
 
 ### Lists and create flow
 
-- [ ] Top-level index: wrap in `<turbo-frame id="apartments_list">`; in-frame pagination
-- [ ] `new` / `create`: frame refresh or stream replacing list container
-- [ ] Remove `new.js.erb`, `list.js.erb` (keep `format.js` only until Step 5 if needed for overlap)
-- [ ] `_new.html.erb`: drop `:remote => true`
+- [x] Top-level index: wrap in `<turbo-frame id="apartments_list">`; in-frame pagination (7.7.0)
+- [x] `new` / `create`: frame refresh replacing list container (7.7.0)
+- [x] Remove `new.js.erb`, `list.js.erb` (7.7.0)
+- [x] `_new.html.erb`: Turbo path when `@turbo_frame` (no `:remote` on cancel)
 
 ### Tree
 
-- [ ] `_tree.html.erb`: same frame pattern as `_list`; remote pagination → frame pagination
-- [ ] Remove tree-related UJS if any dedicated `*.js.erb` remain
+- [x] ~~`:tree` / `_tree.html.erb`~~ — **archived in 7.7.0** (`archived/form_elements/tree/`); needs host tree gem/APIs. Turbo-ready partial kept in archive.
 
 ### Versions panel
 
@@ -123,8 +122,8 @@ Convert the **`show → edit → update → show_element → close`** cycle with
 
 ### Tests
 
-- [ ] Top-level list pagination in frame
-- [ ] Create apartment → list frame updates
+- [x] Top-level list pagination in frame (`example_app_apartment_top_level_pagination_test.rb`)
+- [x] Create apartment → list frame updates (`example_app_apartment_top_level_new_test.rb`)
 - [ ] Versions panel open/close
 - [ ] Assert zero `data-remote="true"` in rendered HTML for inline_forms flows
 

@@ -4,6 +4,22 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [7.7.0] - 2026-05-16
+
+### Changed
+
+- **Step 4 (UJS → Turbo) — top-level list + create:** `/apartments` index list root is **`<turbo-frame id="apartments_list">`** with in-frame pagination (`update=apartments_list`); **`+ new` / cancel / create** use Turbo HTML (`new_record` / `create_list_frame`) instead of **`new.js.erb`** / **`list.js.erb`**. **`#outer_container > turbo-frame.list_container { width: 100% }`** fixes the 7.5.2 layout collapse.
+- **`:tree` / `:move` archived:** hierarchical child list (**`_tree.html.erb`**) and reparent helper (**`move.rb`**) moved to **`archived/form_elements/tree/`** — they expect host-app tree APIs (`#children`, `#hash_tree_to_collection`, `#add_child`), not defined in the gem; no example-app model. Registry blocks `:tree` / `:move` in `inline_forms_attribute_list`.
+- **Removed row/list UJS templates:** **`show.js.erb`**, **`close.js.erb`**, **`record_destroyed.js.erb`**, **`show_undo.js.erb`**, **`new.js.erb`**, **`list.js.erb`**; row actions and list flows use **`format.html`** only.
+
+### Added
+
+- **Regression tests:** `example_app_apartment_top_level_new_test.rb` (Turbo new/cancel/create), `example_app_apartment_top_level_pagination_test.rb`.
+
+### Verified
+
+- **`bundle exec rails test`** in `--example` MyApp — **62 runs, 312 assertions, 0 failures**.
+
 ## [7.6.0] - 2026-05-16
 
 ### Changed

@@ -41,22 +41,9 @@
   <% end %>
 <% end %>
 
-<%#
-  Container element. For the nested has_many case (parent_class set) we
-  emit a `<turbo-frame>` so pagination clicks (and any future in-frame
-  re-render of this list) swap only the matching frame instead of doing
-  a full-page navigation. Top-level lists keep the classic `<div>` and
-  full-page navigation; their `+ new` link is plain (no Turbo frame
-  target) so cancel / create just navigate -- a top-level `<turbo-frame>`
-  collapses inside `position: absolute` `#outer_container` and hides the
-  list (regression hit during the 7.5.2 spike).
--%>
+<%# List root is `<turbo-frame class="list_container">` (Step 4). See SCSS. %>
 <% if ul_needed -%>
-  <% if parent_class.nil? -%>
-    <%= raw "<div class=\"list_container\" id=\"#{update_span}\">" -%>
-  <% else -%>
-    <%= raw "<turbo-frame id=\"#{update_span}\" class=\"list_container\">" -%>
-  <% end -%>
+  <%= raw "<turbo-frame id=\"#{update_span}\" class=\"list_container\">" -%>
 <% end -%>
 
 <!--  # list of objects -->
@@ -123,7 +110,9 @@
 <% end -%>
 <!--  # pagination -->
 <% if parent_id.nil? -%>
-  <% pagination = will_paginate objects -%>
+  <% paginate_params = { update: update_span, ul_needed: true } %>
+  <% paginate_params[:search] = params[:search] if params[:search].present? %>
+  <% pagination = will_paginate objects, params: paginate_params %>
 <% else %>
   <% if pagination %>
     <%#
@@ -155,9 +144,5 @@
   </div>
 <% end %>
 <% if ul_needed -%>
-  <% if parent_class.nil? -%>
-    <%= raw "</div>" -%>
-  <% else -%>
-    <%= raw "</turbo-frame>" -%>
-  <% end -%>
+  <%= raw "</turbo-frame>" -%>
 <% end -%>

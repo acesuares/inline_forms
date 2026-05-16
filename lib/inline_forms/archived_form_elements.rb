@@ -30,6 +30,16 @@ module InlineForms
       archive_path: "archived/form_elements/kansen_slider",
       summary: "jQuery UI slider for integer-coded chance scale; uses model attribute_values.",
     },
+    tree: {
+      archived_in_version: "7.7.0",
+      archive_path: "archived/form_elements/tree",
+      summary: "Self-referential children list via parent.children; requires host tree APIs (see README).",
+    },
+    move: {
+      archived_in_version: "7.7.0",
+      archive_path: "archived/form_elements/tree",
+      summary: "Reparent via hash_tree_to_collection + add_child (host must implement; pairs with :tree).",
+    },
     absence_list: {
       removed_in_version: "6.3.0",
       archive_path: nil,
