@@ -4,6 +4,24 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [7.4.1] - 2026-05-15
+
+### Added
+
+- **Turbo field edit (Step 3, partial):** scalar fields in stock **`_show.html.erb`** are wrapped in **`<turbo-frame id="{model}_{id}_{attribute}">`**. Field **edit**, **update**, and **cancel** respond with **`format.html`** via **`field_edit.html.erb`** / **`field_show.html.erb`** and the **`turbo_rails/frame`** layout (no UJS on field links/forms). Row-level show/close remains UJS.
+- **`inline_forms_field_cancel_link`** helper and **`inline_forms_field_show`** helper; **`link_to_inline_edit`** accepts **`turbo_frame:`** and omits **`remote: true`** on the Turbo path.
+- **Regression tests** **`example_app_apartment_field_turbo_test.rb`** (stock panel field turbo-frame edit/update/cancel) and extended **`example_app_apartment_name_list_test.rb`** (turbo-frame contract, no **`UnknownFormat`** on cancel).
+
+### Fixed
+
+- **Field cancel on Turbo path:** cancel no longer triggers full-page navigation or **`UnknownFormat`** — **`format.html`** is always registered for single-attribute show; cancel uses a plain GET link with **`data-turbo-frame="_self"`** (no **`data-method`**, which conflicted with jQuery UJS).
+- **Cancel button height:** restored **`input[type=button]`** inside a thin wrapper link (Turbo/UJS attrs on the **`<a>`**) so cancel matches the **ok** submit height; Foundation **`a.button`** was rendering much taller in collapse rows.
+
+### Changed
+
+- **Example name list (`--example`):** uses the same turbo-field contract as stock **`_show`** ( **`@inline_forms_turbo_field`**, **`<turbo-frame>`** wrappers), not a separate UJS path.
+- **`docs/ujs-to-turbo.md`:** Step 3 field-level checklist items marked done for stock scalar fields and name-list regression.
+
 ## [7.4.0] - 2026-05-15
 
 ### Added

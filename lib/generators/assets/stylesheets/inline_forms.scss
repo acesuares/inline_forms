@@ -258,6 +258,30 @@ select:hover, select:focus {
   }
 }
 
+// Field edit cancel: outer <a> carries Turbo/UJS; inner input[type=button] matches ok height.
+.edit_form .row.collapse {
+  input[type="submit"].postfix.button,
+  a.inline_forms-field-cancel input[type="button"].postfix.button {
+    margin: 2px 0 !important;
+  }
+}
+
+.edit_form a.inline_forms-field-cancel {
+  display: inline-block;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  line-height: 0;
+  vertical-align: top;
+  text-decoration: none;
+
+  input[type="button"] {
+    pointer-events: none;
+    cursor: pointer;
+    width: auto;
+  }
+}
+
 .object_presentation {
   background-color: #B94C32;
   color: white;

@@ -111,7 +111,7 @@ class InlineFormsController < ApplicationController
     @sub_id = params[:sub_id]
     @update_span = params[:update]
     respond_to do |format|
-      format.html { } unless @Klass.not_accessible_through_html?
+      format.html { render_turbo_field(:field_edit) }
       format.js { }
     end
   end
@@ -169,7 +169,7 @@ class InlineFormsController < ApplicationController
     send("#{@form_element.to_s}_update", @object, @attribute)
     @object.save
     respond_to do |format|
-      format.html { } unless @Klass.not_accessible_through_html?
+      format.html { render_turbo_field(:field_show, turbo_field_show: true) }
       format.js { }
     end
   end
@@ -204,7 +204,7 @@ class InlineFormsController < ApplicationController
       end
     else
       respond_to do |format|
-        format.html { } unless @Klass.not_accessible_through_html?
+        format.html { render_turbo_field(:field_show, turbo_field_show: true) }
         format.js { render :show_element }
       end
     end
@@ -279,6 +279,15 @@ class InlineFormsController < ApplicationController
   end
 
   private
+
+  # HTML field edit/show inside a +<turbo-frame>+ (Step 3). Scalar fields no longer
+  # use UJS; +format.html+ is always registered for edit/update/single-attribute show.
+  def render_turbo_field(template, turbo_field_show: false)
+    @turbo_frame = true if template == :field_edit
+    @turbo_field_show_turbo_frame = turbo_field_show
+    render "inline_forms/#{template}", layout: "turbo_rails/frame"
+  end
+
   # Get the class from the controller name.
   # CountryController < InlineFormsController, so what class are we?
   # TODO think about this a bit more.

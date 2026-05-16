@@ -166,24 +166,73 @@ module InlineFormsHelper
       :title => t('inline_forms.view.close_versions_list')
   end
 
+  # Renders the +*_show+ helper for +form_element+, passing +turbo_frame:+ when supported.
+  def inline_forms_field_show(object, attribute, form_element, turbo_frame: false)
+    show_method = "#{form_element}_show"
+    if turbo_frame
+      send(show_method, object, attribute, turbo_frame: true)
+    else
+      send(show_method, object, attribute)
+    end
+  rescue ArgumentError
+    send(show_method, object, attribute)
+  end
+
+  # Cancel control for single-field +_edit+ forms. Navigation attrs live on the outer
+  # +link_to+; the visible control is +input[type=button]+ so it matches the +ok+ submit
+  # height (Foundation sizes +a.button+ taller than +input.button+ in collapse rows).
+  def inline_forms_field_cancel_link(object, attribute, form_element, update_span, sub_id: nil, turbo_frame: false)
+    path = polymorphic_path(
+      object,
+      update: update_span,
+      attribute: attribute,
+      form_element: form_element,
+      sub_id: sub_id
+    )
+    opts = { class: "inline_forms-field-cancel" }
+    if turbo_frame
+      # Inside a <turbo-frame>: plain GET link; no data-method (jquery-ujs fights Turbo).
+      opts[:data] = { turbo: true, turbo_frame: "_self" }
+    else
+      opts[:remote] = true
+      opts[:method] = :get
+    end
+    link_to path, opts do
+      tag.input(
+        type: "button",
+        name: "cancel",
+        value: "cancel",
+        class: "postfix button alert",
+        tabindex: "-1"
+      )
+    end
+  end
+
   # link_to_inline_edit
   #
   # Pass +from_callee:+ +__callee__+ from the enclosing +*_show+ method so the edit route receives the correct form element name.
-  def link_to_inline_edit(object, attribute, attribute_value='', from_callee:)
+  # When +turbo_frame:+ is true the link omits +remote: true+; navigation is handled by the enclosing +<turbo-frame>+.
+  def link_to_inline_edit(object, attribute, attribute_value='', from_callee:, turbo_frame: false)
     form_element = InlineForms.form_element_string_from_callee(from_callee)
     attribute_value = attribute_value.to_s
     spaces = attribute_value.length > 40 ? 0 : 40 - attribute_value.length
     value = h(attribute_value) + ("&nbsp;" * spaces).html_safe
     css_class_id = "#{object.class.to_s.underscore}_#{object.id}_#{attribute}"
+    use_turbo_frame = turbo_frame || (@inline_forms_turbo_field == true)
     if (cancan_disabled? rescue true) || ( can? :update, object, attribute )
       # some problem with concerns makes this function not available when called direct. FIXME
+      link_opts = if use_turbo_frame
+        { data: { turbo: true, turbo_frame: "_self" } }
+      else
+        { remote: true }
+      end
       link_to value,
         edit_polymorphic_path(
           object,
           :attribute => attribute.to_s,
           :form_element => form_element,
           :update => css_class_id ),
-        :remote => true
+        link_opts
     else
       h(attribute_value)
     end

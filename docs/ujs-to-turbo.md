@@ -55,10 +55,11 @@ Convert the **`show → edit → update → show_element → close`** cycle with
 
 ### Field-level (`link_to_inline_edit` / `*_show` helpers)
 
-- [ ] `link_to_inline_edit`: drop `:remote => true`; use frame-targeted GET or stream
-- [ ] `InlineFormsController#edit`, `#update`, `#show` (single attribute): `format.html` / `turbo_stream`
-- [ ] `_edit.html.erb`: Turbo form submit (no `:remote => true`); multipart still works via Turbo
-- [ ] Remove `edit.js.erb`, `update.js.erb`, `show_element.js.erb`
+- [x] **Stock `_show` scalar fields**: wrapped in `<turbo-frame id="{model}_{id}_{attribute}">`; `@inline_forms_turbo_field = true` so `link_to_inline_edit` omits `:remote => true`
+- [x] **`link_to_inline_edit`**: uses Turbo when `@inline_forms_turbo_field` or explicit `turbo_frame: true`
+- [x] **`InlineFormsController#edit`, `#update`, `#show`** (single attribute): `format.html` + `field_edit` / `field_show` templates when `turbo_frame_request?`
+- [x] **`_edit.html.erb`**: omits `:remote => true` when `@turbo_frame` (Turbo form submit inside frame)
+- [ ] Remove `edit.js.erb`, `update.js.erb`, `show_element.js.erb` (still used by stock UI)
 - [ ] **`not_accessible_through_html?` models** (e.g. Photo): add `format.html` on update/create when reached via parent frame (7.2.1 regression class)
 
 ### Widget re-init after swap
@@ -74,8 +75,8 @@ Convert the **`show → edit → update → show_element → close`** cycle with
 
 - [ ] Integration: open apartment row → edit text field → save → cancel
 - [ ] Integration: replace photo image (multipart) inside nested frame
-- [ ] Integration: custom field-only page (see `ApartmentsController#name_list` plan) — edit name without opening full `_show`
-- [ ] Assert no `406 UnknownFormat` on Turbo form posts
+- [x] Integration: custom field-only page (`ApartmentsController#name_list`) — Turbo edit/update/cancel without full `_show`
+- [x] Assert no `406 UnknownFormat` on Turbo field update (name list test)
 
 ---
 
@@ -177,4 +178,4 @@ These can remain while UJS is gone; separate migration if desired:
 
 Stock `_show` / `_list` are not required for inline edit. Any page can call form-element helpers (e.g. `text_field_show(apartment, :name)`) inside a container with id `apartment_<id>_name`. Edit/update still hit `ApartmentsController#edit` / `#update` via polymorphic paths.
 
-Example app demo (**`--example` only**): **`GET /apartments/name_list`** (`ApartmentsController#name_list`) — lists the first 10 apartment names via `text_field_show`; linked from the **More** menu. Useful as a **Step 3 regression target**: proves field-level Turbo conversion works outside the stock list UI.
+Example app **`--example` name list** (`GET /apartments/name_list`): custom page using the **same** turbo-field contract as stock `_show` (not a separate code path). Linked from the **More** menu; regression-tested after stock field Turbo lands.

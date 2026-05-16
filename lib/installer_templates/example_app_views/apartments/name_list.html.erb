@@ -1,3 +1,4 @@
+<% @inline_forms_turbo_field = true %>
 <div class="row">
   <div class="small-12 columns">
     <h2>Apartment names (first 10)</h2>
@@ -16,8 +17,10 @@
     <div class="small-2 columns">
       <%= apartment.id %>
     </div>
-    <div class="small-10 columns" id="apartment_<%= apartment.id %>_name">
-      <%= text_field_show(apartment, :name) %>
+    <div class="small-10 columns">
+      <turbo-frame id="apartment_<%= apartment.id %>_name">
+        <%= text_field_show(apartment, :name) %>
+      </turbo-frame>
     </div>
   </div>
 <% end %>

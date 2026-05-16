@@ -1,3 +1,5 @@
+<%# Scalar field inline edit uses <turbo-frame> + HTML responses (Step 3). %>
+<% @inline_forms_turbo_field = true %>
 <div class="row">
   <% if (INLINE_FORMS_SHOW_INDENT rescue true) %>
     <div class='medium-1 large-1 column'>
@@ -104,9 +106,9 @@
                     <% end %>
                   </div>
                   <div class='medium-7 large-7 column' >
-                    <span id="<%= css_class_id -%>" >
+                    <turbo-frame id="<%= css_class_id -%>">
                       <%= send("#{form_element}_show", @object, attribute) -%>
-                    </span>
+                    </turbo-frame>
                   </div>
                 </div>
               <% end %>

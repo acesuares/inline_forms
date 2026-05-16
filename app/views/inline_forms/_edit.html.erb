@@ -1,14 +1,12 @@
 <%  @BUTTONS_UNDER = [ "text_area", "kansen_slider", "rich_text" ] %>
+<%  edit_form_opts = { method: :put, multipart: true, class: "edit_form", abide: true } %>
+<%  edit_form_opts[:remote] = true unless @turbo_frame %>
 <%= form_tag polymorphic_path(@object,
     :update => @update_span,
     :attribute => @attribute,
     :form_element => @form_element,
     :sub_id => @sub_id ),
-    :method => :put, # this is going to the update method!
-    :multipart => true,
-    :class  => "edit_form",
-    :abide => true,
-    :remote => true do -%>
+    edit_form_opts do -%>
   <%# Do not render `flash` here: this partial is injected into a field span via %>
   <%# UJS; session flash (e.g. Devise :notice) would otherwise appear inside the editor. %>
 
@@ -26,14 +24,7 @@
         <%= submit_tag "ok", :class => "postfix button"-%>
       </div>
       <div class="small-2 columns">
-        <%= link_to( polymorphic_path( @object, :update => @update_span || "field_#{@attribute}_#{@object.id.to_s}",
-        :attribute => @attribute,
-        :form_element => @form_element,
-        :sub_id => @sub_id ),
-        :method => :get, # this is going to the show method!
-        :remote => true ) do %>
-          <input type="button" name="cancel" value="cancel" class="button alert postfix radius" />
-        <% end %>
+        <%= inline_forms_field_cancel_link(@object, @attribute, @form_element, @update_span, sub_id: @sub_id, turbo_frame: @turbo_frame) %>
       </div>
     </div>
   <% else %>
@@ -45,14 +36,7 @@
         <%= submit_tag "ok", :class => "postfix button"-%>
       </div>
       <div class="small-2 columns">
-        <%= link_to( polymorphic_path( @object, :update => @update_span || "field_#{@attribute}_#{@object.id.to_s}",
-        :attribute => @attribute,
-        :form_element => @form_element,
-        :sub_id => @sub_id ),
-        :method => :get, # this is going to the show method!
-        :remote => true ) do %>
-          <input type="button" name="cancel" value="cancel" class="button alert postfix radius" />
-        <% end %>
+        <%= inline_forms_field_cancel_link(@object, @attribute, @form_element, @update_span, sub_id: @sub_id, turbo_frame: @turbo_frame) %>
       </div>
     </div>
   <% end%>
