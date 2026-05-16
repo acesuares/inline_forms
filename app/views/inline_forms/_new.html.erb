@@ -30,7 +30,11 @@
   </div>
 
   <% new_form_opts = { multipart: true, class: "edit_form" } %>
-  <% new_form_opts[:remote] = true unless @turbo_frame %>
+  <% if @turbo_frame %>
+    <% new_form_opts[:data] = { turbo: true, turbo_frame: @update_span } %>
+  <% else %>
+    <% new_form_opts[:remote] = true %>
+  <% end %>
   <%= form_tag polymorphic_path(@Klass,
         update: @update_span,
         parent_class: @parent_class,

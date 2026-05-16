@@ -4,6 +4,19 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [7.5.1] - 2026-05-16
+
+### Fixed
+
+- **Nested associated `+` (New) on `not_accessible_through_html?` models (Photo):** `new` now serves **`format.html`** when `parent_class` and `update` are present (was **406** / empty frame for Photo).
+- **New / Cancel / OK after New:** associated-list frame responses use the **`inline_forms`** layout (styled) instead of bare **`turbo_rails/frame`**; **`create`** restores the list with **`@ul_needed = true`** so the inner **`…_photos_list`** `<turbo-frame>` matches **`_show`** (fixes Turbo **“Content missing”** on cancel and create).
+- **`_new.html.erb`:** Turbo form sets **`data-turbo-frame`** to the parent list frame id.
+
+### Verified
+
+- **`bundle exec rails test`** — **53 runs, 260 assertions, 0 failures**; nested Photo new → cancel → create integration test.
+- **curl:** new **200** + stylesheet; cancel/create **200** with **`apartment_<id>_photos`** + **`…_photos_list`** frames.
+
 ## [7.5.0] - 2026-05-16
 
 ### Added

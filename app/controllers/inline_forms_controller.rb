@@ -72,18 +72,13 @@ class InlineFormsController < ApplicationController
       if @Klass.not_accessible_through_html?
         format.html do
           if @parent_class.present?
-            if turbo_frame_request? && @update_span.present?
-              render "inline_forms/create_list_frame", layout: "turbo_rails/frame"
-            else
-              frame_layout = turbo_frame_request? ? "turbo_rails/frame" : "inline_forms"
-              render "inline_forms/_list", layout: frame_layout
-            end
+            render_nested_associated_list_html
           end
         end
       else
         format.html do
-          if @parent_class.present? && turbo_frame_request? && @update_span.present?
-            render "inline_forms/create_list_frame", layout: "turbo_rails/frame"
+          if @parent_class.present?
+            render_nested_associated_list_html
           else
             render "inline_forms/_list", layout: "inline_forms"
           end
@@ -108,9 +103,7 @@ class InlineFormsController < ApplicationController
 
     @object.inline_forms_attribute_list = @inline_forms_attribute_list if @inline_forms_attribute_list
     respond_to do |format|
-      unless @Klass.not_accessible_through_html?
-        format.html { render_turbo_new }
-      end
+      format.html { render_turbo_new } if associated_list_html_allowed? || !@Klass.not_accessible_through_html?
       format.js { }
     end
   end
@@ -157,7 +150,7 @@ class InlineFormsController < ApplicationController
       @objects = @objects.where(conditions).paginate(:page => params[:page])
       @object = nil
       respond_to do |format|
-        format.html { render_turbo_create_list } if @parent_class.present?
+        format.html { render_associated_list_frame } if associated_list_html_allowed?
         format.js { render :list }
       end
     else
@@ -165,7 +158,7 @@ class InlineFormsController < ApplicationController
       flash.now[:error] = @object.errors.to_a
       respond_to do |format|
         @object.inline_forms_attribute_list = attributes
-        format.html { render_turbo_new } unless @Klass.not_accessible_through_html?
+        format.html { render_turbo_new } if associated_list_html_allowed? || !@Klass.not_accessible_through_html?
         format.js { render :new }
       end
     end
@@ -312,15 +305,46 @@ class InlineFormsController < ApplicationController
     render "inline_forms/row_destroyed", layout: layout
   end
 
-  def render_turbo_new
-    @turbo_frame = true
-    render "inline_forms/new_record", layout: "turbo_rails/frame"
+  # Nested has_many +new+ / cancel / +create+ inside a parent +<turbo-frame>+ (e.g. Apartment → Photo).
+  def associated_list_html_allowed?
+    @parent_class.present? && params[:update].present?
   end
 
-  # After nested +create+ inside an associated-list +<turbo-frame>+.
-  def render_turbo_create_list
-    @ul_needed = false
-    render "inline_forms/create_list_frame", layout: "turbo_rails/frame"
+  def associated_list_frame_layout
+    # Use full inline_forms chrome so the swapped frame is styled; Turbo extracts
+    # the matching <turbo-frame id="…"> from the response body.
+    "inline_forms"
+  end
+
+  def render_turbo_new
+    @turbo_frame = true
+    render "inline_forms/new_record", layout: associated_list_frame_layout
+  end
+
+  # Nested +index+ / cancel / +create+ HTML inside a parent-associated +<turbo-frame>+.
+  def render_nested_associated_list_html
+    if turbo_frame_request? && nested_list_frame_id?(params[:update])
+      # Pagination and other swaps targeting the inner +…_photos_list+ frame: minimal layout.
+      @ul_needed = true
+      render "inline_forms/_list", layout: "turbo_rails/frame"
+    elsif turbo_frame_request? && params[:update].present?
+      # Cancel / +create+ targeting the outer +apartment_<id>_photos+ frame: styled full layout.
+      render_associated_list_frame
+    else
+      frame_layout = turbo_frame_request? ? "turbo_rails/frame" : "inline_forms"
+      render "inline_forms/_list", layout: frame_layout
+    end
+  end
+
+  # +apartment_1_photos_list+ (inner list) vs +apartment_1_photos+ (outer associated container).
+  def nested_list_frame_id?(update)
+    update.to_s.end_with?("_list")
+  end
+
+  # After nested +create+ / cancel; restores list inside the outer associated frame.
+  def render_associated_list_frame
+    @ul_needed = true
+    render "inline_forms/create_list_frame", layout: associated_list_frame_layout
   end
 
   # HTML row open/close is allowed for normal models, and for +not_accessible_through_html?+

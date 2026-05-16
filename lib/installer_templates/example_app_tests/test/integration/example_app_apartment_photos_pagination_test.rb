@@ -305,4 +305,49 @@ class ExampleAppApartmentPhotosPaginationTest < ExampleAppIntegrationTestCase
     photo.reload
     assert photo.image.present?, "expected CarrierWave mount after Turbo multipart PUT"
   end
+
+  test "nested Photo new cancel and create via Turbo inside associated list frame" do
+    frame = "apartment_#{@apartment.id}_photos"
+    headers = { "Turbo-Frame" => frame, "Accept" => "text/html" }
+
+    get new_photo_path(update: frame, parent_class: "Apartment", parent_id: @apartment.id),
+        headers: headers
+    assert_response :success
+    assert_includes @response.body, %(<turbo-frame id="#{frame}">)
+    assert_includes @response.body, "stylesheet", "new form must use inline_forms layout (styled)"
+    assert_includes @response.body, %(enctype="multipart/form-data")
+    assert_includes @response.body, 'class="edit_form"'
+    assert_includes @response.body, 'name="name"'
+
+    get photos_path(
+      parent_class: "Apartment",
+      parent_id: @apartment.id,
+      update: frame,
+      ul_needed: true
+    ), headers: headers
+    assert_response :success
+    assert_match %r{<turbo-frame id="#{frame}"}, @response.body
+    assert_match %r{<turbo-frame id="#{@update_span}"}, @response.body
+
+    seed = Rails.root.join("db/seed_images/dsc00099.jpg")
+    uploaded = Rack::Test::UploadedFile.new(seed, "image/jpeg")
+
+    assert_difference("Photo.count", 1) do
+      post photos_path(
+        update: frame,
+        parent_class: "Apartment",
+        parent_id: @apartment.id
+      ),
+           params: {
+             name: "curl_new_photo.jpg",
+             caption: "from turbo test",
+             image: uploaded
+           },
+           headers: headers
+    end
+    assert_response :success
+    assert_match %r{<turbo-frame id="#{frame}"}, @response.body
+    assert_match %r{<turbo-frame id="#{@update_span}"}, @response.body
+    assert_includes @response.body, "curl_new_photo.jpg"
+  end
 end
