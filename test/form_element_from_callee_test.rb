@@ -45,9 +45,9 @@ class FormElementFromCalleeTest < Minitest::Test
   end
 
   def test_multi_word_element_name_underscores_preserved
-    got = InlineForms.form_element_string_from_callee(:chicas_dropdown_with_family_members_show)
+    got = InlineForms.form_element_string_from_callee(:text_area_without_ckeditor_show)
     assert_equal(
-      "chicas_dropdown_with_family_members",
+      "text_area_without_ckeditor",
       got,
       "Form element names with underscores must survive unchanged except for _show."
     )

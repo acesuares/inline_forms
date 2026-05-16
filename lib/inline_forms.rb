@@ -1,6 +1,7 @@
 # -*- encoding : utf-8 -*-
 require ('inline_forms/version.rb')
 require_relative ('inline_forms/form_element_from_callee')
+require_relative ('inline_forms/archived_form_elements')
 # InlineForms is a Rails Engine that let you setup an admin interface quick and
 # easy. Please install it as a gem or include it in your Gemfile.
 module InlineForms
@@ -204,8 +205,9 @@ module InlineForms
 
       ActiveRecord::Base.descendants.each do |klass|
         begin
+          InlineForms.validate_no_archived_form_elements_for!(klass)
           InlineForms.validate_plain_text_configuration_for!(klass)
-        rescue InlineForms::PlainTextColumnMissingError
+        rescue InlineForms::PlainTextColumnMissingError, InlineForms::ArchivedFormElementError
           raise
         rescue StandardError
           # Some descendants might be abstract or temporarily unresolved while

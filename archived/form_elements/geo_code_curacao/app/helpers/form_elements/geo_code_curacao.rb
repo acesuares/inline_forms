@@ -22,4 +22,3 @@ def geo_code_curacao_update(object, attribute)
   geo_code = params[attribute].scan(/\d\d\d\d\d\d/).first || nil
   object[attribute.to_sym] = GeoCodeCuracao.new(geo_code).valid? ? geo_code : nil
 end
-

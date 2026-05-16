@@ -114,7 +114,7 @@ Convert the **`show → edit → update → show_element → close`** cycle with
 
 ### Geo / misc
 
-- [ ] `geo_code_curacao/list_streets.js.erb`: frame or stream for street dropdown
+- [x] ~~`geo_code_curacao`~~ — **archived in 7.6.0** (`archived/form_elements/geo_code_curacao/`). If restored, migrate `list_streets.js.erb` to frame or stream.
 
 ### Controller cleanup
 
@@ -168,7 +168,7 @@ These can remain while UJS is gone; separate migration if desired:
 | `show_undo.js.erb` | Undo link after destroy |
 | `versions.js.erb` | Fade + versions partial |
 | `versions_list.js.erb` | Versions table |
-| `geo_code_curacao/list_streets.js.erb` | Street list dropdown |
+| ~~`geo_code_curacao/list_streets.js.erb`~~ | Archived 7.6.0 — street autocomplete JSON |
 
 ### Controller actions still on `format.js`
 

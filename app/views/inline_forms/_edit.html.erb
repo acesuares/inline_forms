@@ -1,4 +1,4 @@
-<%  @BUTTONS_UNDER = [ "text_area", "kansen_slider", "rich_text" ] %>
+<%  @BUTTONS_UNDER = [ "text_area", "rich_text" ] %>
 <%  edit_form_opts = { method: :put, multipart: true, class: "edit_form", abide: true } %>
 <%  edit_form_opts[:remote] = true unless @turbo_frame %>
 <%= form_tag polymorphic_path(@object,

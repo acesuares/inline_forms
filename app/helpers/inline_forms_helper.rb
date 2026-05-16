@@ -1,8 +1,7 @@
 # -*- encoding : utf-8 -*-
 module InlineFormsHelper
-  # load form elements. Each element goes into a separate file
-  # and defines a _show, _edit and _update method.
-  #
+  # Load active form elements (top-level *.rb only). Retired elements live under
+  # archived/form_elements/ — see archived/README.md.
   INLINE_FORMS_PATH = File.dirname(__FILE__) + "/form_elements/"
   Dir[INLINE_FORMS_PATH + "*.rb"].each do |form_element|
     require form_element

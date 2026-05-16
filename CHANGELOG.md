@@ -4,6 +4,19 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [7.6.0] - 2026-05-16
+
+### Changed
+
+- **Project-specific form elements archived (not loaded by default):** `:geo_code_curacao` (helper + model + controller + views), **`chicas_*`** (`:chicas_photo_list`, `:chicas_family_photo_list`, `:chicas_dropdown_with_family_members`), and **`:kansen_slider`**. Sources live under **`archived/form_elements/`** with per-folder README restore steps.
+- **Registry:** **`InlineForms::ARCHIVED_FORM_ELEMENTS`**; boot raises **`ArchivedFormElementError`** if a model still declares an archived symbol (including **`:absence_list`**, removed in 6.3.0 without source in tree).
+- **Versioned archive:** **`archived/README.md`** catalogs all retired features.
+- **`_edit.html.erb`:** removed **`kansen_slider`** from `@BUTTONS_UNDER` (element archived).
+
+### Upgrade notes
+
+- **Breaking:** Remove or vendor archived symbols from `inline_forms_attribute_list`: **`:geo_code_curacao`**, **`:chicas_*`**, **`:kansen_slider`**. Copy from the matching **`archived/form_elements/<name>/`** README (geo also needs host route `get "geo_code_curacao", to: "geo_code_curacao#list_streets"`).
+
 ## [7.5.2] - 2026-05-16
 
 ### Fixed
