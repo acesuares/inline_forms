@@ -83,7 +83,7 @@ Convert the **`show → edit → update → show_element → close`** cycle with
 - [x] Integration: stock row open/close on `/apartments` (Turbo frame + HTML `show` / `close`): `example_app_apartment_row_turbo_test.rb`
 - [x] Integration: open apartment row → edit text field → save → cancel (field flow: `example_app_apartment_field_turbo_test.rb`)
 - [x] Integration: nested Photo row open/close + name field cancel (`example_app_apartment_photos_pagination_test.rb`)
-- [ ] Integration: replace photo image (multipart) inside nested frame
+- [x] Integration: replace photo image (multipart) inside nested frame (`example_app_apartment_photos_pagination_test.rb`)
 - [x] Integration: custom field-only page (`ApartmentsController#name_list`) — Turbo edit/update/cancel without full `_show`
 - [x] Assert no `406 UnknownFormat` on Turbo field update (name list test)
 

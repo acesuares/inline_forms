@@ -4,6 +4,22 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [7.4.5] - 2026-05-15
+
+### Added
+
+- **Example app integration test** (`example_app_apartment_photos_pagination_test.rb`): nested Photo **`image`** field — Turbo **`Turbo-Frame`** GET edit (multipart form) and **multipart `PUT`** — asserts **200** HTML with matching **`<turbo-frame id="…_image">`** and no **`UnknownFormat`** / **406** (Step 3 multipart regression guard from the 7.2.0 nested-frame era).
+
+### Changed
+
+- **`docs/ujs-to-turbo.md`:** Step 3 checklist — “replace photo image (multipart) inside nested frame” marked done.
+
+### Verified (end-to-end against the `--example` install)
+
+- **`bundle exec rails test`** — **47 runs, 208 assertions, 0 failures, 0 errors, 0 skips** against the generated MyApp (Apartment + Photo).
+- **curl smoke** (authenticated **`Turbo-Frame`** GETs / **`POST` multipart** with **`_method=put`**): same contract as 7.4.4 plus nested Photo **`/photos/1/edit?attribute=image&form_element=image_field&update=apartment_1_photo_<id>_image`** and image replace **`POST /photos/1?...`** — **200** and matching **`<turbo-frame id="…_image">`** (Devise scope **`/auth/users/sign_in`**; cookie jar must be sent on the multipart step).
+- **Browser** (cursor-ide-browser MCP, dev server): already-signed-in session — open **Konferensha** row (URL stays **`/`**, gallery appears) — **Next page** (gallery shows page-2 filenames) — **`/apartments/name_list`** — edit name — **ok** (read-only link shows new value).
+
 ## [7.4.4] - 2026-05-16
 
 ### Fixed

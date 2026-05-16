@@ -260,4 +260,49 @@ class ExampleAppApartmentPhotosPaginationTest < ExampleAppIntegrationTestCase
     refute_includes @response.body, 'name="name"',
       "cancel must return read-only field, not the edit form"
   end
+
+  # Step 3 (ujs-to-turbo.md): nested `not_accessible_through_html?` Photo + CarrierWave
+  # `image` must accept Turbo-driven multipart PUT inside the field `<turbo-frame>`
+  # (no `UnknownFormat` / 406 after DB write — regression class from 7.2.0).
+  test "nested Photo image field updates via Turbo multipart PUT inside field frame" do
+    photo = @apartment.photos.first!
+    frame_id = "apartment_#{@apartment.id}_photo_#{photo.id}_image"
+    turbo_headers = { "Turbo-Frame" => frame_id, "Accept" => "text/html" }
+
+    get edit_photo_path(
+      photo,
+      attribute: "image",
+      form_element: "image_field",
+      update: frame_id
+    ), headers: turbo_headers
+    assert_response :success
+    assert_includes @response.body, %(enctype="multipart/form-data"),
+      "image edit form must stay multipart when Turbo omits remote: true"
+    assert_includes @response.body, %(<turbo-frame id="#{frame_id}">)
+
+    seed_dir = Rails.root.join("db", "seed_images")
+    jpgs = Dir.glob(seed_dir.join("*.{jpg,jpeg}"), File::FNM_CASEFOLD).sort
+    assert_operator jpgs.size, :>=, 2,
+      "need at least two seed jpgs so replacement can differ from current mount"
+
+    replacement = jpgs.find { |abs| File.basename(abs) != photo.name } || jpgs.last
+    uploaded = Rack::Test::UploadedFile.new(replacement, "image/jpeg")
+
+    put photo_path(
+      photo,
+      attribute: "image",
+      form_element: "image_field",
+      update: frame_id
+    ),
+        params: { image: uploaded },
+        headers: turbo_headers
+
+    assert_response :success,
+      "multipart image update must respond with HTML (not 406 UnknownFormat)"
+    assert_includes @response.body, %(<turbo-frame id="#{frame_id}">)
+    refute_match(/UnknownFormat|406/, @response.body)
+
+    photo.reload
+    assert photo.image.present?, "expected CarrierWave mount after Turbo multipart PUT"
+  end
 end
