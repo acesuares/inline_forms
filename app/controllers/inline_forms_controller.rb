@@ -291,9 +291,9 @@ class InlineFormsController < ApplicationController
     versions_id = "#{@object.class.name.underscore}_#{@object.id}_versions"
     @inline_forms_turbo_row = true
     @update_span = row_id
-    row_html = render_to_string("inline_forms/row_close", layout: false)
+    row_html = render_to_string("inline_forms/row_close", layout: false, formats: [:html])
     @update_span = versions_id
-    versions_html = render_to_string("inline_forms/versions_panel", layout: false)
+    versions_html = render_to_string("inline_forms/versions_panel", layout: false, formats: [:html])
     render turbo_stream: [
       turbo_stream.replace(row_id, row_html),
       turbo_stream.replace(versions_id, versions_html)

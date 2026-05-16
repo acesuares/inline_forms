@@ -14,6 +14,10 @@ All notable changes to this project are documented in this file.
 
 - **Regression tests:** versions list restore link carries `data-turbo-stream`; revert with versions-frame header returns stream (`example_app_apartment_versions_turbo_test.rb`).
 
+### Verified
+
+- **`bundle exec rails test`** in `--example` MyApp — **67 runs, 342 assertions, 0 failures**.
+
 ## [7.8.0] - 2026-05-16
 
 ### Changed
