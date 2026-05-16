@@ -30,10 +30,8 @@
   </div>
 
   <% new_form_opts = { multipart: true, class: "edit_form" } %>
-  <% if @turbo_frame %>
+  <% if @update_span.present? %>
     <% new_form_opts[:data] = { turbo: true, turbo_frame: @update_span } %>
-  <% else %>
-    <% new_form_opts[:remote] = true %>
   <% end %>
   <%= form_tag polymorphic_path(@Klass,
         update: @update_span,
@@ -72,7 +70,7 @@
               parent_class: @parent_class,
               parent_id: @parent_id,
               ul_needed: true) %>
-        <% cancel_opts = @turbo_frame ? inline_forms_turbo_link_data(@update_span) : { remote: true } %>
+        <% cancel_opts = @update_span.present? ? inline_forms_turbo_link_data(@update_span) : {} %>
         <%= link_to cancel_path, cancel_opts do -%>
           <input type="button" name="cancel" value="cancel" class="button alert" />
         <% end %>

@@ -260,8 +260,11 @@ class InlineFormsController < ApplicationController
       @object = @version.reify
       @object.save!
       authorize!(:revert, @object) if cancan_enabled?
+      return unless row_html_turbo_allowed?
+
       respond_to do |format|
-        format.html { render_row_turbo(:close) } if row_html_turbo_allowed?
+        format.turbo_stream { render_revert_turbo_streams }
+        format.html { render_row_turbo(:close) }
       end
     end
   end
@@ -280,6 +283,23 @@ class InlineFormsController < ApplicationController
 
   private
 
+  # Versions list lives in +<turbo-frame id="…_versions">+; POST +restore+ would otherwise
+  # send +Turbo-Frame: …_versions+ while +row_close+ only returns the row frame. Stream
+  # replaces both the row and the versions panel in one response.
+  def render_revert_turbo_streams
+    row_id = @update_span.to_s
+    versions_id = "#{@object.class.name.underscore}_#{@object.id}_versions"
+    @inline_forms_turbo_row = true
+    @update_span = row_id
+    row_html = render_to_string("inline_forms/row_close", layout: false)
+    @update_span = versions_id
+    versions_html = render_to_string("inline_forms/versions_panel", layout: false)
+    render turbo_stream: [
+      turbo_stream.replace(row_id, row_html),
+      turbo_stream.replace(versions_id, versions_html)
+    ]
+  end
+
   # HTML field edit/show inside a +<turbo-frame>+ (Step 3). Scalar fields no longer
   # use UJS; +format.html+ is always registered for edit/update/single-attribute show.
   #
@@ -287,9 +307,8 @@ class InlineFormsController < ApplicationController
   # +*_show+ helpers it wraps) to emit Turbo data attributes. The flag is set in
   # +_show.html.erb+ when a row first opens, but bare +field_show+ / +field_edit+
   # responses (on +cancel+ / +update+) do not re-render +_show+. Without setting
-  # it here the link in the swapped frame falls back to +remote: true+, which the
-  # legacy +jquery_ujs+ bundle intercepts as a JS request -- the controller only
-  # registers +format.html+, so the click silently fails (no swap, no edit form).
+  # it here the link in the swapped frame would not target the field frame and
+  # inline edit would not open reliably.
   def render_turbo_field(template, turbo_field_show: false)
     @turbo_frame = true if template == :field_edit
     @turbo_field_show_turbo_frame = turbo_field_show

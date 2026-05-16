@@ -28,13 +28,10 @@
     </div>
     <%= javascript_include_tag 'inline_forms/inline_forms' %>
     <%# Turbo (Hotwire) is loaded as an ES module so it does not collide with %>
-    <%# the classic-script Sprockets bundle above (jquery_ujs etc.). Drive is %>
-    <%# disabled here so existing UJS-driven links/forms keep working unchanged; %>
-    <%# `<turbo-frame>` and `format.turbo_stream` are still available for the %>
-    <%# per-view conversions that follow this slice. %>
+    <%# the classic-script Sprockets bundle above. Drive stays at the default %>
+    <%# (enabled); inline interactions use `<turbo-frame>` + HTML responses. %>
     <script type="module">
       import { Turbo } from "<%= asset_path('turbo.min.js') %>"
-      Turbo.session.drive = false
       window.Turbo = Turbo
     </script>
     <%= javascript_include_tag "https://unpkg.com/trix@1.3.1/dist/trix.js" %>

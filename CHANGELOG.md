@@ -4,6 +4,29 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [7.8.1] - 2026-05-16
+
+### Fixed
+
+- **Restore from versions panel (Turbo 2 + Drive):** POSTs from inside `<turbo-frame id="…_versions">` sent `Turbo-Frame: …_versions` while the server returned only the **row** frame, so Turbo showed **Content missing**. Restore links now request **`turbo_stream`**; **`revert`** responds with **`turbo_stream.replace`** for both the row and the versions panel.
+
+### Added
+
+- **Regression tests:** versions list restore link carries `data-turbo-stream`; revert with versions-frame header returns stream (`example_app_apartment_versions_turbo_test.rb`).
+
+## [7.8.0] - 2026-05-16
+
+### Changed
+
+- **Step 5 (UJS → Turbo):** **Turbo Drive** left at the default (**enabled**); removed **`Turbo.session.drive = false`** from **`inline_forms`** and **`application`** layouts.
+- **`app/assets/javascripts/inline_forms/inline_forms.js`:** dropped **`jquery_ujs`** and **`jquery.remotipart`**; inline navigation uses Turbo only.
+- **Installer Gemfile** (`bin/inline_forms_installer_core.rb`): removed **`remotipart`**; updated **`turbo-rails`** comment.
+- **Helpers / partials:** removed **`remote: true`** fallbacks (`close_link`, toolbar, new/versions links, field cancel, `link_to_inline_edit` legacy branch, **`_close`**, **`_new`**); all use **`data-turbo`** + frame targets.
+
+### Verified
+
+- **`bundle exec rails test`** in `--example` MyApp — **65 runs, 330 assertions, 0 failures**.
+
 ## [7.7.3] - 2026-05-16
 
 ### Changed

@@ -2,14 +2,11 @@
 
 require_relative "../example_app/example_integration_test_case"
 
-# Smoke test for rollout step 1 of stuff/ujs-to-turbo.md (gem-side):
-# the layout loads Turbo as an ES module and disables Drive so existing
-# UJS-driven links/forms keep working unchanged. If this asserts ever
-# fails, frame/stream conversions in later slices will silently fall
-# back to full-page navigation (Turbo not loaded) instead of using the
-# `<turbo-frame>` fast path.
+# Smoke test: layouts load Turbo as an ES module (no Sprockets ESM parse error).
+# Step 5 (7.8.0) leaves Turbo Drive at its default (enabled); inline flows use
+# `<turbo-frame>` + HTML, not jquery-ujs.
 class ExampleAppTurboLayoutTest < ExampleAppIntegrationTestCase
-  test "inline_forms layout loads turbo.min.js as an ES module with drive disabled" do
+  test "inline_forms layout loads turbo.min.js as an ES module" do
     get apartments_path
     assert_response :success
 
@@ -19,10 +16,10 @@ class ExampleAppTurboLayoutTest < ExampleAppIntegrationTestCase
       "expected the inline_forms layout to import turbo.min.js as a module"
     )
 
-    assert_match(
+    refute_match(
       /Turbo\.session\.drive\s*=\s*false/,
       @response.body,
-      "expected Turbo.session.drive = false so existing UJS keeps working"
+      "Step 5 enables Turbo Drive by default; disabling it would regress full-page Turbo"
     )
   end
 end

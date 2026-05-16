@@ -53,9 +53,15 @@ module InlineFormsHelper
 
   # Turbo Frames navigation for row toolbar, versions, and nested +new+ (Step 3).
   # +update_span+ must match the target +<turbo-frame id="…">+.
-  def inline_forms_turbo_link_data(update_span, method: :get)
+  #
+  # When +turbo_stream: true+ (e.g. restore from inside +*_versions+ frame), the client
+  # requests +text/vnd.turbo-stream.html+ so Turbo does not expect a single matching
+  # frame in the response — POSTs from nested +…_versions+ frames otherwise send
+  # +Turbo-Frame: …_versions+ while the server returns the row frame (+Content missing+).
+  def inline_forms_turbo_link_data(update_span, method: :get, turbo_stream: false)
     data = { turbo: true, turbo_frame: update_span }
     data[:turbo_method] = method.to_s.downcase unless method == :get
+    data[:turbo_stream] = true if turbo_stream
     { data: data }
   end
 
@@ -91,12 +97,8 @@ module InlineFormsHelper
       close: true
     )
     opts = { class: html_class, title: t("inline_forms.view.close") }
-    if turbo_row
-      opts[:data] = { turbo: true, turbo_frame: "_self" }
-      link_to "<i class='fi-x'></i>".html_safe, path, opts
-    else
-      link_to "<i class='fi-x'></i>".html_safe, path, opts.merge(remote: true)
-    end
+    opts[:data] = { turbo: true, turbo_frame: "_self" }
+    link_to "<i class='fi-x'></i>".html_safe, path, opts
   end
 
   # delete link. Mind the difference between delete and destroy.
@@ -106,12 +108,12 @@ module InlineFormsHelper
       if object.deleted? && (cancan_disabled? || (can? :soft_restore, object))
         path = send("soft_restore_#{object.class.to_s.underscore}_path", object, update: update_span)
         opts = { title: t("inline_forms.view.undelete") }
-        opts.merge!(turbo_row ? inline_forms_turbo_link_data(update_span, method: :post) : { method: :post, remote: true })
+        opts.merge!(inline_forms_turbo_link_data(update_span, method: :post))
         soft = link_to "<i class='fi-refresh'></i>".html_safe, path, opts
       elsif !object.deleted? && (cancan_disabled? || (can? :soft_delete, object))
         path = send("soft_delete_#{object.class.to_s.underscore}_path", object, update: update_span)
         opts = { title: t("inline_forms.view.trash") }
-        opts.merge!(turbo_row ? inline_forms_turbo_link_data(update_span, method: :post) : { method: :post, remote: true })
+        opts.merge!(inline_forms_turbo_link_data(update_span, method: :post))
         soft = link_to "<i class='fi-trash'></i>".html_safe, path, opts
       end
     end
@@ -124,7 +126,7 @@ module InlineFormsHelper
     if cancan_disabled? || (can? :destroy, object)
       path = polymorphic_path(object, update: update_span)
       opts = { title: t("inline_forms.view.trash") }
-      opts.merge!(turbo_row ? inline_forms_turbo_link_data(update_span, method: :delete) : { method: :delete, remote: true })
+      opts.merge!(inline_forms_turbo_link_data(update_span, method: :delete))
       hard = link_to "&nbsp;&nbsp;<font color='FF0000'><i class='fi-x'></i></font>".html_safe, path, opts
     end
     hard.html_safe
@@ -132,8 +134,8 @@ module InlineFormsHelper
 
   # new link
   #
-  # +turbo_row:+ when true (default), +new+ / cancel / +create+ target +update_span+
-  # as a +<turbo-frame>+ (top-level +apartments_list+ or nested associated list).
+  # +turbo_row:+ kept for API compatibility; navigation always targets +update_span+
+  # as a +<turbo-frame>+ (no jquery-ujs).
   def link_to_new_record(model, path_to_new, update_span, parent_class = nil, parent_id = nil, html_class = "button new_button", turbo_row: true)
     path = send(
       path_to_new,
@@ -145,7 +147,7 @@ module InlineFormsHelper
       class: html_class,
       title: t("inline_forms.view.add_new", model: model.model_name.human)
     }
-    opts.merge!(turbo_row ? inline_forms_turbo_link_data(update_span) : { remote: true })
+    opts.merge!(inline_forms_turbo_link_data(update_span))
     out = link_to "<i class='fi-plus'></i>".html_safe, path, opts
     if cancan_enabled?
       if can? :create, model
@@ -166,7 +168,7 @@ module InlineFormsHelper
       if defined?(PaperTrail) && object.respond_to?(:versions)
         path = send(path_to_versions_list, object, update: update_span)
         opts = { class: html_class, title: t("inline_forms.view.list_versions") }
-        opts.merge!(turbo_row ? inline_forms_turbo_link_data(update_span) : { remote: true })
+        opts.merge!(inline_forms_turbo_link_data(update_span))
         raw link_to("<i class='fi-list'></i>".html_safe, path, opts)
       end
     end
@@ -181,7 +183,7 @@ module InlineFormsHelper
       close: true
     )
     opts = { class: html_class, title: t("inline_forms.view.close_versions_list") }
-    opts.merge!(turbo_row ? inline_forms_turbo_link_data(update_span) : { remote: true })
+    opts.merge!(inline_forms_turbo_link_data(update_span))
     link_to "<i class='fi-x'></i>".html_safe, path, opts
   end
 
@@ -210,11 +212,10 @@ module InlineFormsHelper
     )
     opts = { class: "inline_forms-field-cancel" }
     if turbo_frame
-      # Inside a <turbo-frame>: plain GET link; no data-method (jquery-ujs fights Turbo).
+      # Inside a <turbo-frame>: plain GET link; no data-method (legacy ujs fought Turbo).
       opts[:data] = { turbo: true, turbo_frame: "_self" }
     else
-      opts[:remote] = true
-      opts[:method] = :get
+      opts[:data] = { turbo: true, turbo_frame: update_span }
     end
     link_to path, opts do
       tag.input(
@@ -230,7 +231,8 @@ module InlineFormsHelper
   # link_to_inline_edit
   #
   # Pass +from_callee:+ +__callee__+ from the enclosing +*_show+ method so the edit route receives the correct form element name.
-  # When +turbo_frame:+ is true the link omits +remote: true+; navigation is handled by the enclosing +<turbo-frame>+.
+  # When +turbo_frame:+ is true the link targets +_self+; otherwise it targets the
+  # field frame id (+css_class_id+) so edit works without a surrounding +_show+ wrap.
   def link_to_inline_edit(object, attribute, attribute_value='', from_callee:, turbo_frame: false)
     form_element = InlineForms.form_element_string_from_callee(from_callee)
     attribute_value = attribute_value.to_s
@@ -243,7 +245,7 @@ module InlineFormsHelper
       link_opts = if use_turbo_frame
         { data: { turbo: true, turbo_frame: "_self" } }
       else
-        { remote: true }
+        { data: { turbo: true, turbo_frame: css_class_id } }
       end
       link_to value,
         edit_polymorphic_path(

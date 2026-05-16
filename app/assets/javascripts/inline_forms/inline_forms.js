@@ -1,24 +1,17 @@
 //= require jquery
-//= require jquery_ujs
 //= require jquery.ui.all
 //= require jquery.timepicker.js
 //= require foundation
-//= require jquery.remotipart
 //= require autocomplete-rails
 
 // Turbo / Hotwire is intentionally NOT required into this Sprockets bundle.
 // `turbo-rails` ships only an ES-module build of turbo (`app/assets/javascripts/turbo.js`
 // ends with `export { Turbo, cable }`). Concatenating that into a regular
-// `<script>` bundle produces a parse error at the top-level `export`, which
-// silently kills jquery-ujs initialization (forms then submit as plain
-// HTML POST and inline_forms controllers respond with `format.js` only,
-// raising `ActionController::UnknownFormat`).
+// `<script>` bundle produces a parse error at the top-level `export`.
 //
 // Turbo is loaded separately by `app/views/layouts/inline_forms.html.erb`
-// (and `application.html.erb`) as `<script type="module">`, with
-// `Turbo.session.drive = false` so existing UJS-driven links/forms keep
-// working unchanged. `<turbo-frame>` and `format.turbo_stream` are
-// available for the per-view conversions that follow.
+// (and `application.html.erb`) as `<script type="module">`. Inline flows use
+// `<turbo-frame>` + HTML responses; jquery-ujs / remotipart were removed in 7.8.0.
 
 $(function(){ $(document).foundation(); });
 // initialize datepickers

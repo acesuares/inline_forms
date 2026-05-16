@@ -2,11 +2,11 @@
 
 Track progress toward full Turbo integration and removal of jQuery UJS from inline_forms generated apps.
 
-**Current gem version:** see `lib/inline_forms/version.rb` (Step 4 nearly complete — versions panel done in **7.7.3**)
+**Current gem version:** see `lib/inline_forms/version.rb` (**Step 5** — Turbo Drive on, jquery-ujs / remotipart removed in **7.8.0**)
 
-**Architecture today:** almost every inline interaction is `remote: true` → `format.js` → `*.js.erb` doing `$('#<update_span>').html(...)`. Turbo is loaded as an ES module with **`Turbo.session.drive = false`**. One vertical slice (nested has_many list pagination) uses **`<turbo-frame>`**.
+**Architecture today:** inline interactions use **`<turbo-frame>`** + **`format.html`** (and optional **`format.turbo_stream`**). Turbo loads as an ES module from the layouts; **Turbo Drive** uses the library default (**enabled**). No `*.js.erb` in active engine views; no `jquery_ujs` or `jquery.remotipart` in the Sprockets bundle.
 
-**Target end state:** Turbo Frames/Streams for all swaps; **`format.html`** / **`format.turbo_stream`** responses; no `*.js.erb`; no `jquery_ujs` or `jquery.remotipart`; Drive enabled.
+**Target end state:** Stock flows use Turbo Frames + HTML; optional `turbo_stream` where it simplifies a response. jQuery UJS and `*.js.erb` are gone from the engine.
 
 ---
 
@@ -14,7 +14,7 @@ Track progress toward full Turbo integration and removal of jQuery UJS from inli
 
 - [x] `gem 'turbo-rails'` in installer Gemfile (`bin/inline_forms_installer_core.rb`)
 - [x] Turbo loaded as `<script type="module">` in `layouts/inline_forms.html.erb` and `layouts/application.html.erb`
-- [x] `Turbo.session.drive = false` (UJS still owns navigation)
+- [x] `Turbo.session.drive` uses the **default (enabled)** — **7.8.0** (was disabled while UJS coexisted)
 - [x] Turbo **not** in Sprockets bundle (`app/assets/javascripts/inline_forms/inline_forms.js`) — ESM parse-error lesson from 7.1.1
 - [x] Smoke test: `lib/installer_templates/example_app_tests/test/integration/example_app_turbo_layout_test.rb`
 
@@ -47,9 +47,9 @@ Convert the **`show → edit → update → show_element → close`** cycle with
 
 - [x] Wrap each top-level list row in `<turbo-frame id="apartment_<id>">` (`_list.html.erb` when `parent_class` is nil)
 - [x] Row title link: GET `show` → HTML `row_show` / `_show` inside frame (no `:remote`; `data-turbo` + `data-turbo-frame`)
-- [x] `InlineFormsController#show` (full record, no `params[:attribute]`): `format.html` → `row_show` / `row_close` + `turbo_rails/frame` when `turbo_frame_request?`, else full `inline_forms` layout; `format.js` still renders `show.js.erb` / `close.js.erb` for legacy callers
+- [x] `InlineFormsController#show` (full record, no `params[:attribute]`): `format.html` → `row_show` / `row_close` + `turbo_rails/frame` when `turbo_frame_request?`, else full `inline_forms` layout
 - [x] `close_link` and `_close` presentation link: Turbo when `@inline_forms_turbo_row` (row HTML path)
-- [x] `soft_delete`, `soft_restore`, `destroy`, `revert`: `format.html` → `row_close` / `row_destroyed` (+ Turbo toolbar links); `format.js` kept for non-frame callers only
+- [x] `soft_delete`, `soft_restore`, `destroy`, `revert`: `format.html` → `row_close` / `row_destroyed` (+ Turbo toolbar links)
 - [x] Remove `edit.js.erb`, `update.js.erb`, `show_element.js.erb` (field lifecycle is Turbo HTML only)
 - [x] Remove `show.js.erb`, `close.js.erb`, `record_destroyed.js.erb`, `show_undo.js.erb` (7.7.0; tree migrated)
 - [x] Remove `:remote => true` from nested `_list` / `_close` / toolbar where migrated (row toolbar, versions, nested `+` use Turbo; top-level `new` was Step 4)
@@ -77,7 +77,7 @@ Convert the **`show → edit → update → show_element → close`** cycle with
 
 ### Helpers (`app/helpers/inline_forms_helper.rb`)
 
-- [x] `close_link`, `link_to_soft_delete`, `link_to_destroy`, `link_to_new_record`, `link_to_versions_list`, `close_versions_list_link`: Turbo when `turbo_row:` (default **true**); legacy `remote: true` only when `turbo_row: false`
+- [x] `close_link`, `link_to_soft_delete`, `link_to_destroy`, `link_to_new_record`, `link_to_versions_list`, `close_versions_list_link`: Turbo frame attrs only (**7.8.0**; `turbo_row:` retained for API compat)
 
 ### Tests
 
@@ -117,27 +117,27 @@ Convert the **`show → edit → update → show_element → close`** cycle with
 
 ### Controller cleanup
 
-- [ ] Every action in `InlineFormsController` + `VersionsConcern` has a non-JS response path
-- [ ] Audit `respond_to` blocks: parallel `format.turbo_stream` where stream is cleaner than full frame
+- [x] Every action in `InlineFormsController` + `VersionsConcern` has a non-JS response path (**7.8.0** audit)
+- [ ] Audit `respond_to` blocks: parallel `format.turbo_stream` where stream is cleaner than full frame (optional)
 
 ### Tests
 
 - [x] Top-level list pagination in frame (`example_app_apartment_top_level_pagination_test.rb`)
 - [x] Create apartment → list frame updates (`example_app_apartment_top_level_new_test.rb`)
 - [x] Versions panel open/close + revert from list (`example_app_apartment_versions_turbo_test.rb`, **7.7.3**)
-- [ ] Assert zero `data-remote="true"` in rendered HTML for inline_forms flows (spot-checked per slice; full-page audit deferred to Step 5)
+- [x] Assert zero `data-remote="true"` in rendered HTML for inline_forms flows (helpers + `_new` / `_close` no longer fall back to UJS — **7.8.0**)
 
 ---
 
-## Step 5 — Enable Drive, remove UJS
+## Step 5 — Enable Drive, remove UJS (DONE in **7.8.0**)
 
-- [ ] Remove `Turbo.session.drive = false` from both layouts
-- [ ] Delete `//= require jquery_ujs` from `inline_forms.js`
-- [ ] Delete `//= require jquery.remotipart` from `inline_forms.js`
-- [ ] Delete all `app/views/inline_forms/*.js.erb` (and geo `list_streets.js.erb`)
-- [ ] Remove `format.js` branches from controllers (or empty stubs, then delete)
-- [ ] Update `example_app_turbo_layout_test.rb`: Drive enabled (or line removed)
-- [ ] Full `bundle exec rails test` in `--example` app
+- [x] Remove `Turbo.session.drive = false` from both layouts (Drive default **on**)
+- [x] Delete `//= require jquery_ujs` from `inline_forms.js`
+- [x] Delete `//= require jquery.remotipart` from `inline_forms.js`
+- [x] Delete all `app/views/inline_forms/*.js.erb` (completed by **7.7.3**)
+- [x] Remove `format.js` branches from controllers (none remain on stock actions)
+- [x] Update `example_app_turbo_layout_test.rb`: refute `Turbo.session.drive = false`
+- [x] Full `bundle exec rails test` in `--example` app (before release)
 
 ### jQuery (optional follow-up — not required to drop UJS)
 
@@ -171,7 +171,7 @@ These can remain while UJS is gone; separate migration if desired:
 
 ### Controller actions still on `format.js`
 
-None in active inline_forms views (all `*.js.erb` removed through **7.7.3**). Controllers may still register `format.js` only where legacy callers exist — audit before Step 5.
+None on `InlineFormsController` / `VersionsConcern` stock actions (**7.8.0**). Host app controllers may still use `format.js`.
 
 ### Key files
 

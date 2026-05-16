@@ -57,7 +57,6 @@ gem 'rails-i18n', '~> 7.0'
 gem 'rails-jquery-autocomplete'
 gem 'rails', '~> 7.0.0'
 gem 'rake'
-gem 'remotipart', '~> 1.0'
 gem 'rvm'
 gem 'dartsass-rails'
 # Rails 7 no longer adds sprockets-rails to the default Gemfile; declare it
@@ -66,10 +65,9 @@ gem 'dartsass-rails'
 gem 'sprockets-rails'
 # Rails 7 default JavaScript tooling: importmap-rails replaces Webpacker.
 gem 'importmap-rails'
-# Hotwire/Turbo. Loaded into the Sprockets bundle by inline_forms.js with
-# Turbo Drive disabled by default so existing UJS-driven links/forms keep
-# working; turbo-rails also registers the `turbo_stream` Mime type and view
-# format so future controllers can opt in to Turbo Stream responses.
+# Hotwire/Turbo. Loaded from layouts as `<script type="module">`; inline flows
+# use `<turbo-frame>` + HTML responses (see docs/ujs-to-turbo.md). Registers the
+# `turbo_stream` MIME type for optional stream responses.
 gem 'turbo-rails'
 gem 'tabs_on_rails', :git => 'https://github.com/acesuares/tabs_on_rails.git', :branch => 'update_remote_before_action'
 gem 'unicorn'

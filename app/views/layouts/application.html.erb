@@ -15,12 +15,10 @@
     <%= yield %>
     <%= javascript_include_tag "application" %>
     <%# Turbo (Hotwire) is loaded as an ES module so it does not collide with %>
-    <%# the classic-script Sprockets bundle above. Drive is disabled here so %>
-    <%# existing UJS-driven links/forms keep working unchanged; `<turbo-frame>` %>
-    <%# and `format.turbo_stream` remain available for per-view conversions. %>
+    <%# the classic-script Sprockets bundle above. Drive uses the Turbo default %>
+    <%# (enabled). %>
     <script type="module">
       import { Turbo } from "<%= asset_path('turbo.min.js') %>"
-      Turbo.session.drive = false
       window.Turbo = Turbo
     </script>
     <%= javascript_include_tag "https://unpkg.com/trix@1.3.1/dist/trix.js" %>
