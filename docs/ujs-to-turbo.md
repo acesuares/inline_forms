@@ -2,7 +2,7 @@
 
 Track progress toward full Turbo integration and removal of jQuery UJS from inline_forms generated apps.
 
-**Current gem version:** see `lib/inline_forms/version.rb`
+**Current gem version:** see `lib/inline_forms/version.rb` (Step 3 complete in **7.5.0** except tree-related `*.js.erb` — Step 4)
 
 **Architecture today:** almost every inline interaction is `remote: true` → `format.js` → `*.js.erb` doing `$('#<update_span>').html(...)`. Turbo is loaded as an ES module with **`Turbo.session.drive = false`**. One vertical slice (nested has_many list pagination) uses **`<turbo-frame>`**.
 
@@ -49,9 +49,10 @@ Convert the **`show → edit → update → show_element → close`** cycle with
 - [x] Row title link: GET `show` → HTML `row_show` / `_show` inside frame (no `:remote`; `data-turbo` + `data-turbo-frame`)
 - [x] `InlineFormsController#show` (full record, no `params[:attribute]`): `format.html` → `row_show` / `row_close` + `turbo_rails/frame` when `turbo_frame_request?`, else full `inline_forms` layout; `format.js` still renders `show.js.erb` / `close.js.erb` for legacy callers
 - [x] `close_link` and `_close` presentation link: Turbo when `@inline_forms_turbo_row` (row HTML path)
-- [ ] `soft_delete`, `soft_restore`, `destroy`, `revert`: HTML or `turbo_stream` instead of `close.js.erb`, etc. (row toolbar links still UJS)
-- [ ] Remove `show.js.erb`, `close.js.erb`, `record_destroyed.js.erb`, `show_undo.js.erb` once no `format.js` consumers remain
-- [ ] Remove `:remote => true` from nested `_list` / `_close` / toolbar where migrated
+- [x] `soft_delete`, `soft_restore`, `destroy`, `revert`: `format.html` → `row_close` / `row_destroyed` (+ Turbo toolbar links); `format.js` kept for non-frame callers only
+- [x] Remove `edit.js.erb`, `update.js.erb`, `show_element.js.erb` (field lifecycle is Turbo HTML only)
+- [ ] Remove `show.js.erb`, `close.js.erb`, `record_destroyed.js.erb`, `show_undo.js.erb` — **`_tree.html.erb` still uses UJS row open (Step 4)**
+- [x] Remove `:remote => true` from nested `_list` / `_close` / toolbar where migrated (row toolbar, versions, nested `+` use Turbo; `_tree` / top-level `new` UJS deferred to Step 4)
 - [x] Remove `data-turbo="false"` from nested rows once nested inline-edit is Turbo-native (7.4.2)
 
 ### Nested associated lists (e.g. Apartment → Photo)
@@ -66,17 +67,17 @@ Convert the **`show → edit → update → show_element → close`** cycle with
 - [x] **`link_to_inline_edit`**: uses Turbo when `@inline_forms_turbo_field` or explicit `turbo_frame: true`
 - [x] **`InlineFormsController#edit`, `#update`, `#show`** (single attribute): `format.html` + `field_edit` / `field_show` templates when `turbo_frame_request?`
 - [x] **`_edit.html.erb`**: omits `:remote => true` when `@turbo_frame` (Turbo form submit inside frame)
-- [ ] Remove `edit.js.erb`, `update.js.erb`, `show_element.js.erb` (still used by stock UI)
+- [x] Remove `edit.js.erb`, `update.js.erb`, `show_element.js.erb`
 - [x] **`not_accessible_through_html?` models** (e.g. Photo): nested list row **`show` / `close`** use **`format.html`** when **`params[:update]`** is a nested row id (`row_html_turbo_allowed?`); field **`edit` / `update` / `show`** already always register **`format.html`**.
 
 ### Widget re-init after swap
 
-- [ ] ActionText/Trix: hook `turbo:frame-load` (or Stimulus) to attach editors after frame replace
-- [ ] jQuery UI datepicker / timepicker / autocomplete: re-bind on frame load, or migrate to Stimulus
+- [x] ActionText/Trix: `turbo:frame-load` in `inline_forms.js` attaches Trix editors after frame replace
+- [x] jQuery UI datepicker / timepicker: re-bound on `turbo:frame-load` (autocomplete widgets in field partials still use inline scripts until Step 5)
 
 ### Helpers (`app/helpers/inline_forms_helper.rb`)
 
-- [ ] `close_link`, `link_to_soft_delete`, `link_to_destroy`, `link_to_new_record`, `link_to_versions_list`, `close_versions_list_link`: convert off `:remote => true`
+- [x] `close_link`, `link_to_soft_delete`, `link_to_destroy`, `link_to_new_record`, `link_to_versions_list`, `close_versions_list_link`: Turbo when `turbo_row:` (default **true**); legacy `remote: true` only when `turbo_row: false`
 
 ### Tests
 
@@ -86,6 +87,8 @@ Convert the **`show → edit → update → show_element → close`** cycle with
 - [x] Integration: replace photo image (multipart) inside nested frame (`example_app_apartment_photos_pagination_test.rb`)
 - [x] Integration: custom field-only page (`ApartmentsController#name_list`) — Turbo edit/update/cancel without full `_show`
 - [x] Assert no `406 UnknownFormat` on Turbo field update (name list test)
+- [x] Integration: row destroy + PaperTrail revert via Turbo (`example_app_apartment_row_turbo_test.rb`)
+- [x] Integration: versions panel open/close via Turbo (`example_app_apartment_versions_turbo_test.rb`)
 
 ---
 

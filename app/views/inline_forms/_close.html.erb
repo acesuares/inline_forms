@@ -2,8 +2,8 @@
 <% presentation_link_opts = row_turbo ? { data: { turbo: true, turbo_frame: @update_span } } : { remote: true } %>
 <% if cancan_disabled? || ( can? :soft_delete, @object ) %>
   <div  class="small-1 column">
-    <%= link_to_soft_delete(@object, @update_span) -%>
-    <%= link_to_destroy(@object, @update_span) -%>
+    <%= link_to_soft_delete(@object, @update_span, turbo_row: row_turbo) -%>
+    <%= link_to_destroy(@object, @update_span, turbo_row: row_turbo) -%>
   </div>
   <div  class="small-11 column">
     <%= link_to h(@object._presentation), polymorphic_path(@object, :update => @update_span), presentation_link_opts -%>

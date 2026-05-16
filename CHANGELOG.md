@@ -4,6 +4,29 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [7.5.0] - 2026-05-16
+
+### Added
+
+- **Step 3 completion (UJS → Turbo row/field lifecycle):** row toolbar **`soft_delete` / `soft_restore` / `destroy` / `revert`** respond with **`format.html`** (`row_close`, `row_destroyed`) inside matching **`<turbo-frame>`**; helpers default to Turbo (`inline_forms_turbo_link_data`, `turbo_row:` on toolbar / versions / nested **`+`** links).
+- **Nested `+new` / `create` / versions panel:** `new_record`, `create_list_frame`, `versions_panel`, `versions_list_panel` HTML templates; associated/has_one/versions regions in **`_show`** wrapped in **`<turbo-frame>`**.
+- **`turbo:frame-load`** in **`inline_forms.js`:** re-init datepicker, timepicker, and Trix after frame swaps.
+- **Regression tests:** row destroy/revert Turbo, versions panel Turbo (`example_app_apartment_row_turbo_test.rb`, `example_app_apartment_versions_turbo_test.rb`).
+
+### Removed
+
+- **`edit.js.erb`**, **`update.js.erb`**, **`show_element.js.erb`** — scalar field edit/update/cancel is Turbo HTML only.
+
+### Changed
+
+- **`docs/ujs-to-turbo.md`:** Step 3 checklist marked done except **`show.js.erb` / `close.js.erb` / …** retained for **`_tree.html.erb`** (Step 4).
+
+### Verified (end-to-end against the `--example` install)
+
+- **`bundle exec rails test`** — **52 runs, 236 assertions, 0 failures, 0 errors, 0 skips** against the generated MyApp.
+- **curl smoke:** versions panel **`GET /apartments/1/list_versions?update=apartment_1_versions`** with **`Turbo-Frame`** → **200** + matching **`<turbo-frame id="apartment_1_versions">`**.
+- **curl + browser** — row toolbar, versions, field edit, nested photos (same contract as 7.4.x).
+
 ## [7.4.5] - 2026-05-15
 
 ### Added

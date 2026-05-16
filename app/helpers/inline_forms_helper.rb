@@ -52,6 +52,14 @@ module InlineFormsHelper
     entries.sort_by { |entry| entry[:version].created_at }
   end
 
+  # Turbo Frames navigation for row toolbar, versions, and nested +new+ (Step 3).
+  # +update_span+ must match the target +<turbo-frame id="…">+.
+  def inline_forms_turbo_link_data(update_span, method: :get)
+    data = { turbo: true, turbo_frame: update_span }
+    data[:turbo_method] = method.to_s.downcase unless method == :get
+    { data: data }
+  end
+
   private
 
   def validation_hints_as_list_for(object, attribute)
@@ -75,57 +83,50 @@ module InlineFormsHelper
   end
 
   # delete link. Mind the difference between delete and destroy.
-  def link_to_soft_delete( object, update_span )
-    soft=''
+  def link_to_soft_delete(object, update_span, turbo_row: true)
+    soft = ""
     if (object.soft_deletable? rescue false)
-      if object.deleted?     && (cancan_disabled? || ( can? :soft_restore, object ))
-        soft = link_to "<i class='fi-refresh'></i>".html_safe,
-          send( 'soft_restore_' + object.class.to_s.underscore + '_path',
-          object,
-          :update => update_span ),
-          :method => :post,
-          :remote => true,
-          :title => t('inline_forms.view.undelete')
-      elsif !object.deleted? && (cancan_disabled? || ( can? :soft_delete, object ))
-        soft = link_to "<i class='fi-trash'></i>".html_safe,
-        send( 'soft_delete_' + object.class.to_s.underscore + '_path',
-        object,
-        :update => update_span ),
-        :method => :post,
-        :remote => true,
-        :title => t('inline_forms.view.trash')
+      if object.deleted? && (cancan_disabled? || (can? :soft_restore, object))
+        path = send("soft_restore_#{object.class.to_s.underscore}_path", object, update: update_span)
+        opts = { title: t("inline_forms.view.undelete") }
+        opts.merge!(turbo_row ? inline_forms_turbo_link_data(update_span, method: :post) : { method: :post, remote: true })
+        soft = link_to "<i class='fi-refresh'></i>".html_safe, path, opts
+      elsif !object.deleted? && (cancan_disabled? || (can? :soft_delete, object))
+        path = send("soft_delete_#{object.class.to_s.underscore}_path", object, update: update_span)
+        opts = { title: t("inline_forms.view.trash") }
+        opts.merge!(turbo_row ? inline_forms_turbo_link_data(update_span, method: :post) : { method: :post, remote: true })
+        soft = link_to "<i class='fi-trash'></i>".html_safe, path, opts
       end
     end
     soft.html_safe
   end
 
   # destroy link. Mind the difference between delete and destroy.
-  def link_to_destroy( object, update_span )
-    hard=''
-    if cancan_disabled? || ( can? :destroy, object )
-      hard = link_to "&nbsp;&nbsp;<font color='FF0000'><i class='fi-x'></i></font>".html_safe,
-        polymorphic_path(
-          object,
-          :update => update_span ),
-        :method => :delete,
-        :remote => true,
-        :title => t('inline_forms.view.trash')
+  def link_to_destroy(object, update_span, turbo_row: true)
+    hard = ""
+    if cancan_disabled? || (can? :destroy, object)
+      path = polymorphic_path(object, update: update_span)
+      opts = { title: t("inline_forms.view.trash") }
+      opts.merge!(turbo_row ? inline_forms_turbo_link_data(update_span, method: :delete) : { method: :delete, remote: true })
+      hard = link_to "&nbsp;&nbsp;<font color='FF0000'><i class='fi-x'></i></font>".html_safe, path, opts
     end
     hard.html_safe
   end
 
   # new link
-  def link_to_new_record(model, path_to_new, update_span, parent_class = nil, parent_id = nil, html_class = 'button new_button')
-    out = (link_to "<i class='fi-plus'></i>".html_safe,
-                   send(path_to_new,
-                        :update => update_span,
-                        :parent_class => parent_class,
-                        :parent_id => parent_id,
-                       ),
-                   :remote => true,
-                   :class => html_class,
-                   :title => t('inline_forms.view.add_new', :model => model.model_name.human )
-          )
+  def link_to_new_record(model, path_to_new, update_span, parent_class = nil, parent_id = nil, html_class = "button new_button", turbo_row: true)
+    path = send(
+      path_to_new,
+      update: update_span,
+      parent_class: parent_class,
+      parent_id: parent_id
+    )
+    opts = {
+      class: html_class,
+      title: t("inline_forms.view.add_new", model: model.model_name.human)
+    }
+    opts.merge!(turbo_row ? inline_forms_turbo_link_data(update_span) : { remote: true })
+    out = link_to "<i class='fi-plus'></i>".html_safe, path, opts
     if cancan_enabled?
       if can? :create, model
         if parent_class.nil?
@@ -140,34 +141,28 @@ module InlineFormsHelper
   end
 
   # link to versions list
-  def link_to_versions_list(path_to_versions_list, object, update_span, html_class = 'button new_button')
+  def link_to_versions_list(path_to_versions_list, object, update_span, html_class = "button new_button", turbo_row: true)
     if can? :list_versions, object
       if defined?(PaperTrail) && object.respond_to?(:versions)
-        out = (link_to "<i class='fi-list'></i>".html_safe,
-                       send(path_to_versions_list,
-                            object,
-                            :update => update_span,
-                           ),
-                       :remote => true,
-                       :class => html_class,
-                       :title => t('inline_forms.view.list_versions')
-              )
-        raw out
+        path = send(path_to_versions_list, object, update: update_span)
+        opts = { class: html_class, title: t("inline_forms.view.list_versions") }
+        opts.merge!(turbo_row ? inline_forms_turbo_link_data(update_span) : { remote: true })
+        raw link_to("<i class='fi-list'></i>".html_safe, path, opts)
       end
     end
   end
 
   # close versions list link
-  def close_versions_list_link(object, update_span, html_class = 'button close_button' )
-    link_to "<i class='fi-x'></i>".html_safe,
-      send('list_versions_' + @object.class.to_s.underscore + "_path",
-          object,
-          :update => update_span,
-          :close => true
-      ),
-      :remote => true,
-      :class => html_class,
-      :title => t('inline_forms.view.close_versions_list')
+  def close_versions_list_link(object, update_span, html_class = "button close_button", turbo_row: true)
+    path = send(
+      "list_versions_#{object.class.to_s.underscore}_path",
+      object,
+      update: update_span,
+      close: true
+    )
+    opts = { class: html_class, title: t("inline_forms.view.close_versions_list") }
+    opts.merge!(turbo_row ? inline_forms_turbo_link_data(update_span) : { remote: true })
+    link_to "<i class='fi-x'></i>".html_safe, path, opts
   end
 
   # Renders the +*_show+ helper for +form_element+, passing +turbo_frame:+ when supported.

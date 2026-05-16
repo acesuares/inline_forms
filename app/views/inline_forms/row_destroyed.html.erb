@@ -1,0 +1,9 @@
+<turbo-frame id="<%= @update_span %>">
+  <div class="row odd top-level">
+    <div class="small-12 column">
+      <%= link_to t("inline_forms.view.undo"),
+            send("revert_#{@Klass.to_s.underscore}_path", @undo_version, update: @update_span),
+            inline_forms_turbo_link_data(@update_span, method: :post).merge(class: "button") %>
+    </div>
+  </div>
+</turbo-frame>

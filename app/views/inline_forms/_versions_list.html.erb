@@ -46,14 +46,10 @@
   <div class="row <%= cycle('odd', 'even') %>">
     <div class="small-1 column">
       <% if entry[:kind] == :primary %>
-        <%= link_to t('inline_forms.view.restore'),
-          send('revert_' + @object.class.to_s.underscore + "_path",
-            version,
-            :update => "#{@object.class.name.underscore}_#{@object.id}"
-          ),
-          :remote => true,
-          :method => :post
-        %>
+        <% row_id = "#{@object.class.name.underscore}_#{@object.id}" %>
+        <%= link_to t("inline_forms.view.restore"),
+              send("revert_#{@object.class.to_s.underscore}_path", version, update: row_id),
+              inline_forms_turbo_link_data(row_id, method: :post) %>
       <% else %>
         &nbsp;
       <% end %>

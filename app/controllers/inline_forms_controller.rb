@@ -72,12 +72,22 @@ class InlineFormsController < ApplicationController
       if @Klass.not_accessible_through_html?
         format.html do
           if @parent_class.present?
-            frame_layout = turbo_frame_request? ? "turbo_rails/frame" : "inline_forms"
-            render "inline_forms/_list", layout: frame_layout
+            if turbo_frame_request? && @update_span.present?
+              render "inline_forms/create_list_frame", layout: "turbo_rails/frame"
+            else
+              frame_layout = turbo_frame_request? ? "turbo_rails/frame" : "inline_forms"
+              render "inline_forms/_list", layout: frame_layout
+            end
           end
         end
       else
-        format.html { render 'inline_forms/_list', :layout => 'inline_forms' }
+        format.html do
+          if @parent_class.present? && turbo_frame_request? && @update_span.present?
+            render "inline_forms/create_list_frame", layout: "turbo_rails/frame"
+          else
+            render "inline_forms/_list", layout: "inline_forms"
+          end
+        end
       end
       format.js { render :list }
     end
@@ -98,7 +108,9 @@ class InlineFormsController < ApplicationController
 
     @object.inline_forms_attribute_list = @inline_forms_attribute_list if @inline_forms_attribute_list
     respond_to do |format|
-      format.html { render 'inline_forms/_new', :layout => 'inline_forms' } unless @Klass.not_accessible_through_html?
+      unless @Klass.not_accessible_through_html?
+        format.html { render_turbo_new }
+      end
       format.js { }
     end
   end
@@ -112,7 +124,6 @@ class InlineFormsController < ApplicationController
     @update_span = params[:update]
     respond_to do |format|
       format.html { render_turbo_field(:field_edit) }
-      format.js { }
     end
   end
 
@@ -146,14 +157,16 @@ class InlineFormsController < ApplicationController
       @objects = @objects.where(conditions).paginate(:page => params[:page])
       @object = nil
       respond_to do |format|
-        format.js { render :list}
+        format.html { render_turbo_create_list } if @parent_class.present?
+        format.js { render :list }
       end
     else
       flash.now[:header] = ["Kan #{@object.class.to_s.underscore} niet aanmaken."]
       flash.now[:error] = @object.errors.to_a
       respond_to do |format|
         @object.inline_forms_attribute_list = attributes
-        format.js { render :new}
+        format.html { render_turbo_new } unless @Klass.not_accessible_through_html?
+        format.js { render :new }
       end
     end
   end
@@ -170,7 +183,6 @@ class InlineFormsController < ApplicationController
     @object.save
     respond_to do |format|
       format.html { render_turbo_field(:field_show, turbo_field_show: true) }
-      format.js { }
     end
   end
 
@@ -207,7 +219,6 @@ class InlineFormsController < ApplicationController
     else
       respond_to do |format|
         format.html { render_turbo_field(:field_show, turbo_field_show: true) }
-        format.js { render :show_element }
       end
     end
   end
@@ -216,10 +227,9 @@ class InlineFormsController < ApplicationController
   def soft_delete
     @update_span = params[:update]
     @object = referenced_object
-    # destroy the object
     @object.soft_delete(current_user)
     respond_to do |format|
-      format.html { } unless @Klass.not_accessible_through_html?
+      format.html { render_row_turbo(:close) } if row_html_turbo_allowed?
       format.js { render :close }
     end
   end
@@ -228,10 +238,9 @@ class InlineFormsController < ApplicationController
   def soft_restore
     @update_span = params[:update]
     @object = referenced_object
-    # restore the object
     @object.soft_restore
     respond_to do |format|
-      format.html { } unless @Klass.not_accessible_through_html?
+      format.html { render_row_turbo(:close) } if row_html_turbo_allowed?
       format.js { render :close }
     end
   end
@@ -241,11 +250,10 @@ class InlineFormsController < ApplicationController
     @update_span = params[:update]
     @object = referenced_object
     if current_user.role? :superadmin
-      # destroy the object
-      @undo_object = @object.versions.last
+      @undo_version = @object.versions.last
       @object.destroy
       respond_to do |format|
-        format.html { } unless @Klass.not_accessible_through_html?
+        format.html { render_row_turbo_destroyed } if row_html_turbo_allowed?
         format.js { render :record_destroyed }
       end
     end
@@ -255,14 +263,13 @@ class InlineFormsController < ApplicationController
   # Thanks Ryan Bates: http://railscasts.com/episodes/255-undo-with-paper-trail
   def revert
     @update_span = params[:update]
-    @object = referenced_object
     if current_user.role? :superadmin
       @version = PaperTrail::Version.find(params[:id])
-      @version.reify.save!
-      @object = @Klass.find(@version.item_id)
+      @object = @version.reify
+      @object.save!
       authorize!(:revert, @object) if cancan_enabled?
       respond_to do |format|
-        format.html { } unless @Klass.not_accessible_through_html?
+        format.html { render_row_turbo(:close) } if row_html_turbo_allowed?
         format.js { render :close }
       end
     end
@@ -297,6 +304,23 @@ class InlineFormsController < ApplicationController
     template = (mode == :close) ? "inline_forms/row_close" : "inline_forms/row_show"
     layout = turbo_frame_request? ? "turbo_rails/frame" : "inline_forms"
     render template, layout: layout
+  end
+
+  def render_row_turbo_destroyed
+    @inline_forms_turbo_row = true
+    layout = turbo_frame_request? ? "turbo_rails/frame" : "inline_forms"
+    render "inline_forms/row_destroyed", layout: layout
+  end
+
+  def render_turbo_new
+    @turbo_frame = true
+    render "inline_forms/new_record", layout: "turbo_rails/frame"
+  end
+
+  # After nested +create+ inside an associated-list +<turbo-frame>+.
+  def render_turbo_create_list
+    @ul_needed = false
+    render "inline_forms/create_list_frame", layout: "turbo_rails/frame"
   end
 
   # HTML row open/close is allowed for normal models, and for +not_accessible_through_html?+

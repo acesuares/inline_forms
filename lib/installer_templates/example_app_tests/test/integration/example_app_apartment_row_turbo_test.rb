@@ -55,4 +55,40 @@ class ExampleAppApartmentRowTurboTest < ExampleAppIntegrationTestCase
     assert_response :success
     assert_includes @response.body, %(<turbo-frame id="#{@row_frame}">)
   end
+
+  test "row toolbar trash and destroy links use Turbo not UJS remote" do
+    get apartments_path
+    assert_response :success
+    assert_select "turbo-frame##{@row_frame} a[data-turbo='true'][data-turbo-frame='#{@row_frame}']", minimum: 1
+    refute_select "turbo-frame##{@row_frame} a[data-remote='true']"
+  end
+
+  test "destroy via Turbo DELETE returns undo inside matching turbo-frame" do
+    doomed = Apartment.create!(name: "Turbo Destroy Me", title: "X")
+    frame = "apartment_#{doomed.id}"
+    headers = { "Turbo-Frame" => frame, "Accept" => "text/html" }
+
+    delete apartment_path(doomed, update: frame), headers: headers
+    assert_response :success
+    assert_includes @response.body, %(<turbo-frame id="#{frame}">)
+    assert_includes @response.body, "undo"
+    assert_not Apartment.exists?(doomed.id)
+  end
+
+  test "revert via Turbo POST restores row as collapsed turbo-frame" do
+    doomed = Apartment.create!(name: "Turbo Revert Me", title: "Y")
+    apt_id = doomed.id
+    frame = "apartment_#{apt_id}"
+    headers = { "Turbo-Frame" => frame, "Accept" => "text/html" }
+
+    delete apartment_path(doomed, update: frame), headers: headers
+    assert_response :success
+
+    destroy_version = PaperTrail::Version.where(item_type: "Apartment", item_id: apt_id).order(:id).last
+    post revert_apartment_path(destroy_version.id, update: frame), headers: headers
+    assert_response :success
+    assert Apartment.where(name: "Turbo Revert Me").exists?
+    assert_includes @response.body, %(<turbo-frame id="#{frame}">)
+    refute_includes @response.body, "object_presentation"
+  end
 end

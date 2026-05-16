@@ -69,16 +69,16 @@
                   <div class='medium-1 large-1 column'>
                     &nbsp;
                   </div>
-                  <div id="<%= css_class_id -%>" class='small-11 column'>
+                  <turbo-frame id="<%= css_class_id -%>" class="small-11 column">
                 <% else %>
-      	          <div id="<%= css_class_id -%>" class='small-12 column' >
+      	          <turbo-frame id="<%= css_class_id -%>" class="small-12 column">
                 <% end %>
                   <%= render  :partial => "inline_forms/list",
       	            :locals => {  :parent_class => @object.class,
       		                  :parent_id    => @object.id,
                                   :attribute    => attribute,
                                   :form_element => form_element } %>
-      	          </div>
+      	          </turbo-frame>
       	      </div>
             <% else %>
               <% if form_element == :has_one %>
@@ -86,13 +86,13 @@
                   <div class='medium-1 large-1 column'>
                     &nbsp;
                   </div>
-                  <div id="<%= css_class_id -%>" class='small-11 column' >
+                  <turbo-frame id="<%= css_class_id -%>" class="small-11 column">
                     <%= render  :partial => "inline_forms/list",
                       :locals => {  :parent_class => @object.class,
                                     :parent_id    => @object.id,
                                     :attribute    => attribute,
                                     :form_element => form_element } %>
-                  </div>
+                  </turbo-frame>
                 </div>
               <% else %>
                 <div class="row <%= cycle('odd', 'even') %>">
@@ -119,9 +119,9 @@
     <% end %>
     <% if can? :list_versions, @object  %>
       <% css_class_id = "#{@object.class.name.underscore}_#{@object.id}_versions" -%>
-      <div id="<%= css_class_id -%>">
-        <%= render 'versions' %>
-      </div>
+      <turbo-frame id="<%= css_class_id -%>">
+        <%= render "versions" %>
+      </turbo-frame>
     <% end %>
     <div class="record_footer"></div>
   </div>

@@ -37,3 +37,26 @@ $(function(){ $(document).foundation(); });
       $(this).attr('title', '');
     });
   });
+
+// Re-bind jQuery UI widgets and Trix after Turbo Frame swaps (Step 3).
+document.addEventListener("turbo:frame-load", function(event) {
+  var root = event.target;
+  if (!root || !root.querySelectorAll) { return; }
+
+  $(root).find("input.datepicker").each(function() {
+    var $el = $(this);
+    if (!$el.hasClass("hasDatepicker")) { $el.datepicker(); }
+  });
+
+  $(root).find("input.timepicker").each(function() {
+    var $el = $(this);
+    if (!$el.data("timepicker")) { $el.timepicker(); }
+  });
+
+  $(root).find("trix-editor").each(function() {
+    if (window.Trix && this.editor) { return; }
+    if (window.Trix && typeof Trix.Editor === "function") {
+      new Trix.Editor(this);
+    }
+  });
+});
