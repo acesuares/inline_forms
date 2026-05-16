@@ -306,6 +306,65 @@ class ExampleAppApartmentPhotosPaginationTest < ExampleAppIntegrationTestCase
     assert photo.image.present?, "expected CarrierWave mount after Turbo multipart PUT"
   end
 
+  # 7.5.2 regression: after cancel / update on a field, the swapped
+  # `<turbo-frame id="…">` must contain a Turbo link
+  # (`data-turbo="true" data-turbo-frame="_self"`) so the user can re-open
+  # the editor. 7.5.1 emitted `data-remote="true"`, which jquery_ujs
+  # intercepts as a JS request the controller does not register, so the
+  # second click silently fails (no swap, no edit form).
+  test "nested Photo image field show after update has Turbo (not data-remote) link" do
+    photo = @apartment.photos.first!
+    frame_id = "apartment_#{@apartment.id}_photo_#{photo.id}_image"
+    turbo_headers = { "Turbo-Frame" => frame_id, "Accept" => "text/html" }
+
+    seed_dir = Rails.root.join("db", "seed_images")
+    jpgs = Dir.glob(seed_dir.join("*.{jpg,jpeg}"), File::FNM_CASEFOLD).sort
+    replacement = jpgs.find { |abs| File.basename(abs) != photo.name } || jpgs.last
+    uploaded = Rack::Test::UploadedFile.new(replacement, "image/jpeg")
+
+    put photo_path(
+      photo,
+      attribute: "image",
+      form_element: "image_field",
+      update: frame_id
+    ),
+        params: { image: uploaded },
+        headers: turbo_headers
+    assert_response :success
+    refute_match(
+      /data-remote="true"/,
+      @response.body,
+      "field_show after Turbo update must use Turbo data attributes; " \
+      "data-remote=\"true\" hits jquery_ujs (no JS responder) and the " \
+      "second click silently fails."
+    )
+    assert_match(
+      /data-turbo="true"/,
+      @response.body,
+      "expected Turbo data attribute on the inline-edit link inside the swapped field frame"
+    )
+  end
+
+  # Same regression on the cancel path (no DB write): clicking the field
+  # cancel returns the read-only field; the link inside must be a Turbo link
+  # so the user can re-open the editor.
+  test "nested Photo image field show after cancel has Turbo (not data-remote) link" do
+    photo = @apartment.photos.first!
+    frame_id = "apartment_#{@apartment.id}_photo_#{photo.id}_image"
+    turbo_headers = { "Turbo-Frame" => frame_id, "Accept" => "text/html" }
+
+    get photo_path(
+      photo,
+      attribute: "image",
+      form_element: "image_field",
+      update: frame_id
+    ), headers: turbo_headers
+    assert_response :success
+    refute_match(/data-remote="true"/, @response.body,
+      "cancel-side field_show must not regress to UJS data-remote=\"true\"")
+    assert_match(/data-turbo="true"/, @response.body)
+  end
+
   test "nested Photo new cancel and create via Turbo inside associated list frame" do
     frame = "apartment_#{@apartment.id}_photos"
     headers = { "Turbo-Frame" => frame, "Accept" => "text/html" }

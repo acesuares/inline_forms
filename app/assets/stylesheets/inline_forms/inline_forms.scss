@@ -223,6 +223,14 @@ select:hover, select:focus {
   font-weight: bold;
   font-size: 110%;
 }
+// Custom elements default to `display: inline`, which collapses the row layout
+// of an empty/just-mounted top-level `<turbo-frame id="apartments_list">` and
+// hides its rows under the fixed top bar. Force block layout so frames behave
+// like the legacy `<div class="list_container">` and `<div class="row">` they
+// replaced (see app/views/inline_forms/_list.html.erb).
+turbo-frame {
+  display: block;
+}
 .list_container {
   .row {
     font-size: 1.2rem;

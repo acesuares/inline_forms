@@ -45,9 +45,11 @@
   Container element. For the nested has_many case (parent_class set) we
   emit a `<turbo-frame>` so pagination clicks (and any future in-frame
   re-render of this list) swap only the matching frame instead of doing
-  a full-page navigation. Top-level lists use a plain `<div>` wrapper;
-  each row (top-level or nested) is its own `<turbo-frame id="…">` so
-  open/close and scalar field edit use Turbo HTML, not UJS.
+  a full-page navigation. Top-level lists keep the classic `<div>` and
+  full-page navigation; their `+ new` link is plain (no Turbo frame
+  target) so cancel / create just navigate -- a top-level `<turbo-frame>`
+  collapses inside `position: absolute` `#outer_container` and hides the
+  list (regression hit during the 7.5.2 spike).
 -%>
 <% if ul_needed -%>
   <% if parent_class.nil? -%>

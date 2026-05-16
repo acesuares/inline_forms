@@ -4,6 +4,26 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [7.5.2] - 2026-05-16
+
+### Fixed
+
+- **Field re-edit after Turbo update / cancel (Photo image, name, etc.):** `render_turbo_field` now sets **`@inline_forms_turbo_field = true`**, so the link inside the swapped **`<turbo-frame id="photo_<id>_image">`** carries **`data-turbo`** instead of legacy **`data-remote`**. 7.5.1 set the flag only in `_show.html.erb` (the row open template); the bare `field_show` re-render after a field cancel/update lost it, the link fell back to **`remote: true`**, jquery_ujs intercepted as a JS request the controller does not register, and the second click silently failed (no swap, no edit form).
+- **Top-level `+ new` flow (e.g. /apartments):** `link_to_new_record` falls back to **UJS (`remote: true`)** when called without a `parent_class`. The top-level list root stays a **`<div id="apartments_list">`** (a `<turbo-frame>` there collapses inside `position: absolute` `#outer_container` and hides rows under the fixed top bar), so a Turbo target on the **`+`** link is invalid -- 7.5.1 emitted `data-turbo-frame="apartments_list"`, which made cancel/create produce Turbo's "Content missing" or fall back to a full-page navigation. UJS (`new.js.erb` / `list.js.erb`) swap **`#apartments_list`** in place; nested has_many lists keep the Turbo contract unchanged.
+
+### Added
+
+- **Defensive CSS:** `turbo-frame { display: block; }` so any `<turbo-frame>` inside `#outer_container` (custom elements default to `display: inline`) does not collapse and hide its row content.
+- **Regression tests:**
+  - `example_app_apartment_top_level_new_test.rb` -- top-level list root stays `<div>`, **`+`** link is UJS, `new` / `cancel` / `create` go through `format.js` and swap **`#apartments_list`**.
+  - `example_app_apartment_photos_pagination_test.rb` -- after Turbo update / cancel of a Photo image field, `field_show` carries `data-turbo="true"` (not `data-remote="true"`).
+
+### Verified
+
+- **`bundle exec rails test`** -- **60 runs, 302 assertions, 0 failures**.
+- **curl:** field show after cancel/update emits `data-turbo="true" data-turbo-frame="_self"` (no `data-remote`); top-level new returns `format.js` swap of `#apartments_list`.
+- **Browser:** top-level `+ new Apartment` form renders inline + cancel returns to list (no "Content missing"); nested Photo image edit can be reopened immediately after cancel and after replacement.
+
 ## [7.5.1] - 2026-05-16
 
 ### Fixed

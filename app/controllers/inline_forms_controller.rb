@@ -284,9 +284,18 @@ class InlineFormsController < ApplicationController
 
   # HTML field edit/show inside a +<turbo-frame>+ (Step 3). Scalar fields no longer
   # use UJS; +format.html+ is always registered for edit/update/single-attribute show.
+  #
+  # +@inline_forms_turbo_field+ tells +link_to_inline_edit+ (and the per-+form_element+
+  # +*_show+ helpers it wraps) to emit Turbo data attributes. The flag is set in
+  # +_show.html.erb+ when a row first opens, but bare +field_show+ / +field_edit+
+  # responses (on +cancel+ / +update+) do not re-render +_show+. Without setting
+  # it here the link in the swapped frame falls back to +remote: true+, which the
+  # legacy +jquery_ujs+ bundle intercepts as a JS request -- the controller only
+  # registers +format.html+, so the click silently fails (no swap, no edit form).
   def render_turbo_field(template, turbo_field_show: false)
     @turbo_frame = true if template == :field_edit
     @turbo_field_show_turbo_frame = turbo_field_show
+    @inline_forms_turbo_field = true
     render "inline_forms/#{template}", layout: "turbo_rails/frame"
   end
 
