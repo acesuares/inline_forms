@@ -110,7 +110,28 @@ module InlineForms
 
 				app_template_file = File.join(File.dirname(__FILE__), 'inline_forms_app_template.rb')
 
-        if ! run("rails new #{app_name} -m #{app_template_file} --skip-bundle --skip-bootsnap --javascript=importmap")
+        # Prefer a Rails 7.0.x generator when one is installed locally: the
+        # generated `Gemfile`/`config/application.rb` pin to `rails ~> 7.0.0`,
+        # so running `rails new` from a newer system Rails (e.g. 8.0.x) emits
+        # 7.1+/8.0-only configuration (`load_defaults 8.0`,
+        # `config.autoload_lib(...)`) that aborts on the next `bundle exec`.
+        # The installer_core also patches `config/application.rb` defensively;
+        # the explicit version selector is the cleaner first line of defense.
+        require 'rubygems'
+        compatible_rails =
+          begin
+            Gem::Specification
+              .find_all_by_name("rails")
+              .map(&:version)
+              .select { |v| v >= Gem::Version.new("7.0") && v < Gem::Version.new("7.1") }
+              .max
+          rescue StandardError
+            nil
+          end
+        rails_invocation = compatible_rails ? "rails _#{compatible_rails}_" : "rails"
+        say "Generating app with: #{rails_invocation} new ...", :green
+
+        if ! run("#{rails_invocation} new #{app_name} -m #{app_template_file} --skip-bundle --skip-bootsnap --javascript=importmap")
           say "Rails could not create the app '#{app_name}', maybe because it is a reserved word...", :red # TODO ROYTJE MAKE ERROR MESSAGE MORE RELEVANT # Rails could not create the app 'MyApp', maybe because it is a reserved word..
           exit 1
         end

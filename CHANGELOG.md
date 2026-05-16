@@ -4,6 +4,23 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [7.4.4] - 2026-05-16
+
+### Fixed
+
+- **`inline_forms create … --example` against a Rails 8 system gem:** `bin/inline_forms` now prefers a locally installed Rails **`~> 7.0`** (`rails _7.0.X_ new …`) when one is present, so the generated **`config/application.rb`** matches the **`rails ~> 7.0.0`** pin the installer writes into the **`Gemfile`**. Without this, a system **`rails 8.x`** wrote **`config.load_defaults 8.0`** and **`config.autoload_lib(ignore: …)`** into `application.rb`, both rejected by Rails 7.0 (`rails aborted! Unknown version "8.0"` and `NoMethodError: undefined method 'autoload_lib'` on the first **`bundle exec rails dartsass:install`**), so app generation aborted right after Dart Sass install.
+- **Defensive `application.rb` rewrite (belt + suspenders):** even when the picked generator is Rails 8.x (e.g. no 7.0 gem available), `bin/inline_forms_installer_core.rb` rewrites **`config.load_defaults <N>.<M>`** to **`config.load_defaults 7.0`** and strips **`config.autoload_lib(…)`** post-generation so the bundled Rails 7.0 can boot.
+
+### Changed
+
+- **`docs/ujs-to-turbo.md`:** Step 3 marks the apartment field flow integration test (**`example_app_apartment_field_turbo_test.rb`** — open row → edit text field → save → cancel) as done; the test has been shipping since 7.4.1.
+
+### Verified (end-to-end against the `--example` install)
+
+- **`bundle exec rails test`** — **46 runs, 196 assertions, 0 failures, 0 errors, 0 skips** against the generated MyApp (Apartment + Photo).
+- **curl smoke** with **`Turbo-Frame`** header: top-level row open/close (**`/apartments/1?update=apartment_1[&close=true]`**), scalar field edit/update/cancel (**`/apartments/1/edit?attribute=name&form_element=text_field&update=apartment_1_name`** + **`PUT /apartments/1`**), nested **`/photos?parent_class=Apartment&parent_id=1&update=apartment_1_photos_list`** pagination, and nested Photo row open/close (**`/photos/1?update=apartment_1_photo_1[&close=true]`**) all return **200** with the matching **`<turbo-frame id="…">`** in the body.
+- **Browser** (devtools MCP, Drive disabled, UJS for the legacy paths): sign-in → click apartment row (Turbo open, no full-page nav) → nested photo pagination Next (Turbo) → click name field (Turbo edit-in-place) → save (in-place swap, no reload) → close X (Turbo collapse, list shows updated name). **`/apartments/name_list`** field-edit demo confirmed reachable from the **More** menu.
+
 ## [7.4.3] - 2026-05-16
 
 ### Added

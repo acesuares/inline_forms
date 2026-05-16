@@ -5,6 +5,27 @@ GENERATOR_PATH = File.dirname(File.expand_path(__FILE__)) +  '/../'
 remove_file 'Gemfile' if File.exist?('Gemfile')
 create_file 'Gemfile', "# created by inline_forms #{ENV['inline_forms_version']} on #{Date.today}\n"
 
+# `rails new` is invoked with whatever the system `rails` binary points at
+# (often Rails 8.x once it lands in the global gemset), so the generated
+# `config/application.rb` may carry Rails 7.1+/8.0 idioms (`load_defaults
+# 8.0`, `config.autoload_lib(...)`). The Gemfile we write below pins
+# `rails ~> 7.0.0`, so Rails 7.0 must be able to interpret application.rb;
+# otherwise the first `bundle exec rails …` aborts with `Unknown version
+# "8.0"` or `NoMethodError: undefined method 'autoload_lib'`.
+if File.exist?('config/application.rb')
+  gsub_file 'config/application.rb',
+            /config\.load_defaults\s+\d+\.\d+/,
+            'config.load_defaults 7.0'
+  # Strip Rails 7.1+ `config.autoload_lib(ignore: ...)` (and any surrounding
+  # explanatory comment block). Not supported on Rails 7.0.
+  gsub_file 'config/application.rb',
+            /^\s*#[^\n]*\n(\s*#[^\n]*\n)*\s*config\.autoload_lib\([^)]*\)\s*\n/,
+            ""
+  gsub_file 'config/application.rb',
+            /^\s*config\.autoload_lib\([^)]*\)\s*\n/,
+            ""
+end
+
 add_source 'https://rubygems.org'
 
 gem 'cancancan'
