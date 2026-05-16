@@ -15,7 +15,7 @@
         <%= h(@object._presentation) -%>
       </div>
       <div class="small-1 column close_link" >
-        <%= close_link(@object, @update_span) -%>
+        <%= close_link(@object, @update_span, turbo_row: @inline_forms_turbo_row) -%>
       </div>
     </div>
     <% end %>

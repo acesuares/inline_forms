@@ -197,9 +197,11 @@ class InlineFormsController < ApplicationController
       respond_to do |format|
         @attributes = @object.inline_forms_attribute_list
         if close
+          format.html { render_row_turbo(:close) } if row_html_turbo_allowed?
           format.js { render :close }
         else
-          format.js { }
+          format.html { render_row_turbo(:show) } if row_html_turbo_allowed?
+          format.js { render :show }
         end
       end
     else
@@ -286,6 +288,31 @@ class InlineFormsController < ApplicationController
     @turbo_frame = true if template == :field_edit
     @turbo_field_show_turbo_frame = turbo_field_show
     render "inline_forms/#{template}", layout: "turbo_rails/frame"
+  end
+
+  # Top-level list row open/close (Step 3): full `_show` / `_close` inside
+  # `<turbo-frame id="…">` matching `params[:update]`.
+  def render_row_turbo(mode)
+    @inline_forms_turbo_row = true
+    template = (mode == :close) ? "inline_forms/row_close" : "inline_forms/row_show"
+    layout = turbo_frame_request? ? "turbo_rails/frame" : "inline_forms"
+    render template, layout: layout
+  end
+
+  # HTML row open/close is allowed for normal models, and for +not_accessible_through_html?+
+  # models (e.g. Photo) when the request targets a nested associated list row
+  # (+params[:update]+ like +apartment_1_photo_5+), not bare top-level CRUD.
+  def row_html_turbo_allowed?
+    return true unless @Klass.not_accessible_through_html?
+    nested_associated_list_row_update?(params[:update])
+  end
+
+  # +apartment_1_photo_5+ → +["apartment","1","photo","5"]+ (≥4 segments, trailing id).
+  # Differs from field spans (+apartment_1_photo_5_name+ ends with letters) and
+  # top-level rows (+apartment_1+ — too few segments).
+  def nested_associated_list_row_update?(update)
+    parts = update.to_s.split("_")
+    parts.length >= 4 && parts.last.match?(/\A\d+\z/)
   end
 
   # Get the class from the controller name.

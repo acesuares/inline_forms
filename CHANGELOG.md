@@ -4,6 +4,21 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [7.4.3] - 2026-05-16
+
+### Added
+
+- **Turbo row open/close on stock index:** each top-level list row is a **`<turbo-frame id="{model}_{id}">`**; presentation links use Turbo (**`row_show.html.erb`** / **`row_close.html.erb`**, **`close_link(..., turbo_row:)`**, **`example_app_apartment_row_turbo_test.rb`**).
+
+### Fixed
+
+- **Nested associated list (e.g. Apartment → Photo):** same per-row **`<turbo-frame>`** + Turbo presentation as top-level; removed **`data-turbo="false"`**, which broke nested **cancel** and other in-frame GETs. **`row_html_turbo_allowed?`** / **`nested_associated_list_row_update?`** serve **`format.html`** row **show** / **close** for **`not_accessible_through_html?`** models when **`params[:update]`** is a nested row id (e.g. **`apartment_1_photo_5`**).
+
+### Changed
+
+- **`docs/ujs-to-turbo.md`:** Step 2 / Step 3 checklist for row + nested Turbo.
+- **`example_app_apartment_photos_pagination_test.rb`:** asserts nested turbo-frame rows and Photo row open/close + field cancel; drops the obsolete requirement that nested rows opt out of Turbo.
+
 ## [7.4.1] - 2026-05-15
 
 ### Added

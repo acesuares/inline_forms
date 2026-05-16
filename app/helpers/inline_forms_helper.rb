@@ -59,15 +59,19 @@ module InlineFormsHelper
   end
 
   # close link
-  def close_link( object, update_span, html_class = 'button close_button' )
-    link_to "<i class='fi-x'></i>".html_safe,
-      polymorphic_path(
-        object,
-        :update => update_span,
-        :close => true ),
-      :remote => true,
-      :class => html_class,
-      :title => t('inline_forms.view.close')
+  def close_link(object, update_span, html_class = "button close_button", turbo_row: false)
+    path = polymorphic_path(
+      object,
+      update: update_span,
+      close: true
+    )
+    opts = { class: html_class, title: t("inline_forms.view.close") }
+    if turbo_row
+      opts[:data] = { turbo: true, turbo_frame: "_self" }
+      link_to "<i class='fi-x'></i>".html_safe, path, opts
+    else
+      link_to "<i class='fi-x'></i>".html_safe, path, opts.merge(remote: true)
+    end
   end
 
   # delete link. Mind the difference between delete and destroy.

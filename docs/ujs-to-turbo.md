@@ -25,7 +25,7 @@ Track progress toward full Turbo integration and removal of jQuery UJS from inli
 - [x] `_list.html.erb`: nested has_many container is `<turbo-frame id="…_list">` when `parent_class` present
 - [x] Nested pagination: no `:remote => true`; `update=` param matches frame id (`…_list` suffix)
 - [x] `InlineFormsController#index`: HTML for nested frame requests; `turbo_rails/frame` vs `inline_forms` layout negotiation
-- [x] `data-turbo="false"` on **nested** rows only (UJS inline-edit coexists with frame pagination)
+- [x] **Nested rows (7.4.2):** per-row `<turbo-frame>` + Turbo presentation links; **`row_html_turbo_allowed?`** enables **`format.html`** row open/close for **`not_accessible_through_html?`** models when **`params[:update]`** is a nested associated row id (`apartment_<aid>_photo_<pid>`). Removed row-level **`data-turbo="false"`** (field cancel + pagination use Turbo inside nested frames).
 - [x] Top-level rows must **not** carry `data-turbo="false"` (would poison inner frames — 7.2.3)
 - [x] Smoke test: `example_app_apartment_photos_pagination_test.rb`
 - [x] Example seed data (Konferensha + photos) for pagination assertions
@@ -45,13 +45,20 @@ Convert the **`show → edit → update → show_element → close`** cycle with
 
 ### Row-level (stock list → full `_show` panel)
 
-- [ ] Wrap each list row (or swap target) in `<turbo-frame id="apartment_<id>">`
-- [ ] Row title link: GET `show` → HTML `_show` partial inside frame (no `remote: true`)
-- [ ] `InlineFormsController#show`: `format.html` renders partial for frame requests
-- [ ] `close`, `soft_delete`, `soft_restore`, `destroy`, `revert`: HTML or `turbo_stream` instead of `close.js.erb`, etc.
-- [ ] Remove `show.js.erb`, `close.js.erb`, `record_destroyed.js.erb`, `show_undo.js.erb`
-- [ ] Remove `:remote => true` from `_list.html.erb` row links, `_close.html.erb`
-- [ ] Remove `data-turbo="false"` from nested rows once row forms are Turbo-native
+- [x] Wrap each top-level list row in `<turbo-frame id="apartment_<id>">` (`_list.html.erb` when `parent_class` is nil)
+- [x] Row title link: GET `show` → HTML `row_show` / `_show` inside frame (no `:remote`; `data-turbo` + `data-turbo-frame`)
+- [x] `InlineFormsController#show` (full record, no `params[:attribute]`): `format.html` → `row_show` / `row_close` + `turbo_rails/frame` when `turbo_frame_request?`, else full `inline_forms` layout; `format.js` still renders `show.js.erb` / `close.js.erb` for legacy callers
+- [x] `close_link` and `_close` presentation link: Turbo when `@inline_forms_turbo_row` (row HTML path)
+- [ ] `soft_delete`, `soft_restore`, `destroy`, `revert`: HTML or `turbo_stream` instead of `close.js.erb`, etc. (row toolbar links still UJS)
+- [ ] Remove `show.js.erb`, `close.js.erb`, `record_destroyed.js.erb`, `show_undo.js.erb` once no `format.js` consumers remain
+- [ ] Remove `:remote => true` from nested `_list` / `_close` / toolbar where migrated
+- [x] Remove `data-turbo="false"` from nested rows once nested inline-edit is Turbo-native (7.4.2)
+
+### Nested associated lists (e.g. Apartment → Photo)
+
+- [x] Each nested row is `<turbo-frame id="{parent}_{id}_{assoc}_{child_id}">` with Turbo presentation links (same contract as top-level).
+- [x] **`row_html_turbo_allowed?`:** `format.html` row open/close for **`not_accessible_through_html?`** models when **`params[:update]`** matches a nested associated row id (≥4 underscore segments, trailing numeric id).
+- [x] Scalar field edit/cancel inside nested **`_show`** uses existing **`format.html`** field templates (no **`UnknownFormat`** for Photo).
 
 ### Field-level (`link_to_inline_edit` / `*_show` helpers)
 
@@ -60,7 +67,7 @@ Convert the **`show → edit → update → show_element → close`** cycle with
 - [x] **`InlineFormsController#edit`, `#update`, `#show`** (single attribute): `format.html` + `field_edit` / `field_show` templates when `turbo_frame_request?`
 - [x] **`_edit.html.erb`**: omits `:remote => true` when `@turbo_frame` (Turbo form submit inside frame)
 - [ ] Remove `edit.js.erb`, `update.js.erb`, `show_element.js.erb` (still used by stock UI)
-- [ ] **`not_accessible_through_html?` models** (e.g. Photo): add `format.html` on update/create when reached via parent frame (7.2.1 regression class)
+- [x] **`not_accessible_through_html?` models** (e.g. Photo): nested list row **`show` / `close`** use **`format.html`** when **`params[:update]`** is a nested row id (`row_html_turbo_allowed?`); field **`edit` / `update` / `show`** already always register **`format.html`**.
 
 ### Widget re-init after swap
 
@@ -73,7 +80,9 @@ Convert the **`show → edit → update → show_element → close`** cycle with
 
 ### Tests
 
-- [ ] Integration: open apartment row → edit text field → save → cancel
+- [x] Integration: stock row open/close on `/apartments` (Turbo frame + HTML `show` / `close`): `example_app_apartment_row_turbo_test.rb`
+- [ ] Integration: open apartment row → edit text field → save → cancel (field flow: `example_app_apartment_field_turbo_test.rb`)
+- [x] Integration: nested Photo row open/close + name field cancel (`example_app_apartment_photos_pagination_test.rb`)
 - [ ] Integration: replace photo image (multipart) inside nested frame
 - [x] Integration: custom field-only page (`ApartmentsController#name_list`) — Turbo edit/update/cancel without full `_show`
 - [x] Assert no `406 UnknownFormat` on Turbo field update (name list test)

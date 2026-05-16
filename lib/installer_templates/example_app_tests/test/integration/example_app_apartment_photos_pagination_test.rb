@@ -197,7 +197,7 @@ class ExampleAppApartmentPhotosPaginationTest < ExampleAppIntegrationTestCase
     )
   end
 
-  test "row container opts out of Turbo so swapped-in UJS forms (replace photo etc.) keep working" do
+  test "nested photo rows are turbo-framed with Turbo presentation links (no data-turbo false on row)" do
     get photos_path(
       parent_class: "Apartment",
       parent_id: @apartment.id,
@@ -206,23 +206,58 @@ class ExampleAppApartmentPhotosPaginationTest < ExampleAppIntegrationTestCase
     )
     assert_response :success
 
-    # The container-level opt-out is what protects the inline-edit /
-    # replace-photo flow: when a user replaces a photo, show.js.erb /
-    # edit.js.erb does $('#<row_id>').html(<form>), so the multipart
-    # form that submits the upload is a descendant of this row. With
-    # data-turbo="false" on the row, Turbo doesn't intercept that
-    # submission -- jquery-ujs + remotipart do, the request goes out
-    # with Accept: text/javascript, and the controller's format.js
-    # branch handles it. Without this, Turbo Frames would send
-    # Accept: text/html and the update action (no format.html for
-    # not_accessible_through_html? models like Photo) raises
-    # UnknownFormat AFTER the DB write -- a 406 with a corrupted UI.
     sample_row_id = "apartment_#{@apartment.id}_photo_#{@apartment.photos.first.id}"
     assert_match(
-      %r{<div[^>]+id="#{Regexp.escape(sample_row_id)}"[^>]*data-turbo="false"|<div[^>]+data-turbo="false"[^>]*id="#{Regexp.escape(sample_row_id)}"},
+      %r{<turbo-frame[^>]*\bid="#{Regexp.escape(sample_row_id)}"},
       @response.body,
-      "expected the per-row container (id=\"#{sample_row_id}\") to carry data-turbo=\"false\" " \
-      "so swapped-in UJS forms inherit the Turbo opt-out"
+      "expected each nested photo row to be a <turbo-frame id=\"#{sample_row_id}\">"
     )
+    refute_match(
+      %r{<turbo-frame[^>]*id="#{Regexp.escape(sample_row_id)}"[^>]*data-turbo="false"},
+      @response.body,
+      "nested turbo-frame rows must not opt out of Turbo (field cancel / pagination live inside frames)"
+    )
+    assert_select %(turbo-frame##{sample_row_id} a[data-turbo='true'][data-turbo-frame='#{sample_row_id}']), minimum: 1
+  end
+
+  test "nested Photo row opens and closes via Turbo HTML (not_accessible_through_html model)" do
+    photo = @apartment.photos.first!
+    row_id = "apartment_#{@apartment.id}_photo_#{photo.id}"
+    row_headers = { "Turbo-Frame" => row_id, "Accept" => "text/html" }
+
+    get photo_path(photo, update: row_id), headers: row_headers
+    assert_response :success
+    assert_includes @response.body, %(<turbo-frame id="#{row_id}">)
+    assert_includes @response.body, "object_presentation"
+
+    get photo_path(photo, update: row_id, close: true), headers: row_headers
+    assert_response :success
+    assert_includes @response.body, %(<turbo-frame id="#{row_id}">)
+    refute_includes @response.body, "object_presentation"
+  end
+
+  test "nested Photo name field cancel returns field show HTML (Turbo)" do
+    photo = @apartment.photos.first!
+    frame_id = "apartment_#{@apartment.id}_photo_#{photo.id}_name"
+    turbo_headers = { "Turbo-Frame" => frame_id, "Accept" => "text/html" }
+
+    get edit_photo_path(
+      photo,
+      attribute: "name",
+      form_element: "text_field",
+      update: frame_id
+    ), headers: turbo_headers
+    assert_response :success
+
+    get photo_path(
+      photo,
+      attribute: "name",
+      form_element: "text_field",
+      update: frame_id
+    ), headers: turbo_headers
+    assert_response :success
+    assert_includes @response.body, %(<turbo-frame id="#{frame_id}">)
+    refute_includes @response.body, 'name="name"',
+      "cancel must return read-only field, not the edit form"
   end
 end
