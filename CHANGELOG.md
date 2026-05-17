@@ -4,6 +4,21 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [7.9.6] - 2026-05-17
+
+### Fixed
+
+- **Validation hint tooltips runtime error:** `tippy-bundle.umd.min.js` is *not* a self-contained bundle — it expects `window.Popper` (`@popperjs/core` v2) to exist before its UMD factory runs. Without it Tippy threw `TypeError: Cannot read properties of undefined (reading 'applyStyles')` and no tooltip was ever attached, so the **Name** label looked unstyled and unpositioned even though the trigger markup and hidden `<ul>` source were correct.
+
+### Added
+
+- **Vendored `popper.min.js`** (`@popperjs/core` 2.11.8) under `vendor/assets/javascripts/`, precompiled by the engine and loaded by `app/views/layouts/inline_forms.html.erb` immediately before `tippy-bundle.umd.min`.
+
+### Verified
+
+- **Browser:** new Apartment form — hover over **Name** shows the black Tippy tooltip positioned above the label with bulleted **"Name can't be blank"**.
+- **`bundle exec rails test`** in `--example` MyApp — **74 runs, 408 assertions, 0 failures**.
+
 ## [7.9.5] - 2026-05-17
 
 ### Fixed

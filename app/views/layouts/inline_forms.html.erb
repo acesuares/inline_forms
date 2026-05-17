@@ -26,6 +26,9 @@
     <div id="outer_container">
       <%= yield %>
     </div>
+    <%# Tippy.js (v6) needs Popper.js as a global before its UMD factory runs %>
+    <%# (`tippy-bundle.umd.min` only bundles default themes, not Popper itself). %>
+    <%= javascript_include_tag 'popper.min' %>
     <%= javascript_include_tag 'tippy-bundle.umd.min' %>
     <%= javascript_include_tag 'inline_forms/inline_forms' %>
     <%# Turbo (Hotwire) is loaded as an ES module so it does not collide with %>
