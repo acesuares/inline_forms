@@ -4,6 +4,16 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [7.9.2] - 2026-05-17
+
+### Changed
+
+- **`validation_hints` dependency** bumped to `>= 6.0`, `< 7.0`; the `--example` installer Gemfile pins `~> 6.2`.
+
+### Fixed
+
+- **`validation_hints` load order:** engine initializer applies `ValidationHints::ValidationsPatch` because apps `require "rails/all"` before `Bundler.require`, so the gem's `on_load(:active_model)` hook never runs.
+
 ## [7.9.1] - 2026-05-17
 
 ### Added

@@ -181,6 +181,13 @@ module InlineForms
   # Declare as a Rails::Engine, see http://www.ruby-forum.com/topic/211017#927932
   class Engine < Rails::Engine
 
+    # validation_hints 6.x registers its ActiveModel patch via on_load, but apps
+    # require rails/all before Bundler.require, so active_model is already loaded.
+    initializer "inline_forms.validation_hints" do
+      require "validation_hints"
+      ValidationHints::ValidationsPatch.apply!
+    end
+
     initializer "inline_forms.assets.precompile" do |app|
       app.config.assets.precompile += %w(
         inline_forms/inline_forms.css

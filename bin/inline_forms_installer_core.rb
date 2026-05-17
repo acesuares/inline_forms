@@ -71,7 +71,7 @@ gem 'importmap-rails'
 gem 'turbo-rails'
 gem 'tabs_on_rails', :git => 'https://github.com/acesuares/tabs_on_rails.git', :branch => 'update_remote_before_action'
 gem 'unicorn'
-gem 'validation_hints'
+gem 'validation_hints', '~> 6.2'
 gem 'will_paginate' #, git: 'https://github.com/acesuares/will_paginate.git'
 
 gem_group :test do
