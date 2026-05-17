@@ -4,6 +4,17 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [7.9.1] - 2026-05-17
+
+### Added
+
+- **Example app — apartment name required:** the `--example` installer injects `validates :name, presence: true` on `Apartment`. Top-level create without a name re-renders the new form instead of persisting.
+- **Regression tests:** `example_app_apartment_name_validation_test.rb` (model); `example_app_apartment_name_required_test.rb` (Turbo create).
+
+### Verified
+
+- **`bundle exec rails test`** (new validation tests) in `--example` MyApp — **3 runs, 10 assertions, 0 failures**.
+
 ## [7.9.0] - 2026-05-16
 
 ### Added

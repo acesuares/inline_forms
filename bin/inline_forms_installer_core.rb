@@ -680,6 +680,11 @@ if ENV['install_example'] == 'true'
   run 'bundle exec rails generate uploader Image'
   run 'bundle exec rails g inline_forms Apartment name:string title:string description:rich_text photos:has_many photos:associated _enabled:yes _presentation:\'#{name}\''
 
+  say "- Apartment name is required..."
+  inject_into_file "app/models/apartment.rb",
+                   "\n  validates :name, presence: true\n",
+                   after: "  has_paper_trail\n"
+
   # CarrierWave + PaperTrail history.
   # PaperTrail snapshots the column scalar (the stored filename) on update,
   # but CarrierWave's default `remove_previously_stored_files_after_update`
