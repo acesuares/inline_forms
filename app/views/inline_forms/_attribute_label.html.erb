@@ -1,0 +1,17 @@
+<% object = local_assigns[:object] %>
+<% attribute = local_assigns[:attribute] %>
+<% if object.has_validations_for?(attribute) -%>
+  <% hint_id = validation_hints_source_id(object, attribute) -%>
+  <span class="validation-hint-trigger has-tip tip-top"
+        data-validation-hints-source="<%= hint_id %>"
+        title=""
+        tabindex="0"
+        aria-describedby="<%= hint_id %>">
+    <%= object.class.human_attribute_name(attribute) -%>
+  </span>
+  <div id="<%= hint_id %>" class="validation-hints-source" hidden>
+    <%= validation_hints_as_list_for(object, attribute) -%>
+  </div>
+<% else -%>
+  <%= object.class.human_attribute_name(attribute) -%>
+<% end -%>

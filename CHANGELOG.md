@@ -4,6 +4,26 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [7.9.4] - 2026-05-17
+
+### Fixed
+
+- **Validation hint tooltips (show + new):** hints use a hidden `<ul>` source div and scoped Foundation `Tooltip` init with `allowHtml: true` — no HTML in `title` (fixes literal `<ul><li>…` in tooltips on existing records).
+- **New form parity:** `_new.html.erb` and `_new_nested.html.erb` render the same `_attribute_label` partial as `_show.html.erb`, so required fields (e.g. Apartment `name`) show hints on create.
+
+### Added
+
+- **`_attribute_label.html.erb`**, `validation_hints_source_id`, and `initValidationHintTooltips` (also on `turbo:frame-load`).
+- **Regression tests:** `example_app_validation_hints_test.rb`.
+
+### Changed
+
+- **`validation_hints_as_list_for`:** uses `full_messages_for` (e.g. "Name can't be blank") inside escaped `<ul class="validation-hints-list">` items.
+
+### Verified
+
+- **`bundle exec rails test`** in `--example` MyApp — **74 runs, 408 assertions, 0 failures**.
+
 ## [7.9.3] - 2026-05-17
 
 ### Fixed

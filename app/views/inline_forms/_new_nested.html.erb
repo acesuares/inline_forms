@@ -27,7 +27,8 @@ This goes in _new.html.erb
         <% else %>
           <div class="row <%= cycle('odd', 'even') %>">
             <div class='medium-3 large-3 column' >
-              <%= @nested_object.class.human_attribute_name(@nested_attribute) -%>
+              <%= render partial: "inline_forms/attribute_label",
+                    locals: { object: @nested_object, attribute: @nested_attribute } -%>
             </div>
             <div class='medium-9 large-9 column' >
               <%= send("#{@nested_form_element}_edit", @nested_object, @nested_attribute) -%>

@@ -90,11 +90,26 @@ module InlineFormsHelper
     "#{inline_forms_row_turbo_frame_id(object)}_versions"
   end
 
-  private
-
-  def validation_hints_as_list_for(object, attribute)
-    object.has_validations? ? content_tag(:ul, object.hints.full_messages_for(attribute).map { |m| content_tag(:li, m ) }.join.html_safe )  : ""
+  # Stable DOM id for the hidden HTML source of a validation-hint tooltip.
+  def validation_hints_source_id(object, attribute)
+    id_part = object.persisted? ? object.id : "new"
+    "validation_hints_#{object.class.name.underscore}_#{id_part}_#{attribute}"
   end
+
+  # +full_messages_for+ lines (e.g. "Name can't be blank") as a +<ul>+ for
+  # Foundation tooltips with +allowHtml+; message text is HTML-escaped.
+  def validation_hints_as_list_for(object, attribute)
+    return "" unless object.has_validations_for?(attribute)
+
+    messages = object.hints.full_messages_for(attribute)
+    return "" if messages.empty?
+
+    content_tag(:ul, class: "validation-hints-list") do
+      safe_join(messages.map { |message| content_tag(:li, message) })
+    end
+  end
+
+  private
 
   # close link
   def close_link(object, update_span, html_class = "button close_button", turbo_row: false)

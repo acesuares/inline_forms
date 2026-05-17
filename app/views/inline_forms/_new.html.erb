@@ -51,7 +51,8 @@
         <% else %>
           <div class="row <%= cycle('odd', 'even') %>">
             <div class='medium-5 large-5 column' >
-              <%= @object.human_attribute_name(attribute) -%>
+              <%= render partial: "inline_forms/attribute_label",
+                    locals: { object: @object, attribute: attribute } -%>
             </div>
             <div class='medium-7 large-7 column' >
               <span id="<%= css_class_id -%>" > <%= send("#{form_element}_edit", @object, attribute) -%> </span>

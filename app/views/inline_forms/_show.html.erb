@@ -72,13 +72,8 @@
               <% else %>
                 <div class="row <%= cycle('odd', 'even') %>">
                   <div class='medium-5 large-5 column' >
-                    <% if @object.has_validations_for?(attribute) -%>
-                      <span data-tooltip class="has-tip tip-top" title="<%= validation_hints_as_list_for(@object, attribute).html_safe -%>">
-                        <%= @object.class.human_attribute_name(attribute) -%>
-                      </span>
-                    <% else %>
-                      <%= @object.class.human_attribute_name(attribute) -%>
-                    <% end %>
+                    <%= render partial: "inline_forms/attribute_label",
+                          locals: { object: @object, attribute: attribute } -%>
                   </div>
                   <div class='medium-7 large-7 column' >
                     <turbo-frame id="<%= css_class_id -%>">

@@ -53,6 +53,17 @@ $body-font-family: 'Open Sans', 'Helvetica Neue', Helvetica, Roboto, Arial, sans
 @include foundation-visibility-classes;
 @include foundation-float-classes;
 
+.validation-hints-tooltip {
+  max-width: 280px;
+  text-align: left;
+
+  .validation-hints-list {
+    margin: 0;
+    padding-left: 1.2em;
+    list-style: disc;
+  }
+}
+
 // Foundation 5 compatibility (flex grid does not emit these class helpers)
 .button.expand {
   @include button-expand(true);
