@@ -26,6 +26,7 @@
     <div id="outer_container">
       <%= yield %>
     </div>
+    <%= javascript_include_tag 'tippy-bundle.umd.min' %>
     <%= javascript_include_tag 'inline_forms/inline_forms' %>
     <%# Turbo (Hotwire) is loaded as an ES module so it does not collide with %>
     <%# the classic-script Sprockets bundle above. Drive stays at the default %>

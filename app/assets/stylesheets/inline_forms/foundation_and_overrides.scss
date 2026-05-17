@@ -53,15 +53,35 @@ $body-font-family: 'Open Sans', 'Helvetica Neue', Helvetica, Roboto, Arial, sans
 @include foundation-visibility-classes;
 @include foundation-float-classes;
 
-.validation-hints-tooltip {
-  max-width: 280px;
+@import '../../../vendor/assets/stylesheets/tippy.css';
+
+.validation-hints-source[hidden] {
+  display: none !important;
+}
+
+.tippy-box[data-theme~='validation-hints'] {
+  background-color: #0a0a0a;
+  color: #fefefe;
+  font-size: 0.75rem;
   text-align: left;
 
   .validation-hints-list {
     margin: 0;
     padding-left: 1.2em;
     list-style: disc;
+
+    li + li {
+      margin-top: 0.25rem;
+    }
   }
+}
+
+.tippy-box[data-theme~='validation-hints'][data-placement^='top'] > .tippy-arrow::before {
+  border-top-color: #0a0a0a;
+}
+
+.tippy-box[data-theme~='validation-hints'][data-placement^='bottom'] > .tippy-arrow::before {
+  border-bottom-color: #0a0a0a;
 }
 
 // Foundation 5 compatibility (flex grid does not emit these class helpers)

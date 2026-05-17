@@ -4,6 +4,18 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [7.9.5] - 2026-05-17
+
+### Fixed
+
+- **Validation hint tooltip styling and position:** switched from Foundation Tooltip to **Tippy.js** (vendored bundle + Popper). Foundation lost the base `tooltip` class when using a custom `tooltipClass`; even with that fixed, positioning was wrong inside `#outer_container` (`position: absolute`). Tippy renders HTML `<ul>/<li>` hints with a black `validation-hints` theme anchored to the label. Loaded as a separate script tag (Sprockets concatenation breaks the UMD global).
+- **Hidden hint source:** `[hidden].validation-hints-source` forced to `display: none`.
+
+### Verified
+
+- **Browser:** Konferensha show + new apartment form — black tooltip above **Name**, bulleted **"Name can't be blank"**.
+- **`bundle exec rails test`** in `--example` MyApp — **74 runs, 408 assertions, 0 failures**.
+
 ## [7.9.4] - 2026-05-17
 
 ### Fixed

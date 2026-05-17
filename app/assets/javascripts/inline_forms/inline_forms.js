@@ -18,11 +18,17 @@ $(function(){
   initValidationHintTooltips(document);
 });
 
-// Foundation tooltips: HTML hint lists live in hidden source divs (not title).
+document.addEventListener("turbo:load", function() {
+  initValidationHintTooltips(document);
+});
+
+// Validation hint tooltips: HTML lists from hidden source divs, rendered via Tippy.js
+// (Foundation Tooltip positioning breaks inside #outer_container position:absolute).
 function initValidationHintTooltips(root) {
   var $root = root instanceof jQuery ? root : $(root);
   $root.find(".validation-hint-trigger[data-validation-hints-source]").each(function () {
-    var $trigger = $(this);
+    var trigger = this;
+    var $trigger = $(trigger);
     var sourceId = $trigger.data("validation-hints-source");
     var sourceEl = document.getElementById(sourceId);
     if (!sourceEl) { return; }
@@ -30,18 +36,20 @@ function initValidationHintTooltips(root) {
     var html = sourceEl.innerHTML;
     if (!html || !html.trim()) { return; }
 
-    var plugin = $trigger.data("zfPlugin");
-    if (plugin && typeof plugin.destroy === "function") {
-      plugin.destroy();
+    if (trigger._tippy) {
+      trigger._tippy.destroy();
     }
 
-    if (typeof Foundation !== "undefined" && Foundation.Tooltip) {
-      new Foundation.Tooltip($trigger, {
-        allowHtml: true,
-        tipText: html,
-        hover: true,
-        clickOpen: false,
-        tooltipClass: "validation-hints-tooltip"
+    if (typeof tippy !== "undefined") {
+      tippy(trigger, {
+        allowHTML: true,
+        content: html,
+        appendTo: function () { return document.body; },
+        placement: "top-start",
+        theme: "validation-hints",
+        interactive: false,
+        arrow: true,
+        delay: [150, 0]
       });
     }
   });
