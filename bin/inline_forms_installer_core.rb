@@ -680,6 +680,68 @@ if ENV['install_example'] == 'true'
   run 'bundle exec rails generate uploader Image'
   run 'bundle exec rails g inline_forms Apartment name:string title:string description:rich_text photos:has_many photos:associated _enabled:yes _presentation:\'#{name}\''
 
+  # CarrierWave + PaperTrail history.
+  # PaperTrail snapshots the column scalar (the stored filename) on update,
+  # but CarrierWave's default `remove_previously_stored_files_after_update`
+  # deletes the old file on disk and re-uses the same filename, so a
+  # PaperTrail revert restores a filename whose bytes are gone.
+  # We keep every uploaded file on disk and namespace filenames with a
+  # per-upload token so successive uploads do not collide. See
+  # https://stackoverflow.com/questions/9423279/papertrail-and-carrierwave
+  # (Answers 2, 4 and 5).
+  say "- Configuring CarrierWave to keep previously stored files (PaperTrail history)..."
+  create_file "config/initializers/carrierwave.rb", <<-CWINIT.strip_heredoc
+    # Keep previously stored files on disk so PaperTrail-driven restore
+    # actually returns the previous image bytes. See
+    # https://stackoverflow.com/questions/9423279/papertrail-and-carrierwave
+    # The per-uploader overrides in app/uploaders/image_uploader.rb
+    # complement this by giving every upload a unique on-disk filename
+    # and by no-op'ing `remove!` so destroyed records keep their files.
+    CarrierWave.configure do |config|
+      config.remove_previously_stored_files_after_update = false
+    end
+  CWINIT
+
+  inject_into_file "app/uploaders/image_uploader.rb",
+                   after: "class ImageUploader < CarrierWave::Uploader::Base\n" do
+    <<-RUBY.strip_heredoc.gsub(/^/, "  ")
+      # PaperTrail history support. CarrierWave's default behaviour wipes the
+      # previous file on update and reuses the same filename; PaperTrail only
+      # stores the column scalar, so a plain `version.reify; save!` restores a
+      # filename whose bytes are gone. The knobs below preserve every byte:
+      #
+      #   * `remove_previously_stored_files_after_update = false` is set
+      #     globally in config/initializers/carrierwave.rb (covers
+      #     `multi_image_field` uploaders too).
+      #   * `remove!` is a no-op so hard-destroyed records keep their files
+      #     and revert-after-destroy still finds the bytes on disk.
+      #   * `filename` is prefixed with a per-upload UUID so successive
+      #     uploads never collide on disk.
+      #
+      # Trade-off: files accumulate on disk; sweeping is out of scope.
+      # Source: https://stackoverflow.com/questions/9423279/papertrail-and-carrierwave
+      def remove!
+        # no-op: keep the file so PaperTrail revert can restore it.
+      end
+
+      def filename
+        # CarrierWave 3.x calls `filename` again after storing to record the
+        # persisted name; at that point `original_filename` may be nil and we
+        # must still return the memoized name (see
+        # https://github.com/carrierwaveuploader/carrierwave/issues/2708).
+        @name ||= "\#{secure_token}-\#{original_filename}" if original_filename
+        @name
+      end
+
+      private
+
+      def secure_token
+        var = :"@\#{mounted_as}_secure_token"
+        model.instance_variable_get(var) || model.instance_variable_set(var, SecureRandom.uuid)
+      end
+    RUBY
+  end
+
   say "- Lower Photo.per_page so the seeded gallery paginates..."
   # The model template (lib/generators/templates/model.erb) emits
   #   attr_reader :per_page

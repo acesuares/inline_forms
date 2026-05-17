@@ -1,5 +1,13 @@
-<turbo-frame id="<%= @update_span %>">
+<% update_span = local_assigns[:update_span] || @update_span -%>
+<% object = local_assigns[:object] || @object -%>
+<% inline_forms_turbo_row = local_assigns.fetch(:inline_forms_turbo_row, @inline_forms_turbo_row) -%>
+<turbo-frame id="<%= update_span %>">
   <div class="row odd top-level">
-    <%= render partial: "inline_forms/close" %>
+    <%= render partial: "inline_forms/close",
+          locals: {
+            update_span: update_span,
+            object: object,
+            inline_forms_turbo_row: inline_forms_turbo_row
+          } %>
   </div>
 </turbo-frame>

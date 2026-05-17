@@ -79,16 +79,25 @@ class ExampleAppApartmentRowTurboTest < ExampleAppIntegrationTestCase
     doomed = Apartment.create!(name: "Turbo Revert Me", title: "Y")
     apt_id = doomed.id
     frame = "apartment_#{apt_id}"
-    headers = { "Turbo-Frame" => frame, "Accept" => "text/html" }
+    delete_headers = { "Turbo-Frame" => frame, "Accept" => "text/html" }
 
-    delete apartment_path(doomed, update: frame), headers: headers
+    delete apartment_path(doomed, update: frame), headers: delete_headers
     assert_response :success
 
+    # 7.9.0 dropped the `format.html` fallback in `revert`; restore links
+    # always request a turbo-stream now (the response replaces both the
+    # row and the versions panel in one stream).
+    versions_frame = "#{frame}_versions"
     destroy_version = PaperTrail::Version.where(item_type: "Apartment", item_id: apt_id).order(:id).last
-    post revert_apartment_path(destroy_version.id, update: frame), headers: headers
+    post revert_apartment_path(destroy_version.id, update: frame),
+         headers: {
+           "Turbo-Frame" => versions_frame,
+           "Accept" => "text/vnd.turbo-stream.html"
+         }
     assert_response :success
     assert Apartment.where(name: "Turbo Revert Me").exists?
-    assert_includes @response.body, %(<turbo-frame id="#{frame}">)
-    refute_includes @response.body, "object_presentation"
+    assert_includes @response.body, %(action="replace")
+    assert_includes @response.body, %(target="#{frame}")
+    assert_includes @response.body, %(target="#{versions_frame}")
   end
 end

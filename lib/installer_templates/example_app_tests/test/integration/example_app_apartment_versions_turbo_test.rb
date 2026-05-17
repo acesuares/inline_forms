@@ -69,15 +69,52 @@ class ExampleAppApartmentVersionsTurboTest < ExampleAppIntegrationTestCase
     apt = Apartment.create!(name: "Versions Revert", title: "Before")
     apt.update!(title: "After")
     row_frame = "apartment_#{apt.id}"
-    row_headers = { "Turbo-Frame" => row_frame, "Accept" => "text/html" }
+    versions_frame = "#{row_frame}_versions"
+    # 7.9.0 dropped the `format.html` fallback in `revert`; the restore link
+    # always requests a turbo-stream now, even when the click happened on
+    # the row frame, so the test mirrors that contract.
+    row_headers = {
+      "Turbo-Frame" => row_frame,
+      "Accept" => "text/vnd.turbo-stream.html"
+    }
 
     version = apt.versions.where(event: "update").order(:id).last
     assert version, "expected an update version to revert"
 
     post revert_apartment_path(version.id, update: row_frame), headers: row_headers
     assert_response :success
-    assert_includes @response.body, %(<turbo-frame id="#{row_frame}">)
-    refute_includes @response.body, "object_presentation"
+    assert_includes @response.body, %(action="replace")
+    assert_includes @response.body, %(target="#{row_frame}")
+    assert_includes @response.body, %(target="#{versions_frame}")
     assert_equal "Before", apt.reload.title
+  end
+
+  test "revert from versions list restores rich_text body via turbo-stream" do
+    apt = Apartment.create!(name: "RichText Revert", title: "T")
+    apt.update!(description: "<p>old body</p>")
+    apt.update!(description: "<p>new body</p>")
+
+    rich_text = ActionText::RichText.find_by!(
+      record_type: Apartment.name, record_id: apt.id, name: "description"
+    )
+    rich_text_version = rich_text.versions.where(event: "update").order(:id).last
+    assert rich_text_version,
+      "expected a PaperTrail update version on ActionText::RichText for the description edit"
+
+    row_frame = "apartment_#{apt.id}"
+    versions_frame = "#{row_frame}_versions"
+    post revert_apartment_path(rich_text_version.id, update: row_frame),
+         headers: {
+           "Turbo-Frame" => versions_frame,
+           "Accept" => "text/vnd.turbo-stream.html"
+         }
+    assert_response :success
+    assert_includes @response.body, %(action="replace")
+    assert_includes @response.body, %(target="#{row_frame}")
+    assert_includes @response.body, %(target="#{versions_frame}")
+
+    apt.reload
+    assert_includes apt.description.body.to_html, "old body",
+      "rich_text revert should restore the previous body content"
   end
 end

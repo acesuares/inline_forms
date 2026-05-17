@@ -253,18 +253,36 @@ class InlineFormsController < ApplicationController
 
   # :revert works like undo.
   # Thanks Ryan Bates: http://railscasts.com/episodes/255-undo-with-paper-trail
+  #
+  # Two reify paths:
+  #
+  # * Primary version: the reified object IS the row (Apartment, Photo, ...).
+  #   Save it and we're done; CarrierWave keeps the previous file on disk
+  #   (see app/uploaders/image_uploader.rb) so a restored `image` column
+  #   still points at real bytes.
+  # * ActionText (rich_text) version: the reified object is the
+  #   `ActionText::RichText` row hanging off the parent. Save the rich text,
+  #   then `touch` the parent so any timestamp display refreshes. Frame ids
+  #   below derive from `@parent` for both branches.
   def revert
     @update_span = params[:update]
     if current_user.role? :superadmin
       @version = PaperTrail::Version.find(params[:id])
       @object = @version.reify
-      @object.save!
-      authorize!(:revert, @object) if cancan_enabled?
+      if defined?(ActionText::RichText) && @object.is_a?(ActionText::RichText)
+        @rich_text_record = @object
+        @parent = @rich_text_record.record
+        @rich_text_record.save!
+        @parent.touch if @parent.respond_to?(:touch)
+      else
+        @parent = @object
+        @parent.save!
+      end
+      authorize!(:revert, @parent) if cancan_enabled?
       return unless row_html_turbo_allowed?
 
       respond_to do |format|
         format.turbo_stream { render_revert_turbo_streams }
-        format.html { render_row_turbo(:close) }
       end
     end
   end
@@ -287,13 +305,20 @@ class InlineFormsController < ApplicationController
   # send +Turbo-Frame: …_versions+ while +row_close+ only returns the row frame. Stream
   # replaces both the row and the versions panel in one response.
   def render_revert_turbo_streams
-    row_id = @update_span.to_s
-    versions_id = "#{@object.class.name.underscore}_#{@object.id}_versions"
-    @inline_forms_turbo_row = true
-    @update_span = row_id
-    row_html = render_to_string("inline_forms/row_close", layout: false, formats: [:html])
-    @update_span = versions_id
-    versions_html = render_to_string("inline_forms/versions_panel", layout: false, formats: [:html])
+    row_id = helpers.inline_forms_row_turbo_frame_id(@parent)
+    versions_id = "#{@parent.class.name.underscore}_#{@parent.id}_versions"
+    row_html = render_to_string(
+      "inline_forms/row_close",
+      layout: false,
+      formats: [:html],
+      locals: { update_span: row_id, object: @parent, inline_forms_turbo_row: true }
+    )
+    versions_html = render_to_string(
+      "inline_forms/versions_panel",
+      layout: false,
+      formats: [:html],
+      locals: { update_span: versions_id, object: @parent, inline_forms_turbo_row: true }
+    )
     render turbo_stream: [
       turbo_stream.replace(row_id, row_html),
       turbo_stream.replace(versions_id, versions_html)

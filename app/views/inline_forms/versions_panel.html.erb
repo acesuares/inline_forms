@@ -1,3 +1,6 @@
-<turbo-frame id="<%= @update_span %>">
-  <%= render partial: "inline_forms/versions" %>
+<% update_span = local_assigns[:update_span] || @update_span -%>
+<% object = local_assigns[:object] || @object -%>
+<turbo-frame id="<%= update_span %>">
+  <%= render partial: "inline_forms/versions",
+        locals: { update_span: update_span, object: object } %>
 </turbo-frame>

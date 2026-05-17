@@ -48,6 +48,16 @@ The +:image_field+ form element uses CarrierWave. Generated apps depend on +carr
 
 To switch to S3, add +carrierwave-aws+ (or use the bundled fog backend) and configure a +CarrierWave.configure+ block in +config/initializers/carrierwave.rb+; nothing in inline_forms hard-codes local storage.
 
+=== PaperTrail-driven restore keeps previous image bytes
+
+PaperTrail snapshots the column scalar (a CarrierWave filename) on update; CarrierWave's defaults overwrite the previous file on disk and reuse the same filename, so a vanilla +version.reify; save!+ ends up restoring a filename whose bytes are gone. The generated +ImageUploader+ ships three knobs that fix this:
+
+* +CarrierWave.configure { |c| c.remove_previously_stored_files_after_update = false }+ in +config/initializers/carrierwave.rb+ — covers +:multi_image_field+ uploaders too.
+* +remove!+ overridden to a no-op, so hard-destroyed records keep their bytes and revert-after-destroy can still find them.
+* +filename+ prefixed with a per-upload UUID, so successive uploads never collide on disk.
+
+Trade-off: files accumulate on disk; periodic sweeping is out of scope of the gem. Source: https://stackoverflow.com/questions/9423279/papertrail-and-carrierwave (Answers 2, 4 and 5).
+
 For long text fields, use +:plain_text+ for a plain textarea backed by a DB +text+ column, or +:rich_text+ for ActionText/Trix content. +:plain_text+ requires an actual column on the model table; if the column is missing, inline_forms now raises +InlineForms::PlainTextColumnMissingError+ during controller boot/runtime checks.
 
 Note: generated apps also depend on ActiveStorage transitively because the +:rich_text+ form element uses ActionText (+active_storage:install+ runs during +inline_forms create+). Image uploads still go through CarrierWave; ActiveStorage is only there to back ActionText embeds.

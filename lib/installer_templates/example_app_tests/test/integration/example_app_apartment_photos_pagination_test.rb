@@ -235,10 +235,16 @@ class ExampleAppApartmentPhotosPaginationTest < ExampleAppIntegrationTestCase
     assert_includes @response.body, "data-turbo-frame=\"#{row_id}\"",
       "restore must target the nested row frame (#{row_id}), not photo_#{photo.id}"
 
+    # 7.9.0: revert always responds with turbo-stream (the legacy
+    # `format.html` fallback was dropped).
     post revert_photo_path(version.id, update: row_id),
-         headers: { "Turbo-Frame" => row_id, "Accept" => "text/html" }
+         headers: {
+           "Turbo-Frame" => versions_frame,
+           "Accept" => "text/vnd.turbo-stream.html"
+         }
     assert_response :success
-    assert_includes @response.body, %(<turbo-frame id="#{row_id}">)
+    assert_includes @response.body, %(action="replace")
+    assert_includes @response.body, %(target="#{row_id}")
     assert_equal original_name, photo.reload.name
   end
 

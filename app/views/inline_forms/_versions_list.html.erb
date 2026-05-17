@@ -45,14 +45,14 @@
   <% rich_text_name = entry[:rich_text_name] -%>
   <div class="row <%= cycle('odd', 'even') %>">
     <div class="small-1 column">
-      <% if entry[:kind] == :primary %>
-        <% row_id = inline_forms_row_turbo_frame_id(@object) %>
-        <%= link_to t("inline_forms.view.restore"),
-              send("revert_#{@object.class.to_s.underscore}_path", version, update: row_id),
-              inline_forms_turbo_link_data(row_id, method: :post, turbo_stream: true) %>
-      <% else %>
-        &nbsp;
-      <% end %>
+      <%# Restore is enabled for both :primary (object itself) and :rich_text
+          (ActionText::RichText hanging off @object). The revert route is
+          keyed by PaperTrail::Version id (global) and always targets the
+          parent's controller, so the same path works for both kinds. -%>
+      <% row_id = inline_forms_row_turbo_frame_id(@object) %>
+      <%= link_to t("inline_forms.view.restore"),
+            send("revert_#{@object.class.to_s.underscore}_path", version, update: row_id),
+            inline_forms_turbo_link_data(row_id, method: :post, turbo_stream: true) %>
     </div>
     <div class="small-1 column">
       <%= version.event -%><% if entry[:kind] == :rich_text %> <em>(rich text)</em><% end %>

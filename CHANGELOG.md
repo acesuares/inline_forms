@@ -4,6 +4,31 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [7.9.0] - 2026-05-16
+
+### Added
+
+- **Restore rich_text (ActionText) versions from the versions panel:** the Restore link now renders for `:rich_text` entries too. `InlineFormsController#revert` reifies the `ActionText::RichText` row, saves it, and `touch`es the parent so any timestamp display refreshes.
+- **CarrierWave history for `image_field` / `multi_image_field`:** the installer ships a `config/initializers/carrierwave.rb` with `remove_previously_stored_files_after_update = false` and patches the generated `app/uploaders/image_uploader.rb` with a no-op `remove!` plus a per-upload UUID `filename` prefix. PaperTrail reverts on an image column now restore the previous bytes (not just the previous filename). Source: <https://stackoverflow.com/questions/9423279/papertrail-and-carrierwave> (Answers 2, 4, 5).
+- **Regression tests:** `example_app_photo_revert_test.rb` (image-column revert restores bytes); rich_text revert assertions in `example_app_apartment_versions_turbo_test.rb`.
+
+### Changed
+
+- **`render_revert_turbo_streams`:** no longer mutates `@update_span` mid-method. The row and versions frames are rendered with explicit `locals: { update_span:, object:, inline_forms_turbo_row: }`. The `row_close` / `versions_panel` templates and their `_close` / `_versions` partials prefer `local_assigns[:…]` and fall back to the matching ivar.
+- **Frame ids in revert:** `row_id` and `versions_id` now derive from `@parent` (the rich_text branch sets `@parent = @rich_text_record.record`), so revert works identically for primary and rich_text versions.
+
+### Removed
+
+- **`format.html` fallback in `revert`:** the action only responds with `turbo_stream` now. The "Turbo POST on row frame" regression test was updated to send `Accept: text/vnd.turbo-stream.html`.
+
+### Trade-offs
+
+- The `ImageUploader` no longer deletes previous files on update or destroy. Files accumulate; sweep tooling is out of scope (would have to reconcile with `PaperTrail::Version#object` snapshots across the whole table).
+
+### Verified
+
+- **`bundle exec rails test`** in `--example` MyApp — **68 runs, 358 assertions, 0 failures, 0 errors, 0 skips**.
+
 ## [7.8.1] - 2026-05-16
 
 ### Fixed
