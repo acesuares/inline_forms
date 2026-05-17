@@ -92,7 +92,7 @@
       <% end %>
     <% end %>
     <% if can? :list_versions, @object  %>
-      <% css_class_id = "#{@object.class.name.underscore}_#{@object.id}_versions" -%>
+      <% css_class_id = inline_forms_versions_turbo_frame_id(@object) -%>
       <turbo-frame id="<%= css_class_id -%>">
         <%= render "versions" %>
       </turbo-frame>

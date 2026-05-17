@@ -306,7 +306,7 @@ class InlineFormsController < ApplicationController
   # replaces both the row and the versions panel in one response.
   def render_revert_turbo_streams
     row_id = helpers.inline_forms_row_turbo_frame_id(@parent)
-    versions_id = "#{@parent.class.name.underscore}_#{@parent.id}_versions"
+    versions_id = helpers.inline_forms_versions_turbo_frame_id(@parent)
     row_html = render_to_string(
       "inline_forms/row_close",
       layout: false,

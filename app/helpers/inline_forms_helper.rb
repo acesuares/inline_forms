@@ -83,6 +83,13 @@ module InlineFormsHelper
     "#{parent.class.name.underscore}_#{parent.id}_#{object.class.name.underscore}_#{object.id}"
   end
 
+  # +<turbo-frame>+ id for the versions panel on a row (+…_versions+).
+  # Nested +not_accessible_through_html?+ children use the row prefix
+  # (+apartment_5_photo_2_versions+), not bare +photo_2_versions+.
+  def inline_forms_versions_turbo_frame_id(object)
+    "#{inline_forms_row_turbo_frame_id(object)}_versions"
+  end
+
   private
 
   def validation_hints_as_list_for(object, attribute)

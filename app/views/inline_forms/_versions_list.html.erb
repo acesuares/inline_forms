@@ -1,5 +1,5 @@
 <% path_to_object = @object.class.to_s.underscore + '_path' %>
-<% css_class_id = "#{@object.class.name.underscore}_#{@object.id}_versions" -%>
+<% css_class_id = inline_forms_versions_turbo_frame_id(@object) -%>
 <% entries = inline_forms_versions_for(@object) -%>
 <div class="row form_element_header associated_auto_header callout">
   <div class='medium-11 large-11 column' >

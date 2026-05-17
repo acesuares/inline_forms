@@ -4,6 +4,12 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [7.9.3] - 2026-05-17
+
+### Fixed
+
+- **Nested Photo versions frame id:** `inline_forms_versions_turbo_frame_id` returns `apartment_<aid>_photo_<pid>_versions` for `not_accessible_through_html?` children. `render_revert_turbo_streams` and versions partials now use it so image revert turbo-stream replaces the correct frame (fixes `ExampleAppPhotoRevertTest`).
+
 ## [7.9.2] - 2026-05-17
 
 ### Changed

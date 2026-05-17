@@ -225,7 +225,7 @@ class ExampleAppApartmentPhotosPaginationTest < ExampleAppIntegrationTestCase
     original_name = photo.name
     photo.update!(name: "#{original_name}-changed")
     row_id = "apartment_#{@apartment.id}_photo_#{photo.id}"
-    versions_frame = "photo_#{photo.id}_versions"
+    versions_frame = "#{row_id}_versions"
     version = photo.versions.where(event: "update").order(:id).last
     assert version, "expected an update version to revert"
 
