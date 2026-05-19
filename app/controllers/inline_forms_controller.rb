@@ -22,6 +22,7 @@
 # @Klass is used in the InlineFormsHelper
 #
 class InlineFormsController < ApplicationController
+  include InlineForms::FormElements::HelperIncludes
   include CancanConcern
   include VersionsConcern
 

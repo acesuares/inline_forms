@@ -1,7 +1,9 @@
 # -*- encoding : utf-8 -*-
-require ('inline_forms/version.rb')
-require_relative ('inline_forms/form_element_from_callee')
-require_relative ('inline_forms/archived_form_elements')
+require "inline_forms/version"
+require "inline_forms/form_element_from_callee"
+require "inline_forms/archived_form_elements"
+require "inline_forms/form_element_registry"
+require "inline_forms/form_elements"
 # InlineForms is a Rails Engine that let you setup an admin interface quick and
 # easy. Please install it as a gem or include it in your Gemfile.
 module InlineForms
@@ -180,6 +182,20 @@ module InlineForms
 
   # Declare as a Rails::Engine, see http://www.ruby-forum.com/topic/211017#927932
   class Engine < Rails::Engine
+
+    initializer "inline_forms.form_element_registry" do
+      InlineForms::FormElementRegistry.apply!
+    end
+
+    initializer "inline_forms.form_element_helpers" do
+      InlineForms::FormElements.load_helpers!
+    end
+
+    initializer "inline_forms.ignore_form_element_autoload", before: :setup_autoloaders do
+      path = root.join("lib/inline_forms/form_elements")
+      Rails.autoloaders.main.ignore(path)
+      Rails.autoloaders.once.ignore(path) if Rails.autoloaders.respond_to?(:once)
+    end
 
     # validation_hints 6.x registers its ActiveModel patch via on_load, but apps
     # require rails/all before Bundler.require, so active_model is already loaded.

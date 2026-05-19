@@ -1,12 +1,6 @@
 # Archived form elements
 
-Form elements are Ruby files that define `#{name}_show`, `#{name}_edit`, and `#{name}_update` helpers. The engine loads them from:
-
-```ruby
-Dir[File.dirname(__FILE__) + "/form_elements/*.rb"].each { |f| require f }
-```
-
-Only **top-level** `app/helpers/form_elements/*.rb` files are loaded. Subdirectories (including this `archived/` tree) are ignored.
+Form elements live under `lib/inline_forms/form_elements/*_helper.rb` as `InlineForms::FormElements::*Helper` modules, included into `InlineFormsHelper` (views still call `text_field_show`, etc.). Subdirectories under `archived/` are not loaded.
 
 ## Why archive instead of delete?
 

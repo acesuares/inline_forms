@@ -4,6 +4,21 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [7.13.0] - 2026-05-19
+
+### Changed
+
+- **Track B — Zeitwerk / form elements:** ~37 form elements moved from `app/helpers/form_elements/*.rb` (top-level `def` + `Dir[]` require) to namespaced `InlineForms::FormElements::*Helper` modules under `lib/inline_forms/form_elements/*_helper.rb`.
+- **`InlineForms::FormElementRegistry`:** central `SPECIAL_COLUMN_TYPES` registration (replaces per-file side effects).
+- **`InlineFormsHelper` / `InlineFormsController`:** both include `InlineForms::FormElements::HelperIncludes` so views still call `text_field_show`, etc., and controllers still dispatch `*_update` (e.g. `name_list.html.erb` unchanged).
+- **Loading:** form-element helpers are explicitly `require`d at boot; `lib/inline_forms/form_elements/` is ignored by Zeitwerk (avoids `_helper.rb` constant mismatches during `zeitwerk:check`).
+- **`inline_forms_generator`:** requires `inline_forms` only (no full helper preload).
+- **`validation_hints`:** requires `~> 7.13`.
+
+### Verified
+
+- **`inline_forms create MyApp -d sqlite --example`** on Ruby 4.0.4 / Rails 7.2.3.1 → **`bundle exec rails zeitwerk:check`** — clean → **`bundle exec rails test`** — **77 runs, 427 assertions, 0 failures**.
+
 ## [7.12.0] - 2026-05-19
 
 ### Changed

@@ -1,11 +1,6 @@
 # -*- encoding : utf-8 -*-
 module InlineFormsHelper
-  # Load active form elements (top-level *.rb only). Retired elements live under
-  # archived/form_elements/ — see archived/README.md.
-  INLINE_FORMS_PATH = File.dirname(__FILE__) + "/form_elements/"
-  Dir[INLINE_FORMS_PATH + "*.rb"].each do |form_element|
-    require form_element
-  end
+  include InlineForms::FormElements::HelperIncludes
 
   def inline_forms_version
     InlineForms::VERSION
