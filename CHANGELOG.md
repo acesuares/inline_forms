@@ -4,6 +4,31 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [7.13.4] - 2026-05-19
+
+### Fixed
+
+- **Restore on a rich_text `create` version was asymmetric** depending on what the first save of the field happened to look like. If the field's first rich_text save was empty (e.g. opening the inline editor and saving without typing — common on top-level Apartments), the user later got a `create` (body: nil -> "") plus an `update` (body: "" -> "...") and could click Restore on the update to clear the field. If the first save already had content (more common on nested Photo descriptions), the field had only the `create` version and the 7.13.2 hide-Restore-on-create rule meant there was no Restore link at all — the user reported "I can restore the empty value on Apartments but not on the nested Photo".
+  - **`app/views/inline_forms/_versions_list.html.erb`**: show the Restore link on `:rich_text` `create` rows (still hide it on `:primary` `create` rows — those would mean destroying the parent record, which is the Destroy button's job).
+  - **`app/controllers/inline_forms_controller.rb#revert`**: when `reify` is nil and `@version.item` is an `ActionText::RichText`, treat the revert as "undo the creation" — destroy the rich_text row, `touch` the parent, and respond with the existing turbo-stream replacing the row + versions frames. Primary `create` reverts (only reachable via replayed URLs since the view hides the link) still no-op cleanly through the same handler.
+
+### Added
+
+- **`test/integration/example_app_apartment_versions_turbo_test.rb`** (installer template):
+  - `revert on rich_text create destroys the rich_text record so the field becomes empty` — pins the Apartment-side fix.
+  - `revert on nested Photo rich_text create destroys the rich_text record` — pins the originally reported nested-Photo case.
+  - `versions list shows Restore link on rich_text create rows` — pins the view-side link surfacing.
+  - `versions list hides Restore link on primary create rows but keeps it on update rows` — clarifies the asymmetry between `:primary` and `:rich_text` create rows (renames the earlier test).
+
+### Changed
+
+- **`InlineForms::VERSION`** and **`InlineFormsInstaller::VERSION`** -> `7.13.4`. Companion `validation_hints` release will follow in lockstep.
+
+### Verified
+
+- `gem build inline_forms.gemspec` -> `inline_forms-7.13.4.gem`; `gem build inline_forms_installer.gemspec` -> `inline_forms_installer-7.13.4.gem`.
+- `inline_forms create MyApp -d sqlite --example` -> `bundle exec rails test` -- **83 runs, 0 failures, 0 errors, 0 skips** (Ruby 4.0.4 / Rails 7.2.3.1).
+
 ## [7.13.3] - 2026-05-19
 
 ### Fixed

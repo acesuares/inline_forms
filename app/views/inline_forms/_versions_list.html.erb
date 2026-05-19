@@ -51,11 +51,18 @@
           parent's controller, so the same path works for both kinds.
 
           PaperTrail's `reify` returns nil for `create` versions (no prior
-          state to roll back to). Reverting a `create` would mean destroying
-          the record — primary records already have a dedicated Destroy
-          button (superadmin), and rich_text content can be cleared by
-          editing. Omitting the link here keeps the UI consistent and
-          avoids a NoMethodError in the controller's `save!`.
+          state to roll back to). Reverting a `create`:
+            * on a :rich_text entry  -> destroy the ActionText::RichText
+              record, i.e. clear the field. The Restore link is shown so
+              the user can symmetrically undo "I added content" the same
+              way they can undo "I edited content" — without this, a
+              field whose rich_text was first saved with non-empty content
+              had no Restore link at all (asymmetric with parents whose
+              first save happened to be empty).
+            * on a :primary entry  -> would mean destroying the parent
+              record itself. Primary records already have a dedicated
+              Destroy button (superadmin); the Restore link stays hidden
+              so the action is never offered ambiguously here.
 
           Empty-changeset update rows (e.g. PaperTrail `touch` events from
           `belongs_to ..., touch: true` on associated ActionText::RichText
@@ -64,7 +71,7 @@
           tracking (`has_paper_trail on: [:create, :update, :destroy]`),
           but legacy apps still have these rows in the audit trail; the
           link is hidden here so the action is never offered. -%>
-      <% if version.event == "create" %>
+      <% if version.event == "create" && entry[:kind] != :rich_text %>
         &nbsp;
       <% elsif version.changeset.nil? || version.changeset.except("updated_at").empty? %>
         &nbsp;

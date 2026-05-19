@@ -119,11 +119,17 @@ class ExampleAppApartmentVersionsTurboTest < ExampleAppIntegrationTestCase
   end
 
   # PaperTrail::Version#reify returns nil for `create` events (no prior state).
-  # The versions list omits the Restore link for create rows, but the controller
-  # action must still degrade gracefully if the URL is replayed (bookmark, back
-  # button, manual POST). Pre-fix this raised `NoMethodError: undefined method
-  # 'save!' for nil` from inline_forms_controller#revert because @parent was nil.
-  test "revert on rich_text create version no-ops via turbo-stream instead of NoMethodError" do
+  # For ActionText::RichText we treat reverting a `create` as "undo the
+  # creation": destroy the rich_text record so the parent's field reverts
+  # to empty. This keeps Restore symmetric regardless of whether the
+  # field's first rich_text save happened to be empty (reverting v2 update
+  # returns to empty) or already had content (reverting v1 create destroys
+  # the row = empty). The user-reported asymmetry was: Apartment's first
+  # rich_text save was empty in the example data so Restore visibly
+  # cleared the field via an update revert; nested Photo's first
+  # rich_text save had content so the create was the only Restore target
+  # and used to be hidden / a no-op.
+  test "revert on rich_text create destroys the rich_text record so the field becomes empty" do
     apt = Apartment.create!(name: "RichText Create Revert", title: "T")
     apt.update!(description: "<p>only body</p>")
 
@@ -141,11 +147,47 @@ class ExampleAppApartmentVersionsTurboTest < ExampleAppIntegrationTestCase
            "Accept" => "text/vnd.turbo-stream.html"
          }
     assert_response :success
+    assert_includes @response.body, %(action="replace")
     assert_includes @response.body, %(target="#{row_frame}")
     assert_includes @response.body, %(target="#{versions_frame}")
+
     apt.reload
-    assert_includes apt.description.body.to_html, "only body",
-      "create-revert no-op must not mutate rich_text content"
+    assert_not apt.description.body.present?,
+      "reverting a rich_text create must clear the field"
+    refute ActionText::RichText.exists?(
+      record_type: Apartment.name, record_id: apt.id, name: "description"
+    ), "the underlying ActionText::RichText row must be destroyed by the revert"
+  end
+
+  test "revert on nested Photo rich_text create destroys the rich_text record" do
+    apt = Apartment.create!(name: "Photo RT Create Revert", title: "T")
+    photo = apt.photos.create!(name: "p.jpg", caption: "x")
+    photo.update!(description: "<p>photo body</p>")
+
+    rich_text = ActionText::RichText.find_by!(
+      record_type: Photo.name, record_id: photo.id, name: "description"
+    )
+    create_version = rich_text.versions.where(event: "create").order(:id).first
+    assert create_version,
+      "expected a PaperTrail create version on the Photo's description rich_text"
+
+    row_frame = "apartment_#{apt.id}_photo_#{photo.id}"
+    versions_frame = "#{row_frame}_versions"
+    post revert_photo_path(create_version.id, update: row_frame),
+         headers: {
+           "Turbo-Frame" => versions_frame,
+           "Accept" => "text/vnd.turbo-stream.html"
+         }
+    assert_response :success
+    assert_includes @response.body, %(target="#{row_frame}")
+    assert_includes @response.body, %(target="#{versions_frame}")
+
+    photo.reload
+    assert_not photo.description.body.present?,
+      "reverting a Photo rich_text create must clear the description"
+    refute ActionText::RichText.exists?(
+      record_type: Photo.name, record_id: photo.id, name: "description"
+    ), "the Photo's ActionText::RichText row must be destroyed by the revert"
   end
 
   # Pair with the model template change in `lib/generators/templates/model.erb`
@@ -191,7 +233,11 @@ class ExampleAppApartmentVersionsTurboTest < ExampleAppIntegrationTestCase
       "Restore link must be hidden for empty-changeset update versions"
   end
 
-  test "versions list hides Restore link on create rows but keeps it on update rows" do
+  # Primary (`:kind == :primary`) create rows still hide their Restore link:
+  # reverting a primary create would mean destroying the record itself,
+  # which is what the Destroy button is for. Only rich_text creates get a
+  # Restore link (it destroys just the ActionText::RichText row).
+  test "versions list hides Restore link on primary create rows but keeps it on update rows" do
     apt = Apartment.create!(name: "Create Link Hidden", title: "Before")
     apt.update!(title: "After")
     vf = "apartment_#{apt.id}_versions"
@@ -206,6 +252,27 @@ class ExampleAppApartmentVersionsTurboTest < ExampleAppIntegrationTestCase
     assert_includes @response.body, "/apartments/#{update_v.id}/revert",
       "Restore link must remain for update versions"
     refute_includes @response.body, "/apartments/#{create_v.id}/revert",
-      "Restore link must be hidden for create versions (reify returns nil)"
+      "Restore link must be hidden for primary create versions (reify nil; Destroy is the user-facing action)"
+  end
+
+  # Conversely, rich_text create rows MUST keep their Restore link — that
+  # is the only way to undo "I added content" when the field was created
+  # in one save with non-empty content (the originally reported asymmetry
+  # vs. fields whose first save happened to be empty).
+  test "versions list shows Restore link on rich_text create rows" do
+    apt = Apartment.create!(name: "RT Create Link Shown", title: "T")
+    apt.update!(description: "<p>seed body</p>")
+    rich_text = ActionText::RichText.find_by!(
+      record_type: Apartment.name, record_id: apt.id, name: "description"
+    )
+    rt_create_v = rich_text.versions.where(event: "create").order(:id).first
+    assert rt_create_v
+
+    vf = "apartment_#{apt.id}_versions"
+    get list_versions_apartment_path(apt, update: vf),
+        headers: { "Turbo-Frame" => vf, "Accept" => "text/html" }
+    assert_response :success
+    assert_includes @response.body, "/apartments/#{rt_create_v.id}/revert",
+      "Restore link must be present on rich_text create rows so the create can be undone"
   end
 end

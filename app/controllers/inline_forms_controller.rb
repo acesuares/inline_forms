@@ -276,14 +276,27 @@ class InlineFormsController < ApplicationController
       # case a request was bookmarked or replayed: render close on the
       # current parent without mutating anything.
       if @object.nil?
+        # reify returns nil for `create` events (no prior state). For a
+        # rich_text create, reverting means "undo the creation" -> destroy
+        # the ActionText::RichText row so the parent's field reverts to
+        # empty (symmetric with reverting an update on a rich_text that
+        # was first saved empty). For a primary record we never offer
+        # Restore on `create` in the view; this branch only runs for
+        # replayed/bookmarked URLs and must remain a no-op response keyed
+        # off the parent.
         item = @version.item
-        @parent = if defined?(ActionText::RichText) && item.is_a?(ActionText::RichText)
-                    item.record
-                  else
-                    item
-                  end
-        return unless @parent
-        authorize!(:revert, @parent) if cancan_enabled?
+        if defined?(ActionText::RichText) && item.is_a?(ActionText::RichText)
+          @rich_text_record = item
+          @parent = @rich_text_record.record
+          return unless @parent
+          authorize!(:revert, @parent) if cancan_enabled?
+          @rich_text_record.destroy
+          @parent.touch if @parent.respond_to?(:touch)
+        else
+          @parent = item
+          return unless @parent
+          authorize!(:revert, @parent) if cancan_enabled?
+        end
         return unless row_html_turbo_allowed?
         respond_to do |format|
           format.turbo_stream { render_revert_turbo_streams }
