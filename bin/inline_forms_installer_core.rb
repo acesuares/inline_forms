@@ -15,7 +15,7 @@ create_file 'Gemfile', "# created by inline_forms #{ENV['inline_forms_version']}
 if File.exist?('config/application.rb')
   gsub_file 'config/application.rb',
             /config\.load_defaults\s+\d+\.\d+/,
-            'config.load_defaults 7.0'
+            'config.load_defaults 7.1'
   # Strip Rails 7.1+ `config.autoload_lib(ignore: ...)` (and any surrounding
   # explanatory comment block). Not supported on Rails 7.0.
   gsub_file 'config/application.rb',
@@ -55,7 +55,7 @@ gem 'mysql2'
 gem 'paper_trail', '~> 16.0'
 gem 'rails-i18n', '~> 7.0'
 gem 'rails-jquery-autocomplete'
-gem 'rails', '~> 7.0.0'
+gem 'rails', '~> 7.1.5'
 gem 'rake'
 gem 'rvm'
 gem 'dartsass-rails'
@@ -71,7 +71,7 @@ gem 'importmap-rails'
 gem 'turbo-rails'
 gem 'tabs_on_rails', :git => 'https://github.com/acesuares/tabs_on_rails.git', :branch => 'update_remote_before_action'
 gem 'unicorn'
-gem 'validation_hints', '~> 6.2'
+gem 'validation_hints', '~> 6.3'
 gem 'will_paginate' #, git: 'https://github.com/acesuares/will_paginate.git'
 
 gem_group :test do
@@ -101,6 +101,17 @@ end
 
 say "- Running bundle..."
 run "gem install bundler"
+vh_gem_dirs = [
+  ENV["VALIDATION_HINTS_ROOT"],
+  File.expand_path("~/validation_hints"),
+  File.expand_path("~/code/validation_hints"),
+  File.expand_path("../validation_hints", GENERATOR_PATH)
+].compact.uniq
+vh_gem = vh_gem_dirs.flat_map { |dir| Dir[File.join(dir, "validation_hints-*.gem")] }.sort.last
+if vh_gem && File.file?(vh_gem)
+  say "- Installing #{File.basename(vh_gem)} (local build; not on RubyGems yet)..."
+  run "gem install #{vh_gem} --no-document"
+end
 run "bundle install"
 
 say "- Dart Sass: inline_forms stylesheet entrypoints + initializer..."
@@ -216,7 +227,7 @@ create_file "db/migrate/" +
   Time.now.utc.strftime("%Y%m%d%H%M%S") +
   "_" +
   "devise_create_users.rb", <<-DEVISE_MIGRATION.strip_heredoc
-class DeviseCreateUsers < ActiveRecord::Migration[7.0]
+class DeviseCreateUsers < ActiveRecord::Migration[7.1]
 
   def change
     create_table(:users) do |t|
@@ -369,7 +380,7 @@ create_file "db/migrate/" +
   Time.now.utc.strftime("%Y%m%d%H%M%S") +
   "_" +
   "inline_forms_create_join_table_user_role.rb", <<-ROLES_MIGRATION.strip_heredoc
-  class InlineFormsCreateJoinTableUserRole < ActiveRecord::Migration[7.0]
+  class InlineFormsCreateJoinTableUserRole < ActiveRecord::Migration[7.1]
     def self.up
       create_table  :roles_users, :id => false, :force => true do |t|
         t.integer   :role_id
@@ -468,7 +479,7 @@ create_file "db/migrate/" +
   Time.now.utc.strftime("%Y%m%d%H%M%S") +
   "_" +
   "inline_forms_create_view_for_translations.rb", <<-VIEW_MIGRATION.strip_heredoc
-  class InlineFormsCreateViewForTranslations < ActiveRecord::Migration[7.0]
+  class InlineFormsCreateViewForTranslations < ActiveRecord::Migration[7.1]
     def self.up
       execute 'CREATE VIEW translations
                AS
@@ -797,7 +808,7 @@ if ENV['install_example'] == 'true'
       sleep 1 # unique migration timestamp
       seed_ts = Time.now.utc.strftime("%Y%m%d%H%M%S")
       create_file "db/migrate/#{seed_ts}_seed_konferensha_photos.rb", <<-SEED_MIGRATION.strip_heredoc
-        class SeedKonferenshaPhotos < ActiveRecord::Migration[7.0]
+        class SeedKonferenshaPhotos < ActiveRecord::Migration[7.1]
           # Seed an Apartment with a gallery of photos so the nested
           # has_many list (apartments -> photos) has enough rows to
           # trigger pagination. Driven by db/seed_images/, which the

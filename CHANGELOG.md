@@ -4,6 +4,25 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [7.10.1] - 2026-05-18
+
+### Fixed
+
+- **`inline_forms create`:** installer installs `validation_hints` from `~/code/validation_hints/*.gem` when `~> 6.3` is not on RubyGems yet (before first `bundle install`).
+
+## [7.10.0] - 2026-05-18
+
+### Changed
+
+- **Rails 7.1:** gemspec and `--example` installer Gemfile pin `rails ~> 7.1.5`, `config.load_defaults 7.1`, migrations `ActiveRecord::Migration[7.1]`.
+- **`validation_hints`:** requires 6.3.0+ (Rails 7.1 activerecord).
+
+### Verified
+
+- **`bundle exec rails test`** in `--example` MyApp on Rails 7.1 — **74 runs, 412 assertions, 0 failures**.
+- **curl:** `GET /apartments/new?update=apartments_list` with session + Turbo-Frame — validation hint source present.
+- **Browser (headless Chromium):** login → new Apartment → hover Name — Tippy tooltip visible with **"can't be blank"**.
+
 ## [7.9.8] - 2026-05-18
 
 ### Changed

@@ -33,8 +33,8 @@ Gem::Specification.new do |s|
 
   s.add_dependency('rvm', '>= 1.11', '< 2.0')
   s.add_dependency('thor', '>= 1.0', '< 2.0')
-  s.add_dependency('validation_hints', '>= 6.0', '< 7.0')
-  s.add_dependency('rails', '>= 7.0.0', '< 7.1')
+  s.add_dependency('validation_hints', '>= 6.3', '< 7.0')
+  s.add_dependency('rails', '>= 7.1.5', '< 7.2')
   s.add_dependency('rails-i18n', '>= 7.0', '< 8.0')
 
   s.add_development_dependency("minitest", "~> 5.0")
