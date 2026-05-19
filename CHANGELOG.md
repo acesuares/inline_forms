@@ -4,6 +4,16 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [7.13.1] - 2026-05-19
+
+### Fixed
+
+- **Generated app Gemfile:** add **`puma`** in `:development` so plain **`rails s`** works on Rails 7.2 (rackup default handler is puma/falcon/webrick; `thin` and `unicorn` are not auto-selected).
+
+### Verified
+
+- **`inline_forms create MyApp -d sqlite --example`** → **`bundle exec rails s`** boots Puma → **`bundle exec rails test`** — **77 runs, 427 assertions, 0 failures**.
+
 ## [7.13.0] - 2026-05-19
 
 ### Changed

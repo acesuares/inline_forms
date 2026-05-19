@@ -85,6 +85,7 @@ gem_group :development do
   gem 'capistrano', require: false
   gem 'capistrano3-unicorn'
   gem 'listen'
+  gem 'puma', '>= 5.0'
   gem 'rvm-capistrano', :require => false
   gem 'rvm1-capistrano3', require: false
   gem 'seed_dump', '~> 0.5.3'
