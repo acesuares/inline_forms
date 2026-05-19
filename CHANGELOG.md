@@ -4,6 +4,18 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [7.10.2] - 2026-05-18
+
+### Added
+
+- **Example app:** `Apartment.opening_date` (`date` / jQuery UI datepicker) — demonstrates centralized `initInlineFormsWidgets` on show, inline edit, and new form.
+- **Regression test:** `example_app_apartment_opening_date_test.rb`.
+
+### Verified
+
+- **`inline_forms create MyApp -d sqlite --example`** → **`bundle exec rails test`** — **77 runs, 427 assertions, 0 failures**.
+- **Browser:** new Apartment form → `Opening date` input has `class="datepicker hasDatepicker"` (jQuery UI initialized); submit persists `15-03-2019`; show panel renders it; inline edit re-binds datepicker on the same field.
+
 ## [7.10.1] - 2026-05-18
 
 ### Fixed

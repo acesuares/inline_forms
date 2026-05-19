@@ -689,7 +689,7 @@ if ENV['install_example'] == 'true'
   say "\nInstalling example application..."
   run 'bundle exec rails g inline_forms Photo name:string caption:string image:image_field description:rich_text apartment:belongs_to _presentation:\'#{name}\''
   run 'bundle exec rails generate uploader Image'
-  run 'bundle exec rails g inline_forms Apartment name:string title:string description:rich_text photos:has_many photos:associated _enabled:yes _presentation:\'#{name}\''
+  run 'bundle exec rails g inline_forms Apartment name:string title:string opening_date:date description:rich_text photos:has_many photos:associated _enabled:yes _presentation:\'#{name}\''
 
   say "- Apartment name is required..."
   inject_into_file "app/models/apartment.rb",
@@ -819,6 +819,7 @@ if ENV['install_example'] == 'true'
           def up
             apartment = Apartment.find_or_create_by!(name: "Konferensha") do |a|
               a.title = "Konferensha sobre Papiamentu"
+              a.opening_date = Date.new(2020, 5, 18)
             end
 
             seed_dir = Rails.root.join("db", "seed_images")
