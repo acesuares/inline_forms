@@ -4,6 +4,16 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [7.9.7] - 2026-05-18
+
+### Added
+
+- **`docs/turbo-stream-audit.md`** — documents current `format.turbo_stream` usage and optional future candidates (Phase 3 hygiene).
+
+### Changed
+
+- **Repo hygiene:** built `*.gem` artifacts remain gitignored; remove local copies after `gem build`.
+
 ## [7.9.6] - 2026-05-17
 
 ### Fixed

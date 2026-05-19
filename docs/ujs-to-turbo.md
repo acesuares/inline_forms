@@ -1,5 +1,18 @@
 # UJS → Turbo migration checklist
 
+> **Decommissioned.** This checklist is frozen as of 2026-05-17.  
+> **Use the combined roadmap instead:** [`stuff/roadmap.md`](../stuff/roadmap.md)  
+> Canonical copy also at: `validation_hints/stuff/roadmap.md`
+
+**Steps 1–5 are complete** (inline_forms **7.9.6**). Remaining work (jQuery widget migration, optional `turbo_stream` audit, validation hint copy, Rails security bump) is tracked in **`roadmap.md`**.
+
+---
+
+## Historical reference (archived)
+
+<details>
+<summary>Original UJS → Turbo checklist (click to expand)</summary>
+
 Track progress toward full Turbo integration and removal of jQuery UJS from inline_forms generated apps.
 
 **Current gem version:** see `lib/inline_forms/version.rb` (**Step 5** — Turbo Drive on, jquery-ujs / remotipart removed in **7.8.0**)
@@ -190,3 +203,5 @@ None on `InlineFormsController` / `VersionsConcern` stock actions (**7.8.0**). H
 Stock `_show` / `_list` are not required for inline edit. Any page can call form-element helpers (e.g. `text_field_show(apartment, :name)`) inside a container with id `apartment_<id>_name`. Edit/update still hit `ApartmentsController#edit` / `#update` via polymorphic paths.
 
 Example app **`--example` name list** (`GET /apartments/name_list`): custom page using the **same** turbo-field contract as stock `_show` (not a separate code path). Linked from the **More** menu; regression-tested after stock field Turbo lands.
+
+</details>
