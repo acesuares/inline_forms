@@ -4,6 +4,22 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [7.9.8] - 2026-05-18
+
+### Changed
+
+- **jQuery widget init (Phase 4):** `initInlineFormsWidgets` centralizes datepicker, month/year picker, timepicker, Trix, and validation-hint Tippy re-bind on DOM ready, `turbo:load`, and `turbo:frame-load`.
+- **`date` / `time` / `month_year_picker` form elements:** removed inline `<script>` tags; fields use class hooks (`datepicker`, `datepicker-month-year`, `timepicker`).
+
+### Added
+
+- **`docs/jquery-widgets.md`** — migration status and remaining jQuery dependencies.
+
+### Verified
+
+- **`bundle exec rails test`** in `--example` MyApp — **74 runs, 408 assertions, 0 failures**.
+- **curl + browser:** validation hint tooltips on new Apartment form (7.9.8).
+
 ## [7.9.7] - 2026-05-18
 
 ### Added

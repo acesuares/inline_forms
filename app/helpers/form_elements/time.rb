@@ -9,7 +9,6 @@
   def time_select_edit(object, attribute)
     css_id = 'timepicker_' + object.class.to_s.underscore + '_' + object.id.to_s + '_' + attribute.to_s
     out = text_field_tag attribute, ( object.send(attribute).nil? ? "" : object.send(attribute).to_datetime.strftime("%l:%M%P") ), :id => css_id, :class =>'timepicker'
-    out << "<script>$('##{css_id}').timepicker();</script>".html_safe
   end
 
   def time_select_update(object, attribute)

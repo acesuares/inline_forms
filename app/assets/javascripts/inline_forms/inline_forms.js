@@ -14,13 +14,60 @@
 // `<turbo-frame>` + HTML responses; jquery-ujs / remotipart were removed in 7.8.0.
 
 $(function(){
+  $.datepicker.setDefaults({
+    changeMonth : true,
+    changeYear : true,
+    yearRange: '-100:+100',
+    dateFormat: 'dd-mm-yy'
+  });
   $(document).foundation();
-  initValidationHintTooltips(document);
+  initInlineFormsWidgets(document);
 });
 
 document.addEventListener("turbo:load", function() {
-  initValidationHintTooltips(document);
+  initInlineFormsWidgets(document);
 });
+
+// jQuery UI date/time pickers: one init path for first paint and turbo:frame-load
+// (form element helpers emit class hooks only — no inline <script> tags).
+function initInlineFormsWidgets(root) {
+  var $root = root instanceof jQuery ? root : $(root);
+
+  initValidationHintTooltips(root);
+
+  $root.find("input.datepicker-month-year").each(function() {
+    var $el = $(this);
+    if ($el.hasClass("hasDatepicker")) { return; }
+    $el.datepicker({
+      changeMonth: true,
+      changeYear: true,
+      showButtonPanel: true,
+      dateFormat: "MM yy",
+      onClose: function() {
+        var month = $("#ui-datepicker-div .ui-datepicker-month :selected").val();
+        var year = $("#ui-datepicker-div .ui-datepicker-year :selected").val();
+        $(this).datepicker("setDate", new Date(year, month, 1));
+      }
+    });
+  });
+
+  $root.find("input.datepicker").not(".datepicker-month-year").each(function() {
+    var $el = $(this);
+    if (!$el.hasClass("hasDatepicker")) { $el.datepicker(); }
+  });
+
+  $root.find("input.timepicker").each(function() {
+    var $el = $(this);
+    if (!$el.data("timepicker")) { $el.timepicker(); }
+  });
+
+  $root.find("trix-editor").each(function() {
+    if (window.Trix && this.editor) { return; }
+    if (window.Trix && typeof Trix.Editor === "function") {
+      new Trix.Editor(this);
+    }
+  });
+}
 
 // Validation hint tooltips: HTML lists from hidden source divs, rendered via Tippy.js
 // (Foundation Tooltip positioning breaks inside #outer_container position:absolute).
@@ -55,44 +102,16 @@ function initValidationHintTooltips(root) {
   });
 }
 
-// initialize datepickers
+// get rid of translation_missing tooltips
 $(document).ready(function() {
-  $.datepicker.setDefaults({
-    changeMonth : true,
-    changeYear : true,
-    yearRange: '-100:+100',
-    dateFormat: 'dd-mm-yy'
+  $(this).on('mouseover', '.translation_missing', function() {
+    $(this).attr('title', '');
   });
 });
-
-// get rid of translation_missing tooltips
-  $(document).ready(function() {
-    $(this).on('mouseover', '.translation_missing', function() {
-      $(this).attr('title', '');
-    });
-  });
 
 // Re-bind jQuery UI widgets and Trix after Turbo Frame swaps (Step 3).
 document.addEventListener("turbo:frame-load", function(event) {
   var root = event.target;
   if (!root || !root.querySelectorAll) { return; }
-
-  initValidationHintTooltips(root);
-
-  $(root).find("input.datepicker").each(function() {
-    var $el = $(this);
-    if (!$el.hasClass("hasDatepicker")) { $el.datepicker(); }
-  });
-
-  $(root).find("input.timepicker").each(function() {
-    var $el = $(this);
-    if (!$el.data("timepicker")) { $el.timepicker(); }
-  });
-
-  $(root).find("trix-editor").each(function() {
-    if (window.Trix && this.editor) { return; }
-    if (window.Trix && typeof Trix.Editor === "function") {
-      new Trix.Editor(this);
-    }
-  });
+  initInlineFormsWidgets(root);
 });
