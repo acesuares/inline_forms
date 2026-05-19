@@ -270,6 +270,26 @@ class InlineFormsController < ApplicationController
     if current_user.role? :superadmin
       @version = PaperTrail::Version.find(params[:id])
       @object = @version.reify
+      # PaperTrail::Version#reify returns nil for `create` events because
+      # there is no prior state to roll back to. The versions list view
+      # hides the Restore link for `create` rows, but guard here too in
+      # case a request was bookmarked or replayed: render close on the
+      # current parent without mutating anything.
+      if @object.nil?
+        item = @version.item
+        @parent = if defined?(ActionText::RichText) && item.is_a?(ActionText::RichText)
+                    item.record
+                  else
+                    item
+                  end
+        return unless @parent
+        authorize!(:revert, @parent) if cancan_enabled?
+        return unless row_html_turbo_allowed?
+        respond_to do |format|
+          format.turbo_stream { render_revert_turbo_streams }
+        end
+        return
+      end
       if defined?(ActionText::RichText) && @object.is_a?(ActionText::RichText)
         @rich_text_record = @object
         @parent = @rich_text_record.record

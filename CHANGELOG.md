@@ -4,6 +4,31 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [7.13.2] - 2026-05-19
+
+### Fixed
+
+- **Versions panel — `Restore` on a `create` event no longer 500s.** `PaperTrail::Version#reify` returns `nil` for `create` events (no prior state), so the old `revert` action fell through to `@parent.save!` on `nil` and raised `NoMethodError: undefined method 'save!' for nil` — most visibly when reverting an ActionText (`rich_text`) `create` version in the description column, which was the first `create` row most apps encountered for rich text.
+  - **`app/views/inline_forms/_versions_list.html.erb`**: hide the `Restore` link for `version.event == "create"` rows (covers both `:primary` and `:rich_text` entries). Reverting a `create` is semantically a destroy; primary records keep their dedicated Destroy button, and rich-text content can still be cleared by editing.
+  - **`app/controllers/inline_forms_controller.rb#revert`**: defensive nil-reify guard. If the request still arrives (bookmarked / replayed URL), short-circuit to the existing turbo-stream row-close response keyed off `@version.item` (its parent for `ActionText::RichText`) instead of calling `save!` on nil.
+
+### Added
+
+- **`test/integration/example_app_apartment_versions_turbo_test.rb`** (installer template): two new regression tests that pin the fix above — `revert on rich_text create version no-ops via turbo-stream instead of NoMethodError` (replays the failing POST and asserts the parent body is preserved) and `versions list hides Restore link on create rows but keeps it on update rows` (asserts the view-side link gating).
+
+### Fixed (also)
+
+- **`test/integration/example_app_apartment_photos_pagination_test.rb`** (installer template): `refute_match(/UnknownFormat|406/, …)` is flaky because CarrierWave's seeded image URL contains a random UUID that can include the substring `406`. Tightened to `/UnknownFormat|406 Not Acceptable/`, which still catches the original `ActionController::UnknownFormat` / `406` error-page regression but no longer matches harmless hex inside the upload path.
+
+### Changed (also)
+
+- **`InlineFormsInstaller::VERSION`** bumped to `7.13.2` in lockstep (the installer's `INLINE_FORMS_VERSION = VERSION` constant is what `installer_core.rb` writes into generated `Gemfile`s as the `gem "inline_forms", "~> X.Y.Z"` pin).
+
+### Verified
+
+- `gem build inline_forms.gemspec` → `inline_forms-7.13.2.gem`; `gem build inline_forms_installer.gemspec` → `inline_forms_installer-7.13.2.gem`.
+- `inline_forms create MyApp -d sqlite --example` → `bundle exec rails test` — **79 runs, 441 assertions, 0 failures, 0 errors, 0 skips** (Ruby 4.0.4 / Rails 7.2.3.1).
+
 ## [7.13.1] - 2026-05-19
 
 ### Fixed

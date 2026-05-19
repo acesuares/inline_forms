@@ -117,4 +117,52 @@ class ExampleAppApartmentVersionsTurboTest < ExampleAppIntegrationTestCase
     assert_includes apt.description.body.to_html, "old body",
       "rich_text revert should restore the previous body content"
   end
+
+  # PaperTrail::Version#reify returns nil for `create` events (no prior state).
+  # The versions list omits the Restore link for create rows, but the controller
+  # action must still degrade gracefully if the URL is replayed (bookmark, back
+  # button, manual POST). Pre-fix this raised `NoMethodError: undefined method
+  # 'save!' for nil` from inline_forms_controller#revert because @parent was nil.
+  test "revert on rich_text create version no-ops via turbo-stream instead of NoMethodError" do
+    apt = Apartment.create!(name: "RichText Create Revert", title: "T")
+    apt.update!(description: "<p>only body</p>")
+
+    rich_text = ActionText::RichText.find_by!(
+      record_type: Apartment.name, record_id: apt.id, name: "description"
+    )
+    create_version = rich_text.versions.where(event: "create").order(:id).first
+    assert create_version, "expected a PaperTrail create version on the rich_text record"
+
+    row_frame = "apartment_#{apt.id}"
+    versions_frame = "#{row_frame}_versions"
+    post revert_apartment_path(create_version.id, update: row_frame),
+         headers: {
+           "Turbo-Frame" => versions_frame,
+           "Accept" => "text/vnd.turbo-stream.html"
+         }
+    assert_response :success
+    assert_includes @response.body, %(target="#{row_frame}")
+    assert_includes @response.body, %(target="#{versions_frame}")
+    apt.reload
+    assert_includes apt.description.body.to_html, "only body",
+      "create-revert no-op must not mutate rich_text content"
+  end
+
+  test "versions list hides Restore link on create rows but keeps it on update rows" do
+    apt = Apartment.create!(name: "Create Link Hidden", title: "Before")
+    apt.update!(title: "After")
+    vf = "apartment_#{apt.id}_versions"
+    get list_versions_apartment_path(apt, update: vf),
+        headers: { "Turbo-Frame" => vf, "Accept" => "text/html" }
+    assert_response :success
+
+    update_v = apt.versions.where(event: "update").order(:id).last
+    create_v = apt.versions.where(event: "create").order(:id).first
+    assert update_v && create_v, "expected both create and update versions on the parent"
+
+    assert_includes @response.body, "/apartments/#{update_v.id}/revert",
+      "Restore link must remain for update versions"
+    refute_includes @response.body, "/apartments/#{create_v.id}/revert",
+      "Restore link must be hidden for create versions (reify returns nil)"
+  end
 end

@@ -328,7 +328,7 @@ class ExampleAppApartmentPhotosPaginationTest < ExampleAppIntegrationTestCase
     assert_response :success,
       "multipart image update must respond with HTML (not 406 UnknownFormat)"
     assert_includes @response.body, %(<turbo-frame id="#{frame_id}">)
-    refute_match(/UnknownFormat|406/, @response.body)
+    refute_match(/UnknownFormat|406 Not Acceptable/, @response.body)
 
     photo.reload
     assert photo.image.present?, "expected CarrierWave mount after Turbo multipart PUT"
