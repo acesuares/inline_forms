@@ -4,6 +4,17 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [7.10.3] - 2026-05-19
+
+### Changed
+
+- **Split installer into `inline_forms_installer` gem.** The Rails engine (`inline_forms`) no longer ships the `inline_forms create` CLI, Thor/RVM dependencies, or `lib/installer_templates/`. Install both gems (or `gem install inline_forms_installer`, which registers the `inline_forms` executable). Capistrano/Unicorn deploy templates moved from `lib/generators/templates/` to `lib/installer_templates/`.
+- **Generated app Gemfile:** `gem 'inline_forms', '~> <version>'` instead of `path:` (set `INLINE_FORMS_GEMFILE_PATH` for maintainer local-path overrides).
+
+### Verified
+
+- **`gem build inline_forms.gemspec && gem build inline_forms_installer.gemspec`** → install both → **`inline_forms create MyApp -d sqlite --example`** → **`bundle exec rails test`** — **77 runs, 427 assertions, 0 failures**.
+
 ## [7.10.2] - 2026-05-18
 
 ### Added

@@ -1,4 +1,5 @@
-GENERATOR_PATH = File.dirname(File.expand_path(__FILE__)) +  '/../'
+INSTALLER_ROOT = File.expand_path(ENV.fetch("INLINE_FORMS_INSTALLER_ROOT", File.expand_path("..", __dir__)))
+INLINE_FORMS_ROOT = File.expand_path(ENV.fetch("INLINE_FORMS_ROOT", INSTALLER_ROOT))
 
 # Rails 7 dropped --skip-gemfile, so `rails new` always writes its own Gemfile.
 # Remove it so our `create_file` below does not prompt for overwrite.
@@ -37,11 +38,13 @@ gem 'autoprefixer-rails'
 # Visually tuned against foundation-rails ~> 6.6.2; current pin ~> 6.9 (6.9.0.x).
 gem 'foundation-rails', '~> 6.9'
 gem 'i18n-active_record', :git => 'https://github.com/acesuares/i18n-active_record.git'
-generator_repo = File.expand_path(GENERATOR_PATH)
-# Always use the generator source path (repo checkout OR installed gem dir).
-# This guarantees the generated app uses the exact inline_forms code that
-# launched `inline_forms create`, including unreleased local builds.
-gem 'inline_forms', path: generator_repo
+# Pin to the inline_forms version bundled with this installer release.
+# Set INLINE_FORMS_GEMFILE_PATH for maintainer local-path overrides only.
+if ENV["INLINE_FORMS_GEMFILE_PATH"] && File.directory?(ENV["INLINE_FORMS_GEMFILE_PATH"])
+  gem "inline_forms", path: ENV["INLINE_FORMS_GEMFILE_PATH"]
+else
+  gem "inline_forms", "~> #{ENV['inline_forms_version']}"
+end
 gem 'jquery-rails'
 gem 'jquery-timepicker-rails'
 # jQuery UI JavaScript (`//= require jquery.ui.all` in inline_forms.js). SCSS + PNGs
@@ -105,7 +108,7 @@ vh_gem_dirs = [
   ENV["VALIDATION_HINTS_ROOT"],
   File.expand_path("~/validation_hints"),
   File.expand_path("~/code/validation_hints"),
-  File.expand_path("../validation_hints", GENERATOR_PATH)
+  File.expand_path("../validation_hints", INSTALLER_ROOT)
 ].compact.uniq
 vh_gem = vh_gem_dirs.flat_map { |dir| Dir[File.join(dir, "validation_hints-*.gem")] }.sort.last
 if vh_gem && File.file?(vh_gem)
@@ -115,11 +118,11 @@ end
 run "bundle install"
 
 say "- Dart Sass: inline_forms stylesheet entrypoints + initializer..."
-copy_file File.join(GENERATOR_PATH, "lib/installer_templates/dartsass/inline_forms_dartsass_builds.rb"),
+copy_file File.join(INSTALLER_ROOT, "lib/installer_templates/dartsass/inline_forms_dartsass_builds.rb"),
           "config/initializers/inline_forms_dartsass_builds.rb"
-copy_file File.join(GENERATOR_PATH, "lib/installer_templates/dartsass/inline_forms_main.scss"),
+copy_file File.join(INSTALLER_ROOT, "lib/installer_templates/dartsass/inline_forms_main.scss"),
           "app/assets/stylesheets/inline_forms_install/inline_forms_main.scss"
-copy_file File.join(GENERATOR_PATH, "lib/installer_templates/dartsass/devise_main.scss"),
+copy_file File.join(INSTALLER_ROOT, "lib/installer_templates/dartsass/devise_main.scss"),
           "app/assets/stylesheets/inline_forms_install/devise_main.scss"
 
 say "- Dart Sass: rails dartsass:install (builds/, manifest, Procfile.dev)..."
@@ -400,14 +403,14 @@ say "- Installaing ZURB Foundation..."
 #generate "foundation:install", "-f"
 
 say "- Copy inline_forms_devise file for custom styles..."
-copy_file File.join(GENERATOR_PATH, 'lib/generators/assets/stylesheets/inline_forms_devise.css'), 'app/assets/stylesheets/inline_forms_devise.css'
+copy_file File.join(INLINE_FORMS_ROOT, 'lib/generators/assets/stylesheets/inline_forms_devise.css'), 'app/assets/stylesheets/inline_forms_devise.css'
 
 say "- Sprockets: link inline_forms_devise.css (logical path; dartsass:install drops link_directory ../stylesheets)..."
 append_to_file "app/assets/config/manifest.js", "//= link inline_forms_devise.css\n"
 
 say "- Add human_attribute_name in app/models/application_record.rb"
 remove_file 'app/models/application_record.rb' # the one that 'rails new' created
-copy_file File.join(GENERATOR_PATH, 'lib/generators/templates/application_record.rb'), "app/models/application_record.rb"
+copy_file File.join(INLINE_FORMS_ROOT, 'lib/generators/templates/application_record.rb'), "app/models/application_record.rb"
 
 say "- Install ActionText..."
 run "bundle exec rails active_storage:install"
@@ -668,15 +671,15 @@ remove_file 'temp_development_smtp_credentials'
 say "- Capify..."
 run 'bundle exec cap install'
 remove_file "config/deploy.rb" # remove the file capify created!
-copy_file File.join(GENERATOR_PATH,'lib/generators/templates/capistrano/deploy.rb'), "config/deploy.rb"
+copy_file File.join(INSTALLER_ROOT,'lib/installer_templates/capistrano/deploy.rb'), "config/deploy.rb"
 remove_file "config/deploy/production.rb" # remove the production file capify created!
-copy_file File.join(GENERATOR_PATH,'lib/generators/templates/capistrano/production.rb'), "config/deploy/production.rb"
+copy_file File.join(INSTALLER_ROOT,'lib/installer_templates/capistrano/production.rb'), "config/deploy/production.rb"
 remove_file "Capfile" # remove the Capfile file capify created!
-copy_file File.join(GENERATOR_PATH,'lib/generators/templates/capistrano/Capfile'), "Capfile"
+copy_file File.join(INSTALLER_ROOT,'lib/installer_templates/capistrano/Capfile'), "Capfile"
 
 # Unicorn
 say "- Unicorn Config..."
-copy_file File.join(GENERATOR_PATH,'lib/generators/templates/unicorn/production.rb'), "config/unicorn/production.rb"
+copy_file File.join(INSTALLER_ROOT,'lib/installer_templates/unicorn/production.rb'), "config/unicorn/production.rb"
 
 # Git
 say "- adding and committing to git..."
@@ -778,12 +781,12 @@ if ENV['install_example'] == 'true'
 
   # Seed the photos gallery from a local `pics/` folder. The folder is
   # *gitignored* in the gem source (so the built .gem stays small and
-  # the gallery images are not committed) which means GENERATOR_PATH/pics
+  # the gallery images are not committed) which means INSTALLER_ROOT/pics
   # exists only when the installer is run from the source repo, not when
   # it is run from an installed gem on the developer's box. We therefore
   # check, in order:
   #   1. ENV['INLINE_FORMS_SEED_PICS']  -- explicit override path
-  #   2. GENERATOR_PATH/pics            -- gem source repo checkout
+  #   2. INSTALLER_ROOT/pics            -- monorepo / installer checkout
   #   3. /home/code/inline_forms/pics   -- local dev convention
   # and copy whichever is found into the generated app's db/seed_images/.
   # The migration generated below is what reads from db/seed_images at
@@ -791,7 +794,7 @@ if ENV['install_example'] == 'true'
   # one-shot at app generation.
   pics_candidates = [
     ENV["INLINE_FORMS_SEED_PICS"],
-    File.join(GENERATOR_PATH, "pics"),
+    File.join(INSTALLER_ROOT, "pics"),
     "/home/code/inline_forms/pics",
   ].compact
   pics_src = pics_candidates.find { |p| Dir.exist?(p) }
@@ -859,7 +862,7 @@ if ENV['install_example'] == 'true'
                    "\n  skip_load_and_authorize_resource only: :name_list\n\n  def name_list\n    authorize! :read, Apartment\n    @apartments = Apartment.accessible_by(current_ability).order(:id).limit(10)\n  end\n",
                    after: "set_tab :apartment\n"
 
-  example_views_root = File.join(GENERATOR_PATH, "lib/installer_templates/example_app_views")
+  example_views_root = File.join(INSTALLER_ROOT, "lib/installer_templates/example_app_views")
   Dir.glob(File.join(example_views_root, "**", "*")).sort.each do |abs|
     next unless File.file?(abs)
     rel = abs.delete_prefix(example_views_root + File::SEPARATOR).tr("\\", "/")
@@ -870,7 +873,7 @@ if ENV['install_example'] == 'true'
   route "root :to => 'apartments#index'"
 
   say "- Adding example app regression tests (bundle exec rails test)..."
-  example_tests_root = File.join(GENERATOR_PATH, "lib/installer_templates/example_app_tests")
+  example_tests_root = File.join(INSTALLER_ROOT, "lib/installer_templates/example_app_tests")
   Dir.glob(File.join(example_tests_root, "**", "*.rb")).sort.each do |abs|
     rel = abs.delete_prefix(example_tests_root + File::SEPARATOR).tr("\\", "/")
     create_file rel, File.read(abs)

@@ -1,6 +1,7 @@
 # -*- encoding: utf-8 -*-
 $:.push File.expand_path("../lib", __FILE__)
 require "inline_forms/version"
+require "inline_forms/gem_files"
 
 Gem::Specification.new do |s|
   s.name        = "inline_forms"
@@ -14,29 +15,13 @@ Gem::Specification.new do |s|
   s.licenses    = ["MIT"]
   s.required_ruby_version = ">= 3.2.0"
 
-  if File.directory?(File.join(__dir__, ".git"))
-    s.files      = `git ls-files`.split("\n")
-    s.test_files = `git ls-files -- {test,spec,features}/*`.split("\n")
-  else
-    s.files = Dir.chdir(__dir__) do
-      Dir.glob("**/*", File::FNM_DOTMATCH).reject do |f|
-        f.start_with?(".git/", ".bundle/", "pkg/") ||
-          f == ".git" || f == ".bundle"
-      end
-    end
-    s.test_files = Dir.chdir(__dir__) do
-      Dir.glob("{test,spec,features}/**/*")
-    end
-  end
-  s.executables   = ["inline_forms"]
+  s.files      = InlineFormsGemFiles.gem_files(include_installer: false)
+  s.test_files = s.files.grep(%r{^(test|spec|features)/})
   s.require_paths = ["lib"]
 
-  s.add_dependency('rvm', '>= 1.11', '< 2.0')
-  s.add_dependency('thor', '>= 1.0', '< 2.0')
-  s.add_dependency('validation_hints', '>= 6.3', '< 7.0')
-  s.add_dependency('rails', '>= 7.1.5', '< 7.2')
-  s.add_dependency('rails-i18n', '>= 7.0', '< 8.0')
+  s.add_dependency("validation_hints", ">= 6.3", "< 7.0")
+  s.add_dependency("rails", ">= 7.1.5", "< 7.2")
+  s.add_dependency("rails-i18n", ">= 7.0", "< 8.0")
 
   s.add_development_dependency("minitest", "~> 5.0")
-
 end
