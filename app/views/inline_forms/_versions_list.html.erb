@@ -55,8 +55,18 @@
           the record — primary records already have a dedicated Destroy
           button (superadmin), and rich_text content can be cleared by
           editing. Omitting the link here keeps the UI consistent and
-          avoids a NoMethodError in the controller's `save!`. -%>
+          avoids a NoMethodError in the controller's `save!`.
+
+          Empty-changeset update rows (e.g. PaperTrail `touch` events from
+          `belongs_to ..., touch: true` on associated ActionText::RichText
+          or CarrierWave callbacks) reify the same state — Restore on them
+          is a visible no-op. New generated models opt out of touch
+          tracking (`has_paper_trail on: [:create, :update, :destroy]`),
+          but legacy apps still have these rows in the audit trail; the
+          link is hidden here so the action is never offered. -%>
       <% if version.event == "create" %>
+        &nbsp;
+      <% elsif version.changeset.nil? || version.changeset.except("updated_at").empty? %>
         &nbsp;
       <% else %>
         <% row_id = inline_forms_row_turbo_frame_id(@object) %>

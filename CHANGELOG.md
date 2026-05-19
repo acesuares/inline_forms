@@ -4,6 +4,30 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [7.13.3] - 2026-05-19
+
+### Fixed
+
+- **Versions panel — "empty" `update` row whose Restore link did nothing.** Creating a record with a `rich_text` field (e.g. a new Photo with a `description`) produced a parent-side PaperTrail `update` version with `changeset == {}`. Cause: PaperTrail 16 tracks `:touch` by default (`on: [:create, :update, :destroy, :touch]`), and ActionText's `belongs_to :record, polymorphic: true, touch: true` calls `parent.touch` on every rich-text save. The resulting version reified to the same state, so clicking Restore was a visible no-op.
+  - **`lib/generators/templates/model.erb`**: emit `has_paper_trail on: [:create, :update, :destroy]` (drop `:touch`). New `rails g inline_forms …` models no longer create these noise versions. Existing apps need to re-apply the change to their models.
+  - **`lib/inline_forms_installer/installer_core.rb`** (`config/initializers/rich_text_paper_trail.rb`): mirror the opt-out on `ActionText::RichText` for symmetry against any future `touch: true` association pointing at rich-text rows.
+  - **`app/views/inline_forms/_versions_list.html.erb`**: defensive view-side gate — hide the Restore link when `version.changeset` is `nil` or empty after dropping `updated_at`. Covers legacy apps that still track `:touch`, plus any other empty-update source (e.g. CarrierWave callbacks that don't change attributes). The row stays visible in the audit trail; only the dead Restore link is suppressed.
+
+### Added
+
+- **`test/integration/example_app_apartment_versions_turbo_test.rb`** (installer template):
+  - `creating a record with a rich_text body does not append a touch-only parent update` — pins the generator-template change.
+  - `versions list hides Restore link on empty-changeset update rows` — pins the view-side guard against legacy `:touch` tracking.
+
+### Changed
+
+- **`InlineForms::VERSION`** and **`InlineFormsInstaller::VERSION`** → `7.13.3` (installer's `INLINE_FORMS_VERSION = VERSION` writes the `gem "inline_forms", "~> X.Y.Z"` pin into generated `Gemfile`s).
+
+### Verified
+
+- `gem build inline_forms.gemspec` → `inline_forms-7.13.3.gem`; `gem build inline_forms_installer.gemspec` → `inline_forms_installer-7.13.3.gem`.
+- `inline_forms create MyApp -d sqlite --example` → `bundle exec rails test` — **81 runs, 0 failures, 0 errors, 0 skips** (Ruby 4.0.4 / Rails 7.2.3.1).
+
 ## [7.13.2] - 2026-05-19
 
 ### Fixed

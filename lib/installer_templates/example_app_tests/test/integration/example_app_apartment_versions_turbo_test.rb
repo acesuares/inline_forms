@@ -148,6 +148,49 @@ class ExampleAppApartmentVersionsTurboTest < ExampleAppIntegrationTestCase
       "create-revert no-op must not mutate rich_text content"
   end
 
+  # Pair with the model template change in `lib/generators/templates/model.erb`
+  # (`has_paper_trail on: [:create, :update, :destroy]`): PaperTrail 16 tracks
+  # `:touch` by default, and ActionText's `belongs_to :record, touch: true`
+  # fires `parent.touch` on every rich-text save, producing parent-side
+  # `update` versions with `changeset == {}`. The versions panel reified
+  # those to the same state (no-op Restore). Opt out of `:touch` and no such
+  # row appears.
+  test "creating a record with a rich_text body does not append a touch-only parent update" do
+    apt = Apartment.create!(name: "Touch Free", title: "T", description: "<p>seed</p>")
+    update_events_with_nothing_to_replay = apt.versions.where(event: "update").select do |v|
+      v.changeset.nil? || v.changeset.except("updated_at").empty?
+    end
+    assert_empty update_events_with_nothing_to_replay,
+      "Apartment should not gain a touch-driven empty-changeset update version on rich_text save"
+  end
+
+  # Defensive view-level guard (covers legacy apps still tracking :touch and
+  # any other empty-update source — e.g. CarrierWave callback flips that
+  # change nothing user-visible).
+  test "versions list hides Restore link on empty-changeset update rows" do
+    apt = Apartment.create!(name: "Empty Update Hidden", title: "T")
+    # Simulate a touch-driven update version (legacy `has_paper_trail`
+    # without `on:` filter, or any future :touch source).
+    PaperTrail::Version.create!(
+      item_type: apt.class.name,
+      item_id: apt.id,
+      event: "update",
+      whodunnit: "system",
+      object: nil,
+      object_changes: nil,
+      created_at: Time.current
+    )
+    empty_v = PaperTrail::Version.where(item_type: apt.class.name, item_id: apt.id, event: "update").last
+    assert empty_v.changeset.nil? || empty_v.changeset.except("updated_at").empty?
+
+    vf = "apartment_#{apt.id}_versions"
+    get list_versions_apartment_path(apt, update: vf),
+        headers: { "Turbo-Frame" => vf, "Accept" => "text/html" }
+    assert_response :success
+    refute_includes @response.body, "/apartments/#{empty_v.id}/revert",
+      "Restore link must be hidden for empty-changeset update versions"
+  end
+
   test "versions list hides Restore link on create rows but keeps it on update rows" do
     apt = Apartment.create!(name: "Create Link Hidden", title: "Before")
     apt.update!(title: "After")
