@@ -9,9 +9,9 @@ class ExampleAppPhotosTest < ExampleAppIntegrationTestCase
 
   test "photos are not served as standalone html resource" do
     assert Photo.not_accessible_through_html?
-    assert_raises(ActionController::UnknownFormat) do
-      get photos_path
-    end
+    get photos_path
+    assert_not response.successful?,
+               "expected no standalone HTML index for not_accessible_through_html model (got #{response.status})"
   end
 
   test "can create a photo for an apartment" do

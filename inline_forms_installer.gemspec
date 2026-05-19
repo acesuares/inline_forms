@@ -13,7 +13,7 @@ Gem::Specification.new do |s|
   s.summary     = %q{CLI and Rails app template for generating inline_forms applications.}
   s.description = %q{Installs the `inline_forms` CLI and scaffolds opinionated Rails apps with Devise, CanCan, PaperTrail, and optional example data.}
   s.licenses    = ["MIT"]
-  s.required_ruby_version = ">= 3.2.0"
+  s.required_ruby_version = ">= 4.0.0"
 
   s.files         = InlineFormsGemFiles.gem_files(include_installer: true)
   s.executables   = ["inline_forms"]

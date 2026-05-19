@@ -73,19 +73,15 @@ module InlineFormsInstaller
         exit 1
       end
 
-      ruby_version = nil
+      target_ruby = InlineFormsInstaller::TARGET_RUBY_VERSION
       require "rvm"
       if RVM.current && !options[:skiprvm]
         say "Installing inline_forms with RVM", :green
-        ruby_version = (%x[rvm current]).gsub(/@.*/, "")
-        create_file "#{app_name}/.ruby-version", ruby_version
-        create_file "#{app_name}/.ruby-gemset", app_name
       else
         say "Installing inline_forms without RVM", :green
       end
 
       say "Installing with #{options[:database]}", :green
-      empty_directory(app_name)
 
       options.each do |k, v|
         ENV[k] = v.to_s
@@ -94,7 +90,8 @@ module InlineFormsInstaller
       ENV["using_sqlite"] = using_sqlite?.to_s
       ENV["database"] = database
       ENV["install_example"] = install_example?.to_s
-      ENV["ruby_version"] = ruby_version.to_s
+      ENV["ruby_version"] = target_ruby
+      ENV["inline_forms_rvm_gemset"] = app_name if RVM.current && !options[:skiprvm]
       ENV["inline_forms_version"] = inline_forms_version
       ENV["inline_forms_installer_version"] = InlineFormsInstaller::VERSION
       ENV["INLINE_FORMS_INSTALLER_ROOT"] = InlineFormsInstaller.gem_root
@@ -108,7 +105,7 @@ module InlineFormsInstaller
           Gem::Specification
             .find_all_by_name("rails")
             .map(&:version)
-            .select { |v| v >= Gem::Version.new("7.1") && v < Gem::Version.new("7.2") }
+            .select { |v| v >= Gem::Version.new("7.2") && v < Gem::Version.new("7.3") }
             .max
         rescue StandardError
           nil

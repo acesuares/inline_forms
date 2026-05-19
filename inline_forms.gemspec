@@ -13,14 +13,14 @@ Gem::Specification.new do |s|
   s.summary     = %q{Inline editing of forms. Versions after 6.2.14 are currently broken.}
   s.description = %q{Inline Forms aims to ease the setup of forms that provide inline editing. The field list can be specified in the model. Versions after 6.2.14 are currently broken, and we will post a notice when the gem is good again.}
   s.licenses    = ["MIT"]
-  s.required_ruby_version = ">= 3.2.0"
+  s.required_ruby_version = ">= 4.0.0"
 
   s.files      = InlineFormsGemFiles.gem_files(include_installer: false)
   s.test_files = s.files.grep(%r{^(test|spec|features)/})
   s.require_paths = ["lib"]
 
-  s.add_dependency("validation_hints", ">= 6.3", "< 7.0")
-  s.add_dependency("rails", ">= 7.1.5", "< 7.2")
+  s.add_dependency("validation_hints", ">= 7.12", "< 8.0")
+  s.add_dependency("rails", ">= 7.2.3.1", "< 7.3")
   s.add_dependency("rails-i18n", ">= 7.0", "< 8.0")
 
   s.add_development_dependency("minitest", "~> 5.0")

@@ -4,6 +4,26 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [7.12.0] - 2026-05-19
+
+### Changed
+
+- **Rails 7.2:** engine gemspec and installer Gemfile pin `rails ~> 7.2.3`, `config.load_defaults 7.2`, migrations `ActiveRecord::Migration[7.2]`.
+- **Ruby 4.0:** gemspecs require Ruby `>= 4.0.0`; generated apps write `.ruby-version` `ruby-4.0.4` (`InlineFormsInstaller::TARGET_RUBY_VERSION`).
+- **`validation_hints`:** requires `~> 7.12` (Active Record 7.2).
+- **`rails-i18n`:** `~> 7.0` in generated Gemfile (7.0.x is the published line for Rails 7.2); engine dependency `>= 7.0`, `< 8.0`.
+- **`bin/inline_forms`:** prefers locally installed `rails` 7.2.x for `rails new`.
+- **`.ruby-version`:** written from the app template after `rails new` (avoids Thor conflict with Rails’ own file).
+- **`config.autoload_lib`:** no longer stripped from generated `application.rb` (Rails 7.2 expects it).
+
+### Fixed
+
+- **Example app test:** `example_app_photos_test` — standalone `GET /photos` asserts non-success (403), not `UnknownFormat`.
+
+### Verified
+
+- **`inline_forms create MyApp -d sqlite --example`** on Ruby 4.0.4 / Rails 7.2.3.1 → **`bundle exec rails test`** — **77 runs, 427 assertions, 0 failures**.
+
 ## [7.11.0] - 2026-05-19
 
 ### Changed

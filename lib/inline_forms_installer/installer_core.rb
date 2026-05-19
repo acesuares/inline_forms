@@ -1,30 +1,27 @@
 INSTALLER_ROOT = File.expand_path(ENV.fetch("INLINE_FORMS_INSTALLER_ROOT", File.expand_path("..", __dir__)))
 INLINE_FORMS_ROOT = File.expand_path(ENV.fetch("INLINE_FORMS_ROOT", INSTALLER_ROOT))
 
+# Pin Ruby for the generated app (after `rails new`; do not write these files in
+# Creator before `rails new` — Rails also emits `.ruby-version` and prompts).
+create_file ".ruby-version", "#{ENV.fetch('ruby_version', 'ruby-4.0.4')}\n"
+if (gemset = ENV["inline_forms_rvm_gemset"]).to_s != ""
+  create_file ".ruby-gemset", "#{gemset}\n"
+end
+
 # Rails 7 dropped --skip-gemfile, so `rails new` always writes its own Gemfile.
 # Remove it so our `create_file` below does not prompt for overwrite.
 remove_file 'Gemfile' if File.exist?('Gemfile')
 create_file 'Gemfile', "# created by inline_forms #{ENV['inline_forms_version']} on #{Date.today}\n"
 
 # `rails new` is invoked with whatever the system `rails` binary points at
-# (often Rails 8.x once it lands in the global gemset), so the generated
-# `config/application.rb` may carry Rails 7.1+/8.0 idioms (`load_defaults
-# 8.0`, `config.autoload_lib(...)`). The Gemfile we write below pins
-# `rails ~> 7.0.0`, so Rails 7.0 must be able to interpret application.rb;
-# otherwise the first `bundle exec rails …` aborts with `Unknown version
-# "8.0"` or `NoMethodError: undefined method 'autoload_lib'`.
+# (often Rails 8.x), so the generated `config/application.rb` may carry
+# `load_defaults 8.0` and other 8.x-only settings. The Gemfile below pins
+# `rails ~> 7.2.3`; normalize application.rb so the first `bundle exec rails`
+# boot matches that pin.
 if File.exist?('config/application.rb')
   gsub_file 'config/application.rb',
             /config\.load_defaults\s+\d+\.\d+/,
-            'config.load_defaults 7.1'
-  # Strip Rails 7.1+ `config.autoload_lib(ignore: ...)` (and any surrounding
-  # explanatory comment block). Not supported on Rails 7.0.
-  gsub_file 'config/application.rb',
-            /^\s*#[^\n]*\n(\s*#[^\n]*\n)*\s*config\.autoload_lib\([^)]*\)\s*\n/,
-            ""
-  gsub_file 'config/application.rb',
-            /^\s*config\.autoload_lib\([^)]*\)\s*\n/,
-            ""
+            'config.load_defaults 7.2'
 end
 
 add_source 'https://rubygems.org'
@@ -58,7 +55,7 @@ gem 'mysql2'
 gem 'paper_trail', '~> 16.0'
 gem 'rails-i18n', '~> 7.0'
 gem 'rails-jquery-autocomplete'
-gem 'rails', '~> 7.1.5'
+gem 'rails', '~> 7.2.3'
 gem 'rake'
 gem 'rvm'
 gem 'dartsass-rails'
@@ -74,7 +71,7 @@ gem 'importmap-rails'
 gem 'turbo-rails'
 gem 'tabs_on_rails', :git => 'https://github.com/acesuares/tabs_on_rails.git', :branch => 'update_remote_before_action'
 gem 'unicorn'
-gem 'validation_hints', '~> 6.3'
+gem 'validation_hints', '~> 7.12'
 gem 'will_paginate' #, git: 'https://github.com/acesuares/will_paginate.git'
 
 gem_group :test do
@@ -230,7 +227,7 @@ create_file "db/migrate/" +
   Time.now.utc.strftime("%Y%m%d%H%M%S") +
   "_" +
   "devise_create_users.rb", <<-DEVISE_MIGRATION.strip_heredoc
-class DeviseCreateUsers < ActiveRecord::Migration[7.1]
+class DeviseCreateUsers < ActiveRecord::Migration[7.2]
 
   def change
     create_table(:users) do |t|
@@ -383,7 +380,7 @@ create_file "db/migrate/" +
   Time.now.utc.strftime("%Y%m%d%H%M%S") +
   "_" +
   "inline_forms_create_join_table_user_role.rb", <<-ROLES_MIGRATION.strip_heredoc
-  class InlineFormsCreateJoinTableUserRole < ActiveRecord::Migration[7.1]
+  class InlineFormsCreateJoinTableUserRole < ActiveRecord::Migration[7.2]
     def self.up
       create_table  :roles_users, :id => false, :force => true do |t|
         t.integer   :role_id
@@ -482,7 +479,7 @@ create_file "db/migrate/" +
   Time.now.utc.strftime("%Y%m%d%H%M%S") +
   "_" +
   "inline_forms_create_view_for_translations.rb", <<-VIEW_MIGRATION.strip_heredoc
-  class InlineFormsCreateViewForTranslations < ActiveRecord::Migration[7.1]
+  class InlineFormsCreateViewForTranslations < ActiveRecord::Migration[7.2]
     def self.up
       execute 'CREATE VIEW translations
                AS
@@ -811,7 +808,7 @@ if ENV['install_example'] == 'true'
       sleep 1 # unique migration timestamp
       seed_ts = Time.now.utc.strftime("%Y%m%d%H%M%S")
       create_file "db/migrate/#{seed_ts}_seed_konferensha_photos.rb", <<-SEED_MIGRATION.strip_heredoc
-        class SeedKonferenshaPhotos < ActiveRecord::Migration[7.1]
+        class SeedKonferenshaPhotos < ActiveRecord::Migration[7.2]
           # Seed an Apartment with a gallery of photos so the nested
           # has_many list (apartments -> photos) has enough rows to
           # trigger pagination. Driven by db/seed_images/, which the
