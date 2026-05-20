@@ -38,21 +38,24 @@ class ExampleAppOwnerTabsTest < ExampleAppIntegrationTestCase
     assert_select "ul#owner_#{@owner.id}_tabs", count: 1
     assert_select "ul#owner_#{@owner.id}_tabs li", count: 2
 
-    # NAW is the active tab on the default request; the active tab is a
-    # `<span>`, the inactive tab is a real `<a>` carrying
-    # `data-turbo-frame="<row_frame>"`.
-    assert_select "ul#owner_#{@owner.id}_tabs li.current span", text: /Naw/i, count: 1
+    # NAW is the active tab on the default request. The active tab is a
+    # non-clickable `<a aria-current="page">` (so Foundation 6 styles it
+    # via `.tabs-title.is-active > a` / `[aria-selected="true"]`); the
+    # inactive tab is a real `<a>` carrying `data-turbo-frame="<row_frame>"`.
+    assert_select "ul#owner_#{@owner.id}_tabs li.is-active a[aria-current=?]",
+                  "page", text: /Naw/i, count: 1
     assert_select "ul#owner_#{@owner.id}_tabs a[data-turbo-frame=?]",
                   @row_frame, minimum: 1
+    # And each tab `<li>` carries Foundation's `tabs-title` class.
+    assert_select "ul#owner_#{@owner.id}_tabs li.tabs-title", count: 2
 
     # NAW attribute subset is rendered; the Apartments-tab-only field
-    # (the :apartments associated list, keyed by its own auto-header id)
-    # is NOT. The generic `associated_auto_header` class still appears on
-    # the Versions panel header, so assert on the specific apartments id.
+    # (the :apartments check_list, rendered inside the turbo-frame
+    # owner_<id>_apartments) is NOT present here.
     assert_includes @response.body, "birthdate"
     assert_includes @response.body, "country"
-    refute_includes @response.body,
-                    %(id="owner_#{@owner.id}_apartments_list_auto_header")
+    refute_match %r{<turbo-frame[^>]*id="owner_#{@owner.id}_apartments"},
+                 @response.body
   end
 
   test "tab=apartments shows the apartments associated list and shared name" do
@@ -62,15 +65,18 @@ class ExampleAppOwnerTabsTest < ExampleAppIntegrationTestCase
     assert_includes @response.body, %(<turbo-frame id="#{@row_frame}">)
 
     # Active tab is now "apartments".
-    assert_select "ul#owner_#{@owner.id}_tabs li.current span",
-                  text: /Apartments/i, count: 1
+    assert_select "ul#owner_#{@owner.id}_tabs li.is-active a[aria-current=?]",
+                  "page", text: /Apartments/i, count: 1
 
     # The `name` field is on BOTH tabs (shared field by design).
     assert_includes @response.body, "name"
 
-    # The `:apartments :associated` row is rendered.
-    assert_includes @response.body,
-                    %(id="owner_#{@owner.id}_apartments_list_auto_header")
+    # Owner#apartments is now a :check_list (was :associated). _show.html.erb
+    # renders scalar/check_list rows inside a turbo-frame id'd
+    # "<model>_<id>_<attribute>" -- assert that frame is present so we know
+    # the apartments row landed on this tab.
+    assert_match %r{<turbo-frame[^>]*id="owner_#{@owner.id}_apartments"},
+                 @response.body
 
     # NAW-only fields (e.g. birthdate, country) are NOT rendered on this tab.
     refute_match(/data-attribute="birthdate"/, @response.body)
@@ -81,8 +87,8 @@ class ExampleAppOwnerTabsTest < ExampleAppIntegrationTestCase
     get owner_path(@owner, update: @row_frame, tab: "bogus"),
         headers: @row_headers
     assert_response :success
-    assert_select "ul#owner_#{@owner.id}_tabs li.current span",
-                  text: /Naw/i, count: 1
+    assert_select "ul#owner_#{@owner.id}_tabs li.is-active a[aria-current=?]",
+                  "page", text: /Naw/i, count: 1
   end
 
   test "close link still uses stock controller flow (not tabbed render)" do
@@ -104,20 +110,26 @@ class ExampleAppOwnerTabsTest < ExampleAppIntegrationTestCase
     # to <a> via link_options. Upstream tabs_on_rails 3.0 could only
     # annotate the <li>, so this assertion would fail without it.
     assert_select(
-      "ul#owner_#{@owner.id}_tabs li:not(.current) a[data-turbo-frame=?]",
+      "ul#owner_#{@owner.id}_tabs li:not(.is-active) a[data-turbo-frame=?]",
       @row_frame,
       minimum: 1
     )
     refute_select "ul#owner_#{@owner.id}_tabs a[data-remote='true']"
   end
 
-  test "TurboTabsBuilder leaves the active tab as a span (no link)" do
+  test "TurboTabsBuilder renders the active tab as an <a> without href" do
     get owner_path(@owner, update: @row_frame, tab: "apartments"),
         headers: @row_headers
     assert_response :success
-    # The active tab is rendered via link_to_unless so the anchor is
-    # replaced by the inner <span>; there should be no <a> inside li.current.
-    refute_select "ul#owner_#{@owner.id}_tabs li.current a"
-    assert_select  "ul#owner_#{@owner.id}_tabs li.current span", count: 1
+    # Foundation 6's `.tabs-title.is-active > a` rule (and the
+    # `[aria-selected='true']` rule in _tabs.scss) only fires when the
+    # active label is itself an <a>. TurboTabsBuilder emits the active
+    # label as a hrefless <a aria-current="page" aria-selected="true">
+    # so the tab gets the framework's active styling without becoming
+    # clickable.
+    assert_select "ul#owner_#{@owner.id}_tabs li.is-active a",  count: 1
+    assert_select "ul#owner_#{@owner.id}_tabs li.is-active a[href]", count: 0
+    assert_select "ul#owner_#{@owner.id}_tabs li.is-active a[aria-selected=?]",
+                  "true", count: 1
   end
 end

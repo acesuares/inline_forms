@@ -34,16 +34,28 @@ module InlineForms
   class TurboTabsBuilder < TabsOnRails::Tabs::TabsBuilder
     def tab_for(tab, name, url_options, item_options = {})
       link_options = item_options.delete(:link_options) || {}
+      active = current_tab?(tab)
 
-      if current_tab?(tab)
+      if active
         active_class = @options[:active_class] || "current"
         existing = item_options[:class].to_s.split(/\s+/).reject(&:empty?)
         item_options[:class] = (existing + [active_class]).uniq.join(" ")
       end
 
-      content = @context.link_to_unless(current_tab?(tab), name, url_options, link_options) do
-        @context.content_tag(:span, name)
-      end
+      # The active label is rendered as an `<a>` *without* an href so that
+      # CSS frameworks (Foundation 6, Bootstrap, ...) that style
+      # `.tabs-title.is-active > a` (or use `[aria-selected='true']`) pick
+      # it up just like the inactive tabs. Skipping the href keeps the
+      # active tab non-clickable, and `aria-current="page"` advertises
+      # the selection state to assistive tech / Foundation's CSS.
+      content = if active
+                  @context.content_tag(:a, name,
+                    link_options.merge("aria-current" => "page",
+                                       "aria-selected" => "true"))
+                else
+                  @context.link_to(name, url_options,
+                    link_options.merge("aria-selected" => "false"))
+                end
 
       @context.content_tag(:li, content, item_options)
     end

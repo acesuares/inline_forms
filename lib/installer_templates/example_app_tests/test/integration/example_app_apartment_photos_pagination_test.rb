@@ -309,12 +309,13 @@ class ExampleAppApartmentPhotosPaginationTest < ExampleAppIntegrationTestCase
     assert_includes @response.body, %(<turbo-frame id="#{frame_id}">)
 
     seed_dir = Rails.root.join("db", "seed_images")
-    jpgs = Dir.glob(seed_dir.join("*.{jpg,jpeg}"), File::FNM_CASEFOLD).sort
-    assert_operator jpgs.size, :>=, 2,
-      "need at least two seed jpgs so replacement can differ from current mount"
+    seeds = Dir.glob(seed_dir.join("*.{jpg,jpeg,png,gif}"), File::FNM_CASEFOLD).sort
+    assert_operator seeds.size, :>=, 2,
+      "need at least two seed images so replacement can differ from current mount"
 
-    replacement = jpgs.find { |abs| File.basename(abs) != photo.name } || jpgs.last
-    uploaded = Rack::Test::UploadedFile.new(replacement, "image/jpeg")
+    replacement = seeds.find { |abs| File.basename(abs) != photo.name } || seeds.last
+    mime = (replacement.to_s.downcase.end_with?(".png") ? "image/png" : "image/jpeg")
+    uploaded = Rack::Test::UploadedFile.new(replacement, mime)
 
     put photo_path(
       photo,
@@ -346,9 +347,10 @@ class ExampleAppApartmentPhotosPaginationTest < ExampleAppIntegrationTestCase
     turbo_headers = { "Turbo-Frame" => frame_id, "Accept" => "text/html" }
 
     seed_dir = Rails.root.join("db", "seed_images")
-    jpgs = Dir.glob(seed_dir.join("*.{jpg,jpeg}"), File::FNM_CASEFOLD).sort
-    replacement = jpgs.find { |abs| File.basename(abs) != photo.name } || jpgs.last
-    uploaded = Rack::Test::UploadedFile.new(replacement, "image/jpeg")
+    seeds = Dir.glob(seed_dir.join("*.{jpg,jpeg,png,gif}"), File::FNM_CASEFOLD).sort
+    replacement = seeds.find { |abs| File.basename(abs) != photo.name } || seeds.last
+    mime = (replacement.to_s.downcase.end_with?(".png") ? "image/png" : "image/jpeg")
+    uploaded = Rack::Test::UploadedFile.new(replacement, mime)
 
     put photo_path(
       photo,
@@ -416,8 +418,12 @@ class ExampleAppApartmentPhotosPaginationTest < ExampleAppIntegrationTestCase
     assert_match %r{<turbo-frame id="#{frame}"}, @response.body
     assert_match %r{<turbo-frame id="#{@update_span}"}, @response.body
 
-    seed = Rails.root.join("db/seed_images/dsc00099.jpg")
-    uploaded = Rack::Test::UploadedFile.new(seed, "image/jpeg")
+    seeds = Dir.glob(Rails.root.join("db/seed_images/*.{jpg,jpeg,png,gif}"),
+                     File::FNM_CASEFOLD).sort
+    seed  = seeds.last
+    raise "no seed images in db/seed_images/" unless seed
+    mime  = (seed.to_s.downcase.end_with?(".png") ? "image/png" : "image/jpeg")
+    uploaded = Rack::Test::UploadedFile.new(seed, mime)
 
     assert_difference("Photo.count", 1) do
       post photos_path(
@@ -435,6 +441,10 @@ class ExampleAppApartmentPhotosPaginationTest < ExampleAppIntegrationTestCase
     assert_response :success
     assert_match %r{<turbo-frame id="#{frame}"}, @response.body
     assert_match %r{<turbo-frame id="#{@update_span}"}, @response.body
-    assert_includes @response.body, "curl_new_photo.jpg"
+    # The new row may be on a later pagination page (Photo.per_page = 5),
+    # so don't rely on it being in the first-page list HTML; assert on the
+    # DB instead -- this is exactly the Photo we just POSTed.
+    assert Photo.exists?(name: "curl_new_photo.jpg", apartment_id: @apartment.id),
+      "expected create POST to persist the new Photo under @apartment"
   end
 end

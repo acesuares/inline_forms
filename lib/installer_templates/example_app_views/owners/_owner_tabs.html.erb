@@ -9,12 +9,20 @@
 <div class="row owner_tabs_row">
   <div class='medium-1 large-1 column'>&nbsp;</div>
   <div class='small-11 column'>
+    <%# Foundation 6 tabs markup: `<ul class="tabs">` floats `<li class="tabs-title">`
+        children horizontally and `[aria-selected="true"]` highlights the active
+        anchor (see foundation-rails _tabs.scss). The TurboTabsBuilder emits
+        `aria-selected` and merges `is-active` onto the active `<li>`. -%>
     <%= tabs_tag builder: InlineForms::TurboTabsBuilder,
-                 open_tabs: { class: "tabs owner_tabs", id: "owner_#{@object.id}_tabs" } do |tab| %>
+                 active_class: "is-active",
+                 open_tabs: { class: "tabs owner_tabs",
+                              id: "owner_#{@object.id}_tabs",
+                              "data-tabs": "" } do |tab| %>
       <% (@inline_forms_owner_tabs || OwnersController::OWNER_TABS).each do |t| %>
         <%= tab.send(t,
                      t("owner_tabs.#{t}", default: t.titleize),
                      owner_path(@object, tab: t, update: @update_span),
+                     class: "tabs-title",
                      link_options: { data: { turbo_frame: @update_span } }) %>
       <% end %>
     <% end %>

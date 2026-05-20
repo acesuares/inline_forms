@@ -46,15 +46,19 @@ class ExampleAppPhotoRevertTest < ExampleAppIntegrationTestCase
     original_size = File.size(original_path)
 
     seed_dir = Rails.root.join("db", "seed_images")
-    jpgs = Dir.glob(seed_dir.join("*.{jpg,jpeg}"), File::FNM_CASEFOLD).sort
-    replacement = jpgs.find { |abs| File.basename(abs) != photo.name } || jpgs.last
-    assert replacement, "need at least one seed jpg different from the photo's current mount"
+    seeds = Dir.glob(seed_dir.join("*.{jpg,jpeg,png,gif}"), File::FNM_CASEFOLD).sort
+    replacement = seeds.find do |abs|
+      File.basename(abs) != photo.name && File.size(abs) != original_size
+    end || seeds.find { |abs| File.basename(abs) != photo.name }
+    assert replacement,
+      "need at least one seed image different from the photo's current mount"
     refute_equal File.size(replacement), original_size,
       "test needs a replacement file with a different byte length so the assertion is meaningful"
 
     frame_id = "apartment_#{@apartment.id}_photo_#{photo.id}_image"
     turbo_headers = { "Turbo-Frame" => frame_id, "Accept" => "text/html" }
-    uploaded = Rack::Test::UploadedFile.new(replacement, "image/jpeg")
+    mime = (replacement.to_s.downcase.end_with?(".png") ? "image/png" : "image/jpeg")
+    uploaded = Rack::Test::UploadedFile.new(replacement, mime)
     put photo_path(
       photo,
       attribute: "image",

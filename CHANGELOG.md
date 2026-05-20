@@ -4,6 +4,25 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [7.13.7] - 2026-05-20
+
+### Added
+
+- **Example app seed migration `SeedExampleApartmentsAndOwners`** (`installer_core.rb`). Replaces the old `SeedKonferenshaPhotos` migration. Seeds three apartments (`Apt 1`, `Apt 2`, `Apt 3`) with one photo gallery each (`db/seed_images/apt<N>_*.png`) and three owners — Maria Martinez (owns Apt 1 + Apt 2), Jean-Pierre Dupont (owns Apt 3), Akira Tanaka (owns none) — so the new per-owner `:check_list` sub-tab has zero / one / many cases out of the box. Idempotent via `find_or_create_by!`.
+- **`pics/` shipped as 9 CC0 PNG placeholders** (640x480 pastel + apartment label) generated with ImageMagick. The folder is still `.gitignore`d, but the gem repo's working copy is now populated so `inline_forms create MyApp --example` picks them up without any extra steps. The old conference jpgs (`dsc*.jpg`) were removed.
+
+### Changed
+
+- **`InlineForms::TurboTabsBuilder` now emits Foundation-friendly active markup.** The active tab label is rendered as an hrefless `<a aria-current="page" aria-selected="true">` (previously a plain `<span>`) so Foundation 6's `.tabs-title.is-active > a` / `[aria-selected='true']` rules in `_tabs.scss` style it identically to the inactive tabs. The active `<li>` keeps the `active_class` (now `is-active` in the example app via `tabs_tag active_class: "is-active"`), letting the bundled `foundation-tabs` mixin render the strip horizontally with the correct padding / colors instead of as a bare bullet list.
+- **`app/views/owners/_owner_tabs.html.erb`** now passes `class: "tabs-title"` per tab + `active_class: "is-active"` and `data-tabs: ""` on the wrapping `<ul class="tabs">`, matching the Foundation 6 tabs DOM contract.
+- **Owner#apartments is now a `:check_list`** (was `:associated`). The user picks from a checklist of *existing* apartments rather than building a new nested apartment under the owner; assignment is done via Rails' built-in `apartment_ids=` setter on the `has_many`, which sets / clears `apartments.owner_id` accordingly. `CheckListHelper` already works against `has_many`, no helper changes needed; only the form-element kind in `Owner#inline_forms_attribute_list` changes.
+- **`README.rdoc`** documents the seed data, the `:check_list` change, and the new Foundation 6 tab markup.
+- **`InlineForms::VERSION`** and **`InlineFormsInstaller::VERSION`** → `7.13.7`.
+
+### Removed
+
+- **`SeedKonferenshaPhotos` migration** in generated apps. Replaced by `SeedExampleApartmentsAndOwners` (see above). The matching `pics/dsc*.jpg` conference photos were dropped from the gem repo.
+
 ## [7.13.6] - 2026-05-20
 
 ### Added

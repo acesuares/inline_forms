@@ -30,9 +30,13 @@ The example app now ships three models:
 
 * +Apartment+ — top-level resource at +/apartments+ (root).
 * +Photo+ — nested under Apartment (+has_many+ / +belongs_to+).
-* +Owner+ — top-level resource at +/owners+. An Owner +has_many+ Apartments; an Apartment +belongs_to+ a single (optional) Owner. The Owner detail panel at +/owners/:id+ ships two sub-tabs, +NAW+ (name, birthdate, address, city, country) and +Apartments+ (name + the owned-apartments list). +name+ deliberately appears on both tabs.
+* +Owner+ — top-level resource at +/owners+. An Owner +has_many+ Apartments; an Apartment +belongs_to+ a single (optional) Owner. The Owner detail panel at +/owners/:id+ ships two sub-tabs, +NAW+ (name, birthdate, address, city, country) and +Apartments+ (name + the owned-apartments checklist). +name+ deliberately appears on both tabs.
 
-The tabs are wired with +tabs_on_rails+ (+set_tab+ / +current_tab?+) and +InlineForms::TurboTabsBuilder+, a small subclass of +TabsOnRails::Tabs::TabsBuilder+ that threads HTML options through to the tab's +<a>+ (upstream 3.0 can only annotate the +<li>+). Each tab link carries +data-turbo-frame+ targeting the surrounding row +<turbo-frame>+, so switching tabs is a single Turbo partial swap — no UJS, no +data-remote+.
+On the +Apartments+ tab, +Owner#apartments+ is rendered as a +:check_list+ of *existing* apartments rather than the default +:associated+ "build new nested row" panel, so the user re-assigns the +apartments.owner_id+ FK by ticking checkboxes (using Rails' built-in +apartment_ids=+ setter on +has_many+).
+
+The tabs are wired with +tabs_on_rails+ (+set_tab+ / +current_tab?+) and +InlineForms::TurboTabsBuilder+, a small subclass of +TabsOnRails::Tabs::TabsBuilder+ that threads HTML options through to the tab's +<a>+ (upstream 3.0 can only annotate the +<li>+). Each tab link carries +data-turbo-frame+ targeting the surrounding row +<turbo-frame>+, so switching tabs is a single Turbo partial swap — no UJS, no +data-remote+. The active tab is emitted as an hrefless +<a aria-current="page" aria-selected="true">+ inside +<li class="tabs-title is-active">+ so Foundation 6's tabs CSS (+.tabs-title.is-active > a+ / +[aria-selected='true']+) styles it without needing custom overrides.
+
+The example app also seeds three apartments (+Apt 1+, +Apt 2+, +Apt 3+, each with three CC0 placeholder photos from the gem's +pics/+ folder) and three owners — +Maria Martinez+ (owns +Apt 1+ + +Apt 2+), +Jean-Pierre Dupont+ (owns +Apt 3+), and +Akira Tanaka+ (owns none) — so the +has_many+ panel has at least one zero / one / many case to click through.
 
 You can install the example application manually if you like:
 
@@ -59,12 +63,17 @@ Upstream +tabs_on_rails 3.0+ (+TabsOnRails::Tabs::TabsBuilder#tab_for(tab, name,
 The old +acesuares/tabs_on_rails+ fork (+update_remote_before_action+) patched +tab_for+ to thread html options into +link_to+. That fork was retired in 7.13.5; +InlineForms::TurboTabsBuilder+ is its Turbo-shaped replacement. It accepts a new +:link_options+ key on the per-tab call and forwards it to +link_to+:
 
  <%= tabs_tag builder: InlineForms::TurboTabsBuilder,
-              open_tabs: { class: "tabs owner_tabs", id: "owner_#{@object.id}_tabs" } do |tab| %>
+              active_class: "is-active",
+              open_tabs: { class: "tabs owner_tabs",
+                           id: "owner_#{@object.id}_tabs",
+                           "data-tabs": "" } do |tab| %>
    <%= tab.naw "NAW",
                owner_path(@object, tab: :naw, update: @update_span),
+               class: "tabs-title",
                link_options: { data: { turbo_frame: @update_span } } %>
    <%= tab.apartments "Apartments",
                       owner_path(@object, tab: :apartments, update: @update_span),
+                      class: "tabs-title",
                       link_options: { data: { turbo_frame: @update_span } } %>
  <% end %>
 
