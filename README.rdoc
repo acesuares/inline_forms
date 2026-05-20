@@ -79,6 +79,165 @@ The old +acesuares/tabs_on_rails+ fork (+update_remote_before_action+) patched +
 
 Active-tab highlighting is unchanged from upstream (still driven by +set_tab :foo+ / +current_tab?+); the controller picks which attribute subset to render and just calls +render "owners/show_with_tabs"+. See +app/controllers/owners_controller.rb+ and +app/views/owners/+ in a freshly generated +--example+ app for the full pattern.
 
+=== Where to put the +tabs_tag+ block (four patterns)
+
++tabs_on_rails+ and +InlineForms::TurboTabsBuilder+ don't care where you call +tabs_tag+ — they just produce the +<ul class="tabs">+ wherever you put the block. The example app's split into +show_with_tabs.html.erb+ + +_owner_tabs.html.erb+ is a stylistic choice; below are the four common shapes, from most-inline to most-decoupled. Pick whichever fits your app:
+
+1. *Inlined in the show view* — drop the +tabs_tag+ block straight into +app/views/<resource>/show_with_tabs.html.erb+ (or similar) and skip the partial entirely.
+
+     <%# app/views/owners/show_with_tabs.html.erb %>
+     <turbo-frame id="<%= @update_span %>">
+       <%= tabs_tag builder: InlineForms::TurboTabsBuilder,
+                    active_class: "is-active",
+                    open_tabs: { class: "tabs", id: "owner_#{@object.id}_tabs",
+                                 "data-tabs": "" } do |tab| %>
+         <%= tab.naw "NAW", owner_path(@object, tab: :naw, update: @update_span),
+                     class: "tabs-title",
+                     link_options: { data: { turbo_frame: @update_span } } %>
+         <%# ... more tabs ... %>
+       <% end %>
+       <%= render partial: "inline_forms/show" %>
+     </turbo-frame>
+
+   Best when the strip is one-off and you won't reuse it.
+
+2. *Dedicated tab-strip partial* (what the +--example+ app does). Keep the show view tiny and move the strip into +app/views/<resource>/_<resource>_tabs.html.erb+. The +inline_forms+ example uses this so the +tabs_tag+ block can be iterated over a +OWNER_TABS+ constant:
+
+     <%# app/views/owners/_owner_tabs.html.erb %>
+     <%= tabs_tag builder: InlineForms::TurboTabsBuilder,
+                  active_class: "is-active",
+                  open_tabs: { class: "tabs", id: "owner_#{@object.id}_tabs",
+                               "data-tabs": "" } do |tab| %>
+       <% (@inline_forms_owner_tabs || OwnersController::OWNER_TABS).each do |t| %>
+         <%= tab.send(t, t("owner_tabs.#{t}", default: t.titleize),
+                      owner_path(@object, tab: t, update: @update_span),
+                      class: "tabs-title",
+                      link_options: { data: { turbo_frame: @update_span } }) %>
+       <% end %>
+     <% end %>
+
+     <%# app/views/owners/show_with_tabs.html.erb %>
+     <turbo-frame id="<%= @update_span %>">
+       <%= render partial: "owners/_owner_tabs" %>
+       <%= render partial: "inline_forms/show" %>
+     </turbo-frame>
+
+   Best when the same tab strip needs to appear above several views (e.g. +show+, +edit+, custom report) and the controller drives the list of tabs.
+
+3. *Helper-driven, reusable across resources* — extract the +tabs_tag+ call into a view helper (e.g. +InlineFormsTabsHelper#inline_forms_turbo_tabs_for+) so multiple resources can share the same strip with one line:
+
+     # app/helpers/inline_forms_tabs_helper.rb
+     module InlineFormsTabsHelper
+       def inline_forms_turbo_tabs_for(object, tabs, update:, i18n_scope: nil)
+         tabs_tag builder: InlineForms::TurboTabsBuilder,
+                  active_class: "is-active",
+                  open_tabs: { class: "tabs", id: "#{object.class.name.underscore}_#{object.id}_tabs",
+                               "data-tabs": "" } do |tab|
+           tabs.each do |t|
+             label = t("#{i18n_scope}.#{t}", default: t.to_s.titleize) if i18n_scope
+             label ||= t.to_s.titleize
+             concat tab.send(t, label,
+                              polymorphic_path(object, tab: t, update: update),
+                              class: "tabs-title",
+                              link_options: { data: { turbo_frame: update } })
+           end
+         end
+       end
+     end
+
+     <%# in any show view %>
+     <%= inline_forms_turbo_tabs_for(@object, OwnersController::OWNER_TABS,
+                                     update: @update_span,
+                                     i18n_scope: "owner_tabs") %>
+
+   Best when you have several resources that all need a per-row tab strip and you don't want to duplicate the +tabs_tag+ boilerplate.
+
+4. *One partial per tab content* — keep the strip partial (option 2), but make the show view +render "owners/tabs/#{params[:tab]}"+ and ship a separate +_naw.html.erb+ / +_apartments.html.erb+ per tab. Each tab partial owns its own markup (custom forms, charts, lists of foreign objects, ...) instead of going through +inline_forms/_show+:
+
+     <%# app/views/owners/show_with_tabs.html.erb %>
+     <turbo-frame id="<%= @update_span %>">
+       <%= render partial: "owners/_owner_tabs" %>
+       <%= render "owners/tabs/#{params[:tab].presence || 'naw'}" %>
+     </turbo-frame>
+
+     <%# app/views/owners/tabs/_naw.html.erb %>
+     <%= render partial: "inline_forms/show" %>   <%# stock inline_forms behaviour %>
+
+     <%# app/views/owners/tabs/_apartments.html.erb %>
+     <h3>Owned apartments (<%= @object.apartments.size %>)</h3>
+     <ul>
+       <% @object.apartments.order(:name).each do |apt| %>
+         <li><%= link_to apt.name, apartment_path(apt) %> &mdash; <%= apt.title %></li>
+       <% end %>
+     </ul>
+     <%# ... or a chart, an upload form, an external API widget, anything ... %>
+
+   Best when tabs need wildly different markup that the inline_forms attribute-list shape can't express (custom dashboards, mixed-resource pages, embedded reports).
+
+5. *Grouped tab strips* — render *two or more* +tabs_tag+ blocks side-by-side (or stacked with a separator) when the resource has logically distinct groups of tabs that share the same +set_tab+ machinery but should be visually separated. Common example: an "info" group (name, contact, notes) and a "process" group (intake, assessment, plan) on a +Client+ detail page:
+
+     # app/controllers/clients_controller.rb
+     class ClientsController < InlineFormsController
+       set_tab :client
+       INFO_TABS    = %w[naw contact notes].freeze
+       PROCESS_TABS = %w[intake assessment plan].freeze
+       ALL_TABS     = (INFO_TABS + PROCESS_TABS).freeze
+       TAB_FIELDS   = {
+         "naw"        => %i[name birthdate address city country],
+         "contact"    => %i[name email phone],
+         "intake"     => %i[name intake_date intake_notes],
+         # ... one entry per tab; `name` repeated where it should appear
+       }.freeze
+
+       def show
+         return super if params[:form_element] || params[:attribute] || params[:close]
+         @object = Client.find(params[:id])
+         @update_span = params[:update].presence || "client_#{@object.id}"
+         tab = ALL_TABS.include?(params[:tab].to_s) ? params[:tab].to_s : ALL_TABS.first
+         set_tab tab.to_sym
+         @inline_forms_attribute_list = TAB_FIELDS.fetch(tab).map { |a|
+           @object.inline_forms_attribute_list.find { |attr, _, _| attr == a }
+         }
+         render "clients/show_with_tabs",
+                layout: turbo_frame_request? ? "turbo_rails/frame" : "inline_forms"
+       end
+     end
+
+     <%# app/views/clients/_client_tabs.html.erb -- two separate strips %>
+     <%= tabs_tag builder: InlineForms::TurboTabsBuilder,
+                  active_class: "is-active",
+                  open_tabs: { class: "tabs info_tabs",
+                               id: "client_#{@object.id}_info_tabs",
+                               "data-tabs": "" } do |tab| %>
+       <% ClientsController::INFO_TABS.each do |t| %>
+         <%= tab.send(t, t("client_tabs.#{t}", default: t.titleize),
+                      client_path(@object, tab: t, update: @update_span),
+                      class: "tabs-title",
+                      link_options: { data: { turbo_frame: @update_span } }) %>
+       <% end %>
+     <% end %>
+
+     <hr class="tab_group_separator">
+
+     <%= tabs_tag builder: InlineForms::TurboTabsBuilder,
+                  active_class: "is-active",
+                  open_tabs: { class: "tabs process_tabs",
+                               id: "client_#{@object.id}_process_tabs",
+                               "data-tabs": "" } do |tab| %>
+       <% ClientsController::PROCESS_TABS.each do |t| %>
+         <%= tab.send(t, t("client_tabs.#{t}", default: t.titleize),
+                      client_path(@object, tab: t, update: @update_span),
+                      class: "tabs-title",
+                      link_options: { data: { turbo_frame: @update_span } }) %>
+       <% end %>
+     <% end %>
+
+   Each +tabs_tag+ call is fully independent — different +open_tabs+ classes, different +id+s — but they share +set_tab+ / +current_tab?+, so the active highlight is always on the one tab whose name matches +params[:tab]+, regardless of which strip it sits in. Best when tabs fall into clearly distinct categories on the same page (info vs. workflow, read-only vs. write, primary vs. admin) and you want CSS / spacing control between the groups.
+
+The +--example+ app uses option *2* because the only per-tab difference is which attribute subset to render, and +inline_forms/_show+ already drives off +@inline_forms_attribute_list+ — so a single filter in +OwnersController#show+ is enough and a per-tab partial would be over-engineering. For real apps with heterogeneous tabs, option *4* is usually a better fit; option *5* layers on top of any of the others when you need visual grouping.
+
+In every case the Turbo wiring is the same: +link_options: { data: { turbo_frame: @update_span } }+ on the +<a>+, surrounding +<turbo-frame id="<%= @update_span %>">+ in the show view, and a controller that picks the active tab via +set_tab+ + +params[:tab]+. The +InlineForms::TurboTabsBuilder+ choice is independent of which partial layout you adopt.
+
 == Generated application +rails-i18n+
 
 New apps get +rails-i18n+ from RubyGems (+ '~> 7.0'+), not from the +svenfuchs/rails-i18n+ Git repository. Release line 7.0.x declares +railties+ between 6 and 8, which matches the template’s Rails 6.1.3.1. The upstream repository’s default branch is aimed at newer Rails and would pull in +railties+ 8+, which cannot be resolved together with Rails 6.1.

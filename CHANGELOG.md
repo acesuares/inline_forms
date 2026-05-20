@@ -4,6 +4,22 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [7.13.8] - 2026-05-20
+
+### Added
+
+- **`README.rdoc`: "Where to put the `tabs_tag` block (five patterns)" section** under `== Per-resource Turbo tabs`. Documents the five common ways to wire a Turbo-driven tab strip in an inline_forms app, each with a runnable code snippet and a "best when ..." recommendation:
+  1. **Inlined in the show view** — drop the `tabs_tag` block straight into `show_with_tabs.html.erb`, no partial.
+  2. **Dedicated tab-strip partial** (the `--example` app's pattern) — strip lives in `_<resource>_tabs.html.erb` and iterates over a controller constant.
+  3. **Helper-driven, reusable across resources** — extract into `InlineFormsTabsHelper#inline_forms_turbo_tabs_for(object, tabs, update:, i18n_scope:)` so multiple resources opt in with one line.
+  4. **One partial per tab content** — `app/views/<resource>/tabs/_<tab>.html.erb` per tab; each tab owns its own markup (charts, custom forms, mixed-resource pages) instead of going through `inline_forms/_show`.
+  5. **Grouped tab strips** — render two or more `tabs_tag` blocks side-by-side (e.g. an "info" group + a "process" group on a `Client` detail page), each with its own `open_tabs` class / id but sharing `set_tab` / `current_tab?` so the active highlight always lands on the one tab matching `params[:tab]`.
+  The section closes by noting that every option uses the same Turbo wiring (`link_options: { data: { turbo_frame: @update_span } }` on the `<a>`, surrounding `<turbo-frame id="<%= @update_span %>">` in the show view, controller `set_tab` + `params[:tab]`) and that the `InlineForms::TurboTabsBuilder` choice is independent of the partial layout.
+
+### Changed
+
+- **`InlineForms::VERSION`** and **`InlineFormsInstaller::VERSION`** → `7.13.8`.
+
 ## [7.13.7] - 2026-05-20
 
 ### Added
