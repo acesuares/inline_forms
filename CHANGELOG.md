@@ -4,6 +4,28 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [7.13.6] - 2026-05-20
+
+### Added
+
+- **`InlineForms::TurboTabsBuilder`** (`lib/inline_forms/turbo_tabs_builder.rb`) — drop-in subclass of `TabsOnRails::Tabs::TabsBuilder` that threads a new `:link_options` item option through to the tab's `<a>` (upstream 3.0's `tab_for(tab, name, url_options, item_options = {})` only annotates the surrounding `<li>`). Turbo-shaped replacement for the historical `acesuares/tabs_on_rails` `update_remote_before_action` branch (which added `:remote => true` for UJS); now any `data: { turbo_frame: "…" }` (or other html option) survives the builder and lands on the link, enabling per-resource Turbo-Frame tab swaps without re-introducing the fork. Active-tab highlighting is unchanged (still driven by `set_tab` / `current_tab?`).
+- **Example app `Owner` model + per-owner sub-tabs** (`installer_core.rb`, `lib/installer_templates/example_app_views/owners/`):
+  - `rails g inline_forms Owner name:string birthdate:date address:string city:string country:string apartments:has_many apartments:associated _enabled:yes _presentation:'#{name}'`
+  - Migration `add_owner_to_apartments` adds `owner_id` (nullable FK).
+  - `Apartment` gains `belongs_to :owner, optional: true` and a leading `[ :owner, "owner", :dropdown ]` entry in `inline_forms_attribute_list`.
+  - `OwnersController#show` is overridden to render `owners/show_with_tabs.html.erb` with one of two attribute subsets driven by `params[:tab]`: `naw` (name, birthdate, address, city, country) or `apartments` (name + the associated apartments list). `name` appears on both tabs by design.
+  - `app/views/owners/_owner_tabs.html.erb` uses `tabs_tag builder: InlineForms::TurboTabsBuilder` so each tab link gets `data-turbo-frame="<row frame>"` and switching tabs is a single Turbo partial swap. Field-level inline edit, cancel and close still delegate to the stock controller flow via `super`.
+  - Example app header (`example_app_views/inline_forms/_header.html.erb`) surfaces an **Owners** link in the More menu.
+
+### Fixed
+
+- **`InlineForms::FormElements::DropdownHelper#dropdown_update` no longer raises `NoMethodError` on top-level POSTs that omit the wrapper key.** Inline edit posts the value under `params[:_<model>][:<attr>_id]`; top-level create flows that bypass that wrapper (existing integration tests posting `{name:, title:}` directly) used to blow up on `nil[:owner_id]` as soon as the attribute list grew a `:dropdown` entry (e.g. the new `[ :owner, :dropdown ]` on `Apartment`). The helper now treats a missing wrapper as "do not touch the foreign key" and leaves the attribute alone, matching the intent of `dropdown_show` / inline edit.
+
+### Changed
+
+- **`README.rdoc`** documents the new `Owner` model and the `InlineForms::TurboTabsBuilder` pattern (the per-resource tab strip is the only piece of `tabs_on_rails` that benefits from the builder; the rest of inline_forms still uses `set_tab` only).
+- **`InlineForms::VERSION`** and **`InlineFormsInstaller::VERSION`** → `7.13.6`.
+
 ## [7.13.5] - 2026-05-19
 
 ### Changed

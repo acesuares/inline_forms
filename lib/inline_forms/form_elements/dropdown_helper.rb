@@ -42,8 +42,16 @@ module InlineForms
     end
     
     def dropdown_update(object, attribute)
+      # Inline edit posts the value under the leading-underscore wrapper key
+      # (`params[:_apartment][:owner_id]`); top-level create through a
+      # bypassing form (e.g. integration tests posting `{name:, title:}`
+      # directly) may not include that wrapper at all. Treat a missing
+      # wrapper as "do not touch the foreign key" so unrelated attribute
+      # walks do not raise NoMethodError on nil[:owner_id].
+      scope = params[('_' + object.class.to_s.underscore).to_sym]
+      return if scope.blank?
       foreign_key = object.class.reflect_on_association(attribute.to_sym).options[:foreign_key] || attribute.to_s.foreign_key.to_sym
-      object[foreign_key] = params[('_' + object.class.to_s.underscore).to_sym][attribute.to_s.foreign_key.to_sym]
+      object[foreign_key] = scope[attribute.to_s.foreign_key.to_sym]
     end
     
     def dropdown_info(object, attribute)

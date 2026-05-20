@@ -863,6 +863,89 @@ if ENV['install_example'] == 'true'
                    "\n  skip_load_and_authorize_resource only: :name_list\n\n  def name_list\n    authorize! :read, Apartment\n    @apartments = Apartment.accessible_by(current_ability).order(:id).limit(10)\n  end\n",
                    after: "set_tab :apartment\n"
 
+  # Owner -- demonstrates per-resource sub-tabs on /owners/:id.
+  # Owner has many Apartments; an Apartment belongs to one Owner. The
+  # Owner detail panel renders two Turbo tabs (`naw`, `apartments`) via
+  # InlineForms::TurboTabsBuilder; both tabs surface :name, hence the
+  # shared first field. See OwnersController override below.
+  say "- Generating Owner model (has_many apartments)..."
+  sleep 1
+  run %q{bundle exec rails g inline_forms Owner name:string birthdate:date address:string city:string country:string apartments:has_many apartments:associated _enabled:yes _presentation:'#{name}'}
+
+  say "- Owner name is required..."
+  inject_into_file "app/models/owner.rb",
+                   "\n  validates :name, presence: true\n",
+                   after: "  has_paper_trail on: [:create, :update, :destroy]\n"
+
+  say "- Adding owner_id to apartments + belongs_to :owner..."
+  sleep 1
+  add_owner_ts = Time.now.utc.strftime("%Y%m%d%H%M%S")
+  create_file "db/migrate/#{add_owner_ts}_add_owner_to_apartments.rb", <<-ADD_OWNER.strip_heredoc
+    class AddOwnerToApartments < ActiveRecord::Migration[7.2]
+      def change
+        add_reference :apartments, :owner, null: true, foreign_key: true
+      end
+    end
+  ADD_OWNER
+
+  inject_into_file "app/models/apartment.rb",
+                   "  belongs_to :owner, optional: true\n",
+                   after: "  has_paper_trail on: [:create, :update, :destroy]\n"
+
+  # Insert the :owner dropdown row at the top of Apartment's attribute list
+  # so it appears above :name in the inline panel.
+  gsub_file "app/models/apartment.rb",
+            /@inline_forms_attribute_list \|\|= \[\n/,
+            "@inline_forms_attribute_list ||= [\n     [ :owner , \"owner\", :dropdown ], \n"
+
+  say "- Replacing OwnersController with tabbed-show variant (/owners/:id)..."
+  remove_file "app/controllers/owners_controller.rb"
+  create_file "app/controllers/owners_controller.rb", <<-OWNERS_CTRL.strip_heredoc
+    class OwnersController < InlineFormsController
+      set_tab :owner
+
+      # Per-owner sub-tabs. `name` appears on both tabs by design (the user
+      # asked for `name + apartments` on one tab and `naw` -- name,
+      # birthdate, address, city, country -- on the other).
+      OWNER_TABS = %w[naw apartments].freeze
+      OWNER_TAB_FIELDS = {
+        "naw"        => %i[name birthdate address city country],
+        "apartments" => %i[name apartments],
+      }.freeze
+
+      def show
+        # Field-level inline edit / cancel / explicit close requests
+        # still go through the stock `_show` / field flows.
+        return super if params[:form_element] || params[:attribute] || params[:close]
+
+        @object = Owner.find(params[:id])
+        @update_span = params[:update].presence || "owner_\#{@object.id}"
+
+        tab = OWNER_TABS.include?(params[:tab].to_s) ? params[:tab].to_s : "naw"
+        set_tab tab.to_sym
+        @inline_forms_owner_tabs    = OWNER_TABS
+        @inline_forms_attribute_list = owner_attributes_for(tab)
+        @inline_forms_turbo_row     = true
+
+        render "owners/show_with_tabs",
+               layout: turbo_frame_request? ? "turbo_rails/frame" : "inline_forms"
+      end
+
+      private
+
+      def owner_attributes_for(tab)
+        full = @object.inline_forms_attribute_list
+        OWNER_TAB_FIELDS.fetch(tab).map do |attr|
+          full.find { |a, _, _| a == attr } ||
+            raise("OwnersController: attribute \#{attr.inspect} missing from Owner#inline_forms_attribute_list")
+        end
+      end
+    end
+  OWNERS_CTRL
+
+  say "- Running migrations for owner (owner table + apartments.owner_id)..."
+  run "bundle exec rake db:migrate"
+
   example_views_root = File.join(INSTALLER_ROOT, "lib/installer_templates/example_app_views")
   Dir.glob(File.join(example_views_root, "**", "*")).sort.each do |abs|
     next unless File.file?(abs)
@@ -880,10 +963,11 @@ if ENV['install_example'] == 'true'
     create_file rel, File.read(abs)
   end
 
-  say "\nDone! Example app (Photo + Apartment) is ready.", :yellow
+  say "\nDone! Example app (Photo + Apartment + Owner) is ready.", :yellow
   say "  bundle exec rails test     # example regression tests", :yellow
   say "  bundle exec rails s        # then http://localhost:3000/apartments", :yellow
   say "  More menu → Apartment names (first 10)  # /apartments/name_list", :yellow
+  say "  More menu → Owners                       # /owners (per-owner 2 tabs)", :yellow
   say "  Log in: #{ENV["email"]} / #{ENV["password"]}", :yellow
 end
 # done!

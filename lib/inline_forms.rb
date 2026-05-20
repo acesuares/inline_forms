@@ -4,6 +4,7 @@ require "inline_forms/form_element_from_callee"
 require "inline_forms/archived_form_elements"
 require "inline_forms/form_element_registry"
 require "inline_forms/form_elements"
+require "inline_forms/turbo_tabs_builder"
 # InlineForms is a Rails Engine that let you setup an admin interface quick and
 # easy. Please install it as a gem or include it in your Gemfile.
 module InlineForms

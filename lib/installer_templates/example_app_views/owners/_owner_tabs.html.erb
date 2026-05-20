@@ -1,0 +1,22 @@
+<%#
+  Owner sub-tabs (Turbo). Each tab link targets the surrounding row
+  turbo-frame (id == @update_span) so clicking a tab re-fetches
+  OwnersController#show?tab=... and swaps just that frame. Active-tab
+  highlighting is driven by set_tab / current_tab? (tabs_on_rails).
+  InlineForms::TurboTabsBuilder threads link_options: through to the
+  anchor; upstream tabs_on_rails 3.0 can only annotate the surrounding li.
+-%>
+<div class="row owner_tabs_row">
+  <div class='medium-1 large-1 column'>&nbsp;</div>
+  <div class='small-11 column'>
+    <%= tabs_tag builder: InlineForms::TurboTabsBuilder,
+                 open_tabs: { class: "tabs owner_tabs", id: "owner_#{@object.id}_tabs" } do |tab| %>
+      <% (@inline_forms_owner_tabs || OwnersController::OWNER_TABS).each do |t| %>
+        <%= tab.send(t,
+                     t("owner_tabs.#{t}", default: t.titleize),
+                     owner_path(@object, tab: t, update: @update_span),
+                     link_options: { data: { turbo_frame: @update_span } }) %>
+      <% end %>
+    <% end %>
+  </div>
+</div>

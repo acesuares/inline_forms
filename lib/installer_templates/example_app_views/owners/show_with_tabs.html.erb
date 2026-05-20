@@ -1,0 +1,9 @@
+<%#
+  Per-owner tabbed show panel (Turbo). Replaces the stock single-pane
+  _show render with: tabs above, attribute subset below, both inside
+  the same row turbo-frame so tab switches do a single partial swap.
+-%>
+<turbo-frame id="<%= @update_span %>">
+  <%= render partial: "owners/owner_tabs" %>
+  <%= render partial: "inline_forms/show" %>
+</turbo-frame>

@@ -28,6 +28,11 @@
                 <%= link_to "Apartment names (first 10)", apartment_name_list_path %>
               </li>
               <% end %>
+              <% if defined?(Owner) && (can? :read, Owner) %>
+              <li>
+                <%= link_to Owner.model_name.human.pluralize, owners_path %>
+              </li>
+              <% end %>
             </ul>
           </li>
         <% end %>
