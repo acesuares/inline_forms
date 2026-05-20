@@ -4,6 +4,28 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [7.13.5] - 2026-05-19
+
+### Changed
+
+- **Generated app Gemfile — no more git forks for `tabs_on_rails` / `i18n-active_record`.**
+  - **`tabs_on_rails`:** `gem 'tabs_on_rails', '~> 3.0'` from RubyGems (weppos 3.0.0). The acesuares fork only added unused `:remote` on tab links; inline_forms uses `set_tab` only.
+  - **`i18n-active_record`:** removed. Generated apps never configured `I18n.backend`; only `extract_translations` read the `translations` SQL view. Replaced with **`InlineForms::TranslationRecord`** (`lib/inline_forms/translation_record.rb`) — read-only AR on the existing view (`thekey` column kept for MySQL).
+  - **`will_paginate`:** dropped commented acesuares git line; RubyGems only.
+
+### Added
+
+- **`docs/git-deps-assessment.md`** — fork history and verification notes (local copy also under `stuff/`, gitignored).
+
+### Changed (also)
+
+- **`InlineForms::VERSION`** and **`InlineFormsInstaller::VERSION`** → `7.13.5`.
+
+### Verified
+
+- `gem build inline_forms.gemspec` → `inline_forms-7.13.5.gem`; `gem build inline_forms_installer.gemspec` → `inline_forms_installer-7.13.5.gem`.
+- `inline_forms create MyApp -d sqlite --example` → `bundle exec rails test` — **83 runs, 461 assertions, 0 failures, 0 errors, 0 skips** (Ruby 4.0.4 / Rails 7.2.3.1). `Gemfile.lock`: `tabs_on_rails (3.0.0)` from rubygems.org; no `i18n-active_record` git source.
+
 ## [7.13.4] - 2026-05-19
 
 ### Fixed

@@ -34,7 +34,6 @@ gem 'autoprefixer-rails'
 # foundation-rails 6.7+ uses Dart Sass (`sass:math`); sass-rails/sassc removed.
 # Visually tuned against foundation-rails ~> 6.6.2; current pin ~> 6.9 (6.9.0.x).
 gem 'foundation-rails', '~> 6.9'
-gem 'i18n-active_record', :git => 'https://github.com/acesuares/i18n-active_record.git'
 # Pin to the inline_forms version bundled with this installer release.
 # Set INLINE_FORMS_GEMFILE_PATH for maintainer local-path overrides only.
 if ENV["INLINE_FORMS_GEMFILE_PATH"] && File.directory?(ENV["INLINE_FORMS_GEMFILE_PATH"])
@@ -69,10 +68,10 @@ gem 'importmap-rails'
 # use `<turbo-frame>` + HTML responses (see docs/ujs-to-turbo.md). Registers the
 # `turbo_stream` MIME type for optional stream responses.
 gem 'turbo-rails'
-gem 'tabs_on_rails', :git => 'https://github.com/acesuares/tabs_on_rails.git', :branch => 'update_remote_before_action'
+gem 'tabs_on_rails', '~> 3.0'
 gem 'unicorn'
 gem 'validation_hints', '~> 7.13'
-gem 'will_paginate' #, git: 'https://github.com/acesuares/will_paginate.git'
+gem 'will_paginate'
 
 gem_group :test do
   # Rails 7 still expects Minitest 5; 6.x breaks the railties test runner.

@@ -323,7 +323,7 @@ class InlineFormsController < ApplicationController
 
   def extract_translations
     keys_array = []
-    I18n::Backend::ActiveRecord::Translation.order(:locale, :thekey).each do |t|
+    InlineForms::TranslationRecord.order(:locale, :thekey).each do |t|
       keys_array << deep_hashify([ t.locale, t.thekey.split('.'), t.value ].flatten)
     end
     keys_hash = {}
