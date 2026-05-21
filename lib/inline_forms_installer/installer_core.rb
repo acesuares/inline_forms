@@ -7,9 +7,15 @@ require File.join(INSTALLER_ROOT, "lib", "inline_forms_installer", "create_log")
 def use_app_rvm_gemset!
   return if ENV["skiprvm"] == "true"
   return unless (gemset = ENV["inline_forms_rvm_gemset"]).to_s != ""
-  return unless defined?(RVM) && RVM.current
 
-  require "rvm"
+  begin
+    require "rvm"
+  rescue LoadError
+    say "rvm gem not available; skipping gemset switch", :yellow
+    return
+  end
+  return unless RVM.current
+
   say "Working directory is #{Dir.pwd}", :green
   RVM.use_from_path! "."
   say "Installing using gemset: #{RVM.current.environment_name}", :green

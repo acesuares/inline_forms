@@ -4,6 +4,12 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [7.13.16] - 2026-05-21
+
+### Fixed
+
+- **`inline_forms create` gemset switch (real fix):** in 7.13.15 the helper bailed via `defined?(RVM) && RVM.current` *before* `require "rvm"`, so inside the `rails new` subprocess (which had not loaded the rvm gem) it always returned without switching. Now require rvm first; if the gem is unavailable, log and skip; otherwise switch via `RVM.use_from_path! "."` after `.ruby-gemset` is written. Result: `bundle install`, the example tests, and the post-create `bundle check` all run inside the app's gemset (`@MyApp` for `inline_forms create MyApp`), and `cd MyApp && rails s` no longer reports missing gems.
+
 ## [7.13.15] - 2026-05-21
 
 ### Fixed
