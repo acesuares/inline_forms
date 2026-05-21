@@ -121,6 +121,12 @@ module InlineFormsInstaller
         say "Rails could not create the app '#{app_name}', maybe because it is a reserved word...", :red
         exit 1
       end
+
+      say "Created #{app_name}. Before running Rails, use the app's RVM gemset and Bundler:", :green
+      say "  cd #{app_name}", :green
+      say "  rvm use .", :green
+      say "  bundle install", :green
+      say "  bundle exec rails test", :green
     end
   end
 end

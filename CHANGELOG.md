@@ -4,17 +4,21 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [7.13.12] - 2026-05-20
+
 ### Changed
 
-- **`rake release:all`:** back to build + tag + RubyGems push only (no `install:local`, no MyApp). `install:local` remains a separate task for testing `inline_forms create`.
-- **Release docs in `Rakefile`:** `validation_hints` is released from its own repo (`rake release` there).
+- **`InlineForms::VERSION`** and **`InlineFormsInstaller::VERSION`** → **7.13.12** (three-gem lockstep with **validation_hints**).
+- **`installer_core.rb`:** `bundle_install!` runs `bundle install` + `bundle check` and **aborts** app generation if either fails (avoids a finished `MyApp` with `Gemfile.lock` but missing `inline_forms` / `validation_hints` in the RVM gemset).
+- **`InlineFormsInstaller::Creator`:** prints `rvm use .`, `bundle install`, and `bundle exec rails test` after a successful create.
 
 ## [7.13.11] - 2026-05-20
 
 ### Changed
 
 - **`InlineForms::VERSION`** and **`InlineFormsInstaller::VERSION`** → **7.13.11** (three-gem lockstep with **validation_hints**).
-- **`rake install:local`:** builds and `gem install`s `inline_forms` + `inline_forms_installer` from `pkg/` (and `validation_hints` from `../validation_hints/pkg/` when present). **`rake release:all`** now runs this first so `inline_forms create` uses the new installer template instead of an old RubyGems `inline_forms_installer` (e.g. 7.11.0 with `validation_hints ~> 6.3`).
+- **`rake install:local`:** optional task to `gem install` built gems from `pkg/`.
+- **`rake release:all`:** build + tag + RubyGems push only (no MyApp, no `install:local`).
 
 ## [7.13.10] - 2026-05-20
 

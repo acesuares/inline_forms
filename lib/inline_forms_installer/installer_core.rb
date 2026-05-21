@@ -1,6 +1,16 @@
 INSTALLER_ROOT = File.expand_path(ENV.fetch("INLINE_FORMS_INSTALLER_ROOT", File.expand_path("..", __dir__)))
 INLINE_FORMS_ROOT = File.expand_path(ENV.fetch("INLINE_FORMS_ROOT", INSTALLER_ROOT))
 
+def bundle_install!
+  say "- Running bundle install..."
+  unless system("bundle", "install")
+    abort "ERROR: bundle install failed in #{Dir.pwd}. From the app directory run: rvm use . && bundle install"
+  end
+  unless system("bundle", "check")
+    abort "ERROR: bundle check failed (gems missing). From the app directory run: rvm use . && bundle install"
+  end
+end
+
 # Pin Ruby for the generated app (after `rails new`; do not write these files in
 # Creator before `rails new` — Rails also emits `.ruby-version` and prompts).
 create_file ".ruby-version", "#{ENV.fetch('ruby_version', 'ruby-4.0.4')}\n"
@@ -113,7 +123,7 @@ if vh_gem && File.file?(vh_gem)
   say "- Installing #{File.basename(vh_gem)} (local build; not on RubyGems yet)..."
   run "gem install #{vh_gem} --no-document"
 end
-run "bundle install"
+bundle_install!
 
 say "- Dart Sass: inline_forms stylesheet entrypoints + initializer..."
 copy_file File.join(INSTALLER_ROOT, "lib/installer_templates/dartsass/inline_forms_dartsass_builds.rb"),
@@ -413,7 +423,7 @@ copy_file File.join(INLINE_FORMS_ROOT, 'lib/generators/templates/application_rec
 say "- Install ActionText..."
 run "bundle exec rails active_storage:install"
 run "bundle exec rails action_text:install:migrations"
-run "bundle install"
+bundle_install!
 
 say "- Paper_trail install..."
 # Upstream paper_trail (>= 13) detects MySQL via the live ActiveRecord connection,
