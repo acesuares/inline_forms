@@ -4,6 +4,17 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [7.13.10] - 2026-05-20
+
+### Changed
+
+- **`InlineForms::VERSION`** and **`InlineFormsInstaller::VERSION`** → **7.13.10** (three-gem lockstep with **validation_hints**).
+- **Generated app Gemfile:** `inline_forms` and `validation_hints` pinned at `~> 7` (Bundler resolves the highest 7.x), not `~> 7.13` / exact installer version.
+- **`inline_forms` gemspec:** `validation_hints ~> 7`.
+- **`inline_forms_installer` gemspec:** `inline_forms ~> 7` (not locked to installer version).
+- **`InlineFormsInstaller::Creator`:** removed install-time check that installer and engine versions must match.
+- **`README.rdoc`:** documents `~> 7` pins and joint releases instead of matching versions at `gem install` time.
+
 ## [7.13.9] - 2026-05-20
 
 ### Changed

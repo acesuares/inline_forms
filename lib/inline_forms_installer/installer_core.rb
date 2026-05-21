@@ -34,12 +34,13 @@ gem 'autoprefixer-rails'
 # foundation-rails 6.7+ uses Dart Sass (`sass:math`); sass-rails/sassc removed.
 # Visually tuned against foundation-rails ~> 6.6.2; current pin ~> 6.9 (6.9.0.x).
 gem 'foundation-rails', '~> 6.9'
-# Pin to the inline_forms version bundled with this installer release.
-# Set INLINE_FORMS_GEMFILE_PATH for maintainer local-path overrides only.
+# Pin inline_forms and validation_hints on the 7.x line; Bundler resolves the
+# highest 7.x that satisfies all deps. Set INLINE_FORMS_GEMFILE_PATH for
+# maintainer local-path overrides only.
 if ENV["INLINE_FORMS_GEMFILE_PATH"] && File.directory?(ENV["INLINE_FORMS_GEMFILE_PATH"])
   gem "inline_forms", path: ENV["INLINE_FORMS_GEMFILE_PATH"]
 else
-  gem "inline_forms", "~> #{ENV['inline_forms_version']}"
+  gem "inline_forms", "~> 7"
 end
 gem 'jquery-rails'
 gem 'jquery-timepicker-rails'
@@ -70,7 +71,7 @@ gem 'importmap-rails'
 gem 'turbo-rails'
 gem 'tabs_on_rails', '~> 3.0'
 gem 'unicorn'
-gem 'validation_hints', '~> 7.13'
+gem 'validation_hints', '~> 7'
 gem 'will_paginate'
 
 gem_group :test do

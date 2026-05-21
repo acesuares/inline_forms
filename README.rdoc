@@ -14,7 +14,7 @@ The +inline_forms create+ CLI ships in the +inline_forms_installer+ gem (not in 
 
  gem install inline_forms_installer
 
-That installs the +inline_forms+ engine at the same version as the installer (required — an older +inline_forms_installer+ with a newer +inline_forms+ leaves +validation_hints ~> 6.3+ in the generated +Gemfile+ while the engine needs +validation_hints >= 7.13+). Keep both gems on the same release, e.g. +gem install inline_forms_installer -v 7.13.8+. To install both gems explicitly (e.g. when adding inline_forms to an existing Rails app without the CLI):
+Generated apps pin +inline_forms+ and +validation_hints+ at +~> 7+ (Bundler picks the latest 7.x). The three gems (+inline_forms+, +inline_forms_installer+, +validation_hints+) are released together with the same version number; use a current +inline_forms_installer+ so the installer template matches current Rails pins. To add the engine to an existing Rails app without the CLI:
 
  gem install inline_forms inline_forms_installer
 
