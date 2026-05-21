@@ -4,6 +4,13 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [7.13.17] - 2026-05-21
+
+### Fixed
+
+- **Misleading version banner during `inline_forms create`:** the opening line ("Creating MyApp with inline_forms vX...") used `Gem::Specification.find_by_name("inline_forms").version`, i.e. whatever happened to be in the Creator's own gemset, which can differ from what Bundler then resolves for the generated app (since the Gemfile pins `~> 7`). The banner now reports the constraint (`inline_forms ~> 7`) instead of an exact version.
+- **Install summary now reads the actual locked versions** of `inline_forms` and `validation_hints` from the generated app's `Gemfile.lock`, so the post-create summary line reflects what's truly in the app (and surfaces drift if the Creator's gemset and the app's gemset disagree).
+
 ## [7.13.16] - 2026-05-21
 
 ### Fixed

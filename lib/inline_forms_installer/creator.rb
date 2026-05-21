@@ -60,7 +60,14 @@ module InlineFormsInstaller
       end
 
       inline_forms_version = InlineFormsInstaller.inline_forms_version
-      say "Creating #{app_name} with inline_forms v#{inline_forms_version} and development database #{database}...", :green
+      # The Gemfile pins `gem "inline_forms", "~> 7"`, so Bundler resolves the
+      # highest 7.x available on RubyGems at install time. The
+      # `inline_forms_version` value above is just whatever happens to be in
+      # the Creator's own gemset and may differ from what lands in the app;
+      # report the constraint instead of a misleading exact version, and let
+      # `print_create_summary` read the actual locked versions from the
+      # generated app's Gemfile.lock once `bundle install` is done.
+      say "Creating #{app_name} (inline_forms ~> 7) with development database #{database}...", :green
 
       regex = /\A[0-9a-zA-Z][0-9a-zA-Z_-]+[0-9a-zA-Z]\Z/
       if !regex.match(app_name)
@@ -159,13 +166,31 @@ module InlineFormsInstaller
       end
     end
 
+    # Read the Bundler-locked version of `gem_name` from the generated app's
+    # Gemfile.lock so the install summary reports what actually shipped to
+    # the app, not what happens to be in the Creator's own gemset (the two
+    # can differ because the Gemfile pins `~> 7`).
+    def locked_gem_version(app_name, gem_name)
+      lock_path = File.expand_path(File.join(app_name, "Gemfile.lock"))
+      return nil unless File.file?(lock_path)
+
+      File.foreach(lock_path) do |line|
+        if (m = line.match(/^\s{4}#{Regexp.escape(gem_name)} \(([^)]+)\)/))
+          return m[1]
+        end
+      end
+      nil
+    end
+
     def print_create_summary(app_name, log_path, started_at, ran_example)
       duration = (Time.now - started_at).round(1)
       bundle_ok = bundle_check_ok?(app_name)
 
       test_summary = test_summary_from_log(log_path, ran_example)
 
-      if_ver = InlineFormsInstaller.inline_forms_version
+      if_ver = locked_gem_version(app_name, "inline_forms") ||
+               InlineFormsInstaller.inline_forms_version
+      vh_ver = locked_gem_version(app_name, "validation_hints")
       inst_ver = InlineFormsInstaller::VERSION
 
       InlineFormsInstaller::CreateLog.append_summary(
@@ -180,12 +205,12 @@ module InlineFormsInstaller
 
       say ""
       say "Install complete (#{duration}s)", :green
-      say "  inline_forms #{if_ver} / inline_forms_installer #{inst_ver}", :green
+      say "  inline_forms #{if_ver} / inline_forms_installer #{inst_ver}#{vh_ver ? " / validation_hints #{vh_ver}" : ''}", :green
       say "  bundle check: #{bundle_ok ? 'ok' : 'FAILED'}", bundle_ok ? :green : :red
       say "  tests: #{test_summary}", :green
       say "Install log: #{log_path}", :green
     end
-    private :print_create_summary, :test_summary_from_log, :bundle_check_ok?
+    private :print_create_summary, :test_summary_from_log, :bundle_check_ok?, :locked_gem_version
   end
 end
 
