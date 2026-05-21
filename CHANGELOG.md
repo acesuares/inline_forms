@@ -4,6 +4,23 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [7.13.13] - 2026-05-21
+
+### Added
+
+- **`InlineFormsInstaller::CreateLog`:** timestamped install log at `MyApp/log/inline_forms_create-YYYYMMDD-HHMMSS.log`; path printed at start and end of `inline_forms create`; end-of-run summary (duration, versions, `bundle check`, test line).
+
+### Changed
+
+- **`InlineForms::VERSION`** and **`InlineFormsInstaller::VERSION`** → **7.13.13** (lockstep with **validation_hints**).
+- **`--example`:** always runs `bundle exec rails test` during create; removed `--run-test` Thor option.
+- **Post-create CLI message (1C):** removed redundant Creator footer; yellow “Done! Example app…” block remains.
+- **`validation_hints` local `.gem`:** only when `VALIDATION_HINTS_ROOT` is set (2C).
+- **`gem install` in installer:** `--no-document` for bundler and optional validation_hints (3B).
+- **Generated Gemfile:** `foreman` in `:development` (7B).
+- **`inline_forms` generator:** skip duplicate `MODEL_TABS` inserts when tab already present (6B).
+- **Rails 8 checklist:** Dart Sass deprecation note in Phase 4 (`validation_hints/stuff/rails-8-checklist.md` + `inline_forms/stuff/rails-8-checklist.md` mirror).
+
 ## [7.13.12] - 2026-05-20
 
 ### Changed

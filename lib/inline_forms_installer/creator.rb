@@ -1,6 +1,7 @@
 # -*- encoding : utf-8 -*-
 require "securerandom"
 require "thor"
+require_relative "create_log"
 
 module InlineFormsInstaller
   class Creator < Thor
@@ -20,16 +21,11 @@ module InlineFormsInstaller
     method_option :example, :type => :boolean, :desc => "install the example app. uses sqlite as development database"
     method_option :email, :aliases => "-e", :default => "admin@example.com", :desc => "specify admin email"
     method_option :password, :aliases => "-p", :default => "admin999", :desc => "specify admin password"
-    method_option :runtest, :aliases => "--run-test", :default => false, :desc => "run tests"
     method_option :skiprvm, :aliases => "--no-rvm", :type => :boolean, :default => false, :desc => "install inline_forms without RVM"
 
     def create(app_name)
       def self.skiprvm
         options[:skiprvm]
-      end
-
-      def self.runtest
-        options[:runtest]
       end
 
       def self.install_example?
@@ -117,17 +113,43 @@ module InlineFormsInstaller
       rails_invocation = compatible_rails ? "rails _#{compatible_rails}_" : "rails"
       say "Generating app with: #{rails_invocation} new ...", :green
 
-      unless run("#{rails_invocation} new #{app_name} -m #{app_template_file} --skip-bundle --skip-bootsnap --javascript=importmap")
+      started_at = Time.now
+      log_path = InlineFormsInstaller::CreateLog.final_path(app_name, started_at)
+      say "Install log: #{log_path}", :green
+
+      shell_cmd = [
+        rails_invocation, "new", app_name, "-m", app_template_file,
+        "--skip-bundle", "--skip-bootsnap", "--javascript=importmap"
+      ].join(" ")
+
+      ok, log_path = InlineFormsInstaller::CreateLog.tee_rails_new(app_name, shell_cmd, started_at: started_at)
+      unless ok
         say "Rails could not create the app '#{app_name}', maybe because it is a reserved word...", :red
+        say "Install log: #{log_path}", :red
         exit 1
       end
 
-      say "Created #{app_name}. Before running Rails, use the app's RVM gemset and Bundler:", :green
-      say "  cd #{app_name}", :green
-      say "  rvm use .", :green
-      say "  bundle install", :green
-      say "  bundle exec rails test", :green
+      print_create_summary(app_name, log_path, started_at)
     end
+
+    def print_create_summary(app_name, log_path, started_at)
+      duration = (Time.now - started_at).round(1)
+      bundle_ok = false
+      Dir.chdir(app_name) do
+        bundle_ok = system("bundle", "check", out: File::NULL, err: File::NULL)
+      end
+
+      test_summary = ENV["INLINE_FORMS_CREATE_TEST_SUMMARY"].to_s
+      test_summary = "(not run — create without --example)" if test_summary.empty?
+
+      say ""
+      say "Install complete (#{duration}s)", :green
+      say "  inline_forms #{InlineFormsInstaller.inline_forms_version} / inline_forms_installer #{InlineFormsInstaller::VERSION}", :green
+      say "  bundle check: #{bundle_ok ? 'ok' : 'FAILED'}", bundle_ok ? :green : :red
+      say "  tests: #{test_summary}", :green
+      say "Install log: #{log_path}", :green
+    end
+    private :print_create_summary
   end
 end
 

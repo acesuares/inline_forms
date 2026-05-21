@@ -241,11 +241,15 @@ module InlineForms
     end
 
     def add_tab
-      unless @flag_not_accessible_through_html
-        inject_into_file "app/controllers/application_controller.rb",
-          "#{name.pluralize.underscore} ",
-          :after => "ActionView::CompiledTemplates::MODEL_TABS = %w("
-      end
+      return if @flag_not_accessible_through_html
+
+      path = "app/controllers/application_controller.rb"
+      marker = "ActionView::CompiledTemplates::MODEL_TABS = %w("
+      tab_token = "#{name.pluralize.underscore} "
+      content = File.read(path)
+      return if content.include?(tab_token.rstrip)
+
+      inject_into_file path, tab_token, after: marker
     end
 
     def generate_test

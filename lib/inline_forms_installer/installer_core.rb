@@ -1,5 +1,8 @@
+require "open3"
+
 INSTALLER_ROOT = File.expand_path(ENV.fetch("INLINE_FORMS_INSTALLER_ROOT", File.expand_path("..", __dir__)))
 INLINE_FORMS_ROOT = File.expand_path(ENV.fetch("INLINE_FORMS_ROOT", INSTALLER_ROOT))
+require File.join(INSTALLER_ROOT, "lib", "inline_forms_installer", "create_log")
 
 def bundle_install!
   say "- Running bundle install..."
@@ -95,6 +98,7 @@ gem_group :development do
   gem 'capistrano', require: false
   gem 'capistrano3-unicorn'
   gem 'listen'
+  gem 'foreman'
   gem 'puma', '>= 5.0'
   gem 'rvm-capistrano', :require => false
   gem 'rvm1-capistrano3', require: false
@@ -111,17 +115,13 @@ gem_group :production do
 end
 
 say "- Running bundle..."
-run "gem install bundler"
-vh_gem_dirs = [
-  ENV["VALIDATION_HINTS_ROOT"],
-  File.expand_path("~/validation_hints"),
-  File.expand_path("~/code/validation_hints"),
-  File.expand_path("../validation_hints", INSTALLER_ROOT)
-].compact.uniq
-vh_gem = vh_gem_dirs.flat_map { |dir| Dir[File.join(dir, "validation_hints-*.gem")] }.sort.last
-if vh_gem && File.file?(vh_gem)
-  say "- Installing #{File.basename(vh_gem)} (local build; not on RubyGems yet)..."
-  run "gem install #{vh_gem} --no-document"
+run "gem install bundler --no-document"
+if (vh_root = ENV["VALIDATION_HINTS_ROOT"]) && File.directory?(vh_root)
+  vh_gem = Dir[File.join(vh_root, "validation_hints-*.gem")].sort.last
+  if vh_gem && File.file?(vh_gem)
+    say "- Installing #{File.basename(vh_gem)} from VALIDATION_HINTS_ROOT..."
+    run "gem install #{vh_gem} --no-document"
+  end
 end
 bundle_install!
 
@@ -1049,19 +1049,27 @@ if ENV['install_example'] == 'true'
   route 'get "apartments/name_list", to: "apartments#name_list", as: :apartment_name_list'
   route "root :to => 'apartments#index'"
 
-  say "- Adding example app regression tests (bundle exec rails test)..."
   example_tests_root = File.join(INSTALLER_ROOT, "lib/installer_templates/example_app_tests")
   Dir.glob(File.join(example_tests_root, "**", "*.rb")).sort.each do |abs|
     rel = abs.delete_prefix(example_tests_root + File::SEPARATOR).tr("\\", "/")
     create_file rel, File.read(abs)
   end
 
+  say "- Running example regression tests (bundle exec rails test)..."
+  test_out, test_status = Open3.capture2e("bundle", "exec", "rails", "test")
+  if (log_path = ENV["INLINE_FORMS_INSTALLER_LOG"]).to_s != ""
+    InlineFormsInstaller::CreateLog.append_section(log_path, "bundle exec rails test", test_out)
+  end
+  summary_line = test_out.lines.reverse.find { |l| l =~ /\d+ runs,/ }
+  ENV["INLINE_FORMS_CREATE_TEST_SUMMARY"] = summary_line&.strip || "failed (no summary line)"
+  abort "ERROR: bundle exec rails test failed during --example install.\n#{test_out}" unless test_status.success?
+
   say "\nDone! Example app (Photo + Apartment + Owner) is ready.", :yellow
-  say "  bundle exec rails test     # example regression tests", :yellow
-  say "  bundle exec rails s        # then http://localhost:3000/apartments", :yellow
-  say "  More menu → Apartment names (first 10)  # /apartments/name_list", :yellow
-  say "  More menu → Owners                       # /owners (per-owner 2 tabs)", :yellow
-  say "  Log in: #{ENV["email"]} / #{ENV["password"]}", :yellow
+  say "  cd #{File.basename(Dir.pwd)} && rvm use . && bundle exec rails s", :yellow
+  say "  http://localhost:3000/apartments — #{ENV["email"]} / #{ENV["password"]}", :yellow
+  if (log_path = ENV["INLINE_FORMS_INSTALLER_LOG"]).to_s != ""
+    say "  Install log: #{log_path}", :yellow
+  end
 end
 # done!
 say "\nDone! Now make your tables with 'bundle exec rails g inline_forms ...", :yellow
