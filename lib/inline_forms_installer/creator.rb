@@ -6,6 +6,10 @@ module InlineFormsInstaller
   class Creator < Thor
     include Thor::Actions
 
+    def self.exit_on_failure?
+      true
+    end
+
     def self.source_root
       gem_root
     end
@@ -60,6 +64,14 @@ module InlineFormsInstaller
       end
 
       inline_forms_version = InlineFormsInstaller.inline_forms_version
+      if inline_forms_version != InlineFormsInstaller::VERSION
+        say "inline_forms #{inline_forms_version} is installed but inline_forms_installer is #{InlineFormsInstaller::VERSION}. " \
+            "Both gems must be the same release (the installer template must match the engine).",
+            :red
+        say "Run: gem install inline_forms_installer -v #{inline_forms_version}", :red
+        exit 1
+      end
+
       say "Creating #{app_name} with inline_forms v#{inline_forms_version} and development database #{database}...", :green
 
       regex = /\A[0-9a-zA-Z][0-9a-zA-Z_-]+[0-9a-zA-Z]\Z/

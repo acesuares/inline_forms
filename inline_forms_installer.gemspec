@@ -19,6 +19,7 @@ Gem::Specification.new do |s|
   s.executables   = ["inline_forms"]
   s.require_paths = ["lib"]
 
+  s.add_dependency("inline_forms", "~> #{InlineFormsInstaller::VERSION}")
   s.add_dependency("rvm", ">= 1.11", "< 2.0")
   s.add_dependency("thor", ">= 1.0", "< 2.0")
 end

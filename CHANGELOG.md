@@ -4,6 +4,15 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [7.13.9] - 2026-05-20
+
+### Changed
+
+- **`InlineForms::VERSION`**, **`InlineFormsInstaller::VERSION`**, and **`ValidationHints::VERSION`** → **7.13.9** (three-gem lockstep; publish all three to RubyGems together via `rake release:all` plus `validation_hints` release).
+- **`inline_forms_installer` gemspec:** depends on `inline_forms ~> <installer version>` so `gem install inline_forms_installer` pulls a matching engine.
+- **`InlineFormsInstaller::Creator`:** aborts before `rails new` when the installed `inline_forms` gem version differs from `inline_forms_installer` (avoids `validation_hints ~> 6.3` vs `>= 7.13` resolver failures). Defines `exit_on_failure?` for Thor.
+- **`README.rdoc`:** documents that `inline_forms`, `inline_forms_installer`, and matching `validation_hints` must share the same release; `gem install inline_forms_installer` installs the CLI (not `gem install inline_forms` alone).
+
 ## [7.13.8] - 2026-05-20
 
 ### Added

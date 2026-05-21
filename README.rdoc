@@ -10,7 +10,13 @@ We will post a notice when the gem is good again.
 
 = Usage
 
- gem install inline_forms
+The +inline_forms create+ CLI ships in the +inline_forms_installer+ gem (not in +inline_forms+ itself). Install the installer to get the +inline_forms+ executable:
+
+ gem install inline_forms_installer
+
+That installs the +inline_forms+ engine at the same version as the installer (required — an older +inline_forms_installer+ with a newer +inline_forms+ leaves +validation_hints ~> 6.3+ in the generated +Gemfile+ while the engine needs +validation_hints >= 7.13+). Keep both gems on the same release, e.g. +gem install inline_forms_installer -v 7.13.8+. To install both gems explicitly (e.g. when adding inline_forms to an existing Rails app without the CLI):
+
+ gem install inline_forms inline_forms_installer
 
 If you want to just start a new app called MyApp:
 
@@ -240,7 +246,7 @@ In every case the Turbo wiring is the same: +link_options: { data: { turbo_frame
 
 == Generated application +rails-i18n+
 
-New apps get +rails-i18n+ from RubyGems (+ '~> 7.0'+), not from the +svenfuchs/rails-i18n+ Git repository. Release line 7.0.x declares +railties+ between 6 and 8, which matches the template’s Rails 6.1.3.1. The upstream repository’s default branch is aimed at newer Rails and would pull in +railties+ 8+, which cannot be resolved together with Rails 6.1.
+New apps get +rails-i18n+ from RubyGems (+ '~> 7.0'+), not from the +svenfuchs/rails-i18n+ Git repository. Release line 7.0.x declares +railties+ between 6 and 8, which matches the installer template’s pinned +rails ~> 7.2.3+ (with +config.load_defaults 7.2+). The upstream repository’s default branch is aimed at newer Rails and would pull in +railties+ 8+, which cannot be resolved together with that pin.
 
 == File uploads (CarrierWave)
 
