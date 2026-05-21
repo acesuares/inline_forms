@@ -38,9 +38,12 @@ task "install:local" => ["build:all"] do
   puts "Verify: inline_forms --version 2>/dev/null || gem which inline_forms_installer"
 end
 
-desc "Release both gems: tag once, push inline_forms and inline_forms_installer to RubyGems"
+# Release inline_forms + inline_forms_installer only (build, git tag/push, RubyGems push).
+# Does not run inline_forms create, MyApp, or tests. validation_hints is a separate
+# repo: cd ../validation_hints && rake release (same version number).
+desc "Release inline_forms and inline_forms_installer to RubyGems (no app generation)"
 task "release:all" => [
-  "install:local",
+  "build:all",
   "release:guard_clean",
   "release:source_control_push",
   "release:rubygem_push",

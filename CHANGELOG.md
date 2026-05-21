@@ -4,6 +4,11 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+### Changed
+
+- **`rake release:all`:** back to build + tag + RubyGems push only (no `install:local`, no MyApp). `install:local` remains a separate task for testing `inline_forms create`.
+- **Release docs in `Rakefile`:** `validation_hints` is released from its own repo (`rake release` there).
+
 ## [7.13.11] - 2026-05-20
 
 ### Changed
