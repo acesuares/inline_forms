@@ -4,6 +4,13 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [7.13.11] - 2026-05-20
+
+### Changed
+
+- **`InlineForms::VERSION`** and **`InlineFormsInstaller::VERSION`** → **7.13.11** (three-gem lockstep with **validation_hints**).
+- **`rake install:local`:** builds and `gem install`s `inline_forms` + `inline_forms_installer` from `pkg/` (and `validation_hints` from `../validation_hints/pkg/` when present). **`rake release:all`** now runs this first so `inline_forms create` uses the new installer template instead of an old RubyGems `inline_forms_installer` (e.g. 7.11.0 with `validation_hints ~> 6.3`).
+
 ## [7.13.10] - 2026-05-20
 
 ### Changed
