@@ -4,6 +4,18 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [7.13.14] - 2026-05-21
+
+### Fixed
+
+- **Install log:** header (`Install log: …` at top), test output (`tee -a`), and closing summary are all written into `MyApp/log/inline_forms_create-*.log` (not only on the terminal).
+- **`--example` test summary:** read from the install log after create (ENV set inside `rails new` did not reach the Creator parent process).
+
+### Changed
+
+- **`InlineForms::VERSION`** and **`InlineFormsInstaller::VERSION`** → **7.13.14** (lockstep with **validation_hints**).
+- **Gemfile header:** records `inline_forms_installer` version, not the resolved `inline_forms` engine version.
+
 ## [7.13.13] - 2026-05-21
 
 ### Added

@@ -129,27 +129,49 @@ module InlineFormsInstaller
         exit 1
       end
 
-      print_create_summary(app_name, log_path, started_at)
+      print_create_summary(app_name, log_path, started_at, install_example?)
     end
 
-    def print_create_summary(app_name, log_path, started_at)
+    def test_summary_from_log(log_path, ran_example)
+      return "(not run — create without --example)" unless ran_example
+      return "(install log missing)" unless log_path.to_s != "" && File.file?(log_path)
+
+      summary = File.read(log_path).lines.reverse.find { |l| l =~ /\d+ runs,/ }
+      return summary.strip if summary
+
+      "(see install log — no Minitest summary line)"
+    end
+
+    def print_create_summary(app_name, log_path, started_at, ran_example)
       duration = (Time.now - started_at).round(1)
       bundle_ok = false
       Dir.chdir(app_name) do
         bundle_ok = system("bundle", "check", out: File::NULL, err: File::NULL)
       end
 
-      test_summary = ENV["INLINE_FORMS_CREATE_TEST_SUMMARY"].to_s
-      test_summary = "(not run — create without --example)" if test_summary.empty?
+      test_summary = test_summary_from_log(log_path, ran_example)
+
+      if_ver = InlineFormsInstaller.inline_forms_version
+      inst_ver = InlineFormsInstaller::VERSION
+
+      InlineFormsInstaller::CreateLog.append_summary(
+        log_path,
+        started_at: started_at,
+        duration_s: duration,
+        inline_forms_version: if_ver,
+        installer_version: inst_ver,
+        bundle_ok: bundle_ok,
+        test_summary: test_summary
+      )
 
       say ""
       say "Install complete (#{duration}s)", :green
-      say "  inline_forms #{InlineFormsInstaller.inline_forms_version} / inline_forms_installer #{InlineFormsInstaller::VERSION}", :green
+      say "  inline_forms #{if_ver} / inline_forms_installer #{inst_ver}", :green
       say "  bundle check: #{bundle_ok ? 'ok' : 'FAILED'}", bundle_ok ? :green : :red
       say "  tests: #{test_summary}", :green
       say "Install log: #{log_path}", :green
     end
-    private :print_create_summary
+    private :print_create_summary, :test_summary_from_log
   end
 end
 

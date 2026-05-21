@@ -1,4 +1,4 @@
-require "open3"
+require "shellwords"
 
 INSTALLER_ROOT = File.expand_path(ENV.fetch("INLINE_FORMS_INSTALLER_ROOT", File.expand_path("..", __dir__)))
 INLINE_FORMS_ROOT = File.expand_path(ENV.fetch("INLINE_FORMS_ROOT", INSTALLER_ROOT))
@@ -24,7 +24,7 @@ end
 # Rails 7 dropped --skip-gemfile, so `rails new` always writes its own Gemfile.
 # Remove it so our `create_file` below does not prompt for overwrite.
 remove_file 'Gemfile' if File.exist?('Gemfile')
-create_file 'Gemfile', "# created by inline_forms #{ENV['inline_forms_version']} on #{Date.today}\n"
+create_file 'Gemfile', "# created by inline_forms_installer #{ENV['inline_forms_installer_version']} on #{Date.today}\n"
 
 # `rails new` is invoked with whatever the system `rails` binary points at
 # (often Rails 8.x), so the generated `config/application.rb` may carry
@@ -1056,18 +1056,21 @@ if ENV['install_example'] == 'true'
   end
 
   say "- Running example regression tests (bundle exec rails test)..."
-  test_out, test_status = Open3.capture2e("bundle", "exec", "rails", "test")
-  if (log_path = ENV["INLINE_FORMS_INSTALLER_LOG"]).to_s != ""
-    InlineFormsInstaller::CreateLog.append_section(log_path, "bundle exec rails test", test_out)
-  end
-  summary_line = test_out.lines.reverse.find { |l| l =~ /\d+ runs,/ }
-  ENV["INLINE_FORMS_CREATE_TEST_SUMMARY"] = summary_line&.strip || "failed (no summary line)"
-  abort "ERROR: bundle exec rails test failed during --example install.\n#{test_out}" unless test_status.success?
+  log_path = ENV["INLINE_FORMS_INSTALLER_LOG"].to_s
+  test_cmd = if log_path != ""
+               "bundle exec rails test 2>&1 | tee -a #{Shellwords.escape(log_path)}"
+             else
+               "bundle exec rails test 2>&1"
+             end
+  test_ok = system("bash", "-c", "#{test_cmd}; exit ${PIPESTATUS[0]}")
+  abort "ERROR: bundle exec rails test failed during --example install. See #{log_path}" unless test_ok
 
   say "\nDone! Example app (Photo + Apartment + Owner) is ready.", :yellow
   say "  cd #{File.basename(Dir.pwd)} && rvm use . && bundle exec rails s", :yellow
   say "  http://localhost:3000/apartments — #{ENV["email"]} / #{ENV["password"]}", :yellow
-  if (log_path = ENV["INLINE_FORMS_INSTALLER_LOG"]).to_s != ""
+  log_path = ENV["INLINE_FORMS_INSTALLER_LOG_DISPLAY"].to_s
+  log_path = ENV["INLINE_FORMS_INSTALLER_LOG"].to_s if log_path.empty?
+  if log_path != ""
     say "  Install log: #{log_path}", :yellow
   end
 end

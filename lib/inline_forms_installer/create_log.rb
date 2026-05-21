@@ -14,15 +14,45 @@ module InlineFormsInstaller
       File.expand_path(File.join(app_name, "log", basename_for(started_at)))
     end
 
+    def write_header(path, started_at: Time.now, display_path: nil)
+      FileUtils.mkdir_p(File.dirname(path))
+      shown = display_path || path
+      File.open(path, "w") do |f|
+        f.puts "=== inline_forms create install log ==="
+        f.puts "started: #{started_at.iso8601}"
+        f.puts "Install log: #{shown}"
+        f.puts ""
+      end
+    end
+
+    def append_summary(path, started_at:, duration_s:, inline_forms_version:, installer_version:, bundle_ok:, test_summary:)
+      append_section(
+        path,
+        "install summary",
+        <<~TEXT
+          finished: #{Time.now.iso8601}
+          duration: #{duration_s}s
+          inline_forms: #{inline_forms_version}
+          inline_forms_installer: #{installer_version}
+          bundle check: #{bundle_ok ? "ok" : "FAILED"}
+          tests: #{test_summary}
+          Install log: #{path}
+        TEXT
+      )
+    end
+
     def tee_rails_new(app_name, shell_command, started_at: Time.now)
       final = final_path(app_name, started_at)
       tmp = File.expand_path(basename_for(started_at))
-      ENV["INLINE_FORMS_INSTALLER_LOG"] = final
+      ENV["INLINE_FORMS_INSTALLER_LOG"] = tmp
+      ENV["INLINE_FORMS_INSTALLER_LOG_DISPLAY"] = final
       ENV["INLINE_FORMS_CREATE_STARTED_AT"] = started_at.iso8601
+
+      write_header(tmp, started_at: started_at, display_path: final)
 
       ok = system(
         "bash", "-c",
-        "#{shell_command} 2>&1 | tee #{Shellwords.escape(tmp)}; exit ${PIPESTATUS[0]}"
+        "#{shell_command} 2>&1 | tee -a #{Shellwords.escape(tmp)}; exit ${PIPESTATUS[0]}"
       )
 
       if ok && File.directory?(app_name)
