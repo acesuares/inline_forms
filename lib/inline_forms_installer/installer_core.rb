@@ -4,6 +4,17 @@ INSTALLER_ROOT = File.expand_path(ENV.fetch("INLINE_FORMS_INSTALLER_ROOT", File.
 INLINE_FORMS_ROOT = File.expand_path(ENV.fetch("INLINE_FORMS_ROOT", INSTALLER_ROOT))
 require File.join(INSTALLER_ROOT, "lib", "inline_forms_installer", "create_log")
 
+def use_app_rvm_gemset!
+  return if ENV["skiprvm"] == "true"
+  return unless (gemset = ENV["inline_forms_rvm_gemset"]).to_s != ""
+  return unless defined?(RVM) && RVM.current
+
+  require "rvm"
+  say "Working directory is #{Dir.pwd}", :green
+  RVM.use_from_path! "."
+  say "Installing using gemset: #{RVM.current.environment_name}", :green
+end
+
 def bundle_install!
   say "- Running bundle install..."
   unless system("bundle", "install")
@@ -20,6 +31,7 @@ create_file ".ruby-version", "#{ENV.fetch('ruby_version', 'ruby-4.0.4')}\n"
 if (gemset = ENV["inline_forms_rvm_gemset"]).to_s != ""
   create_file ".ruby-gemset", "#{gemset}\n"
 end
+use_app_rvm_gemset!
 
 # Rails 7 dropped --skip-gemfile, so `rails new` always writes its own Gemfile.
 # Remove it so our `create_file` below does not prompt for overwrite.

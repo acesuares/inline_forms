@@ -142,12 +142,26 @@ module InlineFormsInstaller
       "(see install log — no Minitest summary line)"
     end
 
+    def bundle_check_ok?(app_name)
+      app_dir = File.expand_path(app_name)
+      return false unless File.directory?(app_dir)
+
+      if !options[:skiprvm] && defined?(RVM) && RVM.current
+        require "rvm"
+        RVM.chdir(app_dir) do
+          RVM.use_from_path! "."
+          system("bundle", "check", out: File::NULL, err: File::NULL)
+        end
+      else
+        Dir.chdir(app_dir) do
+          system("bundle", "check", out: File::NULL, err: File::NULL)
+        end
+      end
+    end
+
     def print_create_summary(app_name, log_path, started_at, ran_example)
       duration = (Time.now - started_at).round(1)
-      bundle_ok = false
-      Dir.chdir(app_name) do
-        bundle_ok = system("bundle", "check", out: File::NULL, err: File::NULL)
-      end
+      bundle_ok = bundle_check_ok?(app_name)
 
       test_summary = test_summary_from_log(log_path, ran_example)
 
@@ -171,7 +185,7 @@ module InlineFormsInstaller
       say "  tests: #{test_summary}", :green
       say "Install log: #{log_path}", :green
     end
-    private :print_create_summary, :test_summary_from_log
+    private :print_create_summary, :test_summary_from_log, :bundle_check_ok?
   end
 end
 

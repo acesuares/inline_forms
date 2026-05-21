@@ -4,6 +4,13 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [7.13.15] - 2026-05-21
+
+### Fixed
+
+- **RVM gemset during `inline_forms create`:** switch to `@MyApp` (or app name) only after `.ruby-gemset` exists, so `bundle install` and example tests install gems into the app gemset—not plain `ruby-4.0.4`.
+- **Install summary `bundle check`:** run with `rvm use .` from the app directory so it reflects the app gemset, not the CLI gemset used to run `inline_forms create`.
+
 ## [7.13.14] - 2026-05-21
 
 ### Fixed
