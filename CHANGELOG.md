@@ -6,11 +6,17 @@ All notable changes to this project are documented in this file.
 
 ## [8.0.3] - 2026-05-22
 
+### Added
+
+- **Rails 8 release docs (Phase 5):** [`docs/rails-8-release.md`](docs/rails-8-release.md) (gate results, stack table); [`docs/zeitwerk-and-load-paths.md`](docs/zeitwerk-and-load-paths.md) (intentional ignores vs autoloaded paths).
+- **Example app gate (recorded):** `inline_forms create MyApp -d sqlite --example` → **88 runs, 502 assertions, 0 failures**; `rails zeitwerk:check` → clean.
+
 ### Changed
 
 - **Rails 8 (Phase 4):** framework-defaults audit documented in [`docs/rails-8-phase4-audit.md`](docs/rails-8-phase4-audit.md); generated apps stay on `load_defaults 8.0` only (no `new_framework_defaults_8_0.rb`, matching `rails new` 8.0.5).
 - **Unicorn template:** `before_fork` uses `ActiveRecord::Base.connection_pool.disconnect!` (Rails 8–compatible).
 - **README.rdoc:** requirements table for Ruby 4 / Rails 8 / validation_hints 8; remove stale “broken after 6.2.14” notice; `rails-i18n ~> 8.0` narrative.
+- **`inline_forms.gemspec`:** summary/description updated for Rails 8 (remove stale “broken after 6.2.14” text).
 
 ## [8.0.2] - 2026-05-22
 
