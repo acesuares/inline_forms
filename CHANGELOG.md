@@ -4,6 +4,23 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [8.0.0] - 2026-05-22
+
+### Added
+
+- **`stuff/rails8forReal.md`:** consolidated Rails 8 migration runbook; Phase 0 baseline recorded.
+
+### Fixed
+
+- **`Gemfile`:** `gemspec name: "inline_forms"` (dual gemspec repo); `tabs_on_rails ~> 3.0` for engine tests.
+- **`test/test_helper.rb`:** load Rails + `FormElementRegistry.apply!` so generator tests resolve `:dropdown` and similar types.
+- **`InlineFormsGenerator#add_tab`:** read `application_controller.rb` under `destination_root` (fixes generator unit tests).
+
+### Changed
+
+- **`InlineForms::VERSION`** and **`InlineFormsInstaller::VERSION`** → **8.0.0** (lockstep with **validation_hints**).
+- **Gemspec / installer Gemfile:** `inline_forms` and `validation_hints` pinned at **`~> 8`** (stack still **Rails 7.2.x** until Rails 8 migration phases complete).
+
 ## [7.13.18] - 2026-05-22
 
 ### Removed

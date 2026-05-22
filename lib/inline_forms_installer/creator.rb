@@ -60,14 +60,14 @@ module InlineFormsInstaller
       end
 
       inline_forms_version = InlineFormsInstaller.inline_forms_version
-      # The Gemfile pins `gem "inline_forms", "~> 7"`, so Bundler resolves the
+      # The Gemfile pins `gem "inline_forms", "~> 8"`, so Bundler resolves the
       # highest 7.x available on RubyGems at install time. The
       # `inline_forms_version` value above is just whatever happens to be in
       # the Creator's own gemset and may differ from what lands in the app;
       # report the constraint instead of a misleading exact version, and let
       # `print_create_summary` read the actual locked versions from the
       # generated app's Gemfile.lock once `bundle install` is done.
-      say "Creating #{app_name} (inline_forms ~> 7) with development database #{database}...", :green
+      say "Creating #{app_name} (inline_forms ~> 8) with development database #{database}...", :green
 
       regex = /\A[0-9a-zA-Z][0-9a-zA-Z_-]+[0-9a-zA-Z]\Z/
       if !regex.match(app_name)
@@ -169,7 +169,7 @@ module InlineFormsInstaller
     # Read the Bundler-locked version of `gem_name` from the generated app's
     # Gemfile.lock so the install summary reports what actually shipped to
     # the app, not what happens to be in the Creator's own gemset (the two
-    # can differ because the Gemfile pins `~> 7`).
+    # can differ because the Gemfile pins `~> 8`).
     def locked_gem_version(app_name, gem_name)
       lock_path = File.expand_path(File.join(app_name, "Gemfile.lock"))
       return nil unless File.file?(lock_path)

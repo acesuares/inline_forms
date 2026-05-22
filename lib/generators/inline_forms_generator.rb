@@ -243,13 +243,14 @@ module InlineForms
     def add_tab
       return if @flag_not_accessible_through_html
 
-      path = "app/controllers/application_controller.rb"
+      relative_path = "app/controllers/application_controller.rb"
       marker = "ActionView::CompiledTemplates::MODEL_TABS = %w("
       tab_token = "#{name.pluralize.underscore} "
-      content = File.read(path)
+      full_path = File.join(destination_root, relative_path)
+      content = File.read(full_path)
       return if content.include?(tab_token.rstrip)
 
-      inject_into_file path, tab_token, after: marker
+      inject_into_file relative_path, tab_token, after: marker
     end
 
     def generate_test

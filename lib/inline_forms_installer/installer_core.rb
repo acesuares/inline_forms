@@ -71,7 +71,7 @@ gem 'foundation-rails', '~> 6.9'
 if ENV["INLINE_FORMS_GEMFILE_PATH"] && File.directory?(ENV["INLINE_FORMS_GEMFILE_PATH"])
   gem "inline_forms", path: ENV["INLINE_FORMS_GEMFILE_PATH"]
 else
-  gem "inline_forms", "~> 7"
+  gem "inline_forms", "~> 8"
 end
 gem 'jquery-rails'
 gem 'jquery-timepicker-rails'
@@ -102,7 +102,7 @@ gem 'importmap-rails'
 gem 'turbo-rails'
 gem 'tabs_on_rails', '~> 3.0'
 gem 'unicorn'
-gem 'validation_hints', '~> 7'
+gem 'validation_hints', '~> 8'
 gem 'will_paginate'
 
 gem_group :test do
