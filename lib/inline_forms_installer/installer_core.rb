@@ -31,6 +31,31 @@ def bundle_install!
   end
 end
 
+# Pre-install built .gem files into the app RVM gemset so Bundler can resolve
+# inline_forms ~> 8 before those releases exist on RubyGems. Set
+# INLINE_FORMS_RELEASE_ROOT and/or VALIDATION_HINTS_ROOT (creator sets the latter
+# when a sibling validation_hints checkout exists).
+def install_prerelease_gems_from_roots!
+  roots = []
+  %w[INLINE_FORMS_RELEASE_ROOT VALIDATION_HINTS_ROOT].each do |key|
+    root = ENV[key].to_s
+    roots << File.expand_path(root) if root != "" && File.directory?(root)
+  end
+  roots.uniq!
+  return if roots.empty?
+
+  %w[validation_hints inline_forms inline_forms_installer].each do |name|
+    gem_file = roots.filter_map { |root|
+      files = Dir[File.join(root, "#{name}-*.gem")]
+      files.sort.last if files.any?
+    }.max
+    next unless gem_file && File.file?(gem_file)
+
+    say "- Installing #{File.basename(gem_file)} into app gemset..."
+    run "gem install #{Shellwords.escape(gem_file)} --no-document"
+  end
+end
+
 # Pin Ruby for the generated app (after `rails new`; do not write these files in
 # Creator before `rails new` — Rails also emits `.ruby-version` and prompts).
 create_file ".ruby-version", "#{ENV.fetch('ruby_version', 'ruby-4.0.4')}\n"
@@ -44,15 +69,12 @@ use_app_rvm_gemset!
 remove_file 'Gemfile' if File.exist?('Gemfile')
 create_file 'Gemfile', "# created by inline_forms_installer #{ENV['inline_forms_installer_version']} on #{Date.today}\n"
 
-# `rails new` is invoked with whatever the system `rails` binary points at
-# (often Rails 8.x), so the generated `config/application.rb` may carry
-# `load_defaults 8.0` and other 8.x-only settings. The Gemfile below pins
-# `rails ~> 7.2.3`; normalize application.rb so the first `bundle exec rails`
-# boot matches that pin.
+# `rails new` uses a locally installed Rails 8.0.x when available (see Creator).
+# Align `load_defaults` with the Gemfile pin below if a different `rails new` left another version.
 if File.exist?('config/application.rb')
   gsub_file 'config/application.rb',
             /config\.load_defaults\s+\d+\.\d+/,
-            'config.load_defaults 7.2'
+            'config.load_defaults 8.0'
 end
 
 add_source 'https://rubygems.org'
@@ -65,8 +87,8 @@ gem 'autoprefixer-rails'
 # foundation-rails 6.7+ uses Dart Sass (`sass:math`); sass-rails/sassc removed.
 # Visually tuned against foundation-rails ~> 6.6.2; current pin ~> 6.9 (6.9.0.x).
 gem 'foundation-rails', '~> 6.9'
-# Pin inline_forms and validation_hints on the 7.x line; Bundler resolves the
-# highest 7.x that satisfies all deps. Set INLINE_FORMS_GEMFILE_PATH for
+# Pin inline_forms and validation_hints on the 8.x line; Bundler resolves the
+# highest 8.x that satisfies all deps. Set INLINE_FORMS_GEMFILE_PATH for
 # maintainer local-path overrides only.
 if ENV["INLINE_FORMS_GEMFILE_PATH"] && File.directory?(ENV["INLINE_FORMS_GEMFILE_PATH"])
   gem "inline_forms", path: ENV["INLINE_FORMS_GEMFILE_PATH"]
@@ -84,9 +106,9 @@ gem 'jquery-ui-rails', '4.0.3'
 gem 'mini_magick'
 gem 'mysql2'
 gem 'paper_trail', '~> 16.0'
-gem 'rails-i18n', '~> 7.0'
+gem 'rails-i18n', '~> 8.0'
 gem 'rails-jquery-autocomplete'
-gem 'rails', '~> 7.2.3'
+gem 'rails', '~> 8.0'
 gem 'rake'
 gem 'rvm'
 gem 'dartsass-rails'
@@ -121,8 +143,8 @@ gem_group :development do
   gem 'rvm-capistrano', :require => false
   gem 'rvm1-capistrano3', require: false
   gem 'seed_dump', '~> 0.5.3'
-  # Rails 6.1 ActiveRecord's sqlite3 adapter requires sqlite3 ~> 1.4; 2.x activates first and breaks.
-  gem 'sqlite3', '~> 1.4'
+  # Rails 8 sqlite3 adapter requires sqlite3 >= 2.1.
+  gem 'sqlite3', '>= 2.1'
   gem 'thin'
   gem 'yaml_db'
 end
@@ -134,13 +156,7 @@ end
 
 say "- Running bundle..."
 run "gem install bundler --no-document"
-if (vh_root = ENV["VALIDATION_HINTS_ROOT"]) && File.directory?(vh_root)
-  vh_gem = Dir[File.join(vh_root, "validation_hints-*.gem")].sort.last
-  if vh_gem && File.file?(vh_gem)
-    say "- Installing #{File.basename(vh_gem)} from VALIDATION_HINTS_ROOT..."
-    run "gem install #{vh_gem} --no-document"
-  end
-end
+install_prerelease_gems_from_roots!
 bundle_install!
 
 say "- Dart Sass: inline_forms stylesheet entrypoints + initializer..."
@@ -150,6 +166,13 @@ copy_file File.join(INSTALLER_ROOT, "lib/installer_templates/dartsass/inline_for
           "app/assets/stylesheets/inline_forms_install/inline_forms_main.scss"
 copy_file File.join(INSTALLER_ROOT, "lib/installer_templates/dartsass/devise_main.scss"),
           "app/assets/stylesheets/inline_forms_install/devise_main.scss"
+
+say "- Sprockets: app/assets/config/manifest.js (Rails 8 importmap default omits it)..."
+empty_directory "app/assets/config"
+create_file "app/assets/config/manifest.js", <<~MANIFEST unless File.exist?("app/assets/config/manifest.js")
+  //= link_tree ../images
+  //= link_tree ../builds
+MANIFEST
 
 say "- Dart Sass: rails dartsass:install (builds/, manifest, Procfile.dev)..."
 run "bundle exec rails dartsass:install"
@@ -256,7 +279,7 @@ create_file "db/migrate/" +
   Time.now.utc.strftime("%Y%m%d%H%M%S") +
   "_" +
   "devise_create_users.rb", <<-DEVISE_MIGRATION.strip_heredoc
-class DeviseCreateUsers < ActiveRecord::Migration[7.2]
+class DeviseCreateUsers < ActiveRecord::Migration[8.0]
 
   def change
     create_table(:users) do |t|
@@ -409,7 +432,7 @@ create_file "db/migrate/" +
   Time.now.utc.strftime("%Y%m%d%H%M%S") +
   "_" +
   "inline_forms_create_join_table_user_role.rb", <<-ROLES_MIGRATION.strip_heredoc
-  class InlineFormsCreateJoinTableUserRole < ActiveRecord::Migration[7.2]
+  class InlineFormsCreateJoinTableUserRole < ActiveRecord::Migration[8.0]
     def self.up
       create_table  :roles_users, :id => false, :force => true do |t|
         t.integer   :role_id
@@ -837,7 +860,7 @@ if ENV['install_example'] == 'true'
   sleep 1
   add_owner_ts = Time.now.utc.strftime("%Y%m%d%H%M%S")
   create_file "db/migrate/#{add_owner_ts}_add_owner_to_apartments.rb", <<-ADD_OWNER.strip_heredoc
-    class AddOwnerToApartments < ActiveRecord::Migration[7.2]
+    class AddOwnerToApartments < ActiveRecord::Migration[8.0]
       def change
         add_reference :apartments, :owner, null: true, foreign_key: true
       end
@@ -916,7 +939,7 @@ if ENV['install_example'] == 'true'
   sleep 1
   seed_ts = Time.now.utc.strftime("%Y%m%d%H%M%S")
   create_file "db/migrate/#{seed_ts}_seed_example_apartments_and_owners.rb", <<-SEED_MIGRATION.strip_heredoc
-    class SeedExampleApartmentsAndOwners < ActiveRecord::Migration[7.2]
+    class SeedExampleApartmentsAndOwners < ActiveRecord::Migration[8.0]
       # ---------------------------------------------------------------
       # Apartment seed gallery
       # ---------------------------------------------------------------

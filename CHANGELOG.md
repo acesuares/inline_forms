@@ -4,6 +4,14 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [8.0.2] - 2026-05-22
+
+### Changed
+
+- **Rails 8 (installer):** `inline_forms create` prefers **`rails` 8.0.x** for `rails new`; generated Gemfile pins **`rails ~> 8.0`**, **`rails-i18n ~> 8.0`**, **`config.load_defaults 8.0`**; installer migrations **`[8.0]`**; dev/test **`sqlite3 >= 2.1`** (Phase 3).
+- **Pre-release gem install:** before `bundle install`, installs built **`*.gem`** files from **`INLINE_FORMS_RELEASE_ROOT`** / **`VALIDATION_HINTS_ROOT`** (auto-discovered from `~/code/inline_forms` and `~/code/validation_hints` when present) into the app RVM gemset so unreleased 8.x gems resolve without Gemfile path pins.
+- **`InlineForms::VERSION`** and **`InlineFormsInstaller::VERSION`** → **8.0.2** (lockstep with **validation_hints**).
+
 ## [8.0.1] - 2026-05-22
 
 ### Changed

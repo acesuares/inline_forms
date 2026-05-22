@@ -103,6 +103,7 @@ module InlineFormsInstaller
       ENV["inline_forms_installer_version"] = InlineFormsInstaller::VERSION
       ENV["INLINE_FORMS_INSTALLER_ROOT"] = InlineFormsInstaller.gem_root
       ENV["INLINE_FORMS_ROOT"] = InlineFormsInstaller.inline_forms_gem_root
+      InlineFormsInstaller.discover_prerelease_env!
 
       app_template_file = File.join(__dir__, "app_template.rb")
 
@@ -112,7 +113,7 @@ module InlineFormsInstaller
           Gem::Specification
             .find_all_by_name("rails")
             .map(&:version)
-            .select { |v| v >= Gem::Version.new("7.2") && v < Gem::Version.new("7.3") }
+            .select { |v| v >= Gem::Version.new("8.0") && v < Gem::Version.new("8.1") }
             .max
         rescue StandardError
           nil
