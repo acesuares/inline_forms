@@ -4,6 +4,16 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [7.13.18] - 2026-05-22
+
+### Removed
+
+- **DB-backed translations:** installer no longer generates `InlineFormsLocale`, `InlineFormsKey`, `InlineFormsTranslation`, or the `translations` SQL view migration. Removed `InlineForms::TranslationRecord`, `InlineFormsController#extract_translations`, its view, and YAML-export helpers (`deep_hashify`, `deep_merge`, `unravel`). Apps use standard Rails I18n YAML under `config/locales/` (e.g. `inline_forms_local.en.yml`); the old `i18n-active_record` path was never wired.
+
+### Changed
+
+- **`InlineForms::VERSION`** and **`InlineFormsInstaller::VERSION`** → **7.13.18** (lockstep with **validation_hints**).
+
 ## [7.13.17] - 2026-05-21
 
 ### Fixed

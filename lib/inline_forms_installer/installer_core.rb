@@ -499,37 +499,6 @@ create_file 'config/initializers/paper_trail_yaml_safe_load.rb', <<-PT_YAML.stri
   ActiveRecord.yaml_column_permitted_classes |= Rails.application.config.active_record.yaml_column_permitted_classes
 PT_YAML
 
-# Create Translations
-say "- Generate models and tables and views for translations..." # TODO Translations need to be done in inline_forms, and then generate a yml file, perhaps
-generate "inline_forms", "InlineFormsLocale name:string inline_forms_translations:belongs_to _enabled:yes _presentation:\#{name}"
-sleep 1 # unique migration timestamps per generator
-generate "inline_forms", "InlineFormsKey name:string inline_forms_translations:has_many inline_forms_translations:associated _enabled:yes _presentation:\#{name}"
-sleep 1
-generate "inline_forms", "InlineFormsTranslation inline_forms_key:belongs_to inline_forms_locale:dropdown value:text interpolations:text is_proc:boolean _presentation:\#{value}"
-# Plain long text uses :plain_text; ActionText-backed fields use :rich_text.
-sleep 1 # to get unique migration number
-create_file "db/migrate/" +
-  Time.now.utc.strftime("%Y%m%d%H%M%S") +
-  "_" +
-  "inline_forms_create_view_for_translations.rb", <<-VIEW_MIGRATION.strip_heredoc
-  class InlineFormsCreateViewForTranslations < ActiveRecord::Migration[7.2]
-    def self.up
-      execute 'CREATE VIEW translations
-               AS
-                 SELECT L.name AS locale,
-                        K.name AS thekey,
-                        T.value AS value,
-                        T.interpolations AS interpolations,
-                        T.is_proc AS is_proc
-                   FROM inline_forms_keys K, inline_forms_locales L, inline_forms_translations T
-                     WHERE T.inline_forms_key_id = K.id AND T.inline_forms_locale_id = L.id '
-    end
-    def self.down
-      execute 'DROP VIEW translations'
-    end
-  end
-VIEW_MIGRATION
-
 say "- Creating application title via locales..."
 create_file "config/locales/inline_forms_local.en.yml", <<-END_LOCALE.strip_heredoc
   en:

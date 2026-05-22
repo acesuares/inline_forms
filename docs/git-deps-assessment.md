@@ -13,7 +13,7 @@
 |-----|-----|-----|--------|
 | `will_paginate` | RubyGems + commented acesuares fork | RubyGems only | Fork never active; comment removed |
 | `tabs_on_rails` | `acesuares/tabs_on_rails` branch `update_remote_before_action` | `~> 3.0` (weppos, RubyGems) | Fork only added unused `:remote` on tab links; upstream 3.0.0 already uses `before_action` |
-| `i18n-active_record` | `acesuares/i18n-active_record` (2012) | **Removed** — `InlineForms::TranslationRecord` | App never sets `I18n.backend`; only reads the `translations` **view** via AR |
+| `i18n-active_record` | `acesuares/i18n-active_record` (2012) | **Removed** (7.13.18: no DB translation tables) | Never configured `I18n.backend`; DB tables/view and `extract_translations` removed |
 
 **No generated-app Gemfile should use `:git` for these anymore.**
 
@@ -56,28 +56,15 @@ Branch `update_remote_before_action` on `acesuares/tabs_on_rails` (2019) did two
 
 ## `i18n-active_record`
 
-### Why the fork existed
+### History
 
-- Upstream expects a `translations` table with column **`key`**.
-- MySQL reserves `KEY`; acesuares fork renamed to **`thekey`** with `alias_attribute :key, :thekey`.
-- Fork is **Rails 3 era** (`set_table_name`, `attr_protected`, last push 2012).
+- Fork existed because MySQL reserves `KEY`; acesuares fork used **`thekey`**.
+- **7.13.5–7.13.17:** gem removed from Gemfile; installer still generated locale/key/translation tables + `translations` view; **`InlineForms::TranslationRecord`** read the view; **`extract_translations`** exported YAML (never routed by default).
+- **`I18n.backend` was never** `I18n::Backend::ActiveRecord` in generated apps.
 
-### What inline_forms actually uses
+### Verdict (7.13.18+)
 
-- Installer builds **InlineFormsKey / Locale / Translation** tables, then a SQL **VIEW** `translations` with columns `locale`, **`thekey`**, `value`, `interpolations`, `is_proc`.
-- **`I18n.backend` is never configured** to `I18n::Backend::ActiveRecord` in generated apps.
-- Only consumer: **`InlineFormsController#extract_translations`** (admin export of keys); not wired in default routes/tests.
-
-### Upstream today
-
-- **RubyGems:** `i18n-active_record` **1.4.0** (2024), Rails 7.1+ YAML serializers, column **`key`**, optional `scope`.
-- Adopting it would require renaming the view column to `key` (backtick on MySQL) and dropping the stale fork API.
-
-### Verdict
-
-**Drop the gem.** Add **`InlineForms::TranslationRecord`** (`lib/inline_forms/translation_record.rb`) as a read-only AR model on the existing view with **`thekey`**. Same behavior, no git dep, Rails 7.2-safe.
-
-If full **I18n::Backend::ActiveRecord** is needed later, pin **`i18n-active_record ~> 1.4`** and align the view schema to upstream (`key` column + initializer), not the 2012 fork.
+**No DB translation layer.** Generated apps use Rails I18n YAML only (`config/locales/inline_forms_local.en.yml`, etc.). If **I18n::Backend::ActiveRecord** is needed later, add **`i18n-active_record ~> 1.4`** and migrations separately—not via inline_forms installer.
 
 ---
 

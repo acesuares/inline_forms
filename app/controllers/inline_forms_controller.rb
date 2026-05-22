@@ -321,18 +321,6 @@ class InlineFormsController < ApplicationController
     end
   end
 
-  def extract_translations
-    keys_array = []
-    InlineForms::TranslationRecord.order(:locale, :thekey).each do |t|
-      keys_array << deep_hashify([ t.locale, t.thekey.split('.'), t.value ].flatten)
-    end
-    keys_hash = {}
-    keys_array.each do |h|
-      keys_hash = deep_merge(keys_hash, h)
-    end
-    @display_array = unravel(keys_hash)
-  end
-
   private
 
   # Versions list lives in +<turbo-frame id="…_versions">+; POST +restore+ would otherwise
@@ -476,26 +464,6 @@ class InlineFormsController < ApplicationController
 
   def object_id_params
     params.require(:id)
-  end
-
-  def deep_hashify(ary)
-    return ary.to_s if ary.length == 1
-    { ary.shift => deep_hashify(ary) }
-  end
-
-  def deep_merge(h1, h2)
-    return h1.merge(h2) unless h2.first[1].is_a? Hash
-    h1.merge(h2){|key, first, second| deep_merge(first, second)}
-  end
-
-  def unravel(deep_hash, level=-1)
-    level += 1
-    return "#{'  '*level}\"#{deep_hash.first[0]}\": \"#{deep_hash.first[1]}\"\n" unless deep_hash.first[1].is_a? Hash
-    a = "#{'  '*level}\"#{deep_hash.first[0]}\":\n"
-    deep_hash.first[1].each do |k,v|
-      a << unravel( { k => v}, level)
-    end
-    a
   end
 
   def revert_params
