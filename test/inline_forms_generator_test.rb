@@ -50,7 +50,7 @@ class InlineFormsGeneratorTest < Minitest::Test
 
     assert_includes(application_controller, "MODEL_TABS = %w(things ")
 
-    assert_includes(migration, "class InlineFormsCreateThings < ActiveRecord::Migration[7.0]")
+    assert_includes(migration, "class InlineFormsCreateThings < ActiveRecord::Migration[8.0]")
     assert_includes(migration, "create_table :things do |t|")
     assert_includes(migration, "t.string :name")
     assert_includes(migration, "t.belongs_to :category")

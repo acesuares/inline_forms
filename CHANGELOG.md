@@ -4,6 +4,17 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [8.0.1] - 2026-05-22
+
+### Changed
+
+- **Rails 8 (engine):** `inline_forms` gemspec requires **`rails >= 8.0`, `< 8.1`**, **`rails-i18n >= 8.0`, `< 9.0`**, **`validation_hints >= 8.0.1`, `< 9.0`** (Phase 2). Generator migrations emit **`ActiveRecord::Migration[8.0]`**.
+- **`InlineForms::VERSION`** and **`InlineFormsInstaller::VERSION`** → **8.0.1** (lockstep with **validation_hints**).
+
+### Note
+
+- **`inline_forms_installer` / `--example` app** still pins **Rails 7.2** in the template until Phase 3.
+
 ## [8.0.0] - 2026-05-22
 
 ### Added

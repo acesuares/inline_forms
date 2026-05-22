@@ -1,4 +1,4 @@
-class InlineFormsCreate<%= table_name.camelize %> < ActiveRecord::Migration[7.0]
+class InlineFormsCreate<%= table_name.camelize %> < ActiveRecord::Migration[8.0]
 
   def self.up
     create_table :<%= table_name + @primary_key_option %> do |t|
