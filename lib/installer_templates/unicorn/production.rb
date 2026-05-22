@@ -22,7 +22,7 @@ before_exec do |_|
 end
 
 before_fork do |server, worker|
-  defined?(ActiveRecord::Base) and ActiveRecord::Base.connection.disconnect!
+  defined?(ActiveRecord::Base) and ActiveRecord::Base.connection_pool.disconnect!
 
   old_pid = "#{app_path}/tmp/pids/unicorn.pid.oldbin"
 

@@ -2,11 +2,11 @@
 
 Inline Forms is almost a complete admin application. You can try it out easily.
 
-= Release status notice
+= Requirements
 
-All gem versions after +6.2.14+ are currently broken.
-
-We will post a notice when the gem is good again.
+* Ruby **>= 4.0** (generated apps pin **ruby-4.0.4**)
+* Rails **8.0.x** (+rails ~> 8.0+, +config.load_defaults 8.0+)
+* **validation_hints** **~> 8** (companion gem; same version line as +inline_forms+ / +inline_forms_installer+)
 
 = Usage
 
@@ -14,7 +14,7 @@ The +inline_forms create+ CLI ships in the +inline_forms_installer+ gem (not in 
 
  gem install inline_forms_installer
 
-Generated apps pin +inline_forms+ and +validation_hints+ at +~> 7+ (Bundler picks the latest 7.x). The three gems (+inline_forms+, +inline_forms_installer+, +validation_hints+) are released together with the same version number; use a current +inline_forms_installer+ so the installer template matches current Rails pins. To add the engine to an existing Rails app without the CLI:
+Generated apps pin +inline_forms+ and +validation_hints+ at +~> 8+ (Bundler picks the latest 8.x). The three gems (+inline_forms+, +inline_forms_installer+, +validation_hints+) are released together with the same version number; use a current +inline_forms_installer+ so the installer template matches current Rails pins. To add the engine to an existing Rails app without the CLI:
 
  gem install inline_forms inline_forms_installer
 
@@ -246,7 +246,7 @@ In every case the Turbo wiring is the same: +link_options: { data: { turbo_frame
 
 == Generated application +rails-i18n+
 
-New apps get +rails-i18n+ from RubyGems (+ '~> 7.0'+), not from the +svenfuchs/rails-i18n+ Git repository. Release line 7.0.x declares +railties+ between 6 and 8, which matches the installer template’s pinned +rails ~> 7.2.3+ (with +config.load_defaults 7.2+). The upstream repository’s default branch is aimed at newer Rails and would pull in +railties+ 8+, which cannot be resolved together with that pin.
+New apps get +rails-i18n+ from RubyGems (+ '~> 8.0'+), not from the +svenfuchs/rails-i18n+ Git repository. The installer pins +rails ~> 8.0+ with +config.load_defaults 8.0+; the published +rails-i18n+ 8.x line matches that stack.
 
 == File uploads (CarrierWave)
 

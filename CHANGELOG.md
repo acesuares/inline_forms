@@ -4,6 +4,14 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [8.0.3] - 2026-05-22
+
+### Changed
+
+- **Rails 8 (Phase 4):** framework-defaults audit documented in [`docs/rails-8-phase4-audit.md`](docs/rails-8-phase4-audit.md); generated apps stay on `load_defaults 8.0` only (no `new_framework_defaults_8_0.rb`, matching `rails new` 8.0.5).
+- **Unicorn template:** `before_fork` uses `ActiveRecord::Base.connection_pool.disconnect!` (Rails 8–compatible).
+- **README.rdoc:** requirements table for Ruby 4 / Rails 8 / validation_hints 8; remove stale “broken after 6.2.14” notice; `rails-i18n ~> 8.0` narrative.
+
 ## [8.0.2] - 2026-05-22
 
 ### Changed

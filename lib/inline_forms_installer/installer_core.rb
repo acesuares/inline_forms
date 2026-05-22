@@ -69,8 +69,8 @@ use_app_rvm_gemset!
 remove_file 'Gemfile' if File.exist?('Gemfile')
 create_file 'Gemfile', "# created by inline_forms_installer #{ENV['inline_forms_installer_version']} on #{Date.today}\n"
 
-# `rails new` uses a locally installed Rails 8.0.x when available (see Creator).
-# Align `load_defaults` with the Gemfile pin below if a different `rails new` left another version.
+# Creator invokes `rails _8.0.x_ new`, which emits `load_defaults 8.0` and removes
+# `new_framework_defaults_8_0.rb`. Normalize anyway when an older generator left another minor.
 if File.exist?('config/application.rb')
   gsub_file 'config/application.rb',
             /config\.load_defaults\s+\d+\.\d+/,

@@ -61,7 +61,7 @@ module InlineFormsInstaller
 
       inline_forms_version = InlineFormsInstaller.inline_forms_version
       # The Gemfile pins `gem "inline_forms", "~> 8"`, so Bundler resolves the
-      # highest 7.x available on RubyGems at install time. The
+      # highest 8.x available on RubyGems at install time. The
       # `inline_forms_version` value above is just whatever happens to be in
       # the Creator's own gemset and may differ from what lands in the app;
       # report the constraint instead of a misleading exact version, and let
