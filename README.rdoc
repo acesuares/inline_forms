@@ -30,6 +30,12 @@ If you want to install the example application:
 
  inline_forms create MyApp -d sqlite --example
 
+To use a different Devise model (e.g. +Member+ on a +members+ table) while keeping Warden scope +:user+ so +current_user+ works in inline_forms:
+
+ inline_forms create MyApp -d sqlite --example --user-model Member
+
+The installer emits +devise_for :users, class_name: "Member", path: "members"+ (sign-in at +/auth/members/sign_in+), +resources :members+, and the usual +authenticate_user!+ / +destroy_user_session_path+ helpers.
+
 Then point your browser to http://localhost:3000/apartments and log in with admin@example.com / admin999. The example also adds integration and model tests; run +bundle exec rails test+ in +MyApp+, then start the server with +bundle exec rails s+ when you want the UI.
 
 The example app now ships three models:

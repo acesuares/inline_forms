@@ -22,6 +22,7 @@ module InlineFormsInstaller
     method_option :email, :aliases => "-e", :default => "admin@example.com", :desc => "specify admin email"
     method_option :password, :aliases => "-p", :default => "admin999", :desc => "specify admin password"
     method_option :skiprvm, :aliases => "--no-rvm", :type => :boolean, :default => false, :desc => "install inline_forms without RVM"
+    method_option :user_model, :aliases => "-U", :default => "User", :banner => "CLASS", :desc => "Devise model class (e.g. Member); Warden scope stays :user (current_user)"
 
     def create(app_name)
       def self.skiprvm
@@ -59,6 +60,13 @@ module InlineFormsInstaller
         exit 1
       end
 
+      begin
+        user_model_cfg = InlineFormsInstaller::UserModelConfig.from_name(options[:user_model].to_s)
+      rescue ArgumentError => e
+        say "Error: #{e.message}", :red
+        exit 1
+      end
+
       inline_forms_version = InlineFormsInstaller.inline_forms_version
       # The Gemfile pins `gem "inline_forms", "~> 8"`, so Bundler resolves the
       # highest 8.x available on RubyGems at install time. The
@@ -67,7 +75,8 @@ module InlineFormsInstaller
       # report the constraint instead of a misleading exact version, and let
       # `print_create_summary` read the actual locked versions from the
       # generated app's Gemfile.lock once `bundle install` is done.
-      say "Creating #{app_name} (inline_forms ~> 8) with development database #{database}...", :green
+      user_model_note = user_model_cfg.default? ? "" : " (auth model: #{user_model_cfg.class_name})"
+      say "Creating #{app_name} (inline_forms ~> 8) with development database #{database}#{user_model_note}...", :green
 
       regex = /\A[0-9a-zA-Z][0-9a-zA-Z_-]+[0-9a-zA-Z]\Z/
       if !regex.match(app_name)

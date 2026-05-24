@@ -3,6 +3,7 @@ require "shellwords"
 INSTALLER_ROOT = File.expand_path(ENV.fetch("INLINE_FORMS_INSTALLER_ROOT", File.expand_path("..", __dir__)))
 INLINE_FORMS_ROOT = File.expand_path(ENV.fetch("INLINE_FORMS_ROOT", INSTALLER_ROOT))
 require File.join(INSTALLER_ROOT, "lib", "inline_forms_installer", "create_log")
+require File.join(INSTALLER_ROOT, "lib", "inline_forms_installer", "user_model_config")
 
 def use_app_rvm_gemset!
   return if ENV["skiprvm"] == "true"
@@ -262,11 +263,16 @@ say "\n *** Please make sure to create a mysql production database and use 'rail
 say "- Devise install..."
 run "bundle exec rails g devise:install"
 
+user_cfg = InlineFormsInstaller::UserModelConfig.from_env
+unless user_cfg.default?
+  say "- Auth model #{user_cfg.class_name} (#{user_cfg.table_name} table; Warden scope :user → current_user)", :green
+end
+
 say "- Create Devise route and add path_prefix..."
 
 route <<-ROUTE.strip_heredoc
-devise_for :users, :path_prefix => 'auth'
-  resources :users do
+#{user_cfg.devise_route_line}
+  resources :#{user_cfg.plural_route} do
     post 'revert', :on => :member
     get 'list_versions', :on => :member
 end
@@ -278,11 +284,11 @@ sleep 1 # to get unique migration number
 create_file "db/migrate/" +
   Time.now.utc.strftime("%Y%m%d%H%M%S") +
   "_" +
-  "devise_create_users.rb", <<-DEVISE_MIGRATION.strip_heredoc
-class DeviseCreateUsers < ActiveRecord::Migration[8.0]
+  "#{user_cfg.devise_migration_basename}.rb", <<-DEVISE_MIGRATION.strip_heredoc
+class #{user_cfg.devise_migration_class} < ActiveRecord::Migration[8.0]
 
   def change
-    create_table(:users) do |t|
+    create_table(:#{user_cfg.table_name}) do |t|
       ## Database authenticatable
       t.string :email,              null: false, default: ""
       t.string :encrypted_password, null: false, default: ""
@@ -318,24 +324,24 @@ class DeviseCreateUsers < ActiveRecord::Migration[8.0]
       t.timestamps
     end
 
-    add_index :users, :email,                unique: true
-    add_index :users, :reset_password_token, unique: true
-    # add_index :users, :confirmation_token,   unique: true
-    # add_index :users, :unlock_token,         unique: true
+    add_index :#{user_cfg.table_name}, :email,                unique: true
+    add_index :#{user_cfg.table_name}, :reset_password_token, unique: true
+    # add_index :#{user_cfg.table_name}, :confirmation_token,   unique: true
+    # add_index :#{user_cfg.table_name}, :unlock_token,         unique: true
   end
 end
 DEVISE_MIGRATION
 
-say "- Create User Controller..."
-create_file "app/controllers/users_controller.rb", <<-USERS_CONTROLLER.strip_heredoc
-  class UsersController < InlineFormsController
-    set_tab :user
+say "- Create #{user_cfg.class_name} controller..."
+create_file user_cfg.controller_path, <<-USERS_CONTROLLER.strip_heredoc
+  class #{user_cfg.controller_name} < InlineFormsController
+    set_tab :#{user_cfg.tab_key}
   end
 USERS_CONTROLLER
 
-say "- Create User Model..."
-create_file "app/models/user.rb", <<-USER_MODEL.strip_heredoc
-  class User < ApplicationRecord
+say "- Create #{user_cfg.class_name} model..."
+create_file user_cfg.model_path, <<-USER_MODEL.strip_heredoc
+  class #{user_cfg.class_name} < ApplicationRecord
 
     # devise options
     devise :database_authenticatable
@@ -413,36 +419,36 @@ USER_MODEL
 
 # Create Locales
 say "- Create locales"
-generate "inline_forms", "Locale name:string title:string users:has_many _enabled:yes _presentation:\#{title}"
+generate "inline_forms", "Locale name:string title:string #{user_cfg.table_name}:has_many _enabled:yes _presentation:\#{title}"
 append_to_file "db/seeds.rb", "Locale.create({ id: 1, name: 'en', title: 'English' })\n"
 
 # Create Roles
 say "- Create roles"
-generate "inline_forms", "Role name:string description:text users:has_and_belongs_to_many _enabled:yes _presentation:\#{name}"
+generate "inline_forms", "Role name:string description:text #{user_cfg.table_name}:has_and_belongs_to_many _enabled:yes _presentation:\#{name}"
 append_to_file "db/seeds.rb", "Role.create({ id: 1, name: 'superadmin', description: 'Super Admin can access all.' })\n"
 
 # Create Admin User
 
-say "- Adding admin user with email: #{ENV['email']}, password: #{ENV['password']} to seeds.rb"
-append_to_file "db/seeds.rb", "User.create({ id: 1, email: '#{ENV['email']}', locale_id: 1, name: 'Admin', password: '#{ENV['password']}', password_confirmation: '#{ENV['password']}' })\n"
+say "- Adding admin #{user_cfg.class_name.downcase} with email: #{ENV['email']}, password: #{ENV['password']} to seeds.rb"
+append_to_file "db/seeds.rb", "#{user_cfg.class_name}.create({ id: 1, email: '#{ENV['email']}', locale_id: 1, name: 'Admin', password: '#{ENV['password']}', password_confirmation: '#{ENV['password']}' })\n"
 
 
 sleep 1 # to get unique migration number
 create_file "db/migrate/" +
   Time.now.utc.strftime("%Y%m%d%H%M%S") +
   "_" +
-  "inline_forms_create_join_table_user_role.rb", <<-ROLES_MIGRATION.strip_heredoc
-  class InlineFormsCreateJoinTableUserRole < ActiveRecord::Migration[8.0]
+  "#{user_cfg.join_migration_basename}.rb", <<-ROLES_MIGRATION.strip_heredoc
+  class #{user_cfg.join_migration_class} < ActiveRecord::Migration[8.0]
     def self.up
-      create_table  :roles_users, :id => false, :force => true do |t|
+      create_table  :#{user_cfg.join_table}, :id => false, :force => true do |t|
         t.integer   :role_id
-        t.integer   :user_id
+        t.integer   :#{user_cfg.foreign_key}
       end
-      execute 'INSERT INTO roles_users VALUES (1,1);'
+      execute 'INSERT INTO #{user_cfg.join_table} VALUES (1,1);'
     end
 
     def self.down
-      drop_table roles_users
+      drop_table #{user_cfg.join_table}
     end
   end
 ROLES_MIGRATION
@@ -611,7 +617,7 @@ create_file "app/models/ability.rb", <<-END_ABILITY.strip_heredoc
     def initialize(user)
       # See the wiki for details: https://github.com/CanCanCommunity/cancancan/wiki/Defining-Abilities
 
-      user ||= User.new # guest user
+      user ||= #{user_cfg.class_name}.new # guest user
 
       # use this if you get stuck:
       # if user.id == 1 #quick hack
@@ -1060,9 +1066,10 @@ if ENV['install_example'] == 'true'
   route "root :to => 'apartments#index'"
 
   example_tests_root = File.join(INSTALLER_ROOT, "lib/installer_templates/example_app_tests")
+  example_user_cfg = InlineFormsInstaller::UserModelConfig.from_env
   Dir.glob(File.join(example_tests_root, "**", "*.rb")).sort.each do |abs|
     rel = abs.delete_prefix(example_tests_root + File::SEPARATOR).tr("\\", "/")
-    create_file rel, File.read(abs)
+    create_file rel, example_user_cfg.adapt_example_test_source(File.read(abs))
   end
 
   say "- Running example regression tests (bundle exec rails test)..."

@@ -79,4 +79,5 @@ module InlineFormsInstaller
   end
 end
 
+require "inline_forms_installer/user_model_config"
 require "inline_forms_installer/creator"

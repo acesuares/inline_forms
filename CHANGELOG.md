@@ -4,6 +4,16 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [8.0.4] - 2026-05-24
+
+### Added
+
+- **`inline_forms create --user-model` (`-U`):** choose the Devise-backed model class (e.g. `Member`). Default remains `User`. Non-default models use `devise_for :users, class_name: "…", path: "…"` so Warden scope stays `:user` (`current_user`, `destroy_user_session_path`, etc.). Installer generates matching table, routes, controller, Locale/Role associations, HABTM join table (`members_roles`, etc.), seeds, Ability guest user, and `--example` test substitutions.
+
+### Changed
+
+- **`version_modified_by`:** resolves the auth model via `Devise.mappings[:users]` instead of hard-coding `User` (PaperTrail “modified by” on custom auth models).
+
 ## [8.0.3] - 2026-05-22
 
 ### Added

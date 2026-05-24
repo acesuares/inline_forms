@@ -347,9 +347,14 @@ module InlineFormsHelper
     values
   end
 
-  def version_modified_by id
-    user = User.find_by_id id
-    user.nil? ? 'Unknown' : user.name
+  def version_modified_by(id)
+    return "Unknown" if id.blank?
+
+    user_class = Devise.mappings[:users]&.to
+    return "Unknown" unless user_class
+
+    user = user_class.find_by(id: id)
+    user.nil? ? "Unknown" : user.name
   end
 
 end
