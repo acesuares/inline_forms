@@ -1,5 +1,6 @@
 # -*- encoding : utf-8 -*-
 require "inline_forms"
+require_relative "inline_forms_attribute_overrides"
 module InlineForms
   # == Usage
   # This generator generates a migration, a model and a controller.
@@ -13,82 +14,12 @@ module InlineForms
   #  rails g example_generator Modelname attribute:type attribute:type ...
   # an array with attributes and types is created for use in the generator.
   #
-  # Rails::Generators::GeneratedAttribute creates, among others, a attribute_type.
+  # Rails::Generators::GeneratedAttribute creates, among others, an attribute_type.
   # This attribute_type maps column types to form attribute helpers like text_field.
-  # We override it here to make our own.
+  # We override it in `lib/generators/inline_forms_attribute_overrides.rb`
+  # (shared with `InlineFormsAddtoGenerator`).
   #
   class InlineFormsGenerator < Rails::Generators::NamedBase
-    Rails::Generators::GeneratedAttribute.class_eval do #:doc:
-      # Override Rails::Generators::GeneratedAttribute.valid_type? so that our
-      # custom field types (dropdown, check_list, image_field, rich_text, ...)
-      # pass through parsing. We do our own unknown-type detection later (with
-      # Thor::Error + --allow-unknown), so it is safe to accept everything here.
-      #
-      # Rails 6.1 used to rescue ActiveRecord::Base.connection failures, which
-      # masked the issue; Rails 7+ raises NameError when ActiveRecord is not
-      # loaded yet, breaking generator unit tests.
-      def self.valid_type?(_type)
-        true
-      end
-
-      # Deducts the column_type for migrations from the type.
-      #
-      # We first merge the Special Column Types with the Default Column Types,
-      # which has the effect that the Default Column Types with the same key override
-      # the Special Column Types.
-      #
-      # If the type is not in the merged hash, then column_type defaults to :unknown
-      #
-      # You are advised to check you migrations for the :unknown, because either you made a
-      # typo in the generator command line or you need to add a Form Element!
-      #
-      def column_type
-        SPECIAL_COLUMN_TYPES.merge(DEFAULT_COLUMN_TYPES).merge(RELATIONS).merge(SPECIAL_RELATIONS)[type] || :unknown
-      end
-
-      # Override the attribute_type to include our special column types.
-      #
-      # If a type is not in the Special Column Type hash, then the default
-      # column type hash is used, and if that fails, the attribute_type
-      # will be :unknown. Make sure to check your models for the :unknown.
-      #
-      def attribute_type
-        SPECIAL_COLUMN_TYPES.merge(RELATIONS).has_key?(type) ? type : DEFAULT_FORM_ELEMENTS[type] || :unknown
-      end
-
-      def special_relation?
-        SPECIAL_RELATIONS.has_key?(type)
-      end
-
-      def relation?
-        RELATIONS.has_key?(type) || special_relation?
-      end
-
-      # Special "attribute" names that drive the generator (presentation,
-      # ordering, search, etc.) but never become real columns or fields.
-      SPECIAL_GENERATOR_NAMES = %w[
-        _presentation
-        _order
-        _list_order
-        _list_search
-        _enabled
-        _id
-        _no_migration
-        _no_model
-      ].freeze
-
-      def migration?
-        not ( column_type == :no_migration  ||
-            SPECIAL_GENERATOR_NAMES.include?(name) )
-      end
-
-      def attribute?
-        not ( SPECIAL_GENERATOR_NAMES.include?(name) ||
-            relation? )
-      end
-
-
-    end
     argument :attributes, :type => :array,  :banner => "[name:form_element]..."
     class_option :allow_unknown, :type => :boolean, :default => false, :desc => "Allow unknown field types (legacy behavior: comment generated lines instead of failing)."
 

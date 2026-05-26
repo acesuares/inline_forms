@@ -4,6 +4,22 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [8.1.1] - 2026-05-26
+
+### Added
+
+- **`rails g inline_forms_addto <Model> attr:type [...]`:** new generator that adds fields to an *existing* inline_forms model. Emits an additive migration (`add_column` for scalars, `add_reference :table, :name, foreign_key: true` for `:belongs_to`/`:references`/`:dropdown`, single `:string` column for `:image_field`/`:audio_field`; no column for `:rich_text`/`has_many`/`has_one`/`habtm`) and edits the model file: injects `belongs_to` / `has_many` / `has_one` / `has_and_belongs_to_many` / `has_rich_text` / `mount_uploader` lines (idempotent), and inserts new rows into the model's `inline_forms_attribute_list` (handles both the generator-shaped and the installer's hand-written `User`/`Member` block). Does NOT touch routes, controller, or `MODEL_TABS` — those are already wired for the existing model. Use case: extending the narrow `User` (or `--user-model Member`) shipped by the installer with app-specific fields like `occupation`, `birthdate`, `organization:dropdown`, `bio:rich_text` without hand-writing migrations or attribute-list edits. Plan: [`stuff/inline_forms_addto.md`](stuff/inline_forms_addto.md).
+- **`--allow-unknown` parity** with `inline_forms`: unknown field types raise `Thor::Error` by default; pass `--allow-unknown` to keep the legacy commented output (`#    add_column …`, `#     [ :name , "name", :unknown ]`).
+- **`--replace`** flag: opt-in rewrite of existing `_presentation` / `_list_order` (and the legacy `_order`) / `_list_search` scopes/methods. Without `--replace` these special names are skipped with `say_status :skipped` so re-runs don't silently mutate the model's ordering/search policy.
+
+### Changed
+
+- **Refactor — `Rails::Generators::GeneratedAttribute` overrides moved to `lib/generators/inline_forms_attribute_overrides.rb`** and shared by both `InlineFormsGenerator` (`rails g inline_forms`) and the new `InlineFormsAddtoGenerator` (`rails g inline_forms_addto`). Pure refactor: same `column_type` / `attribute_type` / `relation?` / `migration?` / `attribute?` / `SPECIAL_GENERATOR_NAMES` semantics, now qualified with `InlineForms::` constants so the file works outside the `module InlineForms` lexical scope.
+
+### Notes
+
+- The new generator class is top-level (`InlineFormsAddtoGenerator`, not `InlineForms::InlineFormsAddtoGenerator`) so `rails g inline_forms_addto …` resolves directly. Rails' generator lookup only collapses `name:name` namespaces (the `inline_forms:inline_forms` → `inline_forms` rule that `InlineFormsGenerator` relies on). A `module InlineForms; InlineFormsAddtoGenerator = ::InlineFormsAddtoGenerator; end` alias is provided for any programmatic invokers that reach for the namespaced constant.
+
 ## [8.1.0] - 2026-05-25
 
 ### Added
