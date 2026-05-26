@@ -4,6 +4,24 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [8.1.4] - 2026-05-26
+
+### Fixed
+
+- **Search box on `/users` (or `/members`, etc.) silently returned the full list.** The installer-generated user model declared `scope :inline_forms_list, -> { order(:name, :id) }` but **no** `inline_forms_search` scope, so `InlineFormsController#index`'s `merge(@Klass.inline_forms_search(params[:search]))` fell through to the `ApplicationRecord` no-op (`scope :inline_forms_search, ->(_q) { all }`) and emitted `SELECT … FROM users ORDER BY name ASC, id ASC LIMIT 7` — no `WHERE`, no filter, regardless of the search query. Installer's `User` / `<custom>` model template now ships `scope :inline_forms_search, ->(q) { where("name LIKE :q OR email LIKE :q", q: "%#{q}%") }`, so `/users?search=ad` now returns rows whose name or email matches `%ad%`. Custom user-model classes via `-U <Class>` get the same scope.
+- **Top-bar "More" dropdown was empty in every generated app** (long-standing latent bug). `lib/generators/inline_forms_generator.rb#add_tab` looked for the marker `ActionView::CompiledTemplates::MODEL_TABS = %w(` in `app/controllers/application_controller.rb`, but the installer wrote the initializer at `config/initializers/inline_forms.rb` with the marker `MODEL_TABS = %w(` and the application controller had no marker at all. Thor's `inject_into_file` silently skipped (no error, no message), so `MODEL_TABS` stayed `%w()` through every `rails g inline_forms` call. The header partial (`app/views/inline_forms/_header.html.erb`) iterated an empty list and the dropdown rendered just the chevron with no children — for years.
+  - `add_tab` now targets `config/initializers/inline_forms.rb` with the simpler marker `MODEL_TABS = %w(`, no-ops if the file or marker is missing (so consumers running `rails g inline_forms` in a non-installer-shaped app still work), and stays idempotent on re-run (skips the token if already present).
+  - Installer's initializer is now created **before** the `Locale` / `Role` `generate "inline_forms"` calls (was created at the end of the run), and is pre-seeded with the user-model's pluralised route — `MODEL_TABS = %w(<plural_route> )` — because the user model is hand-written by the installer (not generated) and would otherwise never be added.
+  - Net effect on a fresh `inline_forms create MyApp -d sqlite --example`: `MODEL_TABS = %w(owners apartments roles locales users )` (with `-U Member`: `… members `). The top-bar "More" dropdown now lists every HTML-reachable model the current `current_user` `can? :update`.
+
+### Changed
+
+- **Test skeleton (`test/inline_forms_generator_test.rb#build_destination_skeleton!`)** writes `config/initializers/inline_forms.rb` with `MODEL_TABS = %w()` (matching the installer) instead of the legacy `ActionView::CompiledTemplates::MODEL_TABS = %w()` in `application_controller.rb`. `test_generates_model_controller_route_migration_and_tab_injection` now asserts the token lands in the initializer.
+
+### Notes
+
+- **Example app gate (recorded):** `inline_forms create MyApp -d sqlite --example` against the freshly built **8.1.4** gem trio: install in ~71s, `bundle check: ok`, `MODEL_TABS = %w(owners apartments roles locales users )` in the initializer, **88 runs, 502 assertions, 0 failures, 0 errors, 0 skips**. Same result with `-U Member`, with `users → members` in `MODEL_TABS`.
+
 ## [8.1.3] - 2026-05-26
 
 ### Changed

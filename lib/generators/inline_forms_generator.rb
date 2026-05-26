@@ -186,11 +186,22 @@ module InlineForms
     def add_tab
       return if @flag_not_accessible_through_html
 
-      relative_path = "app/controllers/application_controller.rb"
-      marker = "ActionView::CompiledTemplates::MODEL_TABS = %w("
+      # The installer seeds `MODEL_TABS = %w(<user_model_route> )` in
+      # `config/initializers/inline_forms.rb` before any `rails g inline_forms`
+      # runs. Inject each generated model's pluralised route token into that
+      # list so the inline_forms top-bar dropdown (rendered by
+      # `app/views/inline_forms/_header.html.erb`) surfaces every
+      # HTML-reachable model. No-op when the initializer is absent (e.g. a
+      # consumer running `rails g inline_forms` in a non-installer-shaped app)
+      # or when the token is already present (idempotent re-run).
+      relative_path = "config/initializers/inline_forms.rb"
+      marker = "MODEL_TABS = %w("
       tab_token = "#{name.pluralize.underscore} "
       full_path = File.join(destination_root, relative_path)
+      return unless File.exist?(full_path)
+
       content = File.read(full_path)
+      return unless content.include?(marker)
       return if content.include?(tab_token.rstrip)
 
       inject_into_file relative_path, tab_token, after: marker

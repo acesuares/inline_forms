@@ -368,6 +368,11 @@ create_file user_cfg.model_path, <<-USER_MODEL.strip_heredoc
     # via `#{user_cfg.class_name}.inline_forms_list`). Avoids `default_scope`
     # so callers can `unscope`/`reorder` cleanly when needed.
     scope :inline_forms_list, -> { order(:name, :id) }
+    # Search box on /#{user_cfg.plural_route} filters by name OR email. Without this
+    # the controller would `merge(ApplicationRecord.inline_forms_search(q))`,
+    # which is the no-op `all` fallback, and the query string would be silently
+    # ignored.
+    scope :inline_forms_search, ->(q) { where("name LIKE :q OR email LIKE :q", q: "%\#{q}%") }
 
     def _presentation
       "\#{name}"
@@ -403,6 +408,18 @@ create_file user_cfg.model_path, <<-USER_MODEL.strip_heredoc
 
   end
 USER_MODEL
+
+# inline_forms initializer (must exist before subsequent `rails g inline_forms`
+# runs so the generator's `add_tab` step can inject each generated model's
+# route token into `MODEL_TABS`). Pre-seeded with the user-model route
+# (the user model is hand-written above, not generated, so the generator
+# never sees it).
+say "- Creating inline_forms initializer (MODEL_TABS seeded with #{user_cfg.plural_route})"
+create_file "config/initializers/inline_forms.rb", <<-END_INITIALIZER.strip_heredoc
+  Rails.application.reloader.to_prepare do
+    MODEL_TABS = %w(#{user_cfg.plural_route} )
+  end
+END_INITIALIZER
 
 # Create Locales
 say "- Create locales"
@@ -544,13 +561,6 @@ create_file "app/helpers/application_helper.rb", <<-END_APPHELPER.strip_heredoc
     end
   end
 END_APPHELPER
-
-say "- Creating inline_forms initializer"
-create_file "config/initializers/inline_forms.rb", <<-END_INITIALIZER.strip_heredoc
-  Rails.application.reloader.to_prepare do
-    MODEL_TABS = %w()
-  end
-END_INITIALIZER
 
 say "- Recreating ApplicationController to add devise, cancan, I18n stuff..."
 remove_file "app/controllers/application_controller.rb" # the one that 'rails new' created

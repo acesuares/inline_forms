@@ -32,7 +32,7 @@ class InlineFormsGeneratorTest < Minitest::Test
     model = read("app/models/thing.rb")
     controller = read("app/controllers/things_controller.rb")
     routes = read("config/routes.rb")
-    application_controller = read("app/controllers/application_controller.rb")
+    inline_forms_initializer = read("config/initializers/inline_forms.rb")
     migration = read_single_migration_for("things")
 
     assert_includes(model, "class Thing < ApplicationRecord")
@@ -54,7 +54,7 @@ class InlineFormsGeneratorTest < Minitest::Test
     assert_includes(routes, "post 'revert', :on => :member")
     assert_includes(routes, "get 'list_versions', :on => :member")
 
-    assert_includes(application_controller, "MODEL_TABS = %w(things ")
+    assert_includes(inline_forms_initializer, "MODEL_TABS = %w(things ")
 
     assert_includes(migration, "class InlineFormsCreateThings < ActiveRecord::Migration[8.1]")
     assert_includes(migration, "create_table :things do |t|")
@@ -175,6 +175,7 @@ class InlineFormsGeneratorTest < Minitest::Test
 
   def build_destination_skeleton!
     mkdir_p("config")
+    mkdir_p("config/initializers")
     mkdir_p("app/controllers")
     mkdir_p("app/models")
     mkdir_p("db/migrate")
@@ -192,7 +193,17 @@ class InlineFormsGeneratorTest < Minitest::Test
       "app/controllers/application_controller.rb",
       <<~RUBY
         class ApplicationController < ActionController::Base
-          ActionView::CompiledTemplates::MODEL_TABS = %w()
+        end
+      RUBY
+    )
+
+    # Matches the file the installer writes; the generator's `add_tab` step
+    # injects `<plural_route> ` tokens after the `MODEL_TABS = %w(` marker.
+    write(
+      "config/initializers/inline_forms.rb",
+      <<~RUBY
+        Rails.application.reloader.to_prepare do
+          MODEL_TABS = %w()
         end
       RUBY
     )
