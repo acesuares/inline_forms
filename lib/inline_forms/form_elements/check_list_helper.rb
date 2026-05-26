@@ -19,11 +19,9 @@ module InlineForms
     
     def check_list_edit(object, attribute)
       object.send(attribute).build  if object.send(attribute).empty?
-      if cancan_enabled?
-        values = object.send(attribute).first.class.name.constantize.accessible_by(current_ability).order(attribute.to_s.singularize.camelcase.constantize.order_by_clause)
-      else
-        values = object.send(attribute).first.class.name.constantize.order(attribute.to_s.singularize.camelcase.constantize.order_by_clause)
-      end
+      klass = object.send(attribute).first.class
+      values = cancan_enabled? ? klass.accessible_by(current_ability) : klass.all
+      values = values.merge(klass.inline_forms_list) if klass.respond_to?(:inline_forms_list)
       out = ''
       values.each do | item |
         out << "<div class='row #{cycle('odd', 'even')}'>"

@@ -1,15 +1,4 @@
 class <%= name %> < ApplicationRecord
-  attr_reader :per_page
-  @per_page = 7
-  attr_writer :inline_forms_attribute_list
-  # PaperTrail 16 defaults to `on: [:create, :update, :destroy, :touch]`.
-  # ActionText's `belongs_to :record, polymorphic: true, touch: true` (set by
-  # `has_rich_text`) calls `parent.touch` on every rich-text save, which
-  # produced a parent-side `update` version with an empty changeset — visible
-  # in the inline_forms versions panel as a meaningless "empty" row whose
-  # Restore link reifies the same state (no-op). Excluding `:touch` here
-  # suppresses that noise without affecting real attribute updates.
-  has_paper_trail on: [:create, :update, :destroy]
 <%= @carrierwave_mounters if @carrierwave_mounters.length > 1 -%>
 <%= @belongs_to if @belongs_to.length > 1 -%>
 <%= @has_many if @has_many.length > 1 -%>
@@ -17,14 +6,18 @@ class <%= name %> < ApplicationRecord
 <%= @habtm if @habtm.length > 1 -%>
 <%= @has_rich_text if @has_rich_text.length > 1 -%>
 <%= @has_attached_files if @has_attached_files.length > 1 -%>
+<% if @list_scopes && !@list_scopes.empty? -%>
+
+<%= @list_scopes -%>
+<% end -%>
 <%= @presentation  if @presentation.length > 1 -%>
 <%= @inline_forms_attribute_list -%>
 <%= @order  if @order.length > 1 -%>
+<% if @flag_not_accessible_through_html -%>
 
   def self.not_accessible_through_html?
-    <%= @flag_not_accessible_through_html %>
+    true
   end
-
-<%= @order_by_clause -%>
+<% end -%>
 
 end

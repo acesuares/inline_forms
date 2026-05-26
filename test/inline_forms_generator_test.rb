@@ -36,6 +36,12 @@ class InlineFormsGeneratorTest < Minitest::Test
     migration = read_single_migration_for("things")
 
     assert_includes(model, "class Thing < ApplicationRecord")
+    refute_includes(model, "has_paper_trail")
+    refute_includes(model, "attr_reader :per_page")
+    refute_includes(model, 'def self.not_accessible_through_html?')
+    refute_includes(model, "def self.order_by_clause")
+    refute_includes(model, "scope :inline_forms_list")
+    refute_includes(model, "scope :inline_forms_search")
     assert_includes(model, "belongs_to :category")
     assert_includes(model, "has_many :photos")
     assert_includes(model, "[ :name , \"name\", :text_field ]")
@@ -98,6 +104,61 @@ class InlineFormsGeneratorTest < Minitest::Test
     assert_includes(model, "has_rich_text :content")
     refute_includes(migration, "t.no_migration :content")
     refute_includes(migration, "t.text :content")
+  end
+
+  def test_not_accessible_and_list_order_emits_scope_and_spaceship
+    run_generator(
+      "Photo",
+      "name:string",
+      "album:belongs_to",
+      "_presentation:\\#{name}",
+      "_list_order:caption"
+    )
+
+    model = read("app/models/photo.rb")
+    assert_includes(model, "def self.not_accessible_through_html?\n    true")
+    assert_includes(model, "scope :inline_forms_list, -> { order(:caption, :id) }")
+    assert_includes(model, "def <=>(other)")
+    assert_includes(model, "self.caption <=> other.caption")
+    refute_includes(model, "def self.order_by_clause")
+    refute_includes(model, "has_paper_trail")
+  end
+
+  def test_legacy_order_alias_still_emits_scope_with_deprecation_warning
+    stdout, stderr = capture_io do
+      run_generator(
+        "Photo",
+        "name:string",
+        "_presentation:\\#{name}",
+        "_order:caption"
+      )
+    end
+
+    output = "#{stdout}#{stderr}"
+    assert_includes(output, "_order:caption is deprecated")
+    assert_includes(output, "_list_order:caption")
+
+    model = read("app/models/photo.rb")
+    assert_includes(model, "scope :inline_forms_list, -> { order(:caption, :id) }")
+    refute_includes(model, "def self.order_by_clause")
+  end
+
+  def test_list_search_emits_search_scope
+    run_generator(
+      "Apartment",
+      "name:string",
+      "_enabled:yes",
+      "_list_order:name",
+      "_list_search:name",
+      "_presentation:\\#{name}"
+    )
+
+    model = read("app/models/apartment.rb")
+    assert_includes(model, "scope :inline_forms_list, -> { order(:name, :id) }")
+    assert_includes(model, "scope :inline_forms_search, ->(q) { where(\"name LIKE ?\", \"%\#{q}%\") }")
+    migration = read_single_migration_for("apartments")
+    refute_includes(migration, "_list_order")
+    refute_includes(migration, "_list_search")
   end
 
   def test_plain_text_generates_text_column_and_plain_text_form_element

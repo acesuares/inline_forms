@@ -4,6 +4,38 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [8.1.0] - 2026-05-25
+
+### Added
+
+- **`ApplicationRecord` template carries shared model behavior:** `has_paper_trail on: [:create, :update, :destroy]`, `attr_writer :inline_forms_attribute_list`, `self.per_page = 7`, `human_attribute_name` instance wrapper, and `def self.not_accessible_through_html?` default. Generated models inherit all of this; `lib/generators/templates/model.erb` only emits per-model differences (associations, `inline_forms_attribute_list`, `_presentation`, `<=>`, `not_accessible_through_html?` override when `_enabled` is absent).
+- **`scope :inline_forms_list, -> { all }` and `scope :inline_forms_search, ->(_q) { all }`** on `ApplicationRecord`. Both are no-ops by default; subclasses opt in. Replaces the old `def self.order_by_clause` contract with composable Active Record relations.
+- **Generator flags `_list_order:col` and `_list_search:col`:** emit `scope :inline_forms_list, -> { order(:col, :id) }` and `scope :inline_forms_search, ->(q) { where("col LIKE ?", "%#{q}%") }` respectively. `_list_order` also still emits `def <=>(other)` for in-memory sort on associations (used by `check_list` show). Tie-break on `:id` is added automatically so will_paginate pages stay stable.
+- **`SPECIAL_GENERATOR_NAMES` constant** in `InlineForms::InlineFormsGenerator` consolidates `_presentation`, `_order`, `_list_order`, `_list_search`, `_enabled`, `_id`, `_no_migration`, `_no_model` so `migration?` / `attribute?` no longer drift.
+
+### Changed
+
+- **`order_by_clause` is gone from the gem.** `InlineFormsController#index` / `#create`, `check_list_helper.rb`, and `app/views/inline_forms/_list.html.erb` now compose `merge(@Klass.inline_forms_list)` and `merge(@Klass.inline_forms_search(params[:search]))` instead of building raw `"table.col"` strings. Search and order are now independent (one column had to do both jobs before); models can declare each separately or neither.
+- **Per-page pagination fix in `ApplicationRecord`:** `self.per_page = 7` (class-level, what will_paginate's `class_attribute :per_page` reads). The old `attr_reader :per_page` + `@per_page = 7` instance pair on every generated model was a no-op (described at length in 8.0.x notes); models that need a different value override with `self.per_page = N` (Photo uses `5`). The installer’s Photo override now uses `inject_into_class "app/models/photo.rb", "Photo", "  self.per_page = 5\n"` instead of patching the legacy `attr_reader` block out.
+- **`_order:col` is deprecated as an alias for `_list_order:col`.** Still works (emits the same scope plus `<=>`); the generator prints `say_status :deprecated, "_order:col is deprecated; use _list_order:col"` so existing scripts keep generating but the migration path is visible.
+- **Installer User model:** dropped `default_scope { order :name }` and the `def self.order_by_clause; nil; end` stub. Added `scope :inline_forms_list, -> { order(:name, :id) }` with a comment about why named scopes beat `default_scope` (no `unscope`/`reorder` foot-guns; cleaner `update_all` / association inheritance).
+- **Installer example-app generator calls** for `Locale`, `Role`, `Photo`, `Apartment`, `Owner` now pass `_list_order:name` (and `_list_search:name` for the searchable top-level models `Apartment` and `Owner`) to declare ordering and search explicitly. Replaces the implicit `order_by_clause = "name"` default that the old generator produced.
+
+### Removed
+
+- **`lib/generators/assets/javascripts/`** (including the empty `ckeditor/` subfolder). Leftover from the CKEditor era; nothing in the gem or installer copied from it. The engine still ships JS under `app/assets/javascripts/` and `vendor/assets/javascripts/`.
+- **`lib/generators/assets/stylesheets/inline_forms.scss`** mirror. The installer doesn't copy it; the gem stylesheet at `app/assets/stylesheets/inline_forms/inline_forms.scss` is the single source consumed via `@use "inline_forms/inline_forms"`. `inline_forms_devise.css` stays — it is the host-app override hook copied by the installer and linked from `layouts/devise.html.erb`.
+
+### Migration notes
+
+Existing apps upgrading from 8.0.x:
+
+1. Replace your `app/models/application_record.rb` with the contents of `lib/generators/templates/application_record.rb` (or just merge in the new `has_paper_trail`, `self.per_page`, `inline_forms_list` / `inline_forms_search` scopes, and `not_accessible_through_html?` default).
+2. For each model that had `def self.order_by_clause; "col"; end`, replace with `scope :inline_forms_list, -> { order(:col, :id) }`. Drop the old method; the gem no longer reads it.
+3. If you used `default_scope { order(:name) }` for inline_forms list ordering, swap to the named scope above.
+4. Per-model `attr_reader :per_page` / `@per_page = N` pairs are no-ops; replace with `self.per_page = N` (or remove and inherit `7` from `ApplicationRecord`).
+5. `_order:col` in your generator scripts still works but emits a deprecation notice; switch to `_list_order:col` and add `_list_search:col` if you want the search box to filter on that column.
+
 ## [8.0.4] - 2026-05-24
 
 ### Added

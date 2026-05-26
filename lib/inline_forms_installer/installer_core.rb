@@ -356,8 +356,6 @@ create_file user_cfg.model_path, <<-USER_MODEL.strip_heredoc
     # devise :timeoutable
     # devise :omniauthable
 
-    # Setup accessible (or protected) attributes for your model
-    attr_writer :inline_forms_attribute_list
     #attr_accessible :email, :password, :locale, :remember_me
 
     belongs_to :locale
@@ -366,13 +364,10 @@ create_file user_cfg.model_path, <<-USER_MODEL.strip_heredoc
     # validations
     validates :name, :presence => true
 
-    default_scope {order :name}
-
-    # pagination
-    attr_reader :per_page
-    @per_page = 7
-
-    has_paper_trail on: [:create, :update, :destroy]
+    # Default ordering for inline_forms list views (and any explicit caller
+    # via `#{user_cfg.class_name}.inline_forms_list`). Avoids `default_scope`
+    # so callers can `unscope`/`reorder` cleanly when needed.
+    scope :inline_forms_list, -> { order(:name, :id) }
 
     def _presentation
       "\#{name}"
@@ -406,25 +401,17 @@ create_file user_cfg.model_path, <<-USER_MODEL.strip_heredoc
       ]
     end
 
-    def self.not_accessible_through_html?
-      false
-    end
-
-    def self.order_by_clause
-      nil
-    end
-
   end
 USER_MODEL
 
 # Create Locales
 say "- Create locales"
-generate "inline_forms", "Locale name:string title:string #{user_cfg.table_name}:has_many _enabled:yes _presentation:\#{title}"
+generate "inline_forms", "Locale name:string title:string #{user_cfg.table_name}:has_many _enabled:yes _list_order:title _presentation:\#{title}"
 append_to_file "db/seeds.rb", "Locale.create({ id: 1, name: 'en', title: 'English' })\n"
 
 # Create Roles
 say "- Create roles"
-generate "inline_forms", "Role name:string description:text #{user_cfg.table_name}:has_and_belongs_to_many _enabled:yes _presentation:\#{name}"
+generate "inline_forms", "Role name:string description:text #{user_cfg.table_name}:has_and_belongs_to_many _enabled:yes _list_order:name _presentation:\#{name}"
 append_to_file "db/seeds.rb", "Role.create({ id: 1, name: 'superadmin', description: 'Super Admin can access all.' })\n"
 
 # Create Admin User
@@ -463,7 +450,7 @@ copy_file File.join(INLINE_FORMS_ROOT, 'lib/generators/assets/stylesheets/inline
 say "- Sprockets: link inline_forms_devise.css (logical path; dartsass:install drops link_directory ../stylesheets)..."
 append_to_file "app/assets/config/manifest.js", "//= link inline_forms_devise.css\n"
 
-say "- Add human_attribute_name in app/models/application_record.rb"
+say "- Install ApplicationRecord (PaperTrail, pagination, inline_forms defaults)..."
 remove_file 'app/models/application_record.rb' # the one that 'rails new' created
 copy_file File.join(INLINE_FORMS_ROOT, 'lib/generators/templates/application_record.rb'), "app/models/application_record.rb"
 
@@ -718,14 +705,14 @@ git commit: " -a -m 'Initial Commit'"
 # example
 if ENV['install_example'] == 'true'
   say "\nInstalling example application..."
-  run 'bundle exec rails g inline_forms Photo name:string caption:string image:image_field description:rich_text apartment:belongs_to _presentation:\'#{name}\''
+  run 'bundle exec rails g inline_forms Photo name:string caption:string image:image_field description:rich_text apartment:belongs_to _list_order:name _presentation:\'#{name}\''
   run 'bundle exec rails generate uploader Image'
-  run 'bundle exec rails g inline_forms Apartment name:string title:string opening_date:date description:rich_text photos:has_many photos:associated _enabled:yes _presentation:\'#{name}\''
+  run 'bundle exec rails g inline_forms Apartment name:string title:string opening_date:date description:rich_text photos:has_many photos:associated _enabled:yes _list_order:name _list_search:name _presentation:\'#{name}\''
 
   say "- Apartment name is required..."
   inject_into_file "app/models/apartment.rb",
                    "\n  validates :name, presence: true\n",
-                   after: "  has_paper_trail on: [:create, :update, :destroy]\n"
+                   after: "class Apartment < ApplicationRecord\n"
 
   # CarrierWave + PaperTrail history.
   # PaperTrail snapshots the column scalar (the stored filename) on update,
@@ -790,20 +777,7 @@ if ENV['install_example'] == 'true'
   end
 
   say "- Lower Photo.per_page so the seeded gallery paginates..."
-  # The model template (lib/generators/templates/model.erb) emits
-  #   attr_reader :per_page
-  #   @per_page = 7
-  # which is a long-standing typo: `attr_reader :per_page` defines an
-  # *instance* method, then `@per_page = 7` (executed in the class body)
-  # actively *clobbers* the class-level per_page that will_paginate
-  # exposes via `class_attribute :per_page` (its singleton-ivar storage
-  # also lives on `@per_page`). Net effect: nothing reads 7 anywhere,
-  # and the class-level per_page silently reverts to will_paginate's
-  # 30-default. Replace the pair on Photo with a real `self.per_page = 5`
-  # so the seeded gallery (12 photos) actually paginates 5/5/2.
-  gsub_file "app/models/photo.rb",
-            /^\s*attr_reader\s+:per_page\s*\n\s*@per_page\s*=\s*\d+\s*\n/,
-            "  self.per_page = 5\n"
+  inject_into_class "app/models/photo.rb", "Photo", "  self.per_page = 5\n"
 
   run 'bundle exec rake db:migrate'
 
@@ -855,12 +829,12 @@ if ENV['install_example'] == 'true'
   # shared first field. See OwnersController override below.
   say "- Generating Owner model (has_many apartments)..."
   sleep 1
-  run %q{bundle exec rails g inline_forms Owner name:string birthdate:date address:string city:string country:string apartments:has_many apartments:associated _enabled:yes _presentation:'#{name}'}
+  run %q{bundle exec rails g inline_forms Owner name:string birthdate:date address:string city:string country:string apartments:has_many apartments:associated _enabled:yes _list_order:name _list_search:name _presentation:'#{name}'}
 
   say "- Owner name is required..."
   inject_into_file "app/models/owner.rb",
                    "\n  validates :name, presence: true\n",
-                   after: "  has_paper_trail on: [:create, :update, :destroy]\n"
+                   after: "class Owner < ApplicationRecord\n"
 
   say "- Adding owner_id to apartments + belongs_to :owner..."
   sleep 1
@@ -875,7 +849,7 @@ if ENV['install_example'] == 'true'
 
   inject_into_file "app/models/apartment.rb",
                    "  belongs_to :owner, optional: true\n",
-                   after: "  has_paper_trail on: [:create, :update, :destroy]\n"
+                   after: "class Apartment < ApplicationRecord\n"
 
   # Insert the :owner dropdown row at the top of Apartment's attribute list
   # so it appears above :name in the inline panel.

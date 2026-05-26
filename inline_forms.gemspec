@@ -19,7 +19,7 @@ Gem::Specification.new do |s|
   s.test_files = s.files.grep(%r{^(test|spec|features)/})
   s.require_paths = ["lib"]
 
-  s.add_dependency("validation_hints", ">= 8.0.4", "< 9.0")
+  s.add_dependency("validation_hints", ">= 8.1.0", "< 9.0")
   s.add_dependency("rails", ">= 8.0", "< 8.1")
   s.add_dependency("rails-i18n", ">= 8.0", "< 9.0")
 

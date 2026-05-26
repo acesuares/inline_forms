@@ -36,14 +36,12 @@ class InlineFormsController < ApplicationController
     @parent_class = params[:parent_class]
     @parent_id = params[:parent_id]
     @ul_needed = params[:ul_needed]
-    # if the parent_class is not nill, we are in associated list and we don't search there.
-    # also, make sure the Model that you want to do a search on has a :name attribute. TODO
-    conditions = nil
-    if @parent_class.nil? || @Klass.reflect_on_association(@parent_class.underscore.to_sym).nil?
-      conditions = [ @Klass.table_name + "." + @Klass.order_by_clause + " like ?", "%#{params[:search]}%" ] if @Klass.respond_to?(:order_by_clause) && ! @Klass.order_by_clause.nil?
-    else
+    # Nested associated lists scope to the parent FK. Top-level lists may
+    # apply the model's `inline_forms_search` scope when ?search= is passed.
+    fk_conditions = nil
+    if @parent_class.present? && @Klass.reflect_on_association(@parent_class.underscore.to_sym)
       foreign_key = @Klass.reflect_on_association(@parent_class.underscore.to_sym).options[:foreign_key] || @parent_class.foreign_key
-      conditions =  [ "#{foreign_key} = ?", @parent_id ]
+      fk_conditions = [ "#{foreign_key} = ?", @parent_id ]
     end
     # CanCan's load_and_authorize_resource sets @apartments (etc.); keep @objects in sync.
     collection_ivar = :"@#{controller_name}"
@@ -52,9 +50,13 @@ class InlineFormsController < ApplicationController
       @objects = loaded unless loaded.nil?
     end
     @objects ||= @Klass.accessible_by(current_ability) if cancan_enabled?
-    @objects ||= @Klass
-    @objects = @objects.order(@Klass.table_name + "." + @Klass.order_by_clause) if @Klass.respond_to?(:order_by_clause) && ! @Klass.order_by_clause.nil?
-    @objects = @objects.where(conditions).paginate(:page => params[:page])
+    @objects ||= @Klass.all
+    @objects = @objects.merge(@Klass.inline_forms_list) if @Klass.respond_to?(:inline_forms_list)
+    if fk_conditions.nil? && params[:search].present? && @Klass.respond_to?(:inline_forms_search)
+      @objects = @objects.merge(@Klass.inline_forms_search(params[:search]))
+    end
+    @objects = @objects.where(fk_conditions) if fk_conditions
+    @objects = @objects.paginate(:page => params[:page])
     respond_to do |format|
       # `not_accessible_through_html?` is about preventing direct top-level
       # HTML CRUD on this resource (e.g. /photos when only Apartment is the
@@ -139,22 +141,23 @@ class InlineFormsController < ApplicationController
     end
     @parent_class = params[:parent_class]
     @parent_id = params[:parent_id]
-    # for the logic behind the :conditions see the #index method.
-    conditions = nil
-    if @parent_class.nil? || @Klass.reflect_on_association(@parent_class.underscore.to_sym).nil?
-      conditions = [ @Klass.table_name + "." + @Klass.order_by_clause + " like ?", "%#{params[:search]}%" ] if @Klass.respond_to?(:order_by_clause) && ! @Klass.order_by_clause.nil?
-    else
+    # See #index for the order/search/parent-fk decomposition.
+    fk_conditions = nil
+    if @parent_class.present? && @Klass.reflect_on_association(@parent_class.underscore.to_sym)
       foreign_key = @Klass.reflect_on_association(@parent_class.underscore.to_sym).options[:foreign_key] || @parent_class.foreign_key
-      conditions =  [ "#{foreign_key} = ?", @parent_id ]
+      fk_conditions = [ "#{foreign_key} = ?", @parent_id ]
       @object[foreign_key] = @parent_id
     end
 
     if @object.save
       flash.now[:success] = t('success', :message => @object.class.model_name.human)
-      @objects = @Klass
-      @objects = @Klass.accessible_by(current_ability) if cancan_enabled?
-      @objects = @objects.order(@Klass.table_name + "." + @Klass.order_by_clause) if @Klass.respond_to?(:order_by_clause) && ! @Klass.order_by_clause.nil?
-      @objects = @objects.where(conditions).paginate(:page => params[:page])
+      @objects = cancan_enabled? ? @Klass.accessible_by(current_ability) : @Klass.all
+      @objects = @objects.merge(@Klass.inline_forms_list) if @Klass.respond_to?(:inline_forms_list)
+      if fk_conditions.nil? && params[:search].present? && @Klass.respond_to?(:inline_forms_search)
+        @objects = @objects.merge(@Klass.inline_forms_search(params[:search]))
+      end
+      @objects = @objects.where(fk_conditions) if fk_conditions
+      @objects = @objects.paginate(:page => params[:page])
       @object = nil
       respond_to do |format|
         format.html { render_list_frame_after_save } if html_list_flow_allowed?

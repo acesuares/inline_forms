@@ -64,19 +64,26 @@ module InlineForms
         RELATIONS.has_key?(type) || special_relation?
       end
 
+      # Special "attribute" names that drive the generator (presentation,
+      # ordering, search, etc.) but never become real columns or fields.
+      SPECIAL_GENERATOR_NAMES = %w[
+        _presentation
+        _order
+        _list_order
+        _list_search
+        _enabled
+        _id
+        _no_migration
+        _no_model
+      ].freeze
+
       def migration?
         not ( column_type == :no_migration  ||
-            name == "_presentation"       ||
-            name == "_order"              ||
-            name == "_enabled"            ||
-            name == "_id" )
+            SPECIAL_GENERATOR_NAMES.include?(name) )
       end
 
       def attribute?
-        not ( name == '_presentation'       ||
-            name == '_order'              ||
-            name == '_enabled'            ||
-            name == "_id"                 ||
+        not ( SPECIAL_GENERATOR_NAMES.include?(name) ||
             relation? )
       end
 
@@ -126,10 +133,7 @@ module InlineForms
         @has_attached_files       = "\n"
         @presentation             = "\n"
         @order                    = "\n"
-        @order_by_clause          = "  def self.order_by_clause\n" +
-          "    \"name\"\n" +
-          "  end\n" +
-          "\n"
+        @list_scopes              = ""
         @carrierwave_mounters     = "\n"
         @inline_forms_attribute_list  = String.new
 
@@ -165,15 +169,23 @@ module InlineForms
               "  end\n" +
               "\n"
           end
-          if attribute.name == '_order'
+          # `_list_order:col` (preferred) and the legacy alias `_order:col`
+          # both emit the inline_forms_list scope plus a Ruby `<=>` for
+          # in-memory sort (used by check_list show on the association).
+          if attribute.name == '_order' || attribute.name == '_list_order'
+            if attribute.name == '_order'
+              say_status :deprecated,
+                         "_order:#{attribute.type} is deprecated; use _list_order:#{attribute.type}",
+                         :yellow
+            end
             @order <<         "  def <=>(other)\n" +
               "    self.#{attribute.type} <=> other.#{attribute.type}\n" +
               "  end\n" +
               "\n"
-            @order_by_clause = "  def self.order_by_clause\n" +
-              "    \"#{attribute.type}\"\n" +
-              "  end\n" +
-              "\n"
+            @list_scopes << "  scope :inline_forms_list, -> { order(:#{attribute.type}, :id) }\n"
+          end
+          if attribute.name == '_list_search'
+            @list_scopes << "  scope :inline_forms_search, ->(q) { where(\"#{attribute.type} LIKE ?\", \"%\#{q}%\") }\n"
           end
           if attribute.attribute?
             attribute.attribute_type == :unknown ? commenter = '#' : commenter = ' '

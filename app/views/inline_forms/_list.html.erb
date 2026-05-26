@@ -34,9 +34,10 @@
     <% foreign_key = parent_class.reflect_on_association(attribute.to_sym).options[:foreign_key] || parent_class.name.foreign_key -%>
     <% model = attribute.to_s.singularize.camelcase.constantize %>
     <% conditions =  [ "#{model.table_name}.#{foreign_key} = ?", parent_id ] %>
+    <% klass = attribute.to_s.singularize.camelcase.constantize %>
     <% objects = parent_class.find(parent_id).send(attribute) %>
     <% objects = parent_class.find(parent_id).send(attribute).accessible_by(current_ability) if cancan_enabled? %>
-    <% objects = objects.order(attribute.to_s.singularize.camelcase.constantize.order_by_clause) if attribute.to_s.singularize.camelcase.constantize.respond_to?(:order_by_clause) && ! attribute.to_s.singularize.camelcase.constantize.order_by_clause.nil? %>
+    <% objects = objects.merge(klass.inline_forms_list) if klass.respond_to?(:inline_forms_list) %>
     <% objects = objects.where(conditions).paginate(:page => params[:page]) %>
   <% end %>
 <% end %>
