@@ -67,6 +67,25 @@ module InlineFormsInstaller
         exit 1
       end
 
+      # The example app always generates Photo / Apartment / Owner; the
+      # installer always generates Locale / Role (and the Devise-backed user
+      # model with the chosen class name). Reject `-U <reserved>` early
+      # rather than letting `rails g inline_forms` collide with an
+      # already-generated app/models/<reserved>.rb at install time.
+      example_reserved = %w[Photo Apartment Owner].freeze
+      installer_reserved = %w[Locale Role].freeze
+      if installer_reserved.include?(user_model_cfg.class_name)
+        say "Error: -U #{user_model_cfg.class_name} conflicts with an installer-generated model " \
+            "(#{installer_reserved.join(', ')}); choose a different class name.", :red
+        exit 1
+      end
+      if install_example? && example_reserved.include?(user_model_cfg.class_name)
+        say "Error: -U #{user_model_cfg.class_name} conflicts with an --example model " \
+            "(#{example_reserved.join(', ')}); choose a different class name " \
+            "or drop --example.", :red
+        exit 1
+      end
+
       inline_forms_version = InlineFormsInstaller.inline_forms_version
       # The Gemfile pins `gem "inline_forms", "~> 8"`, so Bundler resolves the
       # highest 8.x available on RubyGems at install time. The

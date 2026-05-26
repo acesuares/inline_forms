@@ -106,7 +106,7 @@ gem 'jquery-ui-rails', '4.0.3'
 # foundation-icons-sass-rails depended on sass-rails).
 gem 'mini_magick'
 gem 'mysql2'
-gem 'paper_trail', '~> 16.0'
+gem 'paper_trail', '~> 17.0'
 gem 'rails-i18n', '~> 8.1'
 gem 'rails-jquery-autocomplete'
 gem 'rails', '~> 8.1'

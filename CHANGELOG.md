@@ -4,6 +4,20 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [8.1.3] - 2026-05-26
+
+### Changed
+
+- **PaperTrail 17.0:** generated app Gemfile bumped from `paper_trail ~> 16.0` to `paper_trail ~> 17.0`. PT 17 officially supports Rails 8.1 (it drops Rails 6.1 / 7.0 and Ruby 3.0 / 3.1, all out of scope here) and silences the "PaperTrail 16.0.0 is not compatible with ActiveRecord 8.1.3" boot warning that PT 16 emitted under our 8.1 stack. No installer / engine code changes needed — `has_paper_trail`, the rich-text mirror initializer, and the YAML safe-load initializer all work unchanged.
+
+### Added
+
+- **`inline_forms create -U <Class>` collision check.** The installer always generates `Locale` and `Role`; with `--example`, it also generates `Photo`, `Apartment`, and `Owner`. Passing `-U Locale|Role` (with or without `--example`) or `-U Photo|Apartment|Owner` together with `--example` previously aborted halfway through with a Thor `conflict app/models/<name>.rb` prompt because the user model file (generated first) was about to be overwritten by the example app's `rails g inline_forms <Name>`. `Creator#create` now rejects these combinations up front with an actionable red error before `rails new` runs.
+
+### Notes
+
+- **Example app gate (recorded):** `inline_forms create MyApp -d sqlite --example` against the freshly built **8.1.3** gem trio on `rails 8.1.3` / `paper_trail 17.0.0`: install completes cleanly (no PT compatibility warning), `bundle check: ok`, **88 runs, 502 assertions, 0 failures, 0 errors, 0 skips**.
+
 ## [8.1.2] - 2026-05-26
 
 ### Changed
