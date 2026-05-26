@@ -4,6 +4,21 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [8.1.2] - 2026-05-26
+
+### Changed
+
+- **Rails 8.1:** engine and installer pin **`rails >= 8.1, < 8.2`** (resolved **8.1.3**) and **`rails-i18n >= 8.1, < 9.0`** (resolved **8.1.0**). Generated apps' `config/application.rb` is normalised to **`config.load_defaults 8.1`** and the installer prefers **`rails _8.1.x_`** for `rails new`. All generator and installer migrations now emit **`ActiveRecord::Migration[8.1]`** (`lib/generators/templates/migration.erb`, `lib/generators/templates/add_columns_migration.erb`, `DeviseCreateUsers`, `InlineFormsCreateJoinTableUserRole`, `AddOwnerToApartments`, `SeedExampleApartmentsAndOwners`).
+- **`validation_hints` constraint:** widened to **`>= 8.1.2, < 9.0`** so Bundler picks up the matching companion release that targets `activerecord >= 8.1`.
+- **README.rdoc:** requirements table and `rails-i18n` narrative updated to **Rails 8.1.x** / `~> 8.1` / `config.load_defaults 8.1`.
+- **`InlineForms::VERSION`** and **`InlineFormsInstaller::VERSION`** → **8.1.2** (lockstep with **validation_hints 8.1.2**).
+
+### Notes
+
+- **Example app gate (recorded):** `inline_forms create MyApp -d sqlite --example` against the freshly built **8.1.2** gem trio on `rails 8.1.3`: install completes in ~77s, `bundle check: ok`, **88 runs, 502 assertions, 0 failures, 0 errors, 0 skips**. A subsequent `bundle exec rails test` in the generated app reproduces the same result in ~1.9s.
+- **PaperTrail 16.0.0 / ActiveRecord 8.1 warning:** PT emits a compatibility warning during boot (it pins `< 8.1` internally) but does not raise; all PaperTrail-backed integration and model tests pass on AR 8.1.3. Revisit pin when paper_trail ships an 8.1-compatible release; no behaviour change needed in inline_forms for now.
+- **Frozen-string warnings:** Ruby 4.0's `--debug-frozen-string-literal` surfaces literal-string warnings from `tabs_on_rails 3.0.0` and one inline_forms helper (`check_list_helper.rb:13`); these are non-fatal under current Ruby and tracked separately.
+
 ## [8.1.1] - 2026-05-26
 
 ### Added

@@ -70,12 +70,12 @@ use_app_rvm_gemset!
 remove_file 'Gemfile' if File.exist?('Gemfile')
 create_file 'Gemfile', "# created by inline_forms_installer #{ENV['inline_forms_installer_version']} on #{Date.today}\n"
 
-# Creator invokes `rails _8.0.x_ new`, which emits `load_defaults 8.0` and removes
-# `new_framework_defaults_8_0.rb`. Normalize anyway when an older generator left another minor.
+# Creator invokes `rails _8.1.x_ new`, which emits `load_defaults 8.1` and removes
+# `new_framework_defaults_8_1.rb`. Normalize anyway when an older generator left another minor.
 if File.exist?('config/application.rb')
   gsub_file 'config/application.rb',
             /config\.load_defaults\s+\d+\.\d+/,
-            'config.load_defaults 8.0'
+            'config.load_defaults 8.1'
 end
 
 add_source 'https://rubygems.org'
@@ -107,9 +107,9 @@ gem 'jquery-ui-rails', '4.0.3'
 gem 'mini_magick'
 gem 'mysql2'
 gem 'paper_trail', '~> 16.0'
-gem 'rails-i18n', '~> 8.0'
+gem 'rails-i18n', '~> 8.1'
 gem 'rails-jquery-autocomplete'
-gem 'rails', '~> 8.0'
+gem 'rails', '~> 8.1'
 gem 'rake'
 gem 'rvm'
 gem 'dartsass-rails'
@@ -285,7 +285,7 @@ create_file "db/migrate/" +
   Time.now.utc.strftime("%Y%m%d%H%M%S") +
   "_" +
   "#{user_cfg.devise_migration_basename}.rb", <<-DEVISE_MIGRATION.strip_heredoc
-class #{user_cfg.devise_migration_class} < ActiveRecord::Migration[8.0]
+class #{user_cfg.devise_migration_class} < ActiveRecord::Migration[8.1]
 
   def change
     create_table(:#{user_cfg.table_name}) do |t|
@@ -425,7 +425,7 @@ create_file "db/migrate/" +
   Time.now.utc.strftime("%Y%m%d%H%M%S") +
   "_" +
   "#{user_cfg.join_migration_basename}.rb", <<-ROLES_MIGRATION.strip_heredoc
-  class #{user_cfg.join_migration_class} < ActiveRecord::Migration[8.0]
+  class #{user_cfg.join_migration_class} < ActiveRecord::Migration[8.1]
     def self.up
       create_table  :#{user_cfg.join_table}, :id => false, :force => true do |t|
         t.integer   :role_id
@@ -840,7 +840,7 @@ if ENV['install_example'] == 'true'
   sleep 1
   add_owner_ts = Time.now.utc.strftime("%Y%m%d%H%M%S")
   create_file "db/migrate/#{add_owner_ts}_add_owner_to_apartments.rb", <<-ADD_OWNER.strip_heredoc
-    class AddOwnerToApartments < ActiveRecord::Migration[8.0]
+    class AddOwnerToApartments < ActiveRecord::Migration[8.1]
       def change
         add_reference :apartments, :owner, null: true, foreign_key: true
       end
@@ -919,7 +919,7 @@ if ENV['install_example'] == 'true'
   sleep 1
   seed_ts = Time.now.utc.strftime("%Y%m%d%H%M%S")
   create_file "db/migrate/#{seed_ts}_seed_example_apartments_and_owners.rb", <<-SEED_MIGRATION.strip_heredoc
-    class SeedExampleApartmentsAndOwners < ActiveRecord::Migration[8.0]
+    class SeedExampleApartmentsAndOwners < ActiveRecord::Migration[8.1]
       # ---------------------------------------------------------------
       # Apartment seed gallery
       # ---------------------------------------------------------------

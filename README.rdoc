@@ -5,7 +5,7 @@ Inline Forms is almost a complete admin application. You can try it out easily.
 = Requirements
 
 * Ruby **>= 4.0** (generated apps pin **ruby-4.0.4**)
-* Rails **8.0.x** (+rails ~> 8.0+, +config.load_defaults 8.0+)
+* Rails **8.1.x** (+rails ~> 8.1+, +config.load_defaults 8.1+)
 * **validation_hints** **~> 8** (companion gem; same version line as +inline_forms+ / +inline_forms_installer+)
 
 = Usage
@@ -252,7 +252,7 @@ In every case the Turbo wiring is the same: +link_options: { data: { turbo_frame
 
 == Generated application +rails-i18n+
 
-New apps get +rails-i18n+ from RubyGems (+ '~> 8.0'+), not from the +svenfuchs/rails-i18n+ Git repository. The installer pins +rails ~> 8.0+ with +config.load_defaults 8.0+; the published +rails-i18n+ 8.x line matches that stack.
+New apps get +rails-i18n+ from RubyGems (+ '~> 8.1'+), not from the +svenfuchs/rails-i18n+ Git repository. The installer pins +rails ~> 8.1+ with +config.load_defaults 8.1+; the published +rails-i18n+ 8.x line matches that stack.
 
 == File uploads (CarrierWave)
 

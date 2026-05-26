@@ -122,7 +122,7 @@ module InlineFormsInstaller
           Gem::Specification
             .find_all_by_name("rails")
             .map(&:version)
-            .select { |v| v >= Gem::Version.new("8.0") && v < Gem::Version.new("8.1") }
+            .select { |v| v >= Gem::Version.new("8.1") && v < Gem::Version.new("8.2") }
             .max
         rescue StandardError
           nil
