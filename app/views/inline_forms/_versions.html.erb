@@ -1,8 +1,13 @@
 <% object = local_assigns[:object] || @object -%>
 <% css_class_id = inline_forms_versions_turbo_frame_id(object) -%>
+<%# Count the same merged set the open list does (`inline_forms_versions_for`
+    sums the parent's PaperTrail versions and the versions of any associated
+    ActionText::RichText records). Using `object.versions.length` here meant
+    the closed header showed N (parent only) and the open header showed N+M
+    (parent + rich_text), flickering as the user toggled the panel. -%>
 <div class="row form_element_header associated_auto_header callout">
   <div class='medium-11 large-11 column' >
-    <%= "Versions (#{object.versions.length})" %>
+    <%= "Versions (#{inline_forms_versions_for(object).length})" %>
   </div>
   <div class='medium-1 large-1 column'>
       <%= link_to_versions_list(

@@ -10,8 +10,14 @@ module InlineForms
     #
     # values must be a Range or a one-dimensional array of Integers
     def dropdown_with_integers_show(object, attribute)
+      # `attribute_values` returns key/label pairs (e.g. [[1,'one'],[2,'two']]);
+      # use Array#assoc so the stored integer is matched against the *key*
+      # column, not used as a positional array index (which off-by-ones and
+      # raises on out-of-range or nil).
       values = attribute_values(object, attribute)
-      link_to_inline_edit object, attribute, values[object.send(attribute)][1], from_callee: __callee__
+      pair = values.assoc(object.send(attribute))
+      label = pair ? pair[1] : "<i class='fi-plus'></i>".html_safe
+      link_to_inline_edit object, attribute, label, from_callee: __callee__
     end
     
     def dropdown_with_integers_edit(object, attribute)

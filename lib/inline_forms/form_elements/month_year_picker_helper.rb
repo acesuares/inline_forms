@@ -16,10 +16,10 @@ module InlineForms
     end
     
     def month_year_picker_update(object, attribute)
-      puts 'XXXXXXXXXXXXXXXXXXXXXXXXXX' + object[attribute.to_sym].inspect
-      puts 'XXXXXXXXXXXXXXXXXXXXXXXXXX' + Date.parse(params[attribute.to_sym].to_s).strftime("%F").to_s
-      object[attribute.to_sym] = Date.parse(params[attribute.to_sym].to_s).strftime("%F").to_s
-      puts 'XXXXXXXXXXXXXXXXXXXXXXXXXX' + object[attribute.to_sym].inspect
+      raw = params[attribute.to_sym].to_s
+      object[attribute.to_sym] = raw.empty? ? nil : Date.parse(raw).strftime("%F").to_s
+    rescue Date::Error
+      object[attribute.to_sym] = nil
     end
       INLINE_FORMS_FORM_ELEMENT
     end

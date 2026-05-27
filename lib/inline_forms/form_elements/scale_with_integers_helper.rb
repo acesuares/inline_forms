@@ -11,8 +11,13 @@ module InlineForms
     # values must be a Range or a one-dimensional array of Integers
     #
     def scale_with_integers_show(object, attribute)
+      # `attribute_values` returns key/label pairs; match by key with
+      # Array#assoc rather than Array#[N] (which would index positionally
+      # and raise on out-of-range/nil).
       values = attribute_values(object, attribute)
-      link_to_inline_edit object, attribute, values[object.send(attribute).to_s], from_callee: __callee__
+      pair = values.assoc(object.send(attribute))
+      label = pair ? pair[1] : "<i class='fi-plus'></i>".html_safe
+      link_to_inline_edit object, attribute, label, from_callee: __callee__
     end
     
     def scale_with_integers_edit(object, attribute)

@@ -4,6 +4,25 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [8.1.7] - 2026-05-27
+
+### Fixed
+
+- **`dropdown_with_integers` / `scale_with_integers` / `scale_with_values` `_show` helpers crashed on every non-trivial value.** All three did `attribute_values(object, attribute)[object.send(attribute)][1]` (or `[…].to_s` for `scale_with_integers`), i.e. they used `Array#[N]` against the `[[key, label], …]` array returned by `attribute_values` — that indexes positionally, not by key, so the stored integer was used as an array offset. Symptoms in the wild:
+  - `dropdown_with_integers_show` on a `rating_int = 3` against `{1 => "One", 2 => "Two", 3 => "Three"}` returned `values[3]` → `nil`, then `nil[1]` raised `NoMethodError: undefined method '[]' for nil`. With smaller values it silently rendered the *next* label (`rating_int = 1` rendered `"Two"`).
+  - `scale_with_integers_show` indexed an array with a string (`values[object.send(attribute).to_s]`), which raised `TypeError: no implicit conversion of String into Integer`.
+  - `scale_with_values_show` had the same positional-index bug as `dropdown_with_integers_show` and crashed identically on out-of-range integers.
+  
+  All three now use `values.assoc(object.send(attribute))` so the stored value is matched against the *key* column of the pair, and gracefully fall back to the empty-state `<i class="fi-plus">` placeholder when no pair matches (matches the nil branch in `dropdown_with_values_show` and `radio_button_show`). Showcase row in the example app now renders `"One"` for `rating_int = 1` (was: `"Two"`), and the `scale_*` helpers no longer crash from the showcase page.
+
+- **`Versions (N)` header flickered between `N` and `N+M` when the panel was toggled.** On a record whose associated `ActionText::RichText` has at least one PaperTrail version (e.g. the empty `FormElementShowcase` after a description edit), the closed `app/views/inline_forms/_versions.html.erb` partial counted `object.versions.length` (parent only, e.g. `7`) while the open `_versions_list.html.erb` partial counted `inline_forms_versions_for(@object).length` (parent + rich_text merged, e.g. `8`). The visible count therefore changed every time the user opened or closed the panel. Closed partial now uses the same `inline_forms_versions_for(object).length` so the header is stable and matches the number of rows the open panel actually shows. Verified against the running example app at `/form_element_showcases/4` after toggle.
+
+- **`month_year_picker_update` left three debug `puts 'XXXXXX…'` lines in the helper.** They printed before/after values to STDOUT on every save (visible during `rails test` and in production logs) and added no diagnostic value. Removed. The helper now also no-ops on an empty/invalid `params[:attribute]` instead of letting `Date.parse("")` raise `Date::Error: invalid date` — the previous "always parse" version forced the showcase numericality test to thread a placeholder `start_month` through the create POST just to keep the unrelated update branch from crashing during the same controller cycle. With the rescue in place the helper degrades to `nil` and the rest of the update path keeps running.
+
+### Lockstep
+
+- `inline_forms`, `inline_forms_installer`, and `validation_hints` bumped from 8.1.6 to 8.1.7 in lockstep, even though `inline_forms_installer` and `validation_hints` have no behavior change in this release.
+
 ## [8.1.6] - 2026-05-27
 
 ### Added

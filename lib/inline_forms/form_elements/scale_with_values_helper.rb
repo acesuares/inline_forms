@@ -10,8 +10,14 @@ module InlineForms
     #
     # values must be a hash { integer => string, ... } or an one-dimensional array of strings
     def scale_with_values_show(object, attribute)
+      # `attribute_values` returns [[key, label], ...] pairs. With a hash
+      # input the keys are the user-defined integers; with an array input
+      # they are the positional 0..N-1. Either way Array#assoc looks up
+      # by the stored value rather than treating it as a positional index.
       values = attribute_values(object, attribute)
-      link_to_inline_edit object, attribute, values[object.send(attribute)][1], from_callee: __callee__
+      pair = values.assoc(object.send(attribute))
+      label = pair ? pair[1] : "<i class='fi-plus'></i>".html_safe
+      link_to_inline_edit object, attribute, label, from_callee: __callee__
     end
     
     def scale_with_values_edit(object, attribute)
