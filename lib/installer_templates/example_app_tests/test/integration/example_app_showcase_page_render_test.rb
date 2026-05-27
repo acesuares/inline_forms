@@ -30,7 +30,8 @@ class ExampleAppShowcasePageRenderTest < ExampleAppIntegrationTestCase
     jingle
     cover
     description
-    roles
+    locales
+    locales_display
     created_at
     updated_at
   ].freeze
@@ -46,8 +47,7 @@ class ExampleAppShowcasePageRenderTest < ExampleAppIntegrationTestCase
   ].freeze
 
   setup do
-    locale = Locale.find_or_create_by!(name: "en") { |l| l.title = "English" }
-    @role = Role.find_or_create_by!(name: "superadmin") { |r| r.description = "Super Admin" }
+    @locale = Locale.find_or_create_by!(name: "en") { |l| l.title = "English" }
 
     @full = FormElementShowcase.find_or_create_by!(title: "Full demo") do |s|
       s.body_plain_area = "Plain text body"
@@ -68,12 +68,12 @@ class ExampleAppShowcasePageRenderTest < ExampleAppIntegrationTestCase
       s.amount          = Money.from_amount(99.95, "USD") if s.respond_to?(:amount=) && defined?(Money)
       s.description     = "<p>A rich-text body.</p>"
     end
-    @full.roles << @role unless @full.roles.where(id: @role.id).exists?
+    @full.locales << @locale unless @full.locales.where(id: @locale.id).exists?
 
     @empty = FormElementShowcase.find_or_create_by!(title: "Empty demo") do |s|
       # Keep dropdown/scale integers at valid indices so the show helpers
-      # do not crash on nil. The point of "empty demo" is that roles and
-      # uploads are blank, not every integer attribute.
+      # do not crash on nil. The point of "empty demo" is that locales
+      # and uploads are blank, not every integer attribute.
       s.gender     = 1
       s.rating_int = 1
       s.priority   = 1
@@ -103,22 +103,21 @@ class ExampleAppShowcasePageRenderTest < ExampleAppIntegrationTestCase
         "expected header label for #{attr} (#{label.inspect})"
     end
 
-    assert_includes @response.body, @role.name,
-      "expected info_list to render the role's _presentation"
+    assert_includes @response.body, @locale.title,
+      "expected info_list to render the locale's _presentation"
   end
 
-  test "empty showcase info_list renders the no-roles placeholder" do
+  test "empty showcase info_list renders the no-locales placeholder" do
     row_frame = "form_element_showcase_#{@empty.id}"
     get form_element_showcase_path(@empty, update: row_frame),
         headers: { "Turbo-Frame" => row_frame, "Accept" => "text/html" }
 
     assert_response :success
-    frame = "form_element_showcase_#{@empty.id}_roles"
+    frame = "form_element_showcase_#{@empty.id}_locales_display"
     body = @response.body
     assert_includes body, %(<turbo-frame id="#{frame}">)
-    frame_block = body[body.index(%(<turbo-frame id="#{frame}">"))..-1] rescue nil
     # info_list_show emits a `--` placeholder for empty associations.
     assert_match(/<turbo-frame id="#{frame}">[^<]*<div class='row [^']+'>--<\/div>/m, body,
-      "expected info_list empty placeholder `--` inside roles frame")
+      "expected info_list empty placeholder `--` inside locales_display frame")
   end
 end

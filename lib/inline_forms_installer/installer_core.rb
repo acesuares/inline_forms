@@ -431,7 +431,16 @@ END_INITIALIZER
 # Create Locales
 say "- Create locales"
 generate "inline_forms", "Locale name:string title:string #{user_cfg.table_name}:has_many _enabled:yes _list_order:title _presentation:\#{title}"
-append_to_file "db/seeds.rb", "Locale.create({ id: 1, name: 'en', title: 'English' })\n"
+# Seed four locales so the FormElementShowcase HABTM :locales demo
+# (added under --example) has something to check on/off. `id: 1` (en) is
+# the default the admin user is bound to in the line below; the other
+# three are inert until selected by the showcase rows.
+append_to_file "db/seeds.rb", <<~LOCALE_SEED
+  Locale.create({ id: 1, name: 'en', title: 'English' })
+  Locale.create({ id: 2, name: 'nl', title: 'Nederlands' })
+  Locale.create({ id: 3, name: 'de', title: 'Deutsch' })
+  Locale.create({ id: 4, name: 'fr', title: 'Français' })
+LOCALE_SEED
 
 # Create Roles
 say "- Create roles"
@@ -1056,7 +1065,7 @@ if ENV['install_example'] == 'true'
   # ---------------------------------------------------------------------
   say "- Generating FormElementShowcase (one resource per kept Tier 1 form_element)..."
   sleep 1
-  run %q{bundle exec rails g inline_forms FormElementShowcase title:string body_plain_area:plain_text_area count:integer_field price:decimal_field amount:money_field meeting_date:date_select meeting_time:time_select birth_month:month_select start_month:month_year_picker is_active:check_box gender:radio_button rating_int:dropdown_with_integers priority:dropdown_with_values priority2:dropdown_with_values stars:dropdown_with_values_with_stars scale_int:scale_with_integers scale_val:scale_with_values attachment:file_field jingle:audio_field cover:image_field description:rich_text roles:has_and_belongs_to_many _enabled:yes _list_order:title _list_search:title _presentation:'#{title}'}
+  run %q{bundle exec rails g inline_forms FormElementShowcase title:string body_plain_area:plain_text_area count:integer_field price:decimal_field amount:money_field meeting_date:date_select meeting_time:time_select birth_month:month_select start_month:month_year_picker is_active:check_box gender:radio_button rating_int:dropdown_with_integers priority:dropdown_with_values priority2:dropdown_with_values stars:dropdown_with_values_with_stars scale_int:scale_with_integers scale_val:scale_with_values attachment:file_field jingle:audio_field cover:image_field description:rich_text locales:has_and_belongs_to_many _enabled:yes _list_order:title _list_search:title _presentation:'#{title}'}
 
   say "- Generating Attachment + Jingle uploaders (Cover reuses ImageUploader)..."
   run "bundle exec rails generate uploader Attachment"
@@ -1101,8 +1110,24 @@ if ENV['install_example'] == 'true'
   # keeps PaperTrail revert paths (and the seeded second row, which leaves
   # count nil) valid. The integration test covers the explicit error
   # path by POSTing `count: "abc"` to /form_element_showcases.
+  #
+  # `locales_display` is a virtual alias for the HABTM :locales association
+  # so the same association can render twice in the attribute list: once
+  # editable (`[:locales, :check_list]`) and once read-only
+  # (`[:locales_display, :info_list]`). Inline-forms keys turbo frames by
+  # attribute name, so we need a distinct name for the second row — info_list
+  # has no `_update` method, hence the wrapper rather than a separate column.
+  #
+  # NOTE: this has to be `def locales_display; locales; end`, not
+  # `alias_method :locales_display, :locales`. `alias_method` resolves the
+  # source method at class-load time, but the `has_and_belongs_to_many
+  # :locales` declaration that defines `#locales` is injected lower in the
+  # file (line ~12), so an alias_method here raises
+  # `NameError: undefined method 'locales' for class 'FormElementShowcase'`.
+  # A `def` body is parsed but only resolved at call time, side-stepping
+  # the ordering hazard.
   inject_into_file "app/models/form_element_showcase.rb",
-                   "\n  validates :count, numericality: { only_integer: true }, allow_blank: true\n  mount_uploader :attachment, AttachmentUploader\n  monetize :amount_cents\n",
+                   "\n  validates :count, numericality: { only_integer: true }, allow_blank: true\n  mount_uploader :attachment, AttachmentUploader\n  monetize :amount_cents\n\n  def locales_display\n    locales\n  end\n",
                    after: "class FormElementShowcase < ApplicationRecord\n"
 
   # Value-bearing rows for every form_element that needs a values hash
@@ -1139,13 +1164,18 @@ if ENV['install_example'] == 'true'
     gsub_file "app/models/form_element_showcase.rb", from, to
   end
 
-  # Insert :roles (info_list), :header_meta, and the timestamps after
-  # the rich_text row. The generator does not emit a row for
-  # `roles:has_and_belongs_to_many` (relation? is true), so we add it
-  # manually here.
+  # Insert :locales (editable check_list), :locales_display (read-only
+  # info_list mirror of the same association — see the alias_method
+  # above), :header_meta, and the timestamps after the rich_text row.
+  # The generator does not emit a row for `locales:has_and_belongs_to_many`
+  # (relation? is true), so we add the rows manually here. Locale (not
+  # Role) was chosen because Role is reserved for the user/Member model
+  # in the inline_forms example app (the join sits under roles_users);
+  # Locale already has a `_presentation` returning `title`, which is
+  # exactly what `info_list_show` renders per row.
   gsub_file "app/models/form_element_showcase.rb",
             "[ :description, :rich_text ], \n",
-            "[ :description, :rich_text ], \n     [ :roles, :info_list ], \n     [ :header_meta, :header ], \n     [ :created_at, :info ], \n     [ :updated_at, :info ], \n"
+            "[ :description, :rich_text ], \n     [ :locales, :check_list ], \n     [ :locales_display, :info_list ], \n     [ :header_meta, :header ], \n     [ :created_at, :info ], \n     [ :updated_at, :info ], \n"
 
   # Locale keys for the showcase attributes. Headers + the timestamps
   # need explicit labels so `human_attribute_name` does not fall back to
@@ -1170,7 +1200,7 @@ if ENV['install_example'] == 'true'
           meeting_date: Meeting date
           meeting_time: Meeting time
           birth_month: Birth month
-          start_month: Start month
+          start_month: Start month and year
           is_active: Is active
           gender: Gender
           rating_int: Rating
@@ -1183,7 +1213,8 @@ if ENV['install_example'] == 'true'
           jingle: Jingle
           cover: Cover
           description: Description
-          roles: Roles
+          locales: Locales (editable)
+          locales_display: Locales (read-only)
           created_at: Created at
           updated_at: Updated at
   END_SHOWCASE_LOCALE
@@ -1199,22 +1230,36 @@ if ENV['install_example'] == 'true'
     copy_file src, File.join("app/assets/images", "#{n}stars.png") if File.exist?(src)
   end
 
-  # Join table for has_and_belongs_to_many :roles. Mirrors the
-  # roles_users join migration created for the user model above.
-  say "- Creating form_element_showcases_roles join migration..."
+  # File/audio/image upload sample assets for the full-demo seed. Copied
+  # under db/seed_uploads so the seed migration can read them at
+  # db:migrate time and store them through CarrierWave. Mirrors the
+  # db/seed_images convention used for the Photo gallery seed above.
+  %w[sample.txt sample.wav sample_cover.png].each do |basename|
+    src = File.join(showcase_assets_root, basename)
+    copy_file src, File.join("db/seed_uploads", basename) if File.exist?(src)
+  end
+
+  # Join table for has_and_belongs_to_many :locales. Mirrors the
+  # roles_users join migration created for the user model above. Locale
+  # (not Role) was chosen because Role is reserved for the Member/User
+  # auth model; using it here would coincidentally share the same join
+  # row pool as roles_users which is confusing for the demo. The four
+  # locales seeded above (en/nl/de/fr) give the editable check_list
+  # something interesting to toggle.
+  say "- Creating form_element_showcases_locales join migration..."
   sleep 1
   habtm_ts = Time.now.utc.strftime("%Y%m%d%H%M%S")
-  create_file "db/migrate/#{habtm_ts}_create_join_table_form_element_showcases_roles.rb", <<-HABTM_MIGRATION.strip_heredoc
-    class CreateJoinTableFormElementShowcasesRoles < ActiveRecord::Migration[8.1]
+  create_file "db/migrate/#{habtm_ts}_create_join_table_form_element_showcases_locales.rb", <<-HABTM_MIGRATION.strip_heredoc
+    class CreateJoinTableFormElementShowcasesLocales < ActiveRecord::Migration[8.1]
       def self.up
-        create_table :form_element_showcases_roles, id: false, force: true do |t|
+        create_table :form_element_showcases_locales, id: false, force: true do |t|
           t.integer :form_element_showcase_id
-          t.integer :role_id
+          t.integer :locale_id
         end
       end
 
       def self.down
-        drop_table :form_element_showcases_roles
+        drop_table :form_element_showcases_locales
       end
     end
   HABTM_MIGRATION
@@ -1249,9 +1294,30 @@ if ENV['install_example'] == 'true'
           s.scale_val       = 2
           s.description     = "<p>A rich-text paragraph for the showcase.</p>"
         end
-        if defined?(Role) && Role.exists?(1) && full.roles.empty?
-          full.roles << Role.find(1)
+        # Attach the default locale (en) so the editable check_list and the
+        # paired read-only info_list both have something to show. The other
+        # seeded locales (nl/de/fr) stay unchecked so the toggle UX is
+        # exercised when the user opens the check_list.
+        if defined?(Locale) && Locale.exists?(1) && full.locales.empty?
+          full.locales << Locale.find(1)
         end
+
+        # File/audio/image uploads for the full demo. The asset files are
+        # copied into db/seed_uploads/ from lib/installer_templates/example_app_assets/
+        # at install time (see the asset-copy block above), so this
+        # migration can open them at db:migrate time and hand File handles
+        # to CarrierWave for storage in public/uploads/.
+        seed_uploads = Rails.root.join("db", "seed_uploads")
+        {
+          attachment: seed_uploads.join("sample.txt"),
+          jingle:     seed_uploads.join("sample.wav"),
+          cover:      seed_uploads.join("sample_cover.png"),
+        }.each do |attr, path|
+          next unless path.file?
+          next if full.public_send(attr).present?
+          File.open(path, "rb") { |io| full.public_send("\#{attr}=", io) }
+        end
+        full.save! if full.changed?
 
         # "Empty" refers to the role and uploader fields (their empty
         # branches need to render). The other fields keep valid values

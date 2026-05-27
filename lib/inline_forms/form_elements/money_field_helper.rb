@@ -6,16 +6,22 @@ module InlineForms
     # -*- encoding : utf-8 -*-
     
     def money_field_show(object, attribute)
-      # `humanized_money_with_symbol` (money-rails) returns "" for nil/blank
-      # which renders as an empty anchor — show the empty-state placeholder
-      # instead, matching the nil branch on dropdown/radio show helpers.
+      # Two money-rails-specific quirks the bare helper used to leak:
+      #   1. `humanized_money_with_symbol(nil)` returns "", which renders
+      #      as an empty `<a>` tag. Fall back to the empty-state
+      #      placeholder used by the other choice helpers instead.
+      #   2. `humanized_money_with_symbol` defaults `no_cents_if_whole: true`,
+      #      so whole-dollar amounts show without cents ("$124" instead of
+      #      "$124.00"). That's inconsistent with non-whole amounts ("$12.34")
+      #      and looks like a precision bug on values that rounded up to a
+      #      whole dollar (e.g. `Money.from_amount(123.999, "USD")` rounds
+      #      to 12400 cents → "$124" by default; "$124.00" with the override).
+      #      Always show cents.
       value = object.send(attribute)
-      label = if defined?(humanized_money_with_symbol) && value.respond_to?(:zero?) && !value.zero?
-                humanized_money_with_symbol(value)
-              elsif value.blank?
+      label = if value.blank?
                 "<i class='fi-plus'></i>".html_safe
               else
-                humanized_money_with_symbol(value)
+                humanized_money_with_symbol(value, no_cents_if_whole: false)
               end
       link_to_inline_edit object, attribute, label, from_callee: __callee__
     end

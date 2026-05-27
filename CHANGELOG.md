@@ -4,6 +4,27 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [8.1.9] - 2026-05-27
+
+### Fixed
+
+- **`dropdown_with_values_show` and `dropdown_with_values_info` double-translated their labels.** `attribute_values` already runs each label through `t()` (it has to, so the values hash can use translation keys). The two show/info helpers then ran `t()` again on the *already-translated* string, so a missing translation rendered a bizarre `<span class="translation_missing" title="Low&quot;&gt;Low&lt;/Span&gt;">Low"&gt;Low&lt;/Span&gt;</span>` blob inside the inline-edit link (visible on `priority` / `priority2` in the showcase). The second `t()` call has been removed and the helpers now nil-guard the lookup, matching the 8.1.7 fixes to `dropdown_with_integers_show` and the two scale helpers.
+- **`money_field_show` dropped cents on whole-dollar amounts.** money-rails defaults `humanized_money_with_symbol` to `no_cents_if_whole: true`, so `Money.from_amount(124.00, "USD")` rendered as `$124` while `Money.from_amount(12.34, "USD")` rendered as `$12.34` — inconsistent, and indistinguishable from a precision bug on values that *rounded* to a whole dollar (e.g. `Money.from_amount(123.999, "USD")` rounds up to 12400 cents because cents are the smallest Money unit; the helper now shows that as `$124.00`). The helper now passes `no_cents_if_whole: false` so the displayed amount always has two decimals.
+
+### Changed
+
+- **`FormElementShowcase` now demos `[:locales, :check_list]` + `[:locales_display, :info_list]` instead of `[:roles, :info_list]`.** Role is reserved for the auth Member/User model — reusing it on the showcase coincidentally shared rows with `roles_users` and obscured how the demo associations were coupled. The example app now seeds four locales (`en`/`nl`/`de`/`fr`, English is the default attached to the full demo) and a `has_and_belongs_to_many :locales` join, so the showcase exercises the editable HABTM editor (`check_list`) and the read-only mirror (`info_list`) side-by-side. The read-only row uses `alias_method :locales_display, :locales` because inline_forms keys turbo frames by attribute name, so two rows for the same association need two distinct names.
+- **`start_month` label renamed to "Start month and year".** The widget is a month_year_picker; the old label hid the year half.
+- **Full-demo seed now populates `attachment` / `jingle` / `cover`.** The installer ships `sample.txt`, `sample.wav` (440Hz / 0.5s mono PCM, generated with ffmpeg), and `sample_cover.png` under `lib/installer_templates/example_app_assets`, copies them into the generated app's `db/seed_uploads/`, and the seed migration hands File handles to CarrierWave so the three file-upload rows in the full demo render thumbnails / links instead of placeholders.
+
+### Added
+
+- **`ExampleAppShowcaseLocalesAssociationsTest` integration test.** Covers `check_list` toggling the HABTM (`locale_ids` add + remove via two PUTs), `info_list` rendering the `_presentation` for attached records, and the `--` empty-state placeholder. Replaces the dropped `roles`-based assertions in `ExampleAppShowcasePageRenderTest`.
+
+### Lockstep
+
+- `inline_forms`, `inline_forms_installer`, and `validation_hints` bumped from 8.1.8 to 8.1.9 in lockstep, even though `validation_hints` has no behavior change in this release.
+
 ## [8.1.8] - 2026-05-27
 
 ### Added

@@ -36,7 +36,8 @@ class ExampleAppFormElementShowcaseTest < ActiveSupport::TestCase
     cover
     header_rich
     description
-    roles
+    locales
+    locales_display
     header_meta
     created_at
     updated_at
