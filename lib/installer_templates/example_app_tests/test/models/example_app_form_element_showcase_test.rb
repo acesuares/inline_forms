@@ -15,6 +15,7 @@ class ExampleAppFormElementShowcaseTest < ActiveSupport::TestCase
     header_numbers
     count
     price
+    amount
     header_dates
     meeting_date
     meeting_time
@@ -27,6 +28,8 @@ class ExampleAppFormElementShowcaseTest < ActiveSupport::TestCase
     priority
     priority2
     stars
+    scale_int
+    scale_val
     header_files
     attachment
     jingle

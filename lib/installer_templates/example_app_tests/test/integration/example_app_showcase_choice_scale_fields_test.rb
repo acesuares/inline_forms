@@ -2,14 +2,14 @@
 
 require_relative "../example_app/example_integration_test_case"
 
-# Choice helpers on FormElementShowcase:
+# Choice/scale helpers on FormElementShowcase:
 #   check_box                       (is_active, 0|1)
 #   radio_button                    (gender, hash)
 #   dropdown_with_integers          (rating_int)
 #   dropdown_with_values            (priority normal + priority2 options_disabled)
 #   dropdown_with_values_with_stars (stars)
-# (scale_with_integers / scale_with_values are dropped from the showcase
-# until their runtime show helpers are repaired; see CHANGELOG 8.1.6.)
+#   scale_with_integers             (scale_int)
+#   scale_with_values               (scale_val)
 class ExampleAppShowcaseChoiceScaleFieldsTest < ExampleAppIntegrationTestCase
   setup do
     @showcase = FormElementShowcase.find_or_create_by!(title: "Choice/scale demo")
@@ -121,6 +121,32 @@ class ExampleAppShowcaseChoiceScaleFieldsTest < ExampleAppIntegrationTestCase
 
     assert_response :success
     assert_equal 5, @showcase.reload.stars
+  end
+
+  test "scale_with_integers scale_int round-trips" do
+    frame = field_frame(:scale_int)
+    put form_element_showcase_path(
+      @showcase,
+      attribute: "scale_int",
+      form_element: "scale_with_integers",
+      update: frame
+    ), params: { underscored_param_root => { scale_int: 4 } }, headers: field_headers(:scale_int)
+
+    assert_response :success
+    assert_equal 4, @showcase.reload.scale_int
+  end
+
+  test "scale_with_values scale_val round-trips" do
+    frame = field_frame(:scale_val)
+    put form_element_showcase_path(
+      @showcase,
+      attribute: "scale_val",
+      form_element: "scale_with_values",
+      update: frame
+    ), params: { underscored_param_root => { scale_val: 3 } }, headers: field_headers(:scale_val)
+
+    assert_response :success
+    assert_equal 3, @showcase.reload.scale_val
   end
 
 end

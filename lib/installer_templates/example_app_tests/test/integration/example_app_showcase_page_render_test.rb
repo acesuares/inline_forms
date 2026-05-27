@@ -13,6 +13,7 @@ class ExampleAppShowcasePageRenderTest < ExampleAppIntegrationTestCase
     body_plain_area
     count
     price
+    amount
     meeting_date
     meeting_time
     birth_month
@@ -23,6 +24,8 @@ class ExampleAppShowcasePageRenderTest < ExampleAppIntegrationTestCase
     priority
     priority2
     stars
+    scale_int
+    scale_val
     attachment
     jingle
     cover
@@ -60,6 +63,9 @@ class ExampleAppShowcasePageRenderTest < ExampleAppIntegrationTestCase
       s.priority        = 2
       s.priority2       = 3
       s.stars           = 4
+      s.scale_int       = 3
+      s.scale_val       = 2
+      s.amount          = Money.from_amount(99.95, "USD") if s.respond_to?(:amount=) && defined?(Money)
       s.description     = "<p>A rich-text body.</p>"
     end
     @full.roles << @role unless @full.roles.where(id: @role.id).exists?
@@ -73,6 +79,8 @@ class ExampleAppShowcasePageRenderTest < ExampleAppIntegrationTestCase
       s.priority   = 1
       s.priority2  = 1
       s.stars      = 1
+      s.scale_int  = 1
+      s.scale_val  = 1
     end
   end
 

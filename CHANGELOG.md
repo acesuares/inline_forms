@@ -4,6 +4,28 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [8.1.8] - 2026-05-27
+
+### Added
+
+- **`money_field`, `scale_with_integers`, `scale_with_values` are back in the `FormElementShowcase`.** All three were dropped from 8.1.6 because their `_show` helpers crashed (`humanized_money_with_symbol` undefined, positional-index lookups against `[[key,label]]` pairs). 8.1.7 fixed the two `scale_*` helpers; 8.1.8 wires the missing money-rails dependency:
+  - **money-rails wired into the installer Gemfile** (`gem 'money-rails', '~> 3.0'`). Adds the `humanized_money_with_symbol` view helper used by `money_field_show` and the `monetize` macro used in the showcase model.
+  - **`config/initializers/money.rb` generated** with `MoneyRails.configure { default_currency = :usd }` so the showcase renders predictably under any host locale.
+  - **`amount:money_field` column rewritten to `amount_cents:integer, default: 0, null: false`** in the generated create-table migration, and `monetize :amount_cents` declared on `FormElementShowcase`. That keeps the inline_forms attribute-list entry semantically correct (`[:amount, :money_field]`) — money-rails exposes the `amount`/`amount=` Money-aware accessors on top of the `_cents` column, so `obj.amount = "12.34"` parses to a Money and stores 1234 cents, and `obj.amount` reads back as `$12.34`.
+  - **`scale_int:scale_with_integers` (`{ 1 => 'one', … 5 => 'five' }`) and `scale_val:scale_with_values` (`{ 1 => 'red', 2 => 'green', 3 => 'blue' }`)** added to the showcase with value hashes, locale labels, and seed values (`scale_int=3, scale_val=2` on the full demo; both `1` on the empty demo).
+- **Showcase regression tests cover the three re-added fields.**
+  - `money_field` round-trips `"12.34"` and asserts `amount_cents == 1234` (skipped if money-rails is not monetizing `:amount`, so the same test file still works for older host apps).
+  - `scale_with_integers` and `scale_with_values` get round-trip integration tests structurally identical to the dropdown helper tests.
+  - `EXPECTED_ATTRIBUTES` (model test) and `SHOWCASE_FIELD_ATTRIBUTES` (page-render test) updated to require all three frames to render on `/form_element_showcases/:id`.
+
+### Fixed
+
+- **`money_field_show` rendered an empty `<a>` when the value was `nil`/zero.** money-rails' `humanized_money_with_symbol(nil)` returns `""`, so the inline-edit link had no visible text. The helper now uses the standard `<i class="fi-plus">` empty-state placeholder for nil/zero values, matching `dropdown_with_values_show` / `radio_button_show` / the 8.1.7 scale fixes.
+
+### Lockstep
+
+- `inline_forms`, `inline_forms_installer`, and `validation_hints` bumped from 8.1.7 to 8.1.8 in lockstep, even though `validation_hints` has no behavior change in this release.
+
 ## [8.1.7] - 2026-05-27
 
 ### Fixed
