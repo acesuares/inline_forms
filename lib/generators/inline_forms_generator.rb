@@ -123,8 +123,7 @@ module InlineForms
             @inline_forms_attribute_list << commenter +
               '     [ :' +
               attribute.name +
-              ' , "' + attribute.name +
-              '", :' + attribute.attribute_type.to_s +
+              ', :' + attribute.attribute_type.to_s +
               " ], \n"
           end
         end

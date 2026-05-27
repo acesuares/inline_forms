@@ -44,8 +44,8 @@ class InlineFormsGeneratorTest < Minitest::Test
     refute_includes(model, "scope :inline_forms_search")
     assert_includes(model, "belongs_to :category")
     assert_includes(model, "has_many :photos")
-    assert_includes(model, "[ :name , \"name\", :text_field ]")
-    assert_includes(model, "[ :category , \"category\", :dropdown ]")
+    assert_includes(model, "[ :name, :text_field ]")
+    assert_includes(model, "[ :category, :dropdown ]")
 
     assert_includes(controller, "class ThingsController < InlineFormsController")
     assert_includes(controller, "set_tab :thing")
@@ -91,7 +91,7 @@ class InlineFormsGeneratorTest < Minitest::Test
     model = read("app/models/mystery.rb")
     migration = read_single_migration_for("mysteries")
 
-    assert_includes(model, "#     [ :payload , \"payload\", :unknown ]")
+    assert_includes(model, "#     [ :payload, :unknown ]")
     assert_includes(migration, "#     t.unknown :payload")
   end
 
@@ -167,7 +167,7 @@ class InlineFormsGeneratorTest < Minitest::Test
     model = read("app/models/note.rb")
     migration = read_single_migration_for("notes")
 
-    assert_includes(model, "[ :description , \"description\", :plain_text ]")
+    assert_includes(model, "[ :description, :plain_text ]")
     assert_includes(migration, "t.text :description")
   end
 

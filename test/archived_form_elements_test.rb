@@ -6,13 +6,13 @@ require "inline_forms/archived_form_elements"
 class ArchivedFormElementsTest < Minitest::Test
   class ModelWithArchivedElement
     def inline_forms_attribute_list
-      [[:address, "Address", :geo_code_curacao]]
+      [[:address, :geo_code_curacao]]
     end
   end
 
   class ModelWithArchivedTree
     def inline_forms_attribute_list
-      [[:children, "Children", :tree]]
+      [[:children, :tree]]
     end
   end
 

@@ -17,8 +17,8 @@ class InlineFormsAddtoGeneratorTest < Minitest::Test
 
       def inline_forms_attribute_list
         @inline_forms_attribute_list ||= [
-          [ :name , "name", :text_field ],
-          [ :category , "category", :belongs_to ],
+          [ :name, :text_field ],
+          [ :category, :belongs_to ],
         ]
       end
 
@@ -38,13 +38,13 @@ class InlineFormsAddtoGeneratorTest < Minitest::Test
 
       def inline_forms_attribute_list
         @inline_forms_attribute_list ||= [
-          [ :header_user_login,         '', :header ],
-          [ :name,                      '', :text_field ],
-          [ :email,                     '', :text_field ],
-          [ :locale ,                   '', :dropdown ],
-          [ :password,                  '', :devise_password_field ],
-          [ :header_user_roles,         '', :header ],
-          [ :roles,                     '', :check_list ],
+          [ :header_user_login, :header ],
+          [ :name,              :text_field ],
+          [ :email,             :text_field ],
+          [ :locale,            :dropdown ],
+          [ :password,          :devise_password_field ],
+          [ :header_user_roles, :header ],
+          [ :roles,             :check_list ],
         ]
       end
 
@@ -94,13 +94,13 @@ class InlineFormsAddtoGeneratorTest < Minitest::Test
     assert_includes(model, "belongs_to :supplier")
     assert_includes(model, "has_rich_text :bio")
     assert_includes(model, "mount_uploader :avatar, AvatarUploader")
-    assert_includes(model, '[ :occupation , "occupation", :text_field ]')
+    assert_includes(model, '[ :occupation, :text_field ]')
     # :belongs_to is a relation -> no row in inline_forms_attribute_list
     # (matches InlineFormsGenerator semantics). :dropdown is not a relation
     # at lookup time, so it does get a row.
-    refute_includes(model, '[ :organization , "organization", :belongs_to ]')
-    assert_includes(model, '[ :supplier , "supplier", :dropdown ]')
-    assert_includes(model, '[ :avatar , "avatar", :image_field ]')
+    refute_includes(model, '[ :organization, :belongs_to ]')
+    assert_includes(model, '[ :supplier, :dropdown ]')
+    assert_includes(model, '[ :avatar, :image_field ]')
 
     assert_includes(migration, "add_column :widgets, :occupation, :string")
     assert_includes(migration, "add_reference :widgets, :organization, foreign_key: true")
@@ -120,7 +120,7 @@ class InlineFormsAddtoGeneratorTest < Minitest::Test
     model = read("app/models/widget.rb")
 
     assert_equal(1, model.scan("belongs_to :organization").size)
-    assert_equal(1, model.scan('[ :occupation , "occupation", :text_field ]').size)
+    assert_equal(1, model.scan('[ :occupation, :text_field ]').size)
   end
 
   def test_appends_row_to_installer_shaped_user_attribute_list
@@ -130,8 +130,8 @@ class InlineFormsAddtoGeneratorTest < Minitest::Test
 
     model = read("app/models/user.rb")
 
-    assert_includes(model, '[ :occupation , "occupation", :text_field ]')
-    assert_includes(model, '[ :birthdate , "birthdate", :date_select ]')
+    assert_includes(model, '[ :occupation, :text_field ]')
+    assert_includes(model, '[ :birthdate, :date_select ]')
     refute_match(/\]\s*\n\s*\[\s*:occupation/, model)
 
     user_array_section = model[/@inline_forms_attribute_list \|\|=\s*\[(.|\n)*?\n\s*\]/]
@@ -150,7 +150,7 @@ class InlineFormsAddtoGeneratorTest < Minitest::Test
 
     assert_includes(out, "no inline_forms_attribute_list found")
     assert_includes(model, "def inline_forms_attribute_list")
-    assert_includes(model, '[ :occupation , "occupation", :text_field ]')
+    assert_includes(model, '[ :occupation, :text_field ]')
   end
 
   def test_unknown_type_raises_thor_error_by_default
@@ -174,7 +174,7 @@ class InlineFormsAddtoGeneratorTest < Minitest::Test
     model = read("app/models/widget.rb")
     migration = read_single_addto_migration_for("widgets")
 
-    assert_includes(model, '[ :payload , "payload", :unknown ]')
+    assert_includes(model, '[ :payload, :unknown ]')
     assert_includes(migration, "#    add_column :widgets, :payload, :unknown")
   end
 

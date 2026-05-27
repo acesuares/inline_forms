@@ -62,7 +62,7 @@ You can install the example application manually if you like:
  rails g migration AddOwnerToApartments owner:references
  # Then in app/models/apartment.rb, add (under has_paper_trail):
  #   belongs_to :owner, optional: true
- # and prepend `[ :owner, "owner", :dropdown ],` to inline_forms_attribute_list.
+ # and prepend `[ :owner, :dropdown ],` to inline_forms_attribute_list.
  bundle exec rake db:migrate
  rails s
 
@@ -208,7 +208,7 @@ Active-tab highlighting is unchanged from upstream (still driven by +set_tab :fo
          tab = ALL_TABS.include?(params[:tab].to_s) ? params[:tab].to_s : ALL_TABS.first
          set_tab tab.to_sym
          @inline_forms_attribute_list = TAB_FIELDS.fetch(tab).map { |a|
-           @object.inline_forms_attribute_list.find { |attr, _, _| attr == a }
+           @object.inline_forms_attribute_list.find { |attr, _| attr == a }
          }
          render "clients/show_with_tabs",
                 layout: turbo_frame_request? ? "turbo_rails/frame" : "inline_forms"

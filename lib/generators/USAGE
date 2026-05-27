@@ -16,14 +16,14 @@ This will create:
           def _presentation
             #define your presentation here
           end
-          def inline_forms_field_list
-            [
-                [ :name, 'name', :text_field ],
-                [ :description, 'description', :plain_text ],
-                [ :yesno, 'yesno', :check_box ],
-                [ :gender, 'gender', :boolean_with_values ],
+          def inline_forms_attribute_list
+            @inline_forms_attribute_list ||= [
+                [ :name, :text_field ],
+                [ :description, :plain_text ],
+                [ :yesno, :check_box ],
+                [ :gender, :boolean_with_values ],
             ]
-         end
+          end
         end
 
         app/controllers/things_controller.rb

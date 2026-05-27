@@ -39,7 +39,7 @@ class InlineFormsAddtoGenerator < Rails::Generators::NamedBase
     class_option :replace, type: :boolean, default: false,
                  desc: "Replace existing _presentation/_list_order/_list_search instead of skipping."
 
-    source_root File.expand_path("templates", __dir__)
+    source_root File.expand_path("inline_forms_addto/templates", __dir__)
 
     def validate!
       unless File.exist?(File.join(destination_root, model_file_path))
@@ -209,7 +209,7 @@ class InlineFormsAddtoGenerator < Rails::Generators::NamedBase
     # `ApplicationRecord`) and no body.
     def add_attribute_list_row!(attribute)
       content = File.read(File.join(destination_root, model_file_path))
-      row = "      [ :#{attribute.name} , \"#{attribute.name}\", :#{attribute.attribute_type} ],\n"
+      row = "      [ :#{attribute.name}, :#{attribute.attribute_type} ],\n"
 
       if content.match?(/@inline_forms_attribute_list \|\|=\s*\[/)
         if content.match?(/\[\s*:#{Regexp.escape(attribute.name)}\s*,/)
@@ -235,7 +235,7 @@ class InlineFormsAddtoGenerator < Rails::Generators::NamedBase
 
           def inline_forms_attribute_list
             @inline_forms_attribute_list ||= [
-              [ :#{attribute.name} , "#{attribute.name}", :#{attribute.attribute_type} ],
+              [ :#{attribute.name}, :#{attribute.attribute_type} ],
             ]
           end
         RUBY

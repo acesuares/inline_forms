@@ -4,6 +4,55 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [8.1.5] - 2026-05-27
+
+### Changed (hard-breaking)
+
+- **`inline_forms_attribute_list` rows are now 2-element by default.** The empty 2nd element (the unused human-name string) has been removed from every row across the gem, installer, generators, helpers, views, validators, tests, and docs. Labels have come from `Klass.human_attribute_name(attribute)` via locale files for a long time, so the slot was redundant. The migration in 8.1.5 makes that explicit by dropping the slot entirely.
+
+  Old shape:
+
+  ```ruby
+  [ :name, "name", :text_field ],
+  [ :sex, "sex", :radio_button, { 1 => 'f', 2 => 'm' } ],
+  [ :sex, "sex", :dropdown_with_values, values_hash, options_disabled ],
+  ```
+
+  New shape:
+
+  ```ruby
+  [ :name, :text_field ],
+  [ :sex, :radio_button, { 1 => 'f', 2 => 'm' } ],
+  [ :sex, :dropdown_with_values, values_hash, options_disabled ],
+  ```
+
+  **This is a hard break.** Consumers that read positions inside the row (`attributes.assoc(:foo)[3]` for `attribute_values`, `attributes.assoc(:foo)[4]` for `dropdown_with_values`' `options_disabled`) have shifted to `[2]` / `[3]`. Any model file left in the old 3/4/5-element shape will silently misbehave (the empty string `""` will be returned where the values hash or `options_disabled` array used to be), so every existing `inline_forms_attribute_list` in downstream apps must be rewritten.
+
+  Minimal migration for the common 3-element shape — run this once over `app/models/**/*.rb`:
+
+  ```ruby
+  # In your app's root, with a backup or in a clean git tree:
+  Dir.glob("app/models/**/*.rb").each do |path|
+    src = File.read(path)
+    new = src.gsub(/\[\s*(:\w+)\s*,\s*["'][^"']*["']\s*,\s*(:\w+)\s*\]/) { "[ #{$1}, #{$2} ]" }
+    File.write(path, new) if new != src
+  end
+  ```
+
+  For 4/5-element rows (`dropdown_with_values`, `radio_button`, `scale_*`, `slider_*`, `check_box`, `simple_file_field`, `must_be_a_value` validator targets), drop only the empty 2nd element and keep the trailing `values` / `options_disabled` arguments unchanged.
+
+### Changed (mechanical follow-through)
+
+- **`InlineFormsGenerator`** and **`InlineFormsAddtoGenerator`** emit the new 2-element row shape.
+- **Installer** (`inline_forms_installer/installer_core.rb`): hand-written `User` / `<custom>` model `inline_forms_attribute_list` rewritten; `gsub_file` injections for `Apartment#owner` and `Owner#apartments` updated to the new shape.
+- **Runtime consumers** (`InlineFormsController#create`, `app/views/inline_forms/_show.html.erb`, `_new.html.erb`, `_new_nested.html.erb`, `InlineForms.validate_plain_text_configuration_for!`, `InlineForms.validate_no_archived_form_elements_for!`) updated their row destructuring to `|attribute, form_element|`.
+- **Positional lookups** in `InlineFormsHelper#attribute_values`, `MustBeAValueValidator#attribute_values`, and `DropdownWithValuesHelper#…_edit` shifted from `[3]` / `[4]` to `[2]` / `[3]`.
+- **Tests & docs:** all fixtures, assertions, and code samples (USAGE files, READMEs, `archived/*/README.md`) updated to the new shape.
+
+### Notes
+
+- **Example app gate (recorded):** `inline_forms create MyApp -d sqlite --example` against the freshly built **8.1.5** gem trio: install in ~73s, `bundle check: ok`, **88 runs, 502 assertions, 0 failures, 0 errors, 0 skips**. Gem unit tests: 42 runs, 240 assertions, 0 failures.
+
 ## [8.1.4] - 2026-05-26
 
 ### Fixed

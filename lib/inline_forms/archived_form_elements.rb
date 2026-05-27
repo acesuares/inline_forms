@@ -50,7 +50,7 @@ module InlineForms
   def self.validate_no_archived_form_elements_for!(klass)
     return unless klass.instance_methods.include?(:inline_forms_attribute_list)
 
-    klass.new.inline_forms_attribute_list.each do |attribute, _label, form_element|
+    klass.new.inline_forms_attribute_list.each do |attribute, form_element|
       key = form_element.to_sym
       next unless ARCHIVED_FORM_ELEMENTS.key?(key)
 

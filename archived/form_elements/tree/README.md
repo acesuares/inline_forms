@@ -5,7 +5,7 @@
 
 ## What it did
 
-Declare in `inline_forms_attribute_list`, e.g. `[ :children, "Children", :tree ]`:
+Declare in `inline_forms_attribute_list`, e.g. `[ :children, :tree ]`:
 
 - **`_show.html.erb`:** header “Children”, `+` for new child, `<turbo-frame>` wrapping **`_tree.html.erb`**.
 - **`_tree.html.erb`:** lists `parent.children` with Turbo row open, list-frame pagination (`update=…_list`).

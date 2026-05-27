@@ -28,7 +28,7 @@ class MustBeAValueValidator < ActiveModel::EachValidator
     # if we have a hash { 0=>'a', 2=>'b', 3=>'d' } will result in [[0,'a'],[2,'b'],[3,'d']] (it will keep the index and sort on the index)
     # TODO work this out better!
     # 2012-01-23 Use Cases
-    # [ :sex , "sex", :radio_button, { 1 => 'f', 2 => 'm' } ],
+    # [ :sex, :radio_button, { 1 => 'f', 2 => 'm' } ],
     # in this case we want the attribute in the database to be 1 or 2. From that attribute, we need to find the value.
     # using an array, won't work, since [ 'v', 'm' ][1] would be 'm' in stead of 'v'
     # so values should be a hash. BUT since we don't have sorted hashes (ruby 1,.8.7), the order of the values in the edit screen will be random.
@@ -40,8 +40,11 @@ class MustBeAValueValidator < ActiveModel::EachValidator
     # like value=values.assoc(attribute_from_database)[1] (the [1] is needed since the result of #assoc = [1,'v'] and we need the 'v')
     # I feel it's ugly but it works.
 
+    # Row shape (since 8.1.x): [ :attr, :form_element, values, options_disabled ].
+    # `values` lives at index 2 (was index 3 before the empty label string was
+    # dropped in 8.1.x).
     attributes = @inline_forms_attribute_list || object.inline_forms_attribute_list # if we do this as a form_element, @inline.. is nil!!!
-    values = attributes.assoc(attribute.to_sym)[3]
+    values = attributes.assoc(attribute.to_sym)[2]
     raise "No Values defined in #{@Klass}, #{attribute}" if values.nil?
     if values.is_a?(Hash)
       temp = Array.new

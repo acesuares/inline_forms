@@ -135,7 +135,7 @@ class InlineFormsController < ApplicationController
     @object ||= @Klass.new
     @update_span = params[:update]
     attributes = @inline_forms_attribute_list || @object.inline_forms_attribute_list
-    attributes.each do | attribute, name, form_element |
+    attributes.each do | attribute, form_element |
       InlineForms.assert_plain_text_column!(object: @object, attribute: attribute, form_element: form_element)
       send("#{form_element.to_s}_update", @object, attribute) unless form_element == :associated || (cancan_enabled? && cannot?(:read, @object, attribute))
     end

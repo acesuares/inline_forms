@@ -16,7 +16,7 @@ module InlineForms
       values = attribute_values(object, attribute)
     
       attributes = @inline_forms_attribute_list || object.inline_forms_attribute_list
-      options_disabled = attributes.assoc(attribute.to_sym)[4]
+      options_disabled = attributes.assoc(attribute.to_sym)[3]
     
       collection_select(  ('_' + object.class.to_s.underscore).to_sym,
                           attribute.to_sym,

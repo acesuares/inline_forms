@@ -384,25 +384,25 @@ create_file user_cfg.model_path, <<-USER_MODEL.strip_heredoc
 
     def inline_forms_attribute_list
       @inline_forms_attribute_list ||= [
-        [ :header_user_login,         '', :header ],
-        [ :name,                      '', :text_field ],
-        [ :email,                     '', :text_field ],
-        [ :locale ,                   '', :dropdown ],
-        [ :password,                  '', :devise_password_field ],
-        [ :header_user_roles,         '', :header ],
-        [ :roles,                     '', :check_list ],
-        [ :header_user_other_stuff,   '', :header ],
-        [ :encrypted_password,        '', :info ],
-        [ :reset_password_token,      '', :info ],
-        [ :reset_password_sent_at,    '', :info],
-        [ :remember_created_at,       '', :info ],
-        [ :sign_in_count,             '', :info ],
-        [ :current_sign_in_at,        '', :info ],
-        [ :last_sign_in_at,           '', :info ],
-        [ :current_sign_in_ip,        '', :info ],
-        [ :last_sign_in_ip,           '', :info ],
-        [ :created_at,                '', :info ],
-        [ :updated_at,                '', :info ],
+        [ :header_user_login,         :header ],
+        [ :name,                      :text_field ],
+        [ :email,                     :text_field ],
+        [ :locale,                    :dropdown ],
+        [ :password,                  :devise_password_field ],
+        [ :header_user_roles,         :header ],
+        [ :roles,                     :check_list ],
+        [ :header_user_other_stuff,   :header ],
+        [ :encrypted_password,        :info ],
+        [ :reset_password_token,      :info ],
+        [ :reset_password_sent_at,    :info ],
+        [ :remember_created_at,       :info ],
+        [ :sign_in_count,             :info ],
+        [ :current_sign_in_at,        :info ],
+        [ :last_sign_in_at,           :info ],
+        [ :current_sign_in_ip,        :info ],
+        [ :last_sign_in_ip,           :info ],
+        [ :created_at,                :info ],
+        [ :updated_at,                :info ],
       ]
     end
 
@@ -865,7 +865,7 @@ if ENV['install_example'] == 'true'
   # so it appears above :name in the inline panel.
   gsub_file "app/models/apartment.rb",
             /@inline_forms_attribute_list \|\|= \[\n/,
-            "@inline_forms_attribute_list ||= [\n     [ :owner , \"owner\", :dropdown ], \n"
+            "@inline_forms_attribute_list ||= [\n     [ :owner, :dropdown ], \n"
 
   # Owner -> apartments: render as a check_list of EXISTING apartments
   # (not the default :associated panel that only lets you create new
@@ -873,8 +873,8 @@ if ENV['install_example'] == 'true'
   # `apartment_ids=` setter that CheckListHelper uses, so we just swap
   # the form element kind in the generated attribute list.
   gsub_file "app/models/owner.rb",
-            /\[ :apartments , "apartments", :associated \]/,
-            '[ :apartments , "apartments", :check_list ]'
+            /\[ :apartments, :associated \]/,
+            '[ :apartments, :check_list ]'
 
   say "- Replacing OwnersController with tabbed-show variant (/owners/:id)..."
   remove_file "app/controllers/owners_controller.rb"
@@ -914,7 +914,7 @@ if ENV['install_example'] == 'true'
       def owner_attributes_for(tab)
         full = @object.inline_forms_attribute_list
         OWNER_TAB_FIELDS.fetch(tab).map do |attr|
-          full.find { |a, _, _| a == attr } ||
+          full.find { |a, _| a == attr } ||
             raise("OwnersController: attribute \#{attr.inspect} missing from Owner#inline_forms_attribute_list")
         end
       end

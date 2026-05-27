@@ -39,7 +39,7 @@
         parent_id: @parent_id),
       new_form_opts do -%>
     <% attributes = @inline_forms_attribute_list || @object.inline_forms_attribute_list -%>
-    <% attributes.each do | attribute, name, form_element | -%>
+    <% attributes.each do | attribute, form_element | -%>
       <% unless form_element.to_sym == :associated || (cancan_enabled? && cannot?(:read, @object, attribute)) -%>
         <% css_class_id = "attribute_#{attribute}_#{@object.id}" -%>
         <% if form_element && form_element.to_sym == :header %>

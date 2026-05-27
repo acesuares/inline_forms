@@ -20,7 +20,7 @@
     </div>
     <% end %>
     <% attributes = @inline_forms_attribute_list || @object.inline_forms_attribute_list -%>
-    <% attributes.each do | attribute, name, form_element | -%>
+    <% attributes.each do | attribute, form_element | -%>
       <% if cancan_disabled? || can?(:read, @object, attribute) %>
         <% css_class_id = "#{@object.class.name.underscore}_#{@object.id}_#{attribute}" -%>
         <% if form_element == :header %>

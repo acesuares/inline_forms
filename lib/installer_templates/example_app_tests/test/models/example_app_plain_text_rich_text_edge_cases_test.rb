@@ -14,7 +14,7 @@ class ExampleAppPlainTextRichTextEdgeCasesTest < ActiveSupport::TestCase
   test "plain_text mapped to actiontext-backed attribute raises configuration error" do
     with_temporary_inline_forms_attribute_list(
       Apartment,
-      [[:description, "description", :plain_text]]
+      [[:description, :plain_text]]
     ) do
       error = assert_raises(InlineForms::PlainTextColumnMissingError) do
         InlineForms.validate_plain_text_configuration_for!(Apartment)
@@ -38,7 +38,7 @@ class ExampleAppPlainTextRichTextEdgeCasesTest < ActiveSupport::TestCase
   test "switching text column field from plain_text to rich_text does not raise" do
     with_temporary_inline_forms_attribute_list(
       Role,
-      [[:description, "description", :rich_text]]
+      [[:description, :rich_text]]
     ) do
       InlineForms.validate_plain_text_configuration_for!(Role)
     end

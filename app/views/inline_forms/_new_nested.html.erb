@@ -14,7 +14,7 @@ This goes in _new.html.erb
     </div>
   </div>
     <% nested_attributes = @nested_object.inline_forms_attribute_list -%>
-    <% nested_attributes.each do | nested_attribute, nested_name, nested_form_element | -%>
+    <% nested_attributes.each do | nested_attribute, nested_form_element | -%>
     <% @nested_form_element = nested_form_element %>
     <% @nested_attribute = nested_attribute %>
       <% unless @nested_form_element.to_sym == :associated -%>

@@ -6,7 +6,7 @@ module InlineForms
     # -*- encoding : utf-8 -*-
     # radio buttons are integers in this version
     # us like this:
-    #   [ :sex , "gender", :radio_button, { 1 => 'male', 2 => 'female' } ],
+    #   [ :sex, :radio_button, { 1 => 'male', 2 => 'female' } ],
     
     def radio_button_show(object, attribute)
       values = attribute_values(object, attribute)

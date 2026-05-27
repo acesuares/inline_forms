@@ -58,10 +58,10 @@ module InlineForms
   #
   #    class Example < ApplicationRecord
   #      def inline_forms_attribute_list
-  #        {
-  #          :name  => [ "name", :text_field ],
-  #          :price => [ "price", :text_field ],
-  #        }
+  #        [
+  #          [ :name,  :text_field ],
+  #          [ :price, :text_field ],
+  #        ]
   #      end
   #    end
   # as you see, both :string and :integer are mapped to a :text_field
@@ -92,7 +92,7 @@ module InlineForms
   #   t.belongs_to :country
   # to the migration. (In fact AR will add t.integer :country_id). And
   # it will add
-  #   :country => [ "country", :dropdown ],
+  #   [ :country, :dropdown ],
   # to the inline_forms_attribute_list in the model.
   #
   SPECIAL_COLUMN_TYPES = {
@@ -127,7 +127,7 @@ module InlineForms
     return unless klass.table_exists?
 
     attributes = klass.new.inline_forms_attribute_list
-    attributes.each do |attribute, _label, form_element|
+    attributes.each do |attribute, form_element|
       next unless plain_text_form_element?(form_element)
       next if klass.column_names.include?(attribute.to_s)
 

@@ -1,0 +1,46 @@
+Description:
+    Add fields to an existing inline_forms model. The model file must already
+    exist (from `rails g inline_forms` or the installer). Generates an additive
+    migration (`add_column`, `add_reference` for belongs_to/dropdown, a single
+    :string column for image_field/audio_field; no column for rich_text /
+    has_many / has_one / habtm) and updates the model: associations,
+    `has_rich_text`, `mount_uploader`, and new rows in `inline_forms_attribute_list`.
+
+    Does NOT create routes, a controller, or MODEL_TABS — those stay as-is for
+    the existing model. Use `rails g inline_forms` to scaffold new models.
+
+    Install-time-only names (`_no_model`, `_no_migration`, `_id`, `_enabled`) are
+    rejected. `_presentation`, `_list_order`, `_list_search`, and `_order` are
+    skipped unless you pass `--replace`.
+
+Example:
+    rails generate inline_forms_addto User occupation:text_field birthdate:date organization:dropdown bio:rich_text
+
+This will create:
+      create  db/migrate/20260527120000_inline_forms_add_to_users_occupation_birthdate.rb
+      insert  app/models/user.rb
+
+      db/migrate/..._inline_forms_add_to_users_occupation_birthdate.rb:
+        class InlineFormsAddToUsersOccupationBirthdate < ActiveRecord::Migration[8.1]
+          def change
+            add_column :users, :occupation, :string
+            add_column :users, :birthdate, :date
+            add_reference :users, :organization, foreign_key: true
+          end
+        end
+
+      app/models/user.rb (excerpt):
+        class User < ApplicationRecord
+          belongs_to :organization
+          has_rich_text :bio
+
+          def inline_forms_attribute_list
+            @inline_forms_attribute_list ||= [
+              ...
+              [ :occupation, :text_field ],
+              [ :birthdate, :date ],
+              [ :organization, :dropdown ],
+              [ :bio, :rich_text ],
+            ]
+          end
+        end
