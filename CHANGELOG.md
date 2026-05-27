@@ -4,6 +4,42 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [8.1.6] - 2026-05-27
+
+### Added
+
+- **FormElementShowcase example resource.** `inline_forms create … --example` now generates a fourth example model, `FormElementShowcase`, that declares every kept Tier 1 form_element helper on a single object. Coverage:
+  - text-shaped: `text_field`, `plain_text_area`
+  - numeric: `integer_field`, `decimal_field`
+  - date/time: `date_select`, `time_select`, `month_select`, `month_year_picker`
+  - choice: `check_box`, `radio_button`, `dropdown_with_integers`, `dropdown_with_values` (normal + `options_disabled`), `dropdown_with_values_with_stars`
+  - files: `file_field`, `audio_field`, `image_field` (Cover reuses Photo's `ImageUploader`)
+  - rich text: `rich_text`
+  - display-only: `header` (6 section headers), `info` (`created_at`/`updated_at`), `info_list` (`has_and_belongs_to_many :roles` rendered read-only)
+- **First field-level validation in the example app.** `validates :count, numericality: { only_integer: true }, allow_blank: true` on `FormElementShowcase`. The new integration test posts `count: "abc"` through the top-level create form and asserts the response re-renders the new form with the numericality error.
+- **`dropdown_with_values_with_stars` ships its assets.** 5 small `<n>stars.png` PNGs are shipped under `lib/installer_templates/example_app_assets/` and copied into `app/assets/images/` at install time.
+- **Showcase regression tests.** New integration tests cover text, numeric (incl. numericality negative), date/time, and choice/scale helpers, plus a full-page smoke test that asserts every per-attribute `<turbo-frame>` renders and the `info_list` empty-state branch is exercised. New model test pins the attribute list, the 8.1.5 row-shape `options_disabled` slot on `:priority2`, and the new numericality validation.
+- **Showcase seed migration.** Seeds two `FormElementShowcase` rows (one fully populated with a role assigned, one empty), so the rendered demo at `/form_element_showcases/1` exercises every show branch out of the box.
+
+### Dropped from previous draft
+
+Per user choice:
+
+- `text_area`, `text_area_without_ckeditor`, `plain_text` (redundant with `plain_text_area`).
+- `ckeditor` (alias of `rich_text`; no behavior gap to exercise).
+- `slider_with_values` (deferred; complex jQuery UI wiring).
+- `multi_image_field` (deferred; needs array column + `mount_uploaders` plural override).
+
+Per implementation discovery (runtime helpers are broken under the current code base; out of scope to fix here):
+
+- `money_field` (helper calls `humanized_money_with_symbol`, a `money-rails` view helper that is not declared in the installer Gemfile).
+- `scale_with_integers` (helper indexes the array returned by `attribute_values` with a string: `values[object.send(attribute).to_s]`, which raises `TypeError: no implicit conversion of String into Integer`).
+- `scale_with_values` (helper does `values[object.send(attribute)][1]`, which raises `NoMethodError: undefined method '[]' for nil` whenever the stored integer is not a valid array index of the post-sorted values).
+
+### Lockstep
+
+- `inline_forms`, `inline_forms_installer`, and `validation_hints` bumped from 8.1.5 to 8.1.6 in lockstep, even though `validation_hints` has no behavior change in this release.
+
 ## [8.1.5] - 2026-05-27
 
 ### Changed (hard-breaking)

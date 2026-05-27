@@ -1039,6 +1039,202 @@ if ENV['install_example'] == 'true'
   say "- Running migrations for owner + seed (owners + apartments.owner_id + 3 apts/3 owners)..."
   run "bundle exec rake db:migrate"
 
+  # ---------------------------------------------------------------------
+  # FormElementShowcase: a fourth example resource that exercises every
+  # kept Tier 1 form_element helper on a single object. The kept set
+  # (and the rationale for what was dropped) is documented in
+  # stuff/form-element-showcase-plan.md. The runtime helpers handle
+  # every element generically; this block wires up the model, value
+  # rows, uploaders, join table, and seed data.
+  # ---------------------------------------------------------------------
+  say "- Generating FormElementShowcase (one resource per kept Tier 1 form_element)..."
+  sleep 1
+  run %q{bundle exec rails g inline_forms FormElementShowcase title:string body_plain_area:plain_text_area count:integer_field price:decimal_field meeting_date:date_select meeting_time:time_select birth_month:month_select start_month:month_year_picker is_active:check_box gender:radio_button rating_int:dropdown_with_integers priority:dropdown_with_values priority2:dropdown_with_values stars:dropdown_with_values_with_stars attachment:file_field jingle:audio_field cover:image_field description:rich_text roles:has_and_belongs_to_many _enabled:yes _list_order:title _list_search:title _presentation:'#{title}'}
+
+  say "- Generating Attachment + Jingle uploaders (Cover reuses ImageUploader)..."
+  run "bundle exec rails generate uploader Attachment"
+  run "bundle exec rails generate uploader Jingle"
+
+  # Cover reuses ImageUploader (already generated for Photo). CarrierWave
+  # is happy to mount one uploader class on multiple models; the global
+  # `remove_previously_stored_files_after_update = false` keeps PaperTrail
+  # revertable for both.
+  gsub_file "app/models/form_element_showcase.rb",
+            "mount_uploader :cover, CoverUploader",
+            "mount_uploader :cover, ImageUploader"
+
+  # First field-level validation in the example app. `allow_blank: true`
+  # keeps PaperTrail revert paths (and the seeded second row, which leaves
+  # count nil) valid. The integration test covers the explicit error
+  # path by POSTing `count: "abc"` to /form_element_showcases.
+  inject_into_file "app/models/form_element_showcase.rb",
+                   "\n  validates :count, numericality: { only_integer: true }, allow_blank: true\n  mount_uploader :attachment, AttachmentUploader\n",
+                   after: "class FormElementShowcase < ApplicationRecord\n"
+
+  # Value-bearing rows for every form_element that needs a values hash
+  # (or hash + options_disabled). 8.1.5 row shape: [:attr, :form_element]
+  # for bare rows, [:attr, :form_element, values, options_disabled] for
+  # choice rows.
+  showcase_value_rows = {
+    "[ :is_active, :check_box ]"                       => "[ :is_active, :check_box, { 0 => 'no', 1 => 'yes' } ]",
+    "[ :gender, :radio_button ]"                       => "[ :gender, :radio_button, { 1 => 'male', 2 => 'female' } ]",
+    "[ :rating_int, :dropdown_with_integers ]"         => "[ :rating_int, :dropdown_with_integers, { 1 => 'one', 2 => 'two', 3 => 'three' } ]",
+    "[ :priority, :dropdown_with_values ]"             => "[ :priority, :dropdown_with_values, { 1 => 'low', 2 => 'mid', 3 => 'high' } ]",
+    "[ :priority2, :dropdown_with_values ]"            => "[ :priority2, :dropdown_with_values, { 1 => 'low', 2 => 'mid', 3 => 'high' }, [ 2 ] ]",
+    "[ :stars, :dropdown_with_values_with_stars ]"     => "[ :stars, :dropdown_with_values_with_stars, { 1 => '1stars', 2 => '2stars', 3 => '3stars', 4 => '4stars', 5 => '5stars' } ]",
+  }
+  showcase_value_rows.each do |from, to|
+    gsub_file "app/models/form_element_showcase.rb", from, to
+  end
+
+  # Section headers + the trailing info/info_list block. `roles` is a
+  # has_and_belongs_to_many relation so the generator skips its
+  # attribute_list row; we hand-insert it as `:info_list` (read-only
+  # checklist of role _presentation strings).
+  showcase_header_inserts = {
+    "[ :title, :text_field ],"                  => "[ :header_basics, :header ], \n     [ :title, :text_field ],",
+    "[ :count, :integer_field ],"               => "[ :header_numbers, :header ], \n     [ :count, :integer_field ],",
+    "[ :meeting_date, :date_select ],"          => "[ :header_dates, :header ], \n     [ :meeting_date, :date_select ],",
+    "[ :is_active, :check_box, { 0 => 'no'"     => "[ :header_choices, :header ], \n     [ :is_active, :check_box, { 0 => 'no'",
+    "[ :attachment, :file_field ],"             => "[ :header_files, :header ], \n     [ :attachment, :file_field ],",
+    "[ :description, :rich_text ],"             => "[ :header_rich, :header ], \n     [ :description, :rich_text ],",
+  }
+  showcase_header_inserts.each do |from, to|
+    gsub_file "app/models/form_element_showcase.rb", from, to
+  end
+
+  # Insert :roles (info_list), :header_meta, and the timestamps after
+  # the rich_text row. The generator does not emit a row for
+  # `roles:has_and_belongs_to_many` (relation? is true), so we add it
+  # manually here.
+  gsub_file "app/models/form_element_showcase.rb",
+            "[ :description, :rich_text ], \n",
+            "[ :description, :rich_text ], \n     [ :roles, :info_list ], \n     [ :header_meta, :header ], \n     [ :created_at, :info ], \n     [ :updated_at, :info ], \n"
+
+  # Locale keys for the showcase attributes. Headers + the timestamps
+  # need explicit labels so `human_attribute_name` does not fall back to
+  # "Header basics" / "Created at". The leading two-space indent puts
+  # the `activerecord:` key under the existing `en:` root.
+  showcase_locale = <<~END_SHOWCASE_LOCALE
+    activerecord:
+      attributes:
+        form_element_showcase:
+          header_basics: Basics
+          header_numbers: Numbers
+          header_dates: Dates and times
+          header_choices: Choices and scales
+          header_files: Files
+          header_rich: Rich text
+          header_meta: Metadata
+          title: Title
+          body_plain_area: Plain text area
+          count: Count
+          price: Price
+          meeting_date: Meeting date
+          meeting_time: Meeting time
+          birth_month: Birth month
+          start_month: Start month
+          is_active: Is active
+          gender: Gender
+          rating_int: Rating
+          priority: Priority
+          priority2: Priority (with disabled option)
+          stars: Stars
+          attachment: Attachment
+          jingle: Jingle
+          cover: Cover
+          description: Description
+          roles: Roles
+          created_at: Created at
+          updated_at: Updated at
+  END_SHOWCASE_LOCALE
+  append_to_file "config/locales/inline_forms_local.en.yml", showcase_locale.lines.map { |l| "  #{l}" }.join
+
+  # Star images for dropdown_with_values_with_stars. The runtime helper
+  # calls `image_tag("\#{n}stars.png")`, so we ship 5 tiny PNGs in
+  # lib/installer_templates/example_app_assets and copy them into
+  # app/assets/images at install time.
+  showcase_assets_root = File.join(INSTALLER_ROOT, "lib/installer_templates/example_app_assets")
+  (1..5).each do |n|
+    src = File.join(showcase_assets_root, "#{n}stars.png")
+    copy_file src, File.join("app/assets/images", "#{n}stars.png") if File.exist?(src)
+  end
+
+  # Join table for has_and_belongs_to_many :roles. Mirrors the
+  # roles_users join migration created for the user model above.
+  say "- Creating form_element_showcases_roles join migration..."
+  sleep 1
+  habtm_ts = Time.now.utc.strftime("%Y%m%d%H%M%S")
+  create_file "db/migrate/#{habtm_ts}_create_join_table_form_element_showcases_roles.rb", <<-HABTM_MIGRATION.strip_heredoc
+    class CreateJoinTableFormElementShowcasesRoles < ActiveRecord::Migration[8.1]
+      def self.up
+        create_table :form_element_showcases_roles, id: false, force: true do |t|
+          t.integer :form_element_showcase_id
+          t.integer :role_id
+        end
+      end
+
+      def self.down
+        drop_table :form_element_showcases_roles
+      end
+    end
+  HABTM_MIGRATION
+
+  # Seed two showcase rows: one fully populated (so every show branch
+  # has data), and one with no roles + no uploads (so info_list's empty
+  # branch and the uploader empty branches render). Idempotent.
+  say "- Creating FormElementShowcase seed migration..."
+  sleep 1
+  showcase_seed_ts = Time.now.utc.strftime("%Y%m%d%H%M%S")
+  create_file "db/migrate/#{showcase_seed_ts}_seed_form_element_showcases.rb", <<-SHOWCASE_SEED.strip_heredoc
+    class SeedFormElementShowcases < ActiveRecord::Migration[8.1]
+      def up
+        return unless defined?(FormElementShowcase)
+
+        full = FormElementShowcase.find_or_create_by!(title: "Full demo") do |s|
+          s.body_plain_area = "A short plain-text paragraph."
+          s.count           = 7
+          s.price           = "12.34"
+          s.meeting_date    = Date.new(2026, 6, 1)
+          s.meeting_time    = Time.utc(2000, 1, 1, 14, 30)
+          s.birth_month     = 7
+          s.start_month     = Date.new(2026, 9, 1)
+          s.is_active       = true
+          s.gender          = 1
+          s.rating_int      = 2
+          s.priority        = 2
+          s.priority2       = 3
+          s.stars           = 4
+          s.description     = "<p>A rich-text paragraph for the showcase.</p>"
+        end
+        if defined?(Role) && Role.exists?(1) && full.roles.empty?
+          full.roles << Role.find(1)
+        end
+
+        # "Empty" refers to the role and uploader fields (their empty
+        # branches need to render). The other fields keep valid values
+        # because several show helpers (e.g. dropdown_with_integers) raise
+        # on nil/out-of-range integers.
+        FormElementShowcase.find_or_create_by!(title: "Empty demo") do |s|
+          s.is_active  = false
+          s.gender     = 1
+          s.rating_int = 1
+          s.priority   = 1
+          s.priority2  = 1
+          s.stars      = 1
+        end
+      end
+
+      def down
+        return unless defined?(FormElementShowcase)
+        FormElementShowcase.where(title: ["Full demo", "Empty demo"]).destroy_all
+      end
+    end
+  SHOWCASE_SEED
+
+  say "- Running showcase migrations (create table + join + seed)..."
+  run "bundle exec rake db:migrate"
+
   example_views_root = File.join(INSTALLER_ROOT, "lib/installer_templates/example_app_views")
   Dir.glob(File.join(example_views_root, "**", "*")).sort.each do |abs|
     next unless File.file?(abs)
