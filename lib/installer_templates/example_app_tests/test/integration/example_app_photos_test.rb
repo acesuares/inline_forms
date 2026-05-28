@@ -53,4 +53,44 @@ class ExampleAppPhotosTest < ExampleAppIntegrationTestCase
     assert_response :success
     assert_includes Photo.find(photo_id).description.body.to_html, "survives undo"
   end
+
+  test "nested photo delete undo twice does not duplicate ActionText rows" do
+    photo = @apartment.photos.create!(name: "twice.jpg", caption: "c")
+    body = "<p>Twice undo description</p>"
+    field_frame = "apartment_#{@apartment.id}_photo_#{photo.id}_description"
+    put photo_path(
+      photo,
+      attribute: "description",
+      form_element: "rich_text",
+      update: field_frame
+    ), params: { description: body },
+       headers: { "Turbo-Frame" => field_frame, "Accept" => "text/html" }
+
+    photo_id = photo.id
+    row_frame = "apartment_#{@apartment.id}_photo_#{photo_id}"
+    row_headers = { "Turbo-Frame" => row_frame, "Accept" => "text/html" }
+    stream_headers = row_headers.merge("Accept" => "text/vnd.turbo-stream.html")
+
+    2.times do
+      delete photo_path(Photo.find(photo_id), update: row_frame), headers: row_headers
+      assert_response :success
+
+      destroy_version = PaperTrail::Version.where(
+        item_type: "Photo",
+        item_id: photo_id,
+        event: "destroy"
+      ).order(:id).last
+      post revert_photo_path(destroy_version, update: row_frame), headers: stream_headers
+      assert_response :success,
+        "second delete/undo must not INSERT a duplicate action_text_rich_texts id"
+    end
+
+    assert_equal 1,
+      ActionText::RichText.where(
+        record_type: "Photo",
+        record_id: photo_id,
+        name: "description"
+      ).count
+    assert_includes Photo.find(photo_id).description.body.to_html, "Twice undo"
+  end
 end

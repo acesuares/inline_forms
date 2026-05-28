@@ -331,23 +331,49 @@ class InlineFormsController < ApplicationController
   # Undoing a parent +destroy+ reifies the Apartment/Photo row only. ActionText
   # bodies live in +action_text_rich_texts+ and get their own PaperTrail
   # +destroy+ versions; those rows are gone after +parent.destroy+, so we also
-  # reify and save each matching +ActionText::RichText+ destroy snapshot.
+  # reify each matching +ActionText::RichText+ destroy snapshot.
+  #
+  # Use +find_or_initialize_by(record_type, record_id, name)+ and copy +body+
+  # only. Reified rows carry the old PK; +save!+ on a new record would INSERT
+  # that id and raise +RecordNotUnique+ on a second delete/undo cycle when the
+  # row already exists. Only the newest destroy version per attribute name is
+  # applied (repeat delete/undo leaves multiple RT destroy versions in the table).
   def restore_rich_texts_for_reverted_parent!(parent)
     return unless defined?(ActionText::RichText)
 
     record_type = parent.class.base_class.name
     record_id = parent.id
+    versions_by_name = {}
 
-    PaperTrail::Version.where(item_type: "ActionText::RichText", event: "destroy").find_each do |version|
-      attrs = version.object_deserialized
-      next unless attrs.is_a?(Hash)
+    PaperTrail::Version
+      .where(item_type: "ActionText::RichText", event: "destroy")
+      .order(id: :desc)
+      .each do |version|
+        attrs = version.object_deserialized
+        next unless attrs.is_a?(Hash)
 
-      type = attrs["record_type"] || attrs[:record_type]
-      rid = attrs["record_id"] || attrs[:record_id]
-      next unless type == record_type && rid.to_i == record_id
+        type = attrs["record_type"] || attrs[:record_type]
+        rid = attrs["record_id"] || attrs[:record_id]
+        next unless type == record_type && rid.to_i == record_id
 
-      rich_text = version.reify
-      rich_text&.save!
+        name = (attrs["name"] || attrs[:name]).to_s
+        next if name.empty?
+
+        versions_by_name[name] ||= version
+      end
+
+    versions_by_name.each_value do |version|
+      reified = version.reify
+      next unless reified
+
+      name = reified.name.to_s
+      record = ActionText::RichText.find_or_initialize_by(
+        record_type: record_type,
+        record_id: record_id,
+        name: name
+      )
+      record.body = reified.body if reified.respond_to?(:body)
+      record.save!
     end
   end
 

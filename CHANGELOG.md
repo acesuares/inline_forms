@@ -4,6 +4,16 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [8.1.16] - 2026-05-28
+
+### Fixed
+
+- **`RecordNotUnique` on `action_text_rich_texts.id` when undoing a delete more than once.** Restoring rich text after parent undo used `reify.save!`, which INSERTs the old primary key. A second delete/undo cycle (or an already-restored row) hit SQLite's unique constraint. Restoration now upserts by `(record_type, record_id, name)` and copies `body` only, and only the latest PaperTrail `destroy` version per attribute is applied.
+
+### Added
+
+- **Regression test:** nested Photo delete → undo → delete → undo.
+
 ## [8.1.15] - 2026-05-28
 
 ### Fixed
