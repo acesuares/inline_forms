@@ -4,6 +4,16 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [8.1.12] - 2026-05-28
+
+### Fixed
+
+- **`InlineFormsController#revert` and CanCan `check_authorization`.** `revert` is excluded from `load_and_authorize_resource`, but `authorize!` only ran on some branches — and after `return unless @parent`, so a nil PaperTrail `item` on a destroyed row (or any path that bailed out early) left `@_authorized` unset and raised `CanCan::AuthorizationNotPerformed`. Authorization now runs once at the top of the action via `revert_authorization_subject` (reified record, `ActionText::RichText` parent, live `item`, or an id-only stub for destroyed rows). The post-delete **undo** link in `row_destroyed.html.erb` now requests `turbo_stream` like the versions-panel Restore link, matching the `format.turbo_stream` response.
+
+### Added
+
+- **Regression test** `example_app_showcase_row_turbo_test.rb`: destroy + undo revert on `FormElementShowcase`.
+
 ## [8.1.11] - 2026-05-28
 
 ### Fixed

@@ -270,61 +270,90 @@ class InlineFormsController < ApplicationController
   #   below derive from `@parent` for both branches.
   def revert
     @update_span = params[:update]
-    if current_user.role? :superadmin
-      @version = PaperTrail::Version.find(params[:id])
-      @object = @version.reify
-      # PaperTrail::Version#reify returns nil for `create` events because
-      # there is no prior state to roll back to. The versions list view
-      # hides the Restore link for `create` rows, but guard here too in
-      # case a request was bookmarked or replayed: render close on the
-      # current parent without mutating anything.
-      if @object.nil?
-        # reify returns nil for `create` events (no prior state). For a
-        # rich_text create, reverting means "undo the creation" -> destroy
-        # the ActionText::RichText row so the parent's field reverts to
-        # empty (symmetric with reverting an update on a rich_text that
-        # was first saved empty). For a primary record we never offer
-        # Restore on `create` in the view; this branch only runs for
-        # replayed/bookmarked URLs and must remain a no-op response keyed
-        # off the parent.
-        item = @version.item
-        if defined?(ActionText::RichText) && item.is_a?(ActionText::RichText)
-          @rich_text_record = item
-          @parent = @rich_text_record.record
-          return unless @parent
-          authorize!(:revert, @parent) if cancan_enabled?
-          @rich_text_record.destroy
-          @parent.touch if @parent.respond_to?(:touch)
-        else
-          @parent = item
-          return unless @parent
-          authorize!(:revert, @parent) if cancan_enabled?
-        end
-        return unless row_html_turbo_allowed?
-        respond_to do |format|
-          format.turbo_stream { render_revert_turbo_streams }
-        end
-        return
-      end
-      if defined?(ActionText::RichText) && @object.is_a?(ActionText::RichText)
-        @rich_text_record = @object
+    @version = PaperTrail::Version.find(params[:id])
+    @parent = revert_authorization_subject(@version)
+    authorize!(:revert, @parent || @Klass) if cancan_enabled?
+    return head :forbidden unless current_user.role? :superadmin
+    return head :not_found unless @parent
+
+    @object = @version.reify(
+      has_many: true,
+      has_and_belongs_to_many: true,
+      belongs_to: true
+    )
+    # PaperTrail::Version#reify returns nil for `create` events because
+    # there is no prior state to roll back to. The versions list view
+    # hides the Restore link for `create` rows, but guard here too in
+    # case a request was bookmarked or replayed: render close on the
+    # current parent without mutating anything.
+    if @object.nil?
+      # reify returns nil for `create` events (no prior state). For a
+      # rich_text create, reverting means "undo the creation" -> destroy
+      # the ActionText::RichText row so the parent's field reverts to
+      # empty (symmetric with reverting an update on a rich_text that
+      # was first saved empty). For a primary record we never offer
+      # Restore on `create` in the view; this branch only runs for
+      # replayed/bookmarked URLs and must remain a no-op response keyed
+      # off the parent.
+      item = @version.item
+      if defined?(ActionText::RichText) && item.is_a?(ActionText::RichText)
+        @rich_text_record = item
         @parent = @rich_text_record.record
-        @rich_text_record.save!
+        return head :not_found unless @parent
+        @rich_text_record.destroy
         @parent.touch if @parent.respond_to?(:touch)
       else
-        @parent = @object
-        @parent.save!
+        @parent = item || @parent
+        return head :not_found unless @parent
       end
-      authorize!(:revert, @parent) if cancan_enabled?
-      return unless row_html_turbo_allowed?
-
-      respond_to do |format|
-        format.turbo_stream { render_revert_turbo_streams }
-      end
+      return render_revert_response if row_html_turbo_allowed?
+      return
     end
+    if defined?(ActionText::RichText) && @object.is_a?(ActionText::RichText)
+      @rich_text_record = @object
+      @parent = @rich_text_record.record
+      return head :not_found unless @parent
+      @rich_text_record.save!
+      @parent.touch if @parent.respond_to?(:touch)
+    else
+      @parent = @object
+      @parent.save!
+    end
+    render_revert_response if row_html_turbo_allowed?
   end
 
   private
+
+  # +revert+ is excluded from +load_and_authorize_resource+; +authorize!+ runs in the
+  # action. +check_authorization+ on ApplicationController still requires that flag.
+  def revert_authorization_subject(version)
+    reified = version.reify(
+      has_many: true,
+      has_and_belongs_to_many: true,
+      belongs_to: true
+    )
+    if defined?(ActionText::RichText) && reified.is_a?(ActionText::RichText)
+      return reified.record
+    end
+    return reified if reified
+
+    item = version.item
+    if defined?(ActionText::RichText) && item.is_a?(ActionText::RichText)
+      return item.record
+    end
+    return item if item
+
+    klass = version.item_type.safe_constantize
+    return nil unless klass && version.item_id
+
+    klass.new(id: version.item_id)
+  end
+
+  def render_revert_response
+    respond_to do |format|
+      format.turbo_stream { render_revert_turbo_streams }
+    end
+  end
 
   # Versions list lives in +<turbo-frame id="…_versions">+; POST +restore+ would otherwise
   # send +Turbo-Frame: …_versions+ while +row_close+ only returns the row frame. Stream

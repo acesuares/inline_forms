@@ -3,7 +3,7 @@
     <div class="small-12 column">
       <%= link_to t("inline_forms.view.undo"),
             send("revert_#{@Klass.to_s.underscore}_path", @undo_version, update: @update_span),
-            inline_forms_turbo_link_data(@update_span, method: :post).merge(class: "button") %>
+            inline_forms_turbo_link_data(@update_span, method: :post, turbo_stream: true).merge(class: "button") %>
     </div>
   </div>
 </turbo-frame>
