@@ -4,6 +4,24 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [8.1.10] - 2026-05-27
+
+### Changed
+
+- **`:decimal_field` is now a real `decimal(p, s)` column instead of a `varchar`.** The FormElementRegistry mapping moves from `:decimal_field => :string` to `:decimal_field => :decimal`, so `rails g inline_forms Foo price:decimal_field` now emits `t.decimal :price, precision: 10, scale: 2` (the sensible default — invoice/balance up to 99,999,999.99). This closes a long-standing inconsistency: `decimal_field` was the only "numeric" Tier 1 helper that stored its value as text, so `"ace"` would happily round-trip and `Foo.sum(:price)` was a runtime cast error. Existing apps generated before 8.1.10 keep their varchar columns until they migrate; only newly-generated tables get `:decimal`.
+- **New CLI syntax: `name:decimal_field{p,s}` overrides precision/scale.** Mirrors Rails' built-in `name:decimal{p,s}` grammar. Examples: `latitude:decimal_field{9,6}` -> `decimal(9, 6)` (~11 cm GPS accuracy), `longitude:decimal_field{10,6}` -> `decimal(10, 6)`, `dose:decimal_field{6,3}` -> `decimal(6, 3)`. Rails' own `Rails::Generators::GeneratedAttribute.parse` only honors `{…}` on a hardcoded list of built-in types and glues the braces onto custom types as part of the type symbol; `inline_forms_attribute_overrides.rb` now pre-processes the suffix off `:decimal_field` and stores precision/scale in `attr_options` for the migration emitter to read.
+- **`decimal_field_show` / `_edit` render `BigDecimal` as fixed-point.** Once the column became a real `:decimal`, `object[attribute]` started returning `BigDecimal`, whose `to_s` defaults to scientific notation (`"0.1234e2"`). Both helpers now call `value.to_s("F")` for BigDecimal and fall through to the generic `to_s` for legacy varchar values, so existing apps display correctly with either column shape.
+
+### Added
+
+- **`FormElementShowcase` demos the new `{p,s}` syntax.** Two new attributes (`latitude:decimal_field{9,6}`, `longitude:decimal_field{10,6}`) sit alongside `price:decimal_field` in the "Numbers" header, exercising both the default `(10, 2)` and explicit overrides. Seed values are Curaçao's Willemstad coordinates (`12.123456 / -68.987654`) — exactly representable in the chosen scale so the round-trip test is bit-identical rather than float-fuzzy.
+- **`validates :price, latitude, longitude, numericality: …` in the showcase model.** Without an explicit validation, ActiveRecord silently casts `"ace"` to `BigDecimal("0")` on a `:decimal` column. The validation keeps the round-trip honest (the new integration test asserts a 422 on `"ace"`), and the `:latitude` / `:longitude` validations also pin the lat/lon ranges (±90, ±180).
+- **Model + integration tests** cover the precision/scale schema (`columns_hash["latitude"].precision == 9`), the BigDecimal round-trip at full scale, the rejection of out-of-range GPS values, and the rejection of non-numeric input.
+
+### Lockstep
+
+- `inline_forms`, `inline_forms_installer`, and `validation_hints` bumped from 8.1.9 to 8.1.10 in lockstep, even though `validation_hints` has no behavior change in this release.
+
 ## [8.1.9] - 2026-05-27
 
 ### Fixed

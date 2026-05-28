@@ -46,10 +46,17 @@ def install_prerelease_gems_from_roots!
   return if roots.empty?
 
   %w[validation_hints inline_forms inline_forms_installer].each do |name|
-    gem_file = roots.filter_map { |root|
-      files = Dir[File.join(root, "#{name}-*.gem")]
-      files.sort.last if files.any?
-    }.max
+    # Pick the *highest version*, not the highest filename. String sort
+    # placed `inline_forms-8.1.7.gem` above `inline_forms-8.1.10.gem`
+    # because "7" > "1" lexicographically — silently picking up a stale
+    # gem build on every release once minor versions cross a digit
+    # boundary. Parse the version out of the filename with Gem::Version
+    # so the comparison is numeric.
+    candidates = roots.flat_map { |root| Dir[File.join(root, "#{name}-*.gem")] }
+    gem_file = candidates.max_by do |path|
+      ver_str = File.basename(path, ".gem").sub(/\A#{Regexp.escape(name)}-/, "")
+      Gem::Version.new(ver_str) rescue Gem::Version.new("0")
+    end
     next unless gem_file && File.file?(gem_file)
 
     say "- Installing #{File.basename(gem_file)} into app gemset..."
@@ -1065,7 +1072,7 @@ if ENV['install_example'] == 'true'
   # ---------------------------------------------------------------------
   say "- Generating FormElementShowcase (one resource per kept Tier 1 form_element)..."
   sleep 1
-  run %q{bundle exec rails g inline_forms FormElementShowcase title:string body_plain_area:plain_text_area count:integer_field price:decimal_field amount:money_field meeting_date:date_select meeting_time:time_select birth_month:month_select start_month:month_year_picker is_active:check_box gender:radio_button rating_int:dropdown_with_integers priority:dropdown_with_values priority2:dropdown_with_values stars:dropdown_with_values_with_stars scale_int:scale_with_integers scale_val:scale_with_values attachment:file_field jingle:audio_field cover:image_field description:rich_text locales:has_and_belongs_to_many _enabled:yes _list_order:title _list_search:title _presentation:'#{title}'}
+  run %q{bundle exec rails g inline_forms FormElementShowcase title:string body_plain_area:plain_text_area count:integer_field price:decimal_field amount:money_field latitude:decimal_field{9,6} longitude:decimal_field{10,6} meeting_date:date_select meeting_time:time_select birth_month:month_select start_month:month_year_picker is_active:check_box gender:radio_button rating_int:dropdown_with_integers priority:dropdown_with_values priority2:dropdown_with_values stars:dropdown_with_values_with_stars scale_int:scale_with_integers scale_val:scale_with_values attachment:file_field jingle:audio_field cover:image_field description:rich_text locales:has_and_belongs_to_many _enabled:yes _list_order:title _list_search:title _presentation:'#{title}'}
 
   say "- Generating Attachment + Jingle uploaders (Cover reuses ImageUploader)..."
   run "bundle exec rails generate uploader Attachment"
@@ -1127,7 +1134,11 @@ if ENV['install_example'] == 'true'
   # A `def` body is parsed but only resolved at call time, side-stepping
   # the ordering hazard.
   inject_into_file "app/models/form_element_showcase.rb",
-                   "\n  validates :count, numericality: { only_integer: true }, allow_blank: true\n  mount_uploader :attachment, AttachmentUploader\n  monetize :amount_cents\n\n  def locales_display\n    locales\n  end\n",
+                   "\n  validates :count, numericality: { only_integer: true }, allow_blank: true\n" \
+                   "  validates :price, numericality: true, allow_blank: true\n" \
+                   "  validates :latitude,  numericality: { greater_than_or_equal_to:  -90, less_than_or_equal_to:  90 }, allow_blank: true\n" \
+                   "  validates :longitude, numericality: { greater_than_or_equal_to: -180, less_than_or_equal_to: 180 }, allow_blank: true\n" \
+                   "  mount_uploader :attachment, AttachmentUploader\n  monetize :amount_cents\n\n  def locales_display\n    locales\n  end\n",
                    after: "class FormElementShowcase < ApplicationRecord\n"
 
   # Value-bearing rows for every form_element that needs a values hash
@@ -1199,6 +1210,8 @@ if ENV['install_example'] == 'true'
           amount: Amount
           meeting_date: Meeting date
           meeting_time: Meeting time
+          latitude: Latitude
+          longitude: Longitude
           birth_month: Birth month
           start_month: Start month and year
           is_active: Is active
@@ -1280,6 +1293,11 @@ if ENV['install_example'] == 'true'
           s.count           = 7
           s.price           = "12.34"
           s.amount          = Money.from_amount(99.95, "USD") if s.respond_to?(:amount=)
+          # Curaçao (Willemstad). Exactly representable in decimal(9,6)
+          # and decimal(10,6) — useful for the precision-survival test
+          # that asserts the round-trip is bit-identical, not float-fuzzy.
+          s.latitude        = BigDecimal("12.123456")
+          s.longitude       = BigDecimal("-68.987654")
           s.meeting_date    = Date.new(2026, 6, 1)
           s.meeting_time    = Time.utc(2000, 1, 1, 14, 30)
           s.birth_month     = 7

@@ -8,7 +8,7 @@ module InlineForms
       :check_list => :no_migration,
       :ckeditor => :text,
       :date_select => :date,
-      :decimal_field => :string,
+      :decimal_field => :decimal,
       :devise_password_field => :string,
       :dropdown => :belongs_to,
       :dropdown_with_integers => :integer,

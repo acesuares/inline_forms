@@ -164,11 +164,29 @@ module InlineForms
           else
             if attribute.migration?
               attribute.attribute_type == :unknown ? commenter = '#' : commenter = ' '
+              # Render precision/scale for real :decimal columns. The override
+              # in lib/generators/inline_forms_attribute_overrides.rb teaches
+              # `Rails::Generators::GeneratedAttribute.parse` to extract
+              # `{p,s}` off the type for :decimal_field (Rails' own parser
+              # only honors `{…}` for a hardcoded list of built-in types
+              # and otherwise glues the braces onto the type symbol).
+              # Apply sensible defaults — precision: 10, scale: 2 — so a
+              # bare `name:decimal_field` becomes a real decimal column
+              # instead of the legacy varchar that 8.1.9 and earlier
+              # emitted. Existing apps keep their varchar columns until
+              # they migrate; only newly-generated tables get :decimal.
+              column_opts = ""
+              if attribute.column_type == :decimal
+                precision = attribute.attr_options[:precision] || 10
+                scale     = attribute.attr_options[:scale]     || 2
+                column_opts = ", precision: #{precision}, scale: #{scale}"
+              end
               @columns << commenter +
                 '     t.' +
                 attribute.column_type.to_s +
                 " :" +
                 attribute.name +
+                column_opts +
                 " \n"
             end
           end

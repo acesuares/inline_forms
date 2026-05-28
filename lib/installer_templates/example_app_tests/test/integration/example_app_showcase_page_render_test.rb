@@ -14,6 +14,8 @@ class ExampleAppShowcasePageRenderTest < ExampleAppIntegrationTestCase
     count
     price
     amount
+    latitude
+    longitude
     meeting_date
     meeting_time
     birth_month
@@ -66,6 +68,8 @@ class ExampleAppShowcasePageRenderTest < ExampleAppIntegrationTestCase
       s.scale_int       = 3
       s.scale_val       = 2
       s.amount          = Money.from_amount(99.95, "USD") if s.respond_to?(:amount=) && defined?(Money)
+      s.latitude        = BigDecimal("12.123456")
+      s.longitude       = BigDecimal("-68.987654")
       s.description     = "<p>A rich-text body.</p>"
     end
     @full.locales << @locale unless @full.locales.where(id: @locale.id).exists?

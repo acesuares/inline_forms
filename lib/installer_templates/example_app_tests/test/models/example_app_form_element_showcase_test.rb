@@ -16,6 +16,8 @@ class ExampleAppFormElementShowcaseTest < ActiveSupport::TestCase
     count
     price
     amount
+    latitude
+    longitude
     header_dates
     meeting_date
     meeting_time
@@ -81,5 +83,64 @@ class ExampleAppFormElementShowcaseTest < ActiveSupport::TestCase
   test "count allows blank" do
     showcase = FormElementShowcase.new(title: "X", count: nil)
     assert showcase.valid?, "expected showcase to be valid with count=nil (allow_blank), got #{showcase.errors.full_messages.inspect}"
+  end
+
+  # ---------------------------------------------------------------------
+  # 8.1.10: :decimal_field now maps to a real :decimal column with
+  # precision/scale instead of the legacy varchar. The migration emitter
+  # applies (10, 2) by default and reads `{p,s}` overrides from the CLI
+  # type suffix (e.g. `latitude:decimal_field{9,6}` -> decimal(9,6)).
+  # ---------------------------------------------------------------------
+
+  test "decimal_field maps to a real :decimal column with default precision/scale" do
+    price_col = FormElementShowcase.columns_hash["price"]
+    assert_not_nil price_col, "expected a :price column"
+    assert_equal :decimal, price_col.type,
+      "expected :price to be a :decimal column, got #{price_col.type.inspect} (#{price_col.sql_type.inspect})"
+    assert_equal 10, price_col.precision, "expected default precision: 10"
+    assert_equal  2, price_col.scale,     "expected default scale: 2"
+  end
+
+  test "decimal_field{p,s} CLI suffix sets precision and scale" do
+    lat = FormElementShowcase.columns_hash["latitude"]
+    lon = FormElementShowcase.columns_hash["longitude"]
+    assert_equal :decimal, lat.type
+    assert_equal :decimal, lon.type
+    assert_equal [9, 6],  [lat.precision, lat.scale],
+      "expected latitude:decimal_field{9,6} -> decimal(9,6), got decimal(#{lat.precision},#{lat.scale})"
+    assert_equal [10, 6], [lon.precision, lon.scale],
+      "expected longitude:decimal_field{10,6} -> decimal(10,6), got decimal(#{lon.precision},#{lon.scale})"
+  end
+
+  test "decimal column round-trips BigDecimal losslessly at full scale" do
+    showcase = FormElementShowcase.create!(
+      title: "decimal-roundtrip",
+      latitude:  BigDecimal("12.123456"),
+      longitude: BigDecimal("-68.987654"),
+    )
+    showcase.reload
+    assert_kind_of BigDecimal, showcase.latitude
+    assert_equal BigDecimal("12.123456"),  showcase.latitude
+    assert_equal BigDecimal("-68.987654"), showcase.longitude
+  end
+
+  test "price rejects non-numeric input with a numericality error" do
+    showcase = FormElementShowcase.new(title: "X", price: "ace")
+    assert_not showcase.valid?
+    assert_includes showcase.errors.attribute_names, :price
+    assert showcase.errors[:price].any? { |m| m.match?(/not a number/i) },
+      "expected `not a number` error on :price, got #{showcase.errors[:price].inspect}"
+  end
+
+  test "latitude rejects out-of-range values via numericality range" do
+    showcase = FormElementShowcase.new(title: "X", latitude: 91)
+    assert_not showcase.valid?
+    assert_includes showcase.errors.attribute_names, :latitude
+  end
+
+  test "longitude rejects out-of-range values via numericality range" do
+    showcase = FormElementShowcase.new(title: "X", longitude: 181)
+    assert_not showcase.valid?
+    assert_includes showcase.errors.attribute_names, :longitude
   end
 end
