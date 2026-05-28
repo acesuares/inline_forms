@@ -320,11 +320,36 @@ class InlineFormsController < ApplicationController
     else
       @parent = @object
       @parent.save!
+      restore_rich_texts_for_reverted_parent!(@parent)
+      @parent.reload
     end
     render_revert_response if row_html_turbo_allowed?
   end
 
   private
+
+  # Undoing a parent +destroy+ reifies the Apartment/Photo row only. ActionText
+  # bodies live in +action_text_rich_texts+ and get their own PaperTrail
+  # +destroy+ versions; those rows are gone after +parent.destroy+, so we also
+  # reify and save each matching +ActionText::RichText+ destroy snapshot.
+  def restore_rich_texts_for_reverted_parent!(parent)
+    return unless defined?(ActionText::RichText)
+
+    record_type = parent.class.base_class.name
+    record_id = parent.id
+
+    PaperTrail::Version.where(item_type: "ActionText::RichText", event: "destroy").find_each do |version|
+      attrs = version.object_deserialized
+      next unless attrs.is_a?(Hash)
+
+      type = attrs["record_type"] || attrs[:record_type]
+      rid = attrs["record_id"] || attrs[:record_id]
+      next unless type == record_type && rid.to_i == record_id
+
+      rich_text = version.reify
+      rich_text&.save!
+    end
+  end
 
   # +revert+ is excluded from +load_and_authorize_resource+; +authorize!+ runs in the
   # action. +check_authorization+ on ApplicationController still requires that flag.

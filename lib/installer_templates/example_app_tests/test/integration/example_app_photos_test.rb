@@ -19,4 +19,38 @@ class ExampleAppPhotosTest < ExampleAppIntegrationTestCase
       Photo.create!(name: "Sunset", apartment: @apartment)
     end
   end
+
+  test "nested photo destroy undo restores rich_text description" do
+    photo = @apartment.photos.create!(name: "undo.jpg", caption: "c")
+    body = "<p>Photo description survives undo</p>"
+    field_frame = "apartment_#{@apartment.id}_photo_#{photo.id}_description"
+    put photo_path(
+      photo,
+      attribute: "description",
+      form_element: "rich_text",
+      update: field_frame
+    ), params: { description: body },
+       headers: { "Turbo-Frame" => field_frame, "Accept" => "text/html" }
+    assert_response :success
+    assert_includes photo.reload.description.body.to_html, "survives undo"
+
+    photo_id = photo.id
+    row_frame = "apartment_#{@apartment.id}_photo_#{photo_id}"
+    delete photo_path(photo, update: row_frame),
+           headers: { "Turbo-Frame" => row_frame, "Accept" => "text/html" }
+    assert_response :success
+
+    destroy_version = PaperTrail::Version.where(
+      item_type: "Photo",
+      item_id: photo_id,
+      event: "destroy"
+    ).order(:id).last
+    post revert_photo_path(destroy_version, update: row_frame),
+         headers: {
+           "Turbo-Frame" => row_frame,
+           "Accept" => "text/vnd.turbo-stream.html"
+         }
+    assert_response :success
+    assert_includes Photo.find(photo_id).description.body.to_html, "survives undo"
+  end
 end

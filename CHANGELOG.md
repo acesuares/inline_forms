@@ -4,6 +4,16 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [8.1.15] - 2026-05-28
+
+### Fixed
+
+- **Post-delete undo on Apartment/Photo (and any model with `rich_text`) left `description` empty.** Undo only reified the parent row; ActionText bodies live in `action_text_rich_texts` and are removed on `destroy`, with separate PaperTrail `destroy` versions. `revert` now also reifies and saves each `ActionText::RichText` destroy snapshot that belonged to the restored parent (Apartment, nested Photo, `FormElementShowcase#description`, etc.).
+
+### Added
+
+- **Regression tests:** apartment row destroy+undo with `description` rich text; nested photo destroy+undo with `description` rich text.
+
 ## [8.1.14] - 2026-05-28
 
 ### Fixed

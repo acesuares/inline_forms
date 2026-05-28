@@ -100,4 +100,37 @@ class ExampleAppApartmentRowTurboTest < ExampleAppIntegrationTestCase
     assert_includes @response.body, %(target="#{frame}")
     assert_includes @response.body, %(target="#{versions_frame}")
   end
+
+  test "destroy undo restores rich_text description edited before delete" do
+    apt = Apartment.create!(name: "Desc undo apt", title: "T")
+    body = "<p>Apartment description survives undo</p>"
+    field_frame = "apartment_#{apt.id}_description"
+    put apartment_path(
+      apt,
+      attribute: "description",
+      form_element: "rich_text",
+      update: field_frame
+    ), params: { description: body },
+       headers: { "Turbo-Frame" => field_frame, "Accept" => "text/html" }
+    assert_response :success
+    assert_includes apt.reload.description.body.to_html, "survives undo"
+
+    apt_id = apt.id
+    row_frame = "apartment_#{apt_id}"
+    delete apartment_path(apt, update: row_frame), headers: @row_headers
+    assert_response :success
+
+    destroy_version = PaperTrail::Version.where(
+      item_type: "Apartment",
+      item_id: apt_id,
+      event: "destroy"
+    ).order(:id).last
+    post revert_apartment_path(destroy_version, update: row_frame),
+         headers: {
+           "Turbo-Frame" => row_frame,
+           "Accept" => "text/vnd.turbo-stream.html"
+         }
+    assert_response :success
+    assert_includes Apartment.find(apt_id).description.body.to_html, "survives undo"
+  end
 end
