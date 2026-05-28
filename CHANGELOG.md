@@ -4,6 +4,12 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [8.1.14] - 2026-05-28
+
+### Fixed
+
+- **`example_app_showcase_row_turbo_test` broke `--example` installs.** The Empty-demo undo regression parsed the undo URL as `/revert/:id`, but member routes are `/form_element_showcases/:id/revert`. The installer gate failed (`131 runs, 1 failure`) and surfaced the misleading “Rails could not create the app 'MyApp', maybe because it is a reserved word…” message even though the app was generated. The test now matches the real path and loads the destroy version from PaperTrail.
+
 ## [8.1.13] - 2026-05-28
 
 ### Fixed

@@ -61,11 +61,14 @@ class ExampleAppShowcaseRowTurboTest < ExampleAppIntegrationTestCase
     assert_response :success
     assert_includes @response.body, "undo"
 
-    undo_version_id = @response.body[/revert\/(\d+)/, 1]
-    assert undo_version_id, "undo link should target a PaperTrail version id"
-    destroy_version = PaperTrail::Version.find(undo_version_id)
-    assert_equal "destroy", destroy_version.event,
-      "undo must target the destroy version, not the last update"
+    destroy_version = PaperTrail::Version.where(
+      item_type: "FormElementShowcase",
+      item_id: empty_id,
+      event: "destroy"
+    ).order(:id).last
+    assert destroy_version, "expected a destroy PaperTrail version"
+    assert_match %r{/form_element_showcases/#{destroy_version.id}/revert}, @response.body,
+      "undo link should target the destroy version (#{destroy_version.id}), not an update"
 
     post revert_form_element_showcase_path(destroy_version, update: row_frame),
          headers: {

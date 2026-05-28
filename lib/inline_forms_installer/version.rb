@@ -1,6 +1,6 @@
 # -*- encoding : utf-8 -*-
 module InlineFormsInstaller
-  VERSION = "8.1.13"
+  VERSION = "8.1.14"
 
   # Written into generated apps' `.ruby-version` (must match gemspec `required_ruby_version`).
   TARGET_RUBY_VERSION = "ruby-4.0.4"
