@@ -247,8 +247,10 @@ class InlineFormsController < ApplicationController
     @update_span = params[:update]
     @object = referenced_object
     if current_user.role? :superadmin
-      @undo_version = @object.versions.last
       @object.destroy
+      # Capture after destroy: `.last` before destroy was the latest *update*
+      # (e.g. a plain_text_area edit), so undo reified the pre-edit state.
+      @undo_version = @object.versions.last
       respond_to do |format|
         format.html { render_row_turbo_destroyed } if row_html_turbo_allowed?
       end

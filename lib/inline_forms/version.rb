@@ -1,4 +1,4 @@
 # -*- encoding : utf-8 -*-
 module InlineForms
-  VERSION = "8.1.12"
+  VERSION = "8.1.13"
 end

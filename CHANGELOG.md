@@ -4,6 +4,16 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [8.1.13] - 2026-05-28
+
+### Fixed
+
+- **Post-delete undo restored the wrong PaperTrail version.** `destroy` stored `@undo_version = @object.versions.last` *before* `destroy`, so the undo link targeted the latest **update** (e.g. a `plain_text_area` edit). `revert` then reified that update — the state *before* the edit — so fields like `body_plain_area` on "Empty demo" came back blank. `@undo_version` is now taken after destroy so undo always targets the `destroy` event snapshot.
+
+### Added
+
+- **Regression test** on `FormElementShowcase` "Empty demo": edit `body_plain_area`, delete, undo, assert text and undo URL use the destroy version.
+
 ## [8.1.12] - 2026-05-28
 
 ### Fixed
