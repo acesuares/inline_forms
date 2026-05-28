@@ -35,6 +35,49 @@ class ExampleAppPaperTrailChangesetTest < ActiveSupport::TestCase
     assert_equal ["Old Title", "New Title"], changeset["title"]
   end
 
+  # Regression for `Psych::DisallowedClass: Tried to load unspecified class:
+  # ActiveRecord::Type::Time::Value` in FormElementShowcasesController#revert.
+  #
+  # A `:time` column (FormElementShowcase#meeting_time, a `:time_select`
+  # helper) stores its value as an `ActiveRecord::Type::Time::Value` — a Time
+  # subclass. PaperTrail serializes that value under its real class name, so
+  # `YAML.safe_load` rejects it unless the wrapper class is on the permitted
+  # list. `version.changeset` rescues the DisallowedClass into `{}` (the
+  # versions panel then renders empty), but `version.reify` — the path
+  # `revert` takes — does NOT rescue and raised before the date/time wrapper
+  # classes were added to config/initializers/paper_trail_yaml_safe_load.rb.
+  test "time_select (meeting_time) version reifies and changeset round-trips" do
+    PaperTrail.request.whodunnit = "test"
+
+    showcase = FormElementShowcase.create!(
+      title: "PT time demo",
+      meeting_time: Time.utc(2000, 1, 1, 9, 15)
+    )
+    showcase.update!(meeting_time: Time.utc(2000, 1, 1, 14, 30))
+
+    version = showcase.versions.last
+    assert_equal "update", version.event,
+      "expected an update version to be recorded by paper_trail"
+
+    # The revert path: reify must not raise Psych::DisallowedClass.
+    reified = assert_nothing_raised do
+      version.reify
+    end
+    assert_equal 9,  reified.meeting_time.hour
+    assert_equal 15, reified.meeting_time.min
+
+    # The versions-panel read path: changeset must round-trip the time value
+    # (non-empty + present) rather than being rescued to {}.
+    changeset = version.changeset
+    assert_kind_of Hash, changeset
+    refute_empty changeset,
+      "version.changeset is empty; PaperTrail's YAML.safe_load probably hit a " \
+      "DisallowedClass (ActiveRecord::Type::Time::Value) and returned {}. Check " \
+      "config/initializers/paper_trail_yaml_safe_load.rb."
+    assert changeset.key?("meeting_time"),
+      "expected meeting_time in the changeset; got #{changeset.keys.inspect}"
+  end
+
   # `has_rich_text :description` lives in the `action_text_rich_texts` table,
   # so `has_paper_trail` on Apartment cannot see body edits. The installer adds
   # `config/initializers/rich_text_paper_trail.rb` (which declares

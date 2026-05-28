@@ -20,6 +20,12 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib"]
 
   s.add_dependency("inline_forms", "~> 8")
-  s.add_dependency("rvm", ">= 1.11", "< 2.0")
   s.add_dependency("thor", ">= 1.0", "< 2.0")
+
+  # RVM is optional. When the `rvm` gem is present AND the shell is inside an
+  # RVM environment, `inline_forms create` auto-creates a per-app gemset;
+  # otherwise it installs without RVM (any version manager, or none, works —
+  # Bundler isolates deps per app via Gemfile.lock). Install `gem install rvm`
+  # to opt in to gemset integration, or pass `--no-rvm` to skip it explicitly.
+
 end

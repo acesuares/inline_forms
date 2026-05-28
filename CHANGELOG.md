@@ -4,6 +4,22 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [8.1.18] - 2026-05-28
+
+### Fixed
+
+- **`Psych::DisallowedClass` (`ActiveRecord::Type::Time::Value`) in `FormElementShowcasesController#revert`.** A `:time` column (e.g. `FormElementShowcase#meeting_time`, a `:time_select` helper) stores its value as an `ActiveRecord::Type::Time::Value` — a `Time` subclass. PaperTrail serializes it under its real class name, so reverting (which calls `version.reify`, a path PaperTrail does *not* rescue) raised `Tried to load unspecified class: ActiveRecord::Type::Time::Value`. The generated `config/initializers/paper_trail_yaml_safe_load.rb` now also permits `ActiveRecord::Type::Time::Value`, `ActiveRecord::Type::Date::Value`, and `ActiveRecord::Type::DateTime::Value`, so revert and the versions panel round-trip date/time `_select` columns. (Previously-permitted `Time`/`Date` did not cover these subclasses — Psych matches the exact stored class name.)
+
+### Changed
+
+- **RVM is now optional, not required.** The `rvm` gem is no longer a runtime dependency of `inline_forms_installer`, and `inline_forms create` no longer hard-`require`s it. The CLI uses RVM (auto-creating a per-app gemset) only when the `rvm` gem is installed *and* the shell is inside an RVM environment; otherwise it installs without RVM (any version manager — rbenv/chruby/asdf/mise — or none, with Bundler isolating deps per app via `Gemfile.lock`). `--no-rvm` still forces the no-RVM path. To opt in to gemset integration, `gem install rvm` before creating the app.
+- **Generated `.ruby-version` now matches the version manager in use.** Non-RVM installs get a *bare* `4.0.4` (honored by rbenv/chruby/asdf/mise); RVM installs keep `ruby-4.0.4` (RVM's `.ruby-version` reader rejects a bare version, which would break `rvm use .` and the per-app gemset). `InlineFormsInstaller::TARGET_RUBY_VERSION` is the canonical bare `"4.0.4"`; the Creator adds the `ruby-` prefix only when RVM is active. The installer also force-writes the file (Rails' `rails new` emits its own `.ruby-version`), avoiding an interactive overwrite prompt.
+- **Generated app `Gemfile` no longer lists the runtime `gem 'rvm'`** (the app never used the RVM Ruby API at runtime). The RVM-based Capistrano deploy helpers remain in the `:development` group for the shipped `config/deploy.rb`.
+
+### Added
+
+- **Regression test:** a `FormElementShowcase` `meeting_time` (`:time_select`) PaperTrail version both reifies (revert path) and round-trips its `changeset` (versions-panel path) without raising `Psych::DisallowedClass`.
+
 ## [8.1.17] - 2026-05-28
 
 ### Fixed

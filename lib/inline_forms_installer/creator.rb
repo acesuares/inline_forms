@@ -109,8 +109,7 @@ module InlineFormsInstaller
       end
 
       target_ruby = InlineFormsInstaller::TARGET_RUBY_VERSION
-      require "rvm"
-      if RVM.current && !options[:skiprvm]
+      if rvm_active?
         say "Installing inline_forms with RVM", :green
       else
         say "Installing inline_forms without RVM", :green
@@ -125,8 +124,13 @@ module InlineFormsInstaller
       ENV["using_sqlite"] = using_sqlite?.to_s
       ENV["database"] = database
       ENV["install_example"] = install_example?.to_s
-      ENV["ruby_version"] = target_ruby
-      ENV["inline_forms_rvm_gemset"] = app_name if RVM.current && !options[:skiprvm]
+      # Match the generated `.ruby-version` to the version manager actually in
+      # use. RVM's `.ruby-version` reader needs the `ruby-X.Y.Z` form — a bare
+      # `X.Y.Z` makes `rvm use .` bail with "do not know how to handle" and skip
+      # the per-app gemset. rbenv/chruby/asdf/mise instead need the *bare*
+      # `X.Y.Z`. So: prefixed for RVM installs, bare for everyone else.
+      ENV["ruby_version"] = rvm_active? ? "ruby-#{target_ruby}" : target_ruby
+      ENV["inline_forms_rvm_gemset"] = app_name if rvm_active?
       ENV["inline_forms_version"] = inline_forms_version
       ENV["inline_forms_installer_version"] = InlineFormsInstaller::VERSION
       ENV["INLINE_FORMS_INSTALLER_ROOT"] = InlineFormsInstaller.gem_root
@@ -178,12 +182,28 @@ module InlineFormsInstaller
       "(see install log — no Minitest summary line)"
     end
 
+    # RVM is optional. Returns true only when the user did not pass `--no-rvm`,
+    # the `rvm` gem is installed (the installer no longer hard-depends on it),
+    # AND the shell is currently inside an RVM environment. Memoized because it
+    # is consulted in several places across the create flow.
+    def rvm_active?
+      return false if options[:skiprvm]
+      return @rvm_active if defined?(@rvm_active)
+
+      @rvm_active =
+        begin
+          require "rvm"
+          !!RVM.current
+        rescue LoadError
+          false
+        end
+    end
+
     def bundle_check_ok?(app_name)
       app_dir = File.expand_path(app_name)
       return false unless File.directory?(app_dir)
 
-      if !options[:skiprvm] && defined?(RVM) && RVM.current
-        require "rvm"
+      if rvm_active?
         RVM.chdir(app_dir) do
           RVM.use_from_path! "."
           system("bundle", "check", out: File::NULL, err: File::NULL)

@@ -4,9 +4,17 @@ Inline Forms is almost a complete admin application. You can try it out easily.
 
 = Requirements
 
-* Ruby **>= 4.0** (generated apps pin **ruby-4.0.4**)
+* Ruby **>= 4.0** (generated apps pin **4.0.4** via +.ruby-version+)
 * Rails **8.1.x** (+rails ~> 8.1+, +config.load_defaults 8.1+)
 * **validation_hints** **~> 8** (companion gem; same version line as +inline_forms+ / +inline_forms_installer+)
+
+= Ruby version managers (RVM is optional)
+
++inline_forms+ does *not* require RVM. Generated apps get a +.ruby-version+ whose format matches the version manager you are using: a *bare* +4.0.4+ for +rbenv+ / +chruby+ / +asdf+ / +mise+, or +ruby-4.0.4+ for RVM (whose +.ruby-version+ reader needs the +ruby-+ prefix). So any version manager — or none — works. Bundler isolates each app's gems through its own +Gemfile.lock+.
+
+RVM integration is purely opt-in. If the +rvm+ gem is installed *and* your shell is inside an RVM environment, +inline_forms create+ additionally writes a +.ruby-gemset+ and installs into a per-app gemset. To enable that, +gem install rvm+ before creating the app. To skip RVM even when it is present, pass +--no-rvm+:
+
+ inline_forms create MyApp -d sqlite --example --no-rvm
 
 = Usage
 
