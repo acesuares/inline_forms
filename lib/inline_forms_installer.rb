@@ -38,12 +38,12 @@ module InlineFormsInstaller
       6.times do
         if ENV["INLINE_FORMS_RELEASE_ROOT"].to_s == "" &&
            File.file?(File.join(dir, "inline_forms.gemspec")) &&
-           Dir[File.join(dir, "inline_forms-*.gem")].any?
+           checkout_has_built_gem?(dir, "inline_forms")
           ENV["INLINE_FORMS_RELEASE_ROOT"] = dir
         end
         if ENV["VALIDATION_HINTS_ROOT"].to_s == "" &&
            File.file?(File.join(dir, "validation_hints.gemspec")) &&
-           Dir[File.join(dir, "validation_hints-*.gem")].any?
+           checkout_has_built_gem?(dir, "validation_hints")
           ENV["VALIDATION_HINTS_ROOT"] = dir
         end
         parent = File.expand_path("..", dir)
@@ -74,8 +74,20 @@ module InlineFormsInstaller
       File.expand_path("~/#{repo_name}")
     ].uniq.find do |checkout|
       File.file?(File.join(checkout, "#{repo_name}.gemspec")) &&
-        Dir[File.join(checkout, "#{repo_name}-*.gem")].any?
+        checkout_has_built_gem?(checkout, repo_name)
     end
+  end
+
+  # Look for built `<name>-*.gem` files in both the checkout root *and*
+  # `pkg/` — `gem build` writes to the root, but `rake build` (i.e.
+  # `Bundler::GemHelper.install_tasks` from the Rakefile) writes to
+  # `pkg/`. Either is a legitimate "I just built this" location; only
+  # globbing the root meant a freshly-`rake build`-ed gem was invisible
+  # to install_prerelease_gems_from_roots! and the installer would
+  # silently fall back to whatever stale `*.gem` was sitting in the
+  # checkout root from a previous `gem build` run.
+  def self.checkout_has_built_gem?(checkout, name)
+    Dir[File.join(checkout, "#{name}-*.gem"), File.join(checkout, "pkg", "#{name}-*.gem")].any?
   end
 end
 

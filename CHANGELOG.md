@@ -4,6 +4,20 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [8.1.11] - 2026-05-28
+
+### Fixed
+
+- **Installer's prerelease gem discovery now looks in `pkg/` too.** `Bundler::GemHelper.install_tasks` (the standard Rakefile boilerplate) puts `rake build` output in `pkg/`, not in the checkout root where `gem build` writes. 8.1.10's `dev_checkout_with_gems` + `install_prerelease_gems_from_roots!` only globbed the checkout root, so the moment a maintainer ran `rake build` the freshly-built gem was invisible — the installer fell back to whatever stale `<name>-*.gem` was still sitting in the root from a previous `gem build`. This is the exact shape that caused 8.1.10 to silently use 8.1.6 templates today (default RVM gemset had `inline_forms_installer 8.1.6` as its highest, the checkout root had only the stale `inline_forms-8.1.7.gem`, and the 8.1.8/8.1.9/8.1.10 builds were sitting in `/home/code/inline_forms/pkg/` where nothing was looking). Both helpers now glob `<root>/<name>-*.gem` and `<root>/pkg/<name>-*.gem`.
+
+### Changed
+
+- **Example-app gate caps test parallelism at `PARALLEL_WORKERS=2` by default.** Rails' minitest parallelizer defaults to `workers: number_of_processors`, which on a 20-core box forks 20 full Rails processes — each ~200-300 MB resident with the example app's gem stack (CarrierWave + Devise + PaperTrail + Foundation + tabs_on_rails + money-rails). On a memory-pressured host that's 4-6 GB of workers alone, on top of the parent installer/bundler state, and `systemd-oomd` can (and did, 2026-05-28 07:50:35) kill the whole terminal session before the gate finishes, with no useful signal back to the user. `PARALLEL_WORKERS=2` keeps the worker footprint to ~600 MB and roughly doubles wall-clock vs 20 workers — fine for a one-shot gate. The new `INLINE_FORMS_TEST_WORKERS` env override lets machines with RAM headroom crank it back up (`0` = Rails' default, any positive integer = pin to that count).
+
+### Lockstep
+
+- `inline_forms`, `inline_forms_installer`, and `validation_hints` bumped from 8.1.10 to 8.1.11 in lockstep, even though `inline_forms` (the engine) and `validation_hints` have no behavior change in this release — both are only here so the version trio stays in step.
+
 ## [8.1.10] - 2026-05-27
 
 ### Changed

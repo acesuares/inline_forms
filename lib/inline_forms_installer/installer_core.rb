@@ -52,7 +52,18 @@ def install_prerelease_gems_from_roots!
     # gem build on every release once minor versions cross a digit
     # boundary. Parse the version out of the filename with Gem::Version
     # so the comparison is numeric.
-    candidates = roots.flat_map { |root| Dir[File.join(root, "#{name}-*.gem")] }
+    #
+    # Look in both the checkout root (`gem build` output) *and* `pkg/`
+    # (`rake build` output from Bundler::GemHelper.install_tasks). 8.1.10
+    # only globbed the root, so the moment a maintainer ran `rake build`
+    # the freshly-built gem ended up in `pkg/` and was invisible — the
+    # installer fell back to whatever stale `<name>-*.gem` was still
+    # sitting in the checkout root from an earlier `gem build`. That's
+    # the exact shape that bit us between 8.1.6 (default gemset's
+    # highest installer) and 8.1.10.
+    candidates = roots.flat_map { |root|
+      Dir[File.join(root, "#{name}-*.gem"), File.join(root, "pkg", "#{name}-*.gem")]
+    }
     gem_file = candidates.max_by do |path|
       ver_str = File.basename(path, ".gem").sub(/\A#{Regexp.escape(name)}-/, "")
       Gem::Version.new(ver_str) rescue Gem::Version.new("0")
@@ -1380,12 +1391,40 @@ if ENV['install_example'] == 'true'
     create_file rel, example_user_cfg.adapt_example_test_source(File.read(abs))
   end
 
-  say "- Running example regression tests (bundle exec rails test)..."
+  # Cap test parallelism so the example-app gate fits on memory-modest
+  # machines. Rails' minitest parallelizer defaults to `workers:
+  # number_of_processors`, which on a 20-core box forks 20 full Rails
+  # processes — each ~200-300 MB resident with the example app's full
+  # gem stack (CarrierWave + Devise + PaperTrail + Foundation +
+  # tabs_on_rails + money-rails). Multiply that by 20 and you're 4-6 GB
+  # in worker processes alone, on top of the parent installer/bundler
+  # state. On a memory-pressured host systemd-oomd can kill the whole
+  # VTE/terminal session before the gate finishes, with no useful
+  # signal back to the user (one such kill happened mid-gate on
+  # 2026-05-28 07:50:35; that's what motivated this cap).
+  #
+  # `PARALLEL_WORKERS=2` keeps the worker footprint to ~600 MB and
+  # roughly doubles the wall-clock vs 20 workers — fine for a one-shot
+  # gate. The `INLINE_FORMS_TEST_WORKERS` env override lets machines
+  # with RAM headroom crank it back up (use `0` for Rails' default
+  # number_of_processors, any positive integer to pin).
+  workers_env = ENV["INLINE_FORMS_TEST_WORKERS"].to_s.strip
+  workers     = if workers_env.empty?
+                  "2"
+                elsif workers_env == "0"
+                  nil  # let Rails pick number_of_processors
+                else
+                  workers_env
+                end
+  worker_prefix = workers ? "PARALLEL_WORKERS=#{Shellwords.escape(workers)} " : ""
+
+  say "- Running example regression tests (bundle exec rails test)#{workers ? " with PARALLEL_WORKERS=#{workers}" : ""}..."
   log_path = ENV["INLINE_FORMS_INSTALLER_LOG"].to_s
+  rails_test = "#{worker_prefix}bundle exec rails test"
   test_cmd = if log_path != ""
-               "bundle exec rails test 2>&1 | tee -a #{Shellwords.escape(log_path)}"
+               "#{rails_test} 2>&1 | tee -a #{Shellwords.escape(log_path)}"
              else
-               "bundle exec rails test 2>&1"
+               "#{rails_test} 2>&1"
              end
   test_ok = system("bash", "-c", "#{test_cmd}; exit ${PIPESTATUS[0]}")
   abort "ERROR: bundle exec rails test failed during --example install. See #{log_path}" unless test_ok
