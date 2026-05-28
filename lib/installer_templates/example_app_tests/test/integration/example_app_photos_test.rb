@@ -93,4 +93,42 @@ class ExampleAppPhotosTest < ExampleAppIntegrationTestCase
       ).count
     assert_includes Photo.find(photo_id).description.body.to_html, "Twice undo"
   end
+
+  # Regression: PaperTrail records a non-empty changeset for `destroy` events,
+  # so the versions panel shows a Restore link on `destroy` rows. Reverting a
+  # `destroy` reifies a record with the original PK and `new_record? == true`.
+  # Once the row has already been restored (undone), the old `@parent.save!`
+  # re-INSERTed that PK -> `RecordNotUnique` (`UNIQUE constraint failed:
+  # photos.id`). Revert must be idempotent: restoring a `destroy` version while
+  # the row exists updates it in place instead of crashing.
+  test "restoring a destroy version while the photo exists does not raise RecordNotUnique" do
+    photo = @apartment.photos.create!(name: "restore.jpg", caption: "before")
+    photo.update!(caption: "after")
+    photo_id = photo.id
+
+    row_frame = "apartment_#{@apartment.id}_photo_#{photo_id}"
+    row_headers = { "Turbo-Frame" => row_frame, "Accept" => "text/html" }
+    stream_headers = row_headers.merge("Accept" => "text/vnd.turbo-stream.html")
+
+    delete photo_path(photo, update: row_frame), headers: row_headers
+    assert_response :success
+
+    destroy_version = PaperTrail::Version.where(
+      item_type: "Photo",
+      item_id: photo_id,
+      event: "destroy"
+    ).order(:id).last
+    assert destroy_version, "expected a Photo destroy version"
+
+    post revert_photo_path(destroy_version, update: row_frame), headers: stream_headers
+    assert_response :success
+    assert Photo.exists?(photo_id), "undo should have restored the photo row"
+
+    # The row now exists again. Restoring the SAME destroy version (panel
+    # Restore link, or a replayed undo) must not INSERT a duplicate id.
+    post revert_photo_path(destroy_version, update: row_frame), headers: stream_headers
+    assert_response :success,
+      "restoring a destroy version while the row exists must not raise RecordNotUnique"
+    assert_equal 1, Photo.where(id: photo_id).count
+  end
 end

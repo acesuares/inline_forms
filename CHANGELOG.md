@@ -4,6 +4,16 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [8.1.17] - 2026-05-28
+
+### Fixed
+
+- **`RecordNotUnique` on `photos.id` (and any primary record) when restoring a `destroy` version while the row still exists.** PaperTrail records a non-empty changeset for `destroy` events, so the versions panel shows a Restore link on `destroy` rows. Reverting a `destroy` reifies a record with the original primary key and `new_record? == true`; the normal undo (row currently deleted) path correctly INSERTs it, but once the row had already been restored a blind `save!` re-INSERTed the existing id and raised `SQLite3::ConstraintException: UNIQUE constraint failed: photos.id`. `revert` now upserts the primary record by PK (mirroring the 8.1.16 rich-text fix): when a row with that id already exists, the reified column values are copied onto it and saved in place, so restoring a `destroy` version is idempotent across repeated delete/undo cycles.
+
+### Added
+
+- **Regression test:** restore a Photo `destroy` version while the row still exists (panel Restore / replayed undo) must not raise `RecordNotUnique`.
+
 ## [8.1.16] - 2026-05-28
 
 ### Fixed

@@ -318,8 +318,7 @@ class InlineFormsController < ApplicationController
       @rich_text_record.save!
       @parent.touch if @parent.respond_to?(:touch)
     else
-      @parent = @object
-      @parent.save!
+      @parent = persist_reverted_primary!(@object)
       restore_rich_texts_for_reverted_parent!(@parent)
       @parent.reload
     end
@@ -327,6 +326,33 @@ class InlineFormsController < ApplicationController
   end
 
   private
+
+  # Persist a reified *primary* record (Apartment, Photo, ...) for +revert+.
+  #
+  # +reify+ on a +destroy+ version returns a record with +new_record? == true+
+  # carrying the original primary key. The normal undo (row currently deleted)
+  # path INSERTs that id and is correct. But the versions panel also offers
+  # Restore on +destroy+ rows (their changeset is non-empty in apps that track
+  # +object_changes+ on destroy), and the post-delete undo banner can be
+  # replayed. Once the row has been restored, a blind +save!+ re-INSERTs the
+  # existing id and raises +RecordNotUnique+ (SQLite: +UNIQUE constraint failed:
+  # photos.id+). Mirror the rich-text upsert (8.1.16): when a row with that PK
+  # already exists, copy the reified column values onto it and +save!+ that
+  # instead, so reverting is idempotent across repeated delete/undo cycles.
+  def persist_reverted_primary!(object)
+    klass = object.class
+    primary_key = klass.primary_key
+
+    if object.new_record? && object.id.present? && klass.exists?(object.id)
+      existing = klass.find(object.id)
+      existing.assign_attributes(object.attributes.except(primary_key))
+      existing.save!
+      existing
+    else
+      object.save!
+      object
+    end
+  end
 
   # Undoing a parent +destroy+ reifies the Apartment/Photo row only. ActionText
   # bodies live in +action_text_rich_texts+ and get their own PaperTrail
