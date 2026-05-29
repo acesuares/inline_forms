@@ -4,6 +4,20 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [8.1.20] - 2026-05-29
+
+### Fixed
+
+- **`price` and `amount` showcase labels now render a non-empty validation-hint tooltip, like `count`.** On the `FormElementShowcase` show panel the `price` (`decimal_field`, bare `validates :price, numericality: true`) and `amount` (`money_field`, money-rails `monetize :amount_cents`) labels rendered the `has-tip` trigger but an **empty** `validation-hints-source` div, so hovering showed nothing. The root cause was a dead-code bug in the companion **validation_hints 8.1.20** gem: a bare `numericality: true` emitted zero hint messages (the `numericality.must_be_a_number` base key was computed but then skipped). With validation_hints fixed, `price` now shows `["must be a number"]`, and money-rails' `MoneyValidator` on `:amount` now maps to a new `"must be a valid amount"` hint. `count` is unchanged behaviorally but now also lists `"must be a number"` ahead of `"must be an integer"`; `latitude`/`longitude` range hints are likewise prefixed with `"must be a number"`.
+
+### Changed
+
+- **`decimal_field` / `money_field` edit inputs deliberately remain `text_field_tag` (not `number_field_tag`).** `integer_field_edit` uses `number_field_tag` (`<input type="number">`, which adds browser-native validation popups on bad input), but switching `decimal_field`/`money_field` to a numeric input is unsafe: a strict `type="number"` rejects valid fixed-point decimals rendered via `BigDecimal#to_s("F")` and the money-rails currency string forms (`"99.95"`, grouped/symbol input). Cross-field consistency for malformed input is instead provided by the server-side validation hint (label tooltip) + the 8.1.19 "edit stays open on a failed save" behavior, which is retained.
+
+### Added
+
+- **Regression test:** `example_app_showcase_validation_hints_test.rb` GETs the `FormElementShowcase` "Hints demo" show panel and asserts the hidden `validation-hints-source` div for `count`, `price`, and `amount` each contains a populated `<ul class="validation-hints-list">` (e.g. `"must be a number"` for `price`, `"must be a valid amount"` for `amount`) — i.e. not the empty source div the pre-8.1.20 bug produced.
+
 ## [8.1.19] - 2026-05-28
 
 ### Fixed
