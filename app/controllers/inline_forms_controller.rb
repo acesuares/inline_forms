@@ -181,9 +181,25 @@ class InlineFormsController < ApplicationController
     @update_span = params[:update]
     InlineForms.assert_plain_text_column!(object: @object, attribute: @attribute, form_element: @form_element)
     send("#{@form_element.to_s}_update", @object, @attribute)
-    @object.save
-    respond_to do |format|
-      format.html { render_turbo_field(:field_show, turbo_field_show: true) }
+    # Branch on the actual save result. Previously the return value of
+    # `@object.save` was ignored and `field_show` was rendered
+    # unconditionally from the in-memory `@object`. When a save failed
+    # validation (e.g. money-rails rejecting an unparseable amount, or any
+    # `validates` failure) the user saw a "show" of the unsaved in-memory
+    # value -- a fake success -- while the DB row kept its old value. A
+    # subsequent edit then re-read the old value, surprising the user.
+    #
+    # On failure we keep the user in the edit field with their rejected
+    # input visible and surface the validation errors (mirrors `create`).
+    if @object.save
+      respond_to do |format|
+        format.html { render_turbo_field(:field_show, turbo_field_show: true) }
+      end
+    else
+      flash.now[:error] = @object.errors.to_a
+      respond_to do |format|
+        format.html { render_turbo_field(:field_edit) }
+      end
     end
   end
 

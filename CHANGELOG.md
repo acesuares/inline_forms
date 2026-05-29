@@ -4,6 +4,17 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [8.1.19] - 2026-05-28
+
+### Fixed
+
+- **Inline attribute `update` no longer renders a fake success on a failed save.** `InlineFormsController#update` called `@object.save` but ignored its return value, then unconditionally re-rendered `field_show` from the in-memory `@object`. When the save failed validation the user saw a "show" of the unsaved in-memory value while the DB row kept its old value — re-opening the edit surprised the user with the old value. `update` now branches on `@object.save`: on success it renders the show as before; on failure it re-renders the **edit** field (mirroring how `create` handles a failed save) with the validation errors in `flash.now[:error]`, so the user stays in the editor and can correct the input. This is a general fix affecting every form element, not just `money_field`.
+- **`money_field` malformed input regression.** money-rails rejects an unparseable amount such as `"99.ace99"` (the monetized validator fails, so `save` returns false and `amount_cents` is never written). Previously the inline edit showed a "saved" `$99.99` show that did not reflect the database. Now the edit field is re-rendered, and `money_field_edit` prefers the raw submitted `params[attribute]` over `object.send(attribute)` so the rejected input stays visible and editable instead of silently reverting.
+
+### Added
+
+- **Regression test:** `example_app_showcase_money_update_test.rb` POSTs a malformed `amount: "99.ace99"` inline update for the seeded `$99.95` "Full demo" `FormElementShowcase` and asserts the DB value is unchanged (`amount_cents == 9995`) and the response is the edit/error state (not a fake `$99.99` show), plus a positive path asserting a valid `"12.34"` persists (`amount_cents == 1234`) and renders the show.
+
 ## [8.1.18] - 2026-05-28
 
 ### Fixed

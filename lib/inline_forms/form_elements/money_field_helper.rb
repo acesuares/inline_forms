@@ -27,7 +27,15 @@ module InlineForms
     end
 
     def money_field_edit(object, attribute)
-      text_field_tag attribute, (object.send attribute), :class => 'input_money_field'
+      # On a fresh edit there is no submitted value, so fall back to the
+      # current Money value. On a re-render after a *failed* update
+      # (money-rails could not parse the input) `object.send(attribute)`
+      # no longer reflects what the user typed -- it returns the old/last
+      # parsed value -- so the user would silently lose their rejected
+      # input. Prefer the raw submitted `params[attribute]` so the bad
+      # value stays visible and editable.
+      value = params[attribute].presence || (object.send attribute)
+      text_field_tag attribute, value, :class => 'input_money_field'
     end
 
     def money_field_update(object, attribute)
