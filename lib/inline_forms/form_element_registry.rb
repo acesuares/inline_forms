@@ -6,7 +6,6 @@ module InlineForms
       :audio_field => :string,
       :check_box => :boolean,
       :check_list => :no_migration,
-      :ckeditor => :text,
       :date_select => :date,
       :decimal_field => :decimal,
       :devise_password_field => :string,
@@ -34,7 +33,6 @@ module InlineForms
       :simple_file_field => :string,
       :slider_with_values => :integer,
       :text_area => :text,
-      :text_area_without_ckeditor => :text,
       :text_field => :string,
       :time_select => :time,
     }.freeze

@@ -102,7 +102,6 @@ module InlineForms
   PLAIN_TEXT_FORM_ELEMENTS = %i[
     plain_text
     plain_text_area
-    text_area_without_ckeditor
   ].freeze
 
   def self.plain_text_form_element?(form_element)

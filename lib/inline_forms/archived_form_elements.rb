@@ -45,6 +45,16 @@ module InlineForms
       archive_path: nil,
       summary: "Project-specific absence list UI; removed without a copy in this repo (see CHANGELOG 6.3.0).",
     },
+    ckeditor: {
+      archived_in_version: "8.1.21",
+      archive_path: "archived/form_elements/ckeditor",
+      summary: "Legacy CKEditor form element; use :rich_text (ActionText) instead.",
+    },
+    text_area_without_ckeditor: {
+      archived_in_version: "8.1.21",
+      archive_path: "archived/form_elements/ckeditor",
+      summary: "Legacy plain-text alias; use :plain_text or :plain_text_area instead.",
+    },
   }.freeze
 
   def self.validate_no_archived_form_elements_for!(klass)

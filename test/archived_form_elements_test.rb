@@ -16,6 +16,18 @@ class ArchivedFormElementsTest < Minitest::Test
     end
   end
 
+  class ModelWithArchivedCkeditor
+    def inline_forms_attribute_list
+      [[:body, :ckeditor]]
+    end
+  end
+
+  class ModelWithArchivedTextAreaWithoutCkeditor
+    def inline_forms_attribute_list
+      [[:notes, :text_area_without_ckeditor]]
+    end
+  end
+
   def test_raises_when_model_declares_archived_geo_code_curacao
     err = assert_raises(InlineForms::ArchivedFormElementError) do
       InlineForms.validate_no_archived_form_elements_for!(ModelWithArchivedElement)
@@ -31,6 +43,24 @@ class ArchivedFormElementsTest < Minitest::Test
     end
     assert_includes err.message, "tree"
     assert_includes err.message, "archived/form_elements/tree"
+  end
+
+  def test_raises_when_model_declares_archived_ckeditor
+    err = assert_raises(InlineForms::ArchivedFormElementError) do
+      InlineForms.validate_no_archived_form_elements_for!(ModelWithArchivedCkeditor)
+    end
+    assert_includes err.message, "ckeditor"
+    assert_includes err.message, "8.1.21"
+    assert_includes err.message, "archived/form_elements/ckeditor"
+  end
+
+  def test_raises_when_model_declares_archived_text_area_without_ckeditor
+    err = assert_raises(InlineForms::ArchivedFormElementError) do
+      InlineForms.validate_no_archived_form_elements_for!(ModelWithArchivedTextAreaWithoutCkeditor)
+    end
+    assert_includes err.message, "text_area_without_ckeditor"
+    assert_includes err.message, "8.1.21"
+    assert_includes err.message, "archived/form_elements/ckeditor"
   end
 
   def test_archived_registry_documents_absence_list_without_path

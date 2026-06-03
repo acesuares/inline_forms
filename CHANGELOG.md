@@ -4,6 +4,12 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [8.1.21] - 2026-06-03
+
+### Removed
+
+- **CKEditor-era form elements `:ckeditor` and `:text_area_without_ckeditor`.** These were legacy aliases (delegating to `:rich_text` and `:plain_text` respectively) kept since CKEditor was dropped in 7.3.0. Models still declaring either symbol now raise `InlineForms::ArchivedFormElementError` at boot. Migrate to `:rich_text` (ActionText) or `:plain_text` / `:plain_text_area`. Source lives under `archived/form_elements/ckeditor/`.
+
 ## [8.1.20] - 2026-05-29
 
 ### Fixed
