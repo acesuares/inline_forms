@@ -1,6 +1,6 @@
 # -*- encoding : utf-8 -*-
 module InlineFormsInstaller
-  VERSION = "8.1.33"
+  VERSION = "8.1.34"
 
   # Canonical bare Ruby version (must match gemspec `required_ruby_version`).
   # Written verbatim into generated apps' `.ruby-version` for rbenv/chruby/asdf/

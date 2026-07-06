@@ -14,3 +14,8 @@ group :test do
   gem "paper_trail", "~> 17.0"
   gem "turbo-rails"
 end
+
+group :development, :test do
+  # Rails omakase style; offenses grandfathered in .rubocop_todo.yml.
+  gem "rubocop-rails-omakase", require: false
+end

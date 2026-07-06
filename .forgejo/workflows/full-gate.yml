@@ -1,0 +1,66 @@
+# The full release gate as a CI job: build all three gems, install them,
+# generate the example app (which runs its own 150+ test suite as part of
+# `inline_forms create`), then run Brakeman against the generated app.
+#
+# Brakeman is aimed at Rails *applications*; scanning the generated MyApp
+# covers the engine's controllers/views in their real app context plus
+# everything the installer writes — scanning the bare engine repo would
+# skip most checks. bundler-audit for the engine runs in ci.yml.
+#
+# Heavy (~3-4 min: rails new + bundle + migrations + tests), so it runs on
+# demand and weekly, not per push. Requires network access to rubygems.org
+# from the runner (same as Papiamentu's bundle install).
+name: Full gate
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 4 * * 1"  # Mondays 04:17
+
+jobs:
+  full-gate:
+    runs-on: docker
+    container:
+      image: papiamentu-ci:ruby-4.0.4-node20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: inline_forms
+
+      - uses: actions/checkout@v4
+        with:
+          repository: ace/validation_hints
+          token: ${{ secrets.SIBLING_TOKEN }}
+          path: validation_hints
+
+      - name: Build the three gems
+        run: |
+          cd validation_hints && gem build validation_hints.gemspec && cd ..
+          cd inline_forms && gem build inline_forms.gemspec && gem build inline_forms_installer.gemspec
+
+      - name: Install built gems
+        run: |
+          gem install --no-document \
+            validation_hints/validation_hints-*.gem \
+            inline_forms/inline_forms-*.gem \
+            inline_forms/inline_forms_installer-*.gem
+
+      # The installer's example gate runs `bundle exec rails test` itself and
+      # aborts (non-zero) on any failure — this step IS the release gate.
+      # HOME keeps Rails/Bundler caches inside the workspace container.
+      - name: Generate example app (runs its own test suite)
+        run: |
+          mkdir -p apps
+          cd apps
+          inline_forms create MyApp -d sqlite --example --no-rvm
+
+      - name: Brakeman against the generated app
+        run: |
+          gem install brakeman --no-document
+          cd apps/MyApp
+          # --run-all-checks: engine + installer code deserves the full set.
+          # Exit code is non-zero on warnings; report-only for now (the
+          # baseline needs triage first — see the plan doc).
+          brakeman --run-all-checks --no-pager --force || true
+          brakeman --no-pager --force -o brakeman-report.txt || true
+          tail -50 brakeman-report.txt

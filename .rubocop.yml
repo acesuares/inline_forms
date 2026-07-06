@@ -1,0 +1,24 @@
+# RuboCop with the Rails "omakase" preset (same recipe as Papiamentu).
+# Pre-existing violations are grandfathered in .rubocop_todo.yml; fix them
+# incrementally and delete entries as files get cleaned.
+# Run with: bundle exec rubocop
+inherit_gem:
+  rubocop-rails-omakase: rubocop.yml
+
+inherit_from: .rubocop_todo.yml
+
+AllCops:
+  # The engine targets Ruby >= 4.0 (gemspec).
+  TargetRubyVersion: 3.3
+  Exclude:
+    - "pkg/**/*"
+    - "vendor/**/*"
+    - "archived/**/*"            # frozen historical code; linting defeats the purpose
+    - "lib/installer_templates/**/*" # templates for *generated apps*, not engine style
+    - "lib/vagrant/**/*"
+    - "lib/otherstuff/**/*"
+    - "stuff/**/*"
+    - "pics/**/*"
+    - "test/dummy/log/**/*"
+    - "test/dummy/tmp/**/*"
+    - "script/**/*"              # one-off maintainer migration script

@@ -1,0 +1,61 @@
+# CI for Forgejo Actions (runner on dev02, jobs run in Docker containers).
+# Mirrors the Papiamentu setup: runner label `docker`, shared CI image
+# `papiamentu-ci:ruby-4.0.4-node20` (same Ruby as these gems; node for the
+# checkout/cache actions). See stuff/2026-07-06-forgejo-ci-rubocop-brakeman.md.
+#
+# GitHub deliberately has NO workflows (.github/workflows was removed in
+# 8.1.34): pushing to GitHub triggers nothing; CI runs only on Forgejo.
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: docker
+    container:
+      image: papiamentu-ci:ruby-4.0.4-node20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: inline_forms
+
+      # The dev Gemfile points at the validation_hints sibling
+      # (gem "validation_hints", path: "../validation_hints"). The job's
+      # automatic token is scoped to this repo only and validation_hints is
+      # private, so a repo secret SIBLING_TOKEN (any token with read access
+      # to ace/validation_hints) authorizes the checkout.
+      - uses: actions/checkout@v4
+        with:
+          repository: ace/validation_hints
+          token: ${{ secrets.SIBLING_TOKEN }}
+          path: validation_hints
+
+      - name: Cache gems
+        uses: actions/cache@v4
+        with:
+          path: inline_forms/vendor/bundle
+          key: gems-inline_forms-${{ hashFiles('inline_forms/Gemfile', 'inline_forms/inline_forms.gemspec') }}
+          restore-keys: gems-inline_forms-
+
+      - name: Install gems
+        working-directory: inline_forms
+        run: |
+          bundle config set --local path vendor/bundle
+          bundle install --jobs 4
+
+      - name: Tests (unit + dummy-app integration harness)
+        working-directory: inline_forms
+        run: bundle exec rake test
+
+      - name: RuboCop
+        working-directory: inline_forms
+        run: bundle exec rubocop
+
+      - name: bundler-audit
+        working-directory: inline_forms
+        run: |
+          gem install bundler-audit --no-document
+          bundle-audit check --update

@@ -4,6 +4,17 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [8.1.34] - 2026-07-06
+
+### Added
+
+- **CI moved to Forgejo Actions** (`.forgejo/workflows/`, plan: `stuff/2026-07-06-forgejo-ci-rubocop-brakeman.md`). `ci.yml` runs the engine suite, RuboCop, and bundler-audit per push on the dev02 runner (shared `papiamentu-ci:ruby-4.0.4-node20` image); `full-gate.yml` (manual + weekly) rebuilds all three gems, generates the example app — whose embedded 150+-test run is the release gate — and runs **Brakeman against the generated app** (report-only until the baseline is triaged). `.github/workflows/` was **deleted**: pushing to GitHub deliberately triggers nothing.
+- **RuboCop** (Rails omakase preset, same recipe as Papiamentu) in the dev bundle, with all 590 pre-existing offenses grandfathered in `.rubocop_todo.yml` (delete entries as files get cleaned; new code is linted). Generated-app territory is excluded (`lib/installer_templates/`, `archived/`, …). `bundle exec rubocop`: 91 files, no offenses.
+
+### Lockstep
+
+- validation_hints 8.1.34 (same CI + RuboCop treatment: 12 files, 22 offenses grandfathered), inline_forms_installer 8.1.34.
+
 ## [8.1.33] - 2026-07-06
 
 ### Changed
