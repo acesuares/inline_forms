@@ -119,14 +119,11 @@ if ENV["INLINE_FORMS_GEMFILE_PATH"] && File.directory?(ENV["INLINE_FORMS_GEMFILE
 else
   gem "inline_forms", "~> 8"
 end
+# jQuery is required by Foundation 6's JS only. jQuery UI is fully gone since
+# 8.1.26 (native date/time/month inputs in 8.1.25; datalist combobox + range
+# slider in 8.1.26), as are jquery-timepicker-rails, jquery-ui-rails and
+# rails-jquery-autocomplete.
 gem 'jquery-rails'
-# jquery-timepicker-rails was dropped in 8.1.25: time_select now renders a
-# native <input type="time"> (date_select/month_year_picker likewise use
-# native date/month inputs).
-# jQuery UI JavaScript (`//= require jquery.ui.all` in inline_forms.js). SCSS + PNGs
-# are vendored in the inline_forms engine (Dart Sass cannot evaluate sass-rails
-# `image-path()`). Pin matches former jquery-ui-sass-rails 4.0.3.x stack.
-gem 'jquery-ui-rails', '4.0.3'
 # Foundation Icons SCSS + fonts are vendored in the inline_forms engine (Dart Sass;
 # foundation-icons-sass-rails depended on sass-rails).
 gem 'mini_magick'
@@ -140,7 +137,6 @@ gem 'money-rails', '~> 3.0'
 gem 'mysql2'
 gem 'paper_trail', '~> 17.0'
 gem 'rails-i18n', '~> 8.1'
-gem 'rails-jquery-autocomplete'
 gem 'rails', '~> 8.1'
 gem 'rake'
 # NOTE: the `rvm` gem is intentionally NOT a runtime dependency of generated

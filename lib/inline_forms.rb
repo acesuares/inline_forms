@@ -236,16 +236,6 @@ module InlineForms
       )
     end
 
-    # Vendored jQuery UI SCSS lives under stylesheets/jquery_ui/ and uses @import
-    # "jquery.ui.core" etc. Dart Sass (dartsass-rails) only adds --load-path entries
-    # from config.assets.paths, not config.dartsass.extra_load_paths.
-    initializer "inline_forms.jquery_ui_stylesheet_path" do |app|
-      path = root.join("app", "assets", "stylesheets", "jquery_ui")
-      next unless path.directory?
-
-      app.config.assets.paths << path unless app.config.assets.paths.include?(path)
-    end
-
     config.to_prepare do
       next unless defined?(ActiveRecord::Base)
 

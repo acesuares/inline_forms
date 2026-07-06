@@ -1,7 +1,5 @@
 //= require jquery
-//= require jquery.ui.all
 //= require foundation
-//= require autocomplete-rails
 
 // Turbo / Hotwire is intentionally NOT required into this Sprockets bundle.
 // `turbo-rails` ships only an ES-module build of turbo (`app/assets/javascripts/turbo.js`
@@ -12,9 +10,10 @@
 // (and `application.html.erb`) as `<script type="module">`. Inline flows use
 // `<turbo-frame>` + HTML responses; jquery-ujs / remotipart were removed in 7.8.0.
 
-// Date/time/month inputs are native (<input type="date|time|month">) since
-// 8.1.25 — no jQuery UI datepicker/timepicker init. jQuery UI remains in the
-// bundle only for the autocomplete widget (dropdown_with_other).
+// jQuery UI is gone (8.1.26): date/time/month inputs are native, the
+// dropdown_with_other combobox is an <input list> + <datalist>, and
+// slider_with_values is a native <input type="range">. jQuery itself stays
+// only because Foundation 6's JS requires it.
 $(function(){
   $(document).foundation();
   initInlineFormsWidgets(document);
@@ -26,11 +25,35 @@ document.addEventListener("turbo:load", function() {
 
 // Widget init: one path for first paint, turbo:load and turbo:frame-load.
 // Form element helpers emit class hooks only — no inline <script> tags.
-// Currently only the validation-hint tooltips need JS; date/time/month
-// pickers are native inputs, and Trix 2's <trix-editor> is a custom element
-// the browser upgrades automatically after Turbo frame swaps.
+// Native inputs (date/time/month/range/datalist) and Trix 2 custom elements
+// need no re-init after frame swaps; only tooltips and the range-slider
+// label sync are wired here.
 function initInlineFormsWidgets(root) {
   initValidationHintTooltips(root);
+  initSliderValueLabels(root);
+}
+
+// slider_with_values: keep the <output> label in sync with the range input.
+// Labels array rides in data-slider-values; the <output> id in
+// data-slider-output (both emitted by slider_with_values_edit).
+function initSliderValueLabels(root) {
+  var scope = (root && root.querySelectorAll) ? root : document;
+  scope.querySelectorAll("input[type=range].slider_with_values").forEach(function (el) {
+    if (el._ifSliderBound) { return; }
+    el._ifSliderBound = true;
+
+    var labels = [];
+    try {
+      labels = JSON.parse(el.getAttribute("data-slider-values") || "[]");
+    } catch (e) { /* keep empty; label just won't update */ }
+    var output = document.getElementById(el.getAttribute("data-slider-output"));
+    if (!output || !labels.length) { return; }
+
+    el.addEventListener("input", function () {
+      var label = labels[parseInt(el.value, 10)];
+      output.textContent = (label === undefined || label === null) ? "" : label;
+    });
+  });
 }
 
 // Validation hint tooltips: HTML lists from hidden source divs, rendered via Tippy.js

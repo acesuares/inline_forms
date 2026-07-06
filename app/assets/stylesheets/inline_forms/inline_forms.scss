@@ -9,9 +9,11 @@
 // flow into foundation_and_overrides/theme/devise, which @use cannot
 // replicate without a Foundation that ships a module API (it never will —
 // the framework is unmaintained). See stuff/improvement-plan.md §1.
+//
+// jQuery UI SCSS (sunny theme + widget styles) was dropped in 8.1.26 along
+// with the last jQuery UI widgets (native date/time/month/range/datalist
+// inputs replaced them).
 @use 'inline_forms/foundation_icons';
-@import '../jquery_ui/themes/jquery.ui.sunny.css.scss';
-@import '../jquery_ui/jquery.ui.all.css.scss';
 @import 'foundation_and_overrides';
 
 // Foundation 6 makes `.row` a flex container (`display: flex`); a nested
@@ -402,26 +404,6 @@ turbo-frame {
   margin-bottom: 1.5em;
 }
 
-  .custom-combobox {
-    position: relative;
-    display: inline-block;
-  }
-  .custom-combobox-toggle {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    margin-left: -1px;
-    padding: 0;
-    /* support: IE7 */
-    *height: 1.7em;
-    *top: 0.1em;
-  }
-  .custom-combobox-input {
-    margin: 0;
-    padding: 0.3em;
-  }
-
-
 .column {
     padding-right: 0 !important;
 }
@@ -476,7 +458,7 @@ turbo-frame {
   margin-bottom: 0.5em;
 }
 
-/* jQuery ui Slider 8 */
+/* slider_with_values: native range/progress (8.1.26) */
 .slider {
     width: 300px;
     float: left;

@@ -4,6 +4,20 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [8.1.26] - 2026-07-06
+
+### Changed
+
+- **jQuery UI is fully removed** (follow-up to 8.1.25's native pickers; jQuery itself remains only because Foundation 6's JS requires it):
+  - **`dropdown_with_other`** now renders a native combobox — a text input backed by a `<datalist>` of the existing records — instead of a hidden `<select>` plus the jQuery UI autocomplete "custom.combobox" widget and its ~100-line inline `<script>` (the last inline script emitted by any form element). Typing a listed name picks that record; any other text becomes the free-form `<attribute>_other` value. The submitted field is unchanged (`_<model>[<attribute>_other]`) and `dropdown_with_other_update` is behaviorally identical (it never read the posted foreign key; it re-derives it by name lookup). Two stray `puts` debug lines removed from the update path.
+  - **`slider_with_values`** now renders a native `<input type="range">` on edit (labels ride in `data-slider-values`; an `<output>` shows the current label, kept in sync by `initSliderValueLabels` in `inline_forms.js`) and a non-interactive `<progress>` bar on show (a disabled range input would swallow the click-to-edit). No more jQuery UI slider or per-field scripts; the old hardcoded `max: 5` on edit now derives from the values hash.
+  - **Removed from the engine:** `//= require jquery.ui.all`, `//= require autocomplete-rails`, the vendored jQuery UI SCSS (`app/assets/stylesheets/jquery_ui/`, sunny theme) and theme images (`app/assets/images/jquery-ui/`, ~70 files), the `inline_forms.jquery_ui_stylesheet_path` initializer, and the dead `.custom-combobox` CSS.
+  - **Removed from generated Gemfiles:** `jquery-ui-rails`, `rails-jquery-autocomplete`.
+
+### Lockstep
+
+- validation_hints 8.1.26, inline_forms_installer 8.1.26.
+
 ## [8.1.25] - 2026-07-06
 
 ### Changed
