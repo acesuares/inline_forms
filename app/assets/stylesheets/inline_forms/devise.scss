@@ -1,4 +1,5 @@
-@import url(http://fonts.googleapis.com/css?family=Open+Sans:400,400italic);
+// Open Sans @font-face lives in inline_forms_fonts.css.erb (self-hosted,
+// Sprockets-served; linked from the layouts) — no external font CDN.
 @import 'foundation_and_overrides';
 
 // Devise pages have only `.contain-to-grid` as the top-bar wrapper (no

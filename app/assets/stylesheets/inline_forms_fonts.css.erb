@@ -1,0 +1,39 @@
+/*
+ * Self-hosted fonts for inline_forms, served through Sprockets (ERB) so
+ * asset_path emits correct digested URLs in every environment.
+ *
+ * - Open Sans v44 latin 400 / 400 italic: replaces the external
+ *   `@import url(http://fonts.googleapis.com/...)` that lived in
+ *   inline_forms.scss / devise.scss (insecure scheme + runtime third-party
+ *   dependency). Files live in app/assets/fonts/.
+ * - Foundation Icons v3 (MIT, ZURB): the @font-face moved here from
+ *   _foundation_icons.scss because the Dart Sass-built CSS is served from
+ *   /assets/inline_forms/inline_forms.css, so its relative font reference
+ *   resolved to /assets/inline_forms/foundation-icons.woff and 404'd; the
+ *   fonts' real logical paths are flat (/assets/foundation-icons.*).
+ */
+
+@font-face {
+  font-family: "Open Sans";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(<%= asset_path("opensans-v44-latin-regular.woff2") %>) format("woff2");
+}
+
+@font-face {
+  font-family: "Open Sans";
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url(<%= asset_path("opensans-v44-latin-italic.woff2") %>) format("woff2");
+}
+
+@font-face {
+  font-family: "foundation-icons";
+  src: url(<%= asset_path("foundation-icons.woff") %>) format("woff"),
+       url(<%= asset_path("foundation-icons.ttf") %>) format("truetype"),
+       url(<%= asset_path("foundation-icons.svg") %>#fontcustom) format("svg");
+  font-weight: normal;
+  font-style: normal;
+}

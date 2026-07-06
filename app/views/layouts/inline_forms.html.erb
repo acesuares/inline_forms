@@ -5,8 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title><%= t('application_name') + " v" + InlineForms::VERSION -%></title>
     <%= stylesheet_link_tag "application" %>
+    <%= stylesheet_link_tag "inline_forms_fonts" %>
     <%= stylesheet_link_tag "inline_forms/inline_forms" %>
-    <%= stylesheet_link_tag "https://unpkg.com/trix@1.3.1/dist/trix.css" %>
+    <%= stylesheet_link_tag "trix" %>
     <%= csrf_meta_tags %>
   </head>
 
@@ -38,6 +39,7 @@
       import { Turbo } from "<%= asset_path('turbo.min.js') %>"
       window.Turbo = Turbo
     </script>
-    <%= javascript_include_tag "https://unpkg.com/trix@1.3.1/dist/trix.js" %>
+    <%# Trix 2 (vendored; no CDN). Self-registers its custom elements on load. %>
+    <%= javascript_include_tag "trix.min" %>
   </body>
 </html>

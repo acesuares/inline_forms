@@ -4,6 +4,22 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [8.1.22] - 2026-07-06
+
+### Changed
+
+- **Trix is vendored; unpkg CDN tags removed.** All layouts loaded Trix from `https://unpkg.com/trix@1.3.1/dist/trix.{css,js}` — a 2020-era version and a hard runtime dependency on a third-party CDN. Trix **2.1.19** now ships in the engine (`vendor/assets/javascripts/trix.min.js`, `vendor/assets/stylesheets/trix.css`) and is served through Sprockets (`javascript_include_tag "trix.min"` / `stylesheet_link_tag "trix"`). The Trix 1-era manual re-init in `initInlineFormsWidgets` (`new Trix.Editor(el)`) was dropped: Trix 2's `<trix-editor>` is a custom element the browser upgrades automatically after Turbo frame swaps.
+- **Open Sans is self-hosted; no more `http://fonts.googleapis.com`.** `inline_forms.scss` and `devise.scss` imported Open Sans over plain HTTP at runtime. The latin 400/400-italic woff2 files (v44) now live in `app/assets/fonts/`, declared in a new Sprockets-served `inline_forms_fonts.css.erb` (ERB so `asset_path` emits digested URLs) linked from all three layouts.
+- **Installer Gemfile: last floating gems pinned** — `cancancan '~> 3.6'`, `will_paginate '~> 4.0'` (the versions generated apps already resolve).
+
+### Fixed
+
+- **Foundation Icons `@font-face` 404.** The `@font-face` lived in the Dart Sass-built `inline_forms.css`, which is served from `/assets/inline_forms/…`; its relative `url("foundation-icons.woff")` therefore resolved to `/assets/inline_forms/foundation-icons.woff` — a 404 (the fonts' logical paths are flat: `/assets/foundation-icons.woff`). Icon glyphs (`fi-*`) silently fell back to the text font. The declaration moved into `inline_forms_fonts.css.erb` with proper `asset_path` URLs; the fonts (and Open Sans) are added to the precompile list.
+
+### Lockstep
+
+- validation_hints 8.1.22, inline_forms_installer 8.1.22 (no changes of their own).
+
 ## [8.1.21] - 2026-06-03
 
 ### Removed

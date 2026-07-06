@@ -103,7 +103,7 @@ end
 
 add_source 'https://rubygems.org'
 
-gem 'cancancan'
+gem 'cancancan', '~> 3.6'
 gem 'carrierwave', '~> 3.1'
 gem 'devise', '~> 5.0'
 gem 'devise-i18n', '~> 1.16'
@@ -159,7 +159,7 @@ gem 'turbo-rails'
 gem 'tabs_on_rails', '~> 3.0'
 gem 'unicorn'
 gem 'validation_hints', '~> 8'
-gem 'will_paginate'
+gem 'will_paginate', '~> 4.0'
 
 gem_group :test do
   # Rails 7 still expects Minitest 5; 6.x breaks the railties test runner.

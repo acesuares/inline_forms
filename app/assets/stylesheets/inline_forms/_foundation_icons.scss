@@ -3,19 +3,13 @@
  * Made by ZURB 2013 http://zurb.com/playground/foundation-icon-fonts-3
  * MIT License
  *
- * Vendored into inline_forms (replaces foundation-icons-sass-rails): @font-face
- * uses plain url() for dartsass-rails. Font files live in app/assets/fonts/
- * (woff/ttf/svg; woff+ttf mirrored from cdnjs foundicons 3.0.0).
+ * Vendored into inline_forms (replaces foundation-icons-sass-rails). Font files
+ * live in app/assets/fonts/ (woff/ttf/svg; mirrored from cdnjs foundicons 3.0.0).
+ *
+ * The @font-face moved to inline_forms_fonts.css.erb (Sprockets ERB): from the
+ * Dart Sass build the relative url("foundation-icons.woff") resolved against
+ * /assets/inline_forms/ and 404'd. Only the fi-* glyph classes live here.
  */
-
-@font-face {
-  font-family: "foundation-icons";
-  src: url("foundation-icons.woff") format("woff"),
-       url("foundation-icons.ttf") format("truetype"),
-       url("foundation-icons.svg#fontcustom") format("svg");
-  font-weight: normal;
-  font-style: normal;
-}
 
 .fi-address-book:before,
 .fi-alert:before,

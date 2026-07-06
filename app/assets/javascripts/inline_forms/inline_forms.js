@@ -61,12 +61,9 @@ function initInlineFormsWidgets(root) {
     if (!$el.data("timepicker")) { $el.timepicker(); }
   });
 
-  $root.find("trix-editor").each(function() {
-    if (window.Trix && this.editor) { return; }
-    if (window.Trix && typeof Trix.Editor === "function") {
-      new Trix.Editor(this);
-    }
-  });
+  // Trix 2: <trix-editor> is a custom element; the browser upgrades it
+  // automatically when a Turbo frame swap inserts it, so no manual re-init
+  // (the Trix 1-era `new Trix.Editor(el)` fallback is not valid Trix 2 API).
 }
 
 // Validation hint tooltips: HTML lists from hidden source divs, rendered via Tippy.js

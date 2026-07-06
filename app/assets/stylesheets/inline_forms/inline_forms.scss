@@ -1,5 +1,6 @@
 // inline_forms
-@import url(http://fonts.googleapis.com/css?family=Open+Sans:400,400italic);
+// Open Sans @font-face lives in inline_forms_fonts.css.erb (self-hosted,
+// Sprockets-served; linked from the layouts) — no external font CDN.
 @import 'inline_forms/foundation_icons';
 @import '../jquery_ui/themes/jquery.ui.sunny.css.scss';
 @import '../jquery_ui/jquery.ui.all.css.scss';

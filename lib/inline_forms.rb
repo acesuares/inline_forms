@@ -209,9 +209,17 @@ module InlineForms
         inline_forms/inline_forms.css
         inline_forms/devise.css
         inline_forms/inline_forms.js
+        inline_forms_fonts.css
         popper.min.js
         tippy-bundle.umd.min.js
+        trix.min.js
+        trix.css
         inline_forms/glass_plate.gif
+        foundation-icons.woff
+        foundation-icons.ttf
+        foundation-icons.svg
+        opensans-v44-latin-regular.woff2
+        opensans-v44-latin-italic.woff2
       )
     end
 
