@@ -18,7 +18,6 @@ AllCops:
     - "lib/vagrant/**/*"
     - "lib/otherstuff/**/*"
     - "stuff/**/*"
-    - "pics/**/*"
     - "test/dummy/log/**/*"
     - "test/dummy/tmp/**/*"
     - "script/**/*"              # one-off maintainer migration script

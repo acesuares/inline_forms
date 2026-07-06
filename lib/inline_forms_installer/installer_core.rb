@@ -903,23 +903,18 @@ if ENV['install_example'] == 'true'
 
   run 'bundle exec rake db:migrate'
 
-  # Seed the photos gallery from a local `pics/` folder. The folder is
-  # *gitignored* in the gem source (so the built .gem stays small and
-  # the gallery images are not committed) which means INSTALLER_ROOT/pics
-  # exists only when the installer is run from the source repo, not when
-  # it is run from an installed gem on the developer's box. We therefore
-  # check, in order:
-  #   1. ENV['INLINE_FORMS_SEED_PICS']  -- explicit override path
-  #   2. INSTALLER_ROOT/pics            -- monorepo / installer checkout
-  #   3. /home/code/inline_forms/pics   -- local dev convention
-  # and copy whichever is found into the generated app's db/seed_images/.
-  # The migration generated below is what reads from db/seed_images at
-  # `db:migrate` / `db:test:prepare` time, so this copy is only ever a
-  # one-shot at app generation.
+  # Seed the photos gallery. The 9 CC0 placeholder images (solid pastel +
+  # "Apt N / Room" label, ~4 KB each, generated with ImageMagick — see
+  # stuff/2026-07-06-forgejo-ci-rubocop-brakeman.md) ship with the installer
+  # under lib/installer_templates/example_app_assets/seed_images/, so every
+  # install — laptop, CI container, anywhere — gets the same gallery. Before
+  # 8.1.35 this looked for a *gitignored* local pics/ folder, which existed
+  # only on the maintainer's box: gem installs elsewhere (e.g. the Forgejo
+  # full-gate runner) silently produced zero photos and 12 test failures.
+  # ENV['INLINE_FORMS_SEED_PICS'] still overrides with your own folder.
   pics_candidates = [
     ENV["INLINE_FORMS_SEED_PICS"],
-    File.join(INSTALLER_ROOT, "pics"),
-    "/home/code/inline_forms/pics",
+    File.join(INSTALLER_ROOT, "lib/installer_templates/example_app_assets/seed_images"),
   ].compact
   pics_src = pics_candidates.find { |p| Dir.exist?(p) }
   if pics_src

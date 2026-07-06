@@ -4,6 +4,17 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [8.1.35] - 2026-07-06
+
+### Fixed
+
+- **Example-app photo seeding no longer depends on a maintainer-only local folder.** The installer looked for gallery images in a *gitignored* `pics/` folder (falling back to the hardcoded `/home/code/inline_forms/pics`), which exists only on the maintainer's machine — any gem install elsewhere (first exposed by the Forgejo `full-gate` CI run) silently seeded **zero** photos and failed 12 gallery/pagination/revert tests. Nine CC0 placeholder PNGs (~4 KB each, solid pastel with an "Apt N / Room" label, generated with ImageMagick) now ship inside the installer under `lib/installer_templates/example_app_assets/seed_images/`, so every install gets the same gallery. `INLINE_FORMS_SEED_PICS` still overrides with a custom folder; the old `pics/` convention is retired.
+- **`full-gate` CI workflow: git identity.** The installer's initial `git commit` in the generated app failed in the bare job container (`unable to auto-detect email address`); the workflow now sets a CI git identity first.
+
+### Lockstep
+
+- validation_hints 8.1.35, inline_forms_installer 8.1.35 (no changes of their own).
+
 ## [8.1.34] - 2026-07-06
 
 ### Added
