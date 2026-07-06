@@ -4,6 +4,12 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [8.1.37] - 2026-07-06
+
+### Lockstep
+
+- **validation_hints 8.1.37**: RuboCop todo eliminated — all 22 grandfathered offenses autocorrected (style-only: bracket spacing, magic-comment blank line, one trailing comma), `.rubocop_todo.yml` deleted. inline_forms and inline_forms_installer have no changes of their own. (inline_forms' own 590-offense todo remains; it shrinks incrementally as files get cleaned.)
+
 ## [8.1.36] - 2026-07-06
 
 ### Changed
