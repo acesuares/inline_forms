@@ -30,7 +30,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: ace/validation_hints
-          token: ${{ secrets.SIBLING_TOKEN }}
+          token: ${{ secrets.VALIDATION_HINTS }}
           path: validation_hints
 
       - name: Build the three gems

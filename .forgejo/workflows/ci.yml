@@ -25,12 +25,12 @@ jobs:
       # The dev Gemfile points at the validation_hints sibling
       # (gem "validation_hints", path: "../validation_hints"). The job's
       # automatic token is scoped to this repo only and validation_hints is
-      # private, so a repo secret SIBLING_TOKEN (any token with read access
-      # to ace/validation_hints) authorizes the checkout.
+      # private, so the repo secret VALIDATION_HINTS (a token with read
+      # access to ace/validation_hints) authorizes the checkout.
       - uses: actions/checkout@v4
         with:
           repository: ace/validation_hints
-          token: ${{ secrets.SIBLING_TOKEN }}
+          token: ${{ secrets.VALIDATION_HINTS }}
           path: validation_hints
 
       - name: Cache gems
