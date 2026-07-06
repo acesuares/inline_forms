@@ -46,15 +46,16 @@ The installer emits +devise_for :users, class_name: "Member", path: "members"+ (
 
 Then point your browser to http://localhost:3000/apartments and log in with admin@example.com / admin999. The example also adds integration and model tests; run +bundle exec rails test+ in +MyApp+, then start the server with +bundle exec rails s+ when you want the UI.
 
-The example app now ships three models:
+The example app ships four demo models (plus the +User+ / +Role+ / +Locale+ auth trio):
 
 * +Apartment+ — top-level resource at +/apartments+ (root).
 * +Photo+ — nested under Apartment (+has_many+ / +belongs_to+).
 * +Owner+ — top-level resource at +/owners+. An Owner +has_many+ Apartments; an Apartment +belongs_to+ a single (optional) Owner. The Owner detail panel at +/owners/:id+ ships two sub-tabs, +NAW+ (name, birthdate, address, city, country) and +Apartments+ (name + the owned-apartments checklist). +name+ deliberately appears on both tabs.
+* +FormElementShowcase+ — one row per kept Tier 1 form element (numbers, dates, choices, scales, uploads incl. a +multi_image_field+ gallery, rich text, HABTM checklist), seeded as "Full demo" / "Empty demo" so every show/edit branch renders and is regression-tested.
 
 On the +Apartments+ tab, +Owner#apartments+ is rendered as a +:check_list+ of *existing* apartments rather than the default +:associated+ "build new nested row" panel, so the user re-assigns the +apartments.owner_id+ FK by ticking checkboxes (using Rails' built-in +apartment_ids=+ setter on +has_many+).
 
-The tabs are wired with +tabs_on_rails+ (+set_tab+ / +current_tab?+) and +InlineForms::TurboTabsBuilder+, a small subclass of +TabsOnRails::Tabs::TabsBuilder+ that threads HTML options through to the tab's +<a>+ (upstream 3.0 can only annotate the +<li>+). Each tab link carries +data-turbo-frame+ targeting the surrounding row +<turbo-frame>+, so switching tabs is a single Turbo partial swap — no UJS, no +data-remote+. The active tab is emitted as an hrefless +<a aria-current="page" aria-selected="true">+ inside +<li class="tabs-title is-active">+ so Foundation 6's tabs CSS (+.tabs-title.is-active > a+ / +[aria-selected='true']+) styles it without needing custom overrides.
+The tabs are wired with +InlineForms::Tabs+ (+set_tab+ / +current_tab?+ / +tabs_tag+ — vendored into the engine since 8.1.23, replacing the unmaintained +tabs_on_rails+ gem with the same API) and +InlineForms::TurboTabsBuilder+, a small subclass of +InlineForms::Tabs::TabsBuilder+ that threads HTML options through to the tab's +<a>+ (the classic builder can only annotate the +<li>+). Each tab link carries +data-turbo-frame+ targeting the surrounding row +<turbo-frame>+, so switching tabs is a single Turbo partial swap — no UJS, no +data-remote+. The active tab is emitted as an hrefless +<a aria-current="page" aria-selected="true">+ inside +<li class="tabs-title is-active">+ so Foundation 6's tabs CSS (+.tabs-title.is-active > a+ / +[aria-selected='true']+) styles it without needing custom overrides.
 
 The example app also seeds three apartments (+Apt 1+, +Apt 2+, +Apt 3+, each with three CC0 placeholder photos from the gem's +pics/+ folder) and three owners — +Maria Martinez+ (owns +Apt 1+ + +Apt 2+), +Jean-Pierre Dupont+ (owns +Apt 3+), and +Akira Tanaka+ (owns none) — so the +has_many+ panel has at least one zero / one / many case to click through.
 
@@ -78,9 +79,9 @@ Then point your browser to http://localhost:3000/apartments and log in with admi
 
 == Per-resource Turbo tabs (+InlineForms::TurboTabsBuilder+)
 
-Upstream +tabs_on_rails 3.0+ (+TabsOnRails::Tabs::TabsBuilder#tab_for(tab, name, url_options, item_options = {})+) only applies the 4th argument to the +<li>+ wrapper; nothing is forwarded to the +<a>+. That used to be fine under Rails UJS (every link with +data-remote="true"+ was hijacked into an XHR regardless), but Turbo needs the data attribute on the +<a>+ itself (typically +data-turbo-frame="..."+).
+The classic builder API (+tab_for(tab, name, url_options, item_options = {})+, inherited from the retired +tabs_on_rails+ gem and preserved verbatim in the vendored +InlineForms::Tabs::TabsBuilder+) only applies the 4th argument to the +<li>+ wrapper; nothing is forwarded to the +<a>+. That used to be fine under Rails UJS (every link with +data-remote="true"+ was hijacked into an XHR regardless), but Turbo needs the data attribute on the +<a>+ itself (typically +data-turbo-frame="..."+).
 
-The old +acesuares/tabs_on_rails+ fork (+update_remote_before_action+) patched +tab_for+ to thread html options into +link_to+. That fork was retired in 7.13.5; +InlineForms::TurboTabsBuilder+ is its Turbo-shaped replacement. It accepts a new +:link_options+ key on the per-tab call and forwards it to +link_to+:
+The old +acesuares/tabs_on_rails+ fork (+update_remote_before_action+) patched +tab_for+ to thread html options into +link_to+. That fork was retired in 7.13.5 (and the gem itself was vendored away in 8.1.23); +InlineForms::TurboTabsBuilder+ is its Turbo-shaped replacement. It accepts a new +:link_options+ key on the per-tab call and forwards it to +link_to+:
 
  <%= tabs_tag builder: InlineForms::TurboTabsBuilder,
               active_class: "is-active",
@@ -101,7 +102,7 @@ Active-tab highlighting is unchanged from upstream (still driven by +set_tab :fo
 
 === Where to put the +tabs_tag+ block (four patterns)
 
-+tabs_on_rails+ and +InlineForms::TurboTabsBuilder+ don't care where you call +tabs_tag+ — they just produce the +<ul class="tabs">+ wherever you put the block. The example app's split into +show_with_tabs.html.erb+ + +_owner_tabs.html.erb+ is a stylistic choice; below are the four common shapes, from most-inline to most-decoupled. Pick whichever fits your app:
++InlineForms::Tabs+ and +InlineForms::TurboTabsBuilder+ don't care where you call +tabs_tag+ — they just produce the +<ul class="tabs">+ wherever you put the block. The example app's split into +show_with_tabs.html.erb+ + +_owner_tabs.html.erb+ is a stylistic choice; below are the four common shapes, from most-inline to most-decoupled. Pick whichever fits your app:
 
 1. *Inlined in the show view* — drop the +tabs_tag+ block straight into +app/views/<resource>/show_with_tabs.html.erb+ (or similar) and skip the partial entirely.
 
@@ -281,6 +282,22 @@ Trade-off: files accumulate on disk; periodic sweeping is out of scope of the ge
 For long text fields, use +:plain_text+ for a plain textarea backed by a DB +text+ column, or +:rich_text+ for ActionText/Trix content. +:plain_text+ requires an actual column on the model table; if the column is missing, inline_forms now raises +InlineForms::PlainTextColumnMissingError+ during controller boot/runtime checks.
 
 Note: generated apps also depend on ActiveStorage transitively because the +:rich_text+ form element uses ActionText (+active_storage:install+ runs during +inline_forms create+). Image uploads still go through CarrierWave; ActiveStorage is only there to back ActionText embeds.
+
+== Native inputs (no jQuery UI)
+
+Since 8.1.25/8.1.26 the date/time widgets are native HTML inputs — +:date_select+ renders +<input type="date">+, +:time_select+ +<input type="time">+, +:month_year_picker+ +<input type="month">+, +:slider_with_values+ +<input type="range">+, +:dropdown_with_other+ an +<input list>+ + +<datalist>+ combobox, and the new +:color_field+ (8.1.32) +<input type="color">+. jQuery UI, its themes and the +jquery-ui-rails+ / +rails-jquery-autocomplete+ / +jquery-timepicker-rails+ gems are gone; jQuery itself remains only because Foundation 6's JS requires it.
+
+== Per-user themes, colors and locale
+
+Generated apps let each user pick, on their own user panel:
+
+* a *preset theme* (+default+ / +dark+ / +sepia+ / +high-contrast+): an integer +theme+ column mapped to a +theme-<name>+ body class; palettes are CSS custom properties (+--if-color-*+) in the engine's +_theme.scss+ (8.1.29);
+* *custom colors* (+primary_color+ / +accent_color+, edited with +:color_field+): rendered as one scoped inline +<style>+ of +--if-color-*+ overrides, so the main stylesheet stays fully cacheable (8.1.32);
+* a *locale*: the existing +locale+ association now drives +I18n.with_locale+ per request via +around_action :switch_locale+ (8.1.31).
+
+Host apps that are not generated by the installer opt in by making +current_user+ respond to +inline_forms_theme+ (String) and/or +inline_forms_color_overrides+ (Hash of +--if-color-+ suffix => +"#rrggbb"+). Everything is validated before interpolation. To re-theme an app globally instead, override the variables in your own CSS:
+
+ :root { --if-color-primary: #2563eb; }
 
 = Build a vagrant virtualbox box for easier development
 

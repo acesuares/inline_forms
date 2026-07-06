@@ -4,6 +4,16 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [8.1.33] - 2026-07-06
+
+### Changed
+
+- **README refresh** (docs only; the README ships inside the gem). Tabs sections now describe the vendored `InlineForms::Tabs` instead of the removed `tabs_on_rails` gem; the example-app model list includes `FormElementShowcase`; new sections document the native inputs (post-jQuery UI) and the per-user theme / custom colors / locale features with the host-app opt-in contract (`#inline_forms_theme`, `#inline_forms_color_overrides`).
+
+### Lockstep
+
+- validation_hints 8.1.33, inline_forms_installer 8.1.33 (no code changes in any gem).
+
 ## [8.1.32] - 2026-07-06
 
 ### Added
