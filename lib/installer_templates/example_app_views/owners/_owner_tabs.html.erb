@@ -2,9 +2,9 @@
   Owner sub-tabs (Turbo). Each tab link targets the surrounding row
   turbo-frame (id == @update_span) so clicking a tab re-fetches
   OwnersController#show?tab=... and swaps just that frame. Active-tab
-  highlighting is driven by set_tab / current_tab? (tabs_on_rails).
-  InlineForms::TurboTabsBuilder threads link_options: through to the
-  anchor; upstream tabs_on_rails 3.0 can only annotate the surrounding li.
+  highlighting is driven by set_tab / current_tab? (InlineForms::Tabs,
+  vendored since 8.1.23). InlineForms::TurboTabsBuilder threads
+  link_options: through to the anchor.
 -%>
 <div class="row owner_tabs_row">
   <div class='medium-1 large-1 column'>&nbsp;</div>

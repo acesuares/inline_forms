@@ -156,7 +156,8 @@ gem 'importmap-rails'
 # use `<turbo-frame>` + HTML responses (see docs/ujs-to-turbo.md). Registers the
 # `turbo_stream` MIME type for optional stream responses.
 gem 'turbo-rails'
-gem 'tabs_on_rails', '~> 3.0'
+# tabs (set_tab / tabs_tag) are vendored in the inline_forms engine since
+# 8.1.23 (InlineForms::Tabs) — the unmaintained tabs_on_rails gem is gone.
 gem 'unicorn'
 gem 'validation_hints', '~> 8'
 gem 'will_paginate', '~> 4.0'

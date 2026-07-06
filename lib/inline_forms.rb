@@ -4,6 +4,7 @@ require "inline_forms/form_element_from_callee"
 require "inline_forms/archived_form_elements"
 require "inline_forms/form_element_registry"
 require "inline_forms/form_elements"
+require "inline_forms/tabs"
 require "inline_forms/turbo_tabs_builder"
 # InlineForms is a Rails Engine that let you setup an admin interface quick and
 # easy. Please install it as a gem or include it in your Gemfile.
@@ -202,6 +203,18 @@ module InlineForms
     initializer "inline_forms.validation_hints" do
       require "validation_hints"
       ValidationHints::ValidationsPatch.apply!
+    end
+
+    # Tabs support (set_tab / current_tab? / tabs_tag) is vendored in
+    # InlineForms::Tabs since 8.1.23. Apps generated before 8.1.23 still bundle
+    # the tabs_on_rails gem, whose Railtie includes the identical API into
+    # ActionController::Base — skip ours then so the two don't stack.
+    initializer "inline_forms.tabs" do
+      ActiveSupport.on_load(:action_controller) do
+        unless defined?(TabsOnRails::ActionController)
+          ::ActionController::Base.include(InlineForms::Tabs::Controller)
+        end
+      end
     end
 
     initializer "inline_forms.assets.precompile" do |app|

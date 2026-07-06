@@ -4,6 +4,20 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [8.1.23] - 2026-07-06
+
+### Changed
+
+- **`tabs_on_rails` is no longer a dependency; tabs support is vendored.** The gem (last released 2017, unmaintained) provided four things inline_forms used: the controller `set_tab` DSL, the `current_tab` / `current_tab?` helpers, the `tabs_tag` view helper, and the `TabsBuilder` base class that `InlineForms::TurboTabsBuilder` subclasses. All four are now ported into the engine as `InlineForms::Tabs` (`lib/inline_forms/tabs.rb`, API-compatible; MIT attribution retained) and included into `ActionController::Base` by an engine initializer. It was also an *undeclared* dependency: the engine `require`d `tabs_on_rails` at load time but never listed it in the gemspec — only the installer-written app Gemfile made that work. The installer no longer writes `gem 'tabs_on_rails'`; apps generated before 8.1.23 keep working because the initializer skips the vendored controller include when the gem's own `TabsOnRails::ActionController` is present.
+
+### Added
+
+- **Unit tests** (`test/tabs_test.rb`) for the vendored default builder (active `current` class, `<span>` for the active tab), custom `active_class`, the `TurboTabsBuilder` contract (threads `link_options:`/`data-turbo-frame` onto the anchor, `aria-current`/`aria-selected` state, href-less active tab), and the `set_tab`/`current_tab?` namespace semantics.
+
+### Lockstep
+
+- validation_hints 8.1.23, inline_forms_installer 8.1.23.
+
 ## [8.1.22] - 2026-07-06
 
 ### Changed

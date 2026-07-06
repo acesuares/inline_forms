@@ -1,5 +1,5 @@
 # -*- encoding : utf-8 -*-
-require "tabs_on_rails"
+require "inline_forms/tabs"
 
 module InlineForms
   # Tabs_on_rails 3.0 (weppos, RubyGems) only threads the 4th argument of
@@ -29,9 +29,14 @@ module InlineForms
   #
   # `link_options:` is consumed by the builder and forwarded to `link_to`;
   # everything else still applies to the `<li>` exactly like the upstream
-  # `TabsBuilder`. Active-tab highlighting still uses tabs_on_rails'
-  # `current_tab?` (driven by controller `set_tab :foo`).
-  class TurboTabsBuilder < TabsOnRails::Tabs::TabsBuilder
+  # `TabsBuilder`. Active-tab highlighting still uses `current_tab?` (driven
+  # by controller `set_tab :foo`).
+  #
+  # Since 8.1.23 this subclasses the vendored InlineForms::Tabs::TabsBuilder
+  # (tabs_on_rails itself is no longer a dependency). The builder contract is
+  # duck-typed, so this class also still works if a pre-8.1.23 app renders it
+  # through the tabs_on_rails gem's `tabs_tag`.
+  class TurboTabsBuilder < InlineForms::Tabs::TabsBuilder
     def tab_for(tab, name, url_options, item_options = {})
       link_options = item_options.delete(:link_options) || {}
       active = current_tab?(tab)
