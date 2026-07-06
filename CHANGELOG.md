@@ -4,6 +4,25 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [8.1.31] - 2026-07-06
+
+### Added
+
+- **Per-user locale.** The user model has always carried a `locale` association (`[:locale, :dropdown]` on the user panel), but nothing read it. Generated apps' `ApplicationController` now wraps every request in `I18n.with_locale(current_user.locale.name)` (`around_action :switch_locale`): unknown/blank names fall back to `I18n.default_locale`, and `with_locale` restores afterwards so nothing leaks across requests. The old commented subdomain-based `set_locale` sample was replaced with an `I18n.with_locale`-based variant.
+- Example-app regression tests (`example_app_user_locale_test.rb`): default `<html lang="en">`, `nl` switching, unknown-name fallback.
+
+### Changed
+
+- **Engine layout `<html lang>` follows `I18n.locale`** (was hardcoded `"en"` in `layouts/inline_forms.html.erb`).
+
+### Fixed
+
+- **`InlineFormsApplicationController` no longer clobbers `I18n.available_locales`.** It hard-assigned `[:en, :nl, :pp]` at class-load time — which in development happens *after* app initializers, silently stomping any `config.i18n.available_locales` the host configured. Hosts that relied on the implicit `[:en, :nl, :pp]` restriction should set it explicitly in `config/application.rb`.
+
+### Lockstep
+
+- validation_hints 8.1.31, inline_forms_installer 8.1.31.
+
 ## [8.1.30] - 2026-07-06
 
 ### Removed

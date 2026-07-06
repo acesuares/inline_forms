@@ -7,8 +7,12 @@ class InlineFormsApplicationController < ActionController::Base
   # defaults to `layouts/inline_forms` (actions may still override via `render`).
   layout ->(controller) { controller.devise_controller? ? "devise" : "inline_forms" }
 
-  # limit available locales by setting this. Override in applicaton_controller.
-  I18n.available_locales = [ :en, :nl, :pp ]
+  # NOTE (8.1.31): this class no longer clobbers I18n.available_locales.
+  # It used to hard-assign `[ :en, :nl, :pp ]` at class-load time, which ran
+  # *after* the host app's initializers in development (classes load lazily)
+  # and silently stomped any `config.i18n.available_locales` the app set.
+  # Configure available locales in the app: config/application.rb
+  #   config.i18n.available_locales = [:en, :nl, :pp]
 
   #set the locale based on the subdomain
   def set_locale

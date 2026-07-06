@@ -667,24 +667,36 @@ create_file "app/controllers/application_controller.rb", <<-END_APPCONTROLLER.st
     end
     # Comment previous lines if you don't want Devise authentication
 
-    # Uncomment next line if you want I18n (based on subdomain)
-    # before_action :set_locale
+    # Per-user locale (inline_forms 8.1.31): the signed-in user's Locale
+    # record (its `name`: en/nl/...) drives I18n for the request. Unknown or
+    # blank names fall back to I18n.default_locale, and I18n.with_locale
+    # restores the previous locale afterwards, so nothing leaks across
+    # requests or threads. Users pick their locale on their own user panel
+    # (the [:locale, :dropdown] row).
+    around_action :switch_locale
 
-    # Uncomment next line and specify default locale
-    # I18n.default_locale = :en
+    def switch_locale(&action)
+      candidate = current_user&.locale&.name.to_s.strip
+      locale =
+        if I18n.available_locales.map(&:to_s).include?(candidate)
+          candidate
+        else
+          I18n.default_locale
+        end
+      I18n.with_locale(locale, &action)
+    end
 
-    # Uncomment next line and specify available locales
-    # I18n.available_locales = [ :en, :nl, :pp ]
+    # Restrict/extend the locale whitelist in config/application.rb:
+    #   config.i18n.available_locales = [:en, :nl]
+    #   config.i18n.default_locale = :en
 
-    # Uncomment next nine line if you want locale based on subdomain, like 'it.example.com, de.example.com'
-    # def set_locale
-    #   I18n.locale = extract_locale_from_subdomain || I18n.default_locale
-    # end
-    #
-    # def extract_locale_from_subdomain
+    # Uncomment if you prefer locale based on subdomain ('nl.example.com')
+    # instead of the per-user setting above:
+    # around_action :switch_locale_from_subdomain
+    # def switch_locale_from_subdomain(&action)
     #   locale = request.subdomains.first
-    #   return nil if locale.nil?
-    #   I18n.available_locales.include?(locale.to_sym) ? locale.to_s : nil
+    #   locale = nil unless locale && I18n.available_locales.map(&:to_s).include?(locale)
+    #   I18n.with_locale(locale || I18n.default_locale, &action)
     # end
   end
 END_APPCONTROLLER
