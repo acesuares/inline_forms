@@ -67,9 +67,9 @@ jobs:
         run: |
           gem install brakeman --no-document
           cd apps/MyApp
-          # --run-all-checks: engine + installer code deserves the full set.
-          # Exit code is non-zero on warnings; report-only for now (the
-          # baseline needs triage first — see the plan doc).
-          brakeman --run-all-checks --no-pager --force || true
-          brakeman --no-pager --force -o brakeman-report.txt || true
-          tail -50 brakeman-report.txt
+          # Default check set is ENFORCING (baseline triaged 2026-07-06:
+          # 0 warnings; the one ForceSSL finding was fixed in 8.1.36).
+          brakeman --no-pager
+          # Pedantic full set stays informational: it includes checks that
+          # can fire on perfectly reasonable future code.
+          brakeman --run-all-checks --no-pager || true

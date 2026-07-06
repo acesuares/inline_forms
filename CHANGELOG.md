@@ -4,6 +4,21 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [8.1.36] - 2026-07-06
+
+### Changed
+
+- **Generated apps force SSL in production** (`config.assume_ssl = true` + `config.force_ssl = true`). `rails new` only enables these when Kamal is skipped; generated apps deploy through the shipped Capistrano/Unicorn setup behind an SSL-terminating proxy, and the injected Devise mailer config already assumed https. This was the **only finding of the first Brakeman baseline** (full-gate CI run 6 against the generated app: default check set 0 warnings, `--run-all-checks` exactly this one High/ForceSSL). Internal plain-HTTP apps can re-comment the two lines in their own `production.rb`.
+- **full-gate CI: Brakeman's default check set is now enforcing** (baseline is clean); the pedantic `--run-all-checks` pass stays informational.
+
+### Added
+
+- Regression test `example_app_production_ssl_test.rb`: the generated `production.rb` must enable `assume_ssl`/`force_ssl` (guards the installer's gsub against Rails template drift).
+
+### Lockstep
+
+- validation_hints 8.1.36, inline_forms_installer 8.1.36 (no changes of their own).
+
 ## [8.1.35] - 2026-07-06
 
 ### Fixed

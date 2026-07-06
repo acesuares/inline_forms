@@ -740,6 +740,19 @@ create_file "app/models/ability.rb", <<-END_ABILITY.strip_heredoc
   end
 END_ABILITY
 
+# SSL in production. `rails new` only enables these when Kamal is skipped
+# (its proxy config takes over otherwise), but generated apps deploy via the
+# shipped Capistrano/Unicorn setup behind an SSL-terminating reverse proxy —
+# and the Devise mailer config below already assumes https. Enabling both
+# matches the Rails 8 defaults and closes Brakeman's ForceSSL warning
+# (full-gate CI scans the generated app). Serving plain HTTP internally?
+# Re-comment these in your app's config/environments/production.rb.
+say "- Enabling assume_ssl/force_ssl in environments/production.rb..."
+gsub_file "config/environments/production.rb",
+          "# config.assume_ssl = true", "config.assume_ssl = true"
+gsub_file "config/environments/production.rb",
+          "# config.force_ssl = true", "config.force_ssl = true"
+
 # devise mailer stuff
 say "- Injecting devise mailer stuff in environments/production.rb..."
 # strip_heredoc_with_indent(2) became strip_heredoc(2), but only in rails 4... :-(
