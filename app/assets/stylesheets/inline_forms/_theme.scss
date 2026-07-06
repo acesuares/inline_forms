@@ -1,0 +1,67 @@
+// inline_forms theme bridge (8.1.24).
+//
+// Exposes the admin-chrome palette as CSS custom properties on :root so a
+// host app (or a future per-user preferences feature — see
+// stuff/user-preferences-and-theming.md) can re-theme the UI at runtime by
+// overriding variables, without recompiling the Sass build:
+//
+//   :root { --if-color-primary: #2563eb; }
+//   /* or per user: */
+//   body.theme-dark { --if-color-body-bg: #111; --if-color-body-text: #eee; }
+//
+// The values are computed at build time from the Sass palette below (hover
+// shades via lighten()), and every usage site keeps working with the same
+// visual result when nothing overrides the variables. Foundation's own
+// components still read the Sass settings at build time; only the
+// inline_forms chrome (bars, rows, buttons, flashes) is variable-driven.
+//
+// Import order matters: this partial reads Foundation's globals
+// ($body-background, $body-font-color, $anchor-color), so it must be
+// imported after `@import 'foundation'` (see foundation_and_overrides.scss).
+
+@use 'sass:color';
+
+// Palette (single source of truth for the classic inline_forms look).
+$if-primary: #A3381E !default;      // dark red: app top bar, devise chrome
+$if-accent: #B94C32 !default;       // brick red: buttons, borders, pagination
+$if-secondary: #E1C150 !default;    // gold: model top bar band
+$if-header-band: #EFCA4B !default;  // deep gold: section headers, footers
+$if-row-odd: #FBE38E !default;      // list zebra: odd rows
+$if-row-even: #FBEEC1 !default;     // list zebra: even rows
+$if-input-bg: #fff8e0 !default;     // selects / search input background
+$if-flash-accent: #fade7a !default; // flash border band
+$if-error-bg: #a70f0f !default;
+$if-success-bg: #4f8d0d !default;
+$if-on-dark: #FFFFFF !default;      // text/icons on primary/secondary bands
+
+:root {
+  --if-color-primary: #{$if-primary};
+  --if-color-accent: #{$if-accent};
+  --if-color-secondary: #{$if-secondary};
+  --if-color-header-band: #{$if-header-band};
+  --if-color-row-odd: #{$if-row-odd};
+  --if-color-row-even: #{$if-row-even};
+  --if-color-input-bg: #{$if-input-bg};
+  --if-color-input-bg-hover: #{color.adjust($if-input-bg, $lightness: 2%)};
+  --if-color-input-bg-focus: #{color.adjust($if-input-bg, $lightness: 5%)};
+  --if-color-flash-accent: #{$if-flash-accent};
+  --if-color-error-bg: #{$if-error-bg};
+  --if-color-success-bg: #{$if-success-bg};
+  --if-color-on-dark: #{$if-on-dark};
+  // Foundation globals, bridged so body/anchors can be re-themed too.
+  --if-color-body-bg: #{$body-background};
+  --if-color-body-text: #{$body-font-color};
+  --if-color-anchor: #{$anchor-color};
+}
+
+// Re-bind the document base styles to the bridge. Foundation's
+// foundation-global-styles emitted the same values from Sass; these rules
+// win by cascade order and change nothing until a variable is overridden.
+body {
+  background: var(--if-color-body-bg);
+  color: var(--if-color-body-text);
+}
+
+a {
+  color: var(--if-color-anchor);
+}

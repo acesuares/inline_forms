@@ -1,7 +1,15 @@
 // inline_forms
 // Open Sans @font-face lives in inline_forms_fonts.css.erb (self-hosted,
 // Sprockets-served; linked from the layouts) — no external font CDN.
-@import 'inline_forms/foundation_icons';
+//
+// Module-system status (8.1.24): `foundation_icons` is a self-contained
+// partial and loads via @use. Everything else must stay on @import until
+// the Foundation question is settled: foundation-rails 6.9 is @import-only
+// internally and its settings globals ($body-background, rem-calc, ...)
+// flow into foundation_and_overrides/theme/devise, which @use cannot
+// replicate without a Foundation that ships a module API (it never will —
+// the framework is unmaintained). See stuff/improvement-plan.md §1.
+@use 'inline_forms/foundation_icons';
 @import '../jquery_ui/themes/jquery.ui.sunny.css.scss';
 @import '../jquery_ui/jquery.ui.all.css.scss';
 @import 'foundation_and_overrides';
@@ -21,7 +29,7 @@
 }
 
 .contain-to-grid {
-  background-color: $body-background !important;
+  background-color: var(--if-color-body-bg) !important;
 }
 
 // Foundation 5 used to position .contain-to-grid.fixed at the top of the
@@ -66,15 +74,15 @@
   .menu > li > a {
     line-height: 45px;
     padding: 0 1rem;
-    color: #FFFFFF;
+    color: var(--if-color-on-dark);
   }
   // F6 dropdown-menu paints the `::after` triangle indicator with
   // `border-color: $primary-color transparent ...` (default blue). The
   // app top bar is dark red, so the blue arrow next to "More" / "Admin"
   // looks broken; force the triangle to white to match the link text.
   .is-dropdown-submenu-parent > a::after {
-    border-top-color: #FFFFFF;
-    border-color: #FFFFFF transparent transparent;
+    border-top-color: var(--if-color-on-dark);
+    border-color: var(--if-color-on-dark) transparent transparent;
   }
   // F6 ships `.is-dropdown-submenu-parent > a { padding-right: 1.5rem }`
   // to reserve space for the `::after` triangle, but our `.menu > li > a`
@@ -100,7 +108,7 @@
   .menu-text,
   .menu-text h1,
   .menu-text h1 a {
-    color: #FFFFFF;
+    color: var(--if-color-on-dark);
   }
   .menu-text h1 {
     margin: 0 !important;
@@ -136,38 +144,38 @@ input {
 }
 
 select {
-  background-color: #fff8e0 !important;
+  background-color: var(--if-color-input-bg) !important;
   border: 0 !important;
   margin: 2px 0 !important;
   padding: 0;
 
 }
 select:hover, select:focus {
-  background-color: lighten(#fff8e0, 2%) !important;
+  background-color: var(--if-color-input-bg-hover) !important;
   border: 0 !important;
 }
 
 #inline_forms_application_top_bar {
-  background-color: #A3381E;
-  color: #FFFFFF;
+  background-color: var(--if-color-primary);
+  color: var(--if-color-on-dark);
   &,
   .menu,
   .menu li,
   .menu a {
-    background-color: #A3381E;
-    color: #FFFFFF;
+    background-color: var(--if-color-primary);
+    color: var(--if-color-on-dark);
   }
 }
 
 #inline_forms_model_top_bar {
-  background-color: #E1C150;
+  background-color: var(--if-color-secondary);
   padding-top: 45px;
   height: 90px;
   .top-bar-right,
   .menu,
   .menu li,
   .menu > li > a {
-    background-color: #E1C150;
+    background-color: var(--if-color-secondary);
   }
   // F6 buttons (`.button`) and inputs (`input[type=text]`) ship with
   // different default heights -- buttons size to padding+line-height
@@ -193,8 +201,8 @@ select:hover, select:focus {
     margin: 0 !important;
   }
   .new_button {
-    background-color: #E1C150;
-    color: #B94C32;
+    background-color: var(--if-color-secondary);
+    color: var(--if-color-accent);
     font-size: 1.3rem;
     padding: 0 2rem 0 1rem;
   }
@@ -204,7 +212,7 @@ select:hover, select:focus {
     transition-property: color;
   }
   input[type=text]:hover, input[type=text]:focus {
-    background-color: lighten(#fff8e0, 5%);
+    background-color: var(--if-color-input-bg-focus);
     -webkit-transition-property: background-color;
     transition-property: background-color;
   }
@@ -241,10 +249,10 @@ turbo-frame {
     margin: 0 auto !important;
   }
   .odd {
-    background-color: #FBE38E;
+    background-color: var(--if-color-row-odd);
   }
   .even {
-    background-color: #FBEEC1;
+    background-color: var(--if-color-row-even);
   }
 }
 
@@ -254,8 +262,8 @@ turbo-frame {
     font-weight: normal !important;
   }
   .row.form_element_header {
-    border-top: 1px solid #B94C32;
-    background-color: rgb(239, 202, 75);
+    border-top: 1px solid var(--if-color-accent);
+    background-color: var(--if-color-header-band);
     font-weight: normal !important;
     font-size: 1.3rem !important;
   }
@@ -293,17 +301,17 @@ turbo-frame {
 }
 
 .object_presentation {
-  background-color: #B94C32;
+  background-color: var(--if-color-accent);
   color: white;
   .close_button  {
-    background-color: #B94C32;
+    background-color: var(--if-color-accent);
     font-size: 1.3rem;
     padding: 0 1rem 0 1rem;
     margin: 0;
   }
   .close_button:hover, .close_button:focus {
-    background-color: #B94C32;
-    color: #FBEEC1;
+    background-color: var(--if-color-accent);
+    color: var(--if-color-row-even);
     -webkit-transition-property: color;
     transition-property: color;
   }
@@ -315,8 +323,8 @@ turbo-frame {
     font-weight: normal !important;
   }
   .row.form_element_header {
-    border-top: 1px solid #B94C32;
-    background-color: rgb(239, 202, 75);
+    border-top: 1px solid var(--if-color-accent);
+    background-color: var(--if-color-header-band);
     font-weight: normal !important;
     font-size: 1.3rem !important;
   }
@@ -325,29 +333,29 @@ turbo-frame {
 
 
 .associated_auto_header {
-  border-top: 1px solid #B94C32;
+  border-top: 1px solid var(--if-color-accent);
   .new_button  {
-    background-color: rgb(239, 202, 75);
+    background-color: var(--if-color-header-band);
     font-size: 1.5rem;
-    color: #B94C32;
+    color: var(--if-color-accent);
     padding: 0 0.5rem 0 1rem;
     margin: 0;
   }
   .new_button:hover, .new_button:focus {
-    background-color: rgb(239, 202, 75);
+    background-color: var(--if-color-header-band);
     color: white;
     -webkit-transition-property: color;
     transition-property: color;
   }
   .close_button  {
-    background-color: rgb(239, 202, 75);
+    background-color: var(--if-color-header-band);
     font-size: 1.5rem;
-    color: #B94C32;
+    color: var(--if-color-accent);
     padding: 0 0.5rem 0 1rem;
     margin: 0;
   }
   .close_button:hover, .new_button:focus {
-    background-color: rgb(239, 202, 75);
+    background-color: var(--if-color-header-band);
     color: white;
     -webkit-transition-property: color;
     transition-property: color;
@@ -371,14 +379,14 @@ turbo-frame {
     display: inline-block;
   }
   a:hover {
-    color: #B94C32;
+    color: var(--if-color-accent);
     -webkit-transition-property: color;
     -webkit-transition-duration: 0.3s;
     transition-property: color;
     transition-duration: 0.3s;
   }
   em {
-    color: #B94C32;
+    color: var(--if-color-accent);
     font-weight: bold;
     font-style: normal;
   }
@@ -388,9 +396,9 @@ turbo-frame {
 }
 
 .record_footer {
-  background-color: rgb(239, 202, 75);
+  background-color: var(--if-color-header-band);
   height: 0.2em;
-  border-bottom: 1px solid #B94C32;
+  border-bottom: 1px solid var(--if-color-accent);
   margin-bottom: 1.5em;
 }
 
@@ -444,26 +452,26 @@ turbo-frame {
 
 .flash {
   padding: 0.3em;
-  color: #A3381E;
+  color: var(--if-color-primary);
   font-size: 130%;
   font-weight: bold;
   line-height: 120%;
   background-color: white;
-  border-top: 0.3em solid #fade7a;
+  border-top: 0.3em solid var(--if-color-flash-accent);
 }
 
 .error {
-  color: #ffffff;
+  color: var(--if-color-on-dark);
   font-weight: bold;
-  background-color: #a70f0f;
+  background-color: var(--if-color-error-bg);
   padding: 0.3em;
   margin-bottom: 0.5em;
 }
 .success {
-  color: #ffffff;
+  color: var(--if-color-on-dark);
   font-weight: bold;
   border-bottom: 1px solid #cccccc;
-  background-color: #4f8d0d;
+  background-color: var(--if-color-success-bg);
   padding: 0.3em;
   margin-bottom: 0.5em;
 }

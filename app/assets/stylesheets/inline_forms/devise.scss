@@ -6,13 +6,13 @@
 // `.fixed` variant), so constrain it directly to the F5 1000px row
 // width and center it. Matches the logged-in chrome's banner.
 .contain-to-grid {
-  background-color: $body-background !important;
+  background-color: var(--if-color-body-bg) !important;
   max-width: 62.5rem;
   margin: 0 auto;
 }
 
 #inline_forms_devise_outer_container a {
-  color: #A3381E;
+  color: var(--if-color-primary);
 }
 
 // Foundation 6's default `.top-bar` adds 0.5rem padding and gives every
@@ -24,13 +24,13 @@
   padding: 0;
   min-height: 0;
   height: 45px;
-  background-color: #A3381E;
+  background-color: var(--if-color-primary);
   .top-bar-left,
   .menu,
   .menu li,
   .menu a {
-    background-color: #A3381E;
-    color: #FFFFFF;
+    background-color: var(--if-color-primary);
+    color: var(--if-color-on-dark);
   }
   .menu-text {
     padding: 0 1rem;
@@ -45,15 +45,15 @@
 }
 
 #inline_forms_devise_top_nav_bar a {
-  color: #FFFFFF;
+  color: var(--if-color-on-dark);
 }
 
 #inline_forms_devise_flash_div {
-  border-top: 0.5em solid #fade7a;
+  border-top: 0.5em solid var(--if-color-flash-accent);
   .flash {
     margin-top: 0.2em;
     padding: 0.5em;
-    color: #A3381E;
+    color: var(--if-color-primary);
     font-size: 130%;
     font-weight: bold;
     line-height: 120%;
@@ -66,7 +66,7 @@
   h1 {
     text-align: center;
     margin: 30px 0;
-    color: #A3381E;
+    color: var(--if-color-primary);
   }
 }
 
@@ -92,9 +92,9 @@
     top: 15px;
   }
   #error_explanation {
-    color: #A3381E;
+    color: var(--if-color-primary);
     h2 {
-      color: #A3381E;
+      color: var(--if-color-primary);
       font-size: 120%;
       font-weight: bolder;
     }
@@ -113,7 +113,7 @@
   h1 {
     text-align: center;
     margin: 0 0 0.5em 0;
-    color: #A3381E;
+    color: var(--if-color-primary);
     font-weight: bolder;
   }
 

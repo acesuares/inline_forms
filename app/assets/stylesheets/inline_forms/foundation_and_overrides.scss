@@ -53,6 +53,10 @@ $body-font-family: 'Open Sans', 'Helvetica Neue', Helvetica, Roboto, Arial, sans
 @include foundation-visibility-classes;
 @include foundation-float-classes;
 
+// Theme bridge: palette as CSS custom properties (must come after
+// 'foundation' so it can read $body-background / $anchor-color).
+@import 'theme';
+
 @import '../../../vendor/assets/stylesheets/tippy.css';
 
 .validation-hints-source[hidden] {

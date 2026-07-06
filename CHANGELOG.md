@@ -4,6 +4,21 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [8.1.24] - 2026-07-06
+
+### Added
+
+- **Theme bridge: the admin-chrome palette is now exposed as CSS custom properties** (new `_theme.scss`, emitted into both `inline_forms.css` and `devise.css`). Every hardcoded chrome color in `inline_forms.scss` / `devise.scss` (dark-red `#A3381E`, brick `#B94C32`, gold `#E1C150`, header band `rgb(239,202,75)`, zebra rows `#FBE38E`/`#FBEEC1`, input backgrounds, flash/error/success colors) moved to `var(--if-color-*)` with identical build-time values — the rendered UI is unchanged until a host app overrides a variable (e.g. `:root { --if-color-primary: #2563eb; }` or a `body.theme-dark` block). This is the prerequisite bridging layer for per-user theming (`stuff/user-preferences-and-theming.md`); Foundation's own components still compile from Sass settings.
+- Body background/text and anchor color are bridged too (`--if-color-body-bg`, `--if-color-body-text`, `--if-color-anchor`), sourced from Foundation's `$body-background` / `$body-font-color` / `$anchor-color` at build time.
+
+### Changed
+
+- **Sass module-system status made explicit.** `foundation_icons` now loads via `@use`; `lighten()` calls replaced with `color.adjust` (kills the Dart Sass color-functions deprecation). The remaining `@import`s cannot convert while the stack sits on foundation-rails 6.9, whose Sass is `@import`-only and feeds globals (`$body-background`, `rem-calc`, …) into our overrides — documented in `inline_forms.scss` and `stuff/improvement-plan.md` §1. Remaining deprecation warnings (import/global-builtin/if-function) originate inside foundation-rails itself.
+
+### Lockstep
+
+- validation_hints 8.1.24, inline_forms_installer 8.1.24 (no changes of their own).
+
 ## [8.1.23] - 2026-07-06
 
 ### Changed
