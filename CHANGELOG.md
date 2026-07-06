@@ -4,6 +4,16 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [8.1.30] - 2026-07-06
+
+### Removed
+
+- **App-specific form elements `:question_list` and `:dnsrecords` archived.** `question_list` hardcoded a host `Question` model with `subquestions` (survey app); `dnsrecords` called host `a_records` / `djbdns_line` APIs (DNS-admin app) and was never even in the generator registry (its helper methods were named `dnsrecords_*`). Neither had any example-app or test coverage, and neither can render outside its original host schema. Models still declaring the symbols raise `InlineForms::ArchivedFormElementError` at boot with restore instructions; source lives under `archived/form_elements/{question_list,dns_records}/` with per-element READMEs.
+
+### Lockstep
+
+- validation_hints 8.1.30, inline_forms_installer 8.1.30.
+
 ## [8.1.29] - 2026-07-06
 
 ### Added

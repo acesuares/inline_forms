@@ -68,4 +68,34 @@ class ArchivedFormElementsTest < Minitest::Test
     assert_equal "6.3.0", meta[:removed_in_version]
     assert_nil meta[:archive_path]
   end
+
+  class ModelWithArchivedQuestionList
+    def inline_forms_attribute_list
+      [[:questions, :question_list]]
+    end
+  end
+
+  class ModelWithArchivedDnsrecords
+    def inline_forms_attribute_list
+      [[:records, :dnsrecords]]
+    end
+  end
+
+  def test_raises_when_model_declares_archived_question_list
+    err = assert_raises(InlineForms::ArchivedFormElementError) do
+      InlineForms.validate_no_archived_form_elements_for!(ModelWithArchivedQuestionList)
+    end
+    assert_includes err.message, "question_list"
+    assert_includes err.message, "8.1.30"
+    assert_includes err.message, "archived/form_elements/question_list"
+  end
+
+  def test_raises_when_model_declares_archived_dnsrecords
+    err = assert_raises(InlineForms::ArchivedFormElementError) do
+      InlineForms.validate_no_archived_form_elements_for!(ModelWithArchivedDnsrecords)
+    end
+    assert_includes err.message, "dnsrecords"
+    assert_includes err.message, "8.1.30"
+    assert_includes err.message, "archived/form_elements/dns_records"
+  end
 end

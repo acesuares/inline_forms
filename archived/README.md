@@ -12,6 +12,8 @@ This directory is the **versioned archive** for inline_forms capabilities that a
 | `:tree`, `:move` | **Archived** | **7.7.0** | [`form_elements/tree/`](form_elements/tree/) — host `#children`, `#hash_tree_to_collection`, `#add_child` |
 | `:absence_list` | **Removed** (source not in repo) | **6.3.0** | See [CHANGELOG](../CHANGELOG.md#630---2026-05-03); vendor from git history or app copy |
 | `:ckeditor`, `:text_area_without_ckeditor` | **Archived** | **8.1.21** | [`form_elements/ckeditor/`](form_elements/ckeditor/) — use `:rich_text` or `:plain_text` / `:plain_text_area` |
+| `:question_list` | **Archived** | **8.1.30** | [`form_elements/question_list/`](form_elements/question_list/) — hardcoded host `Question` model |
+| `:dnsrecords` | **Archived** | **8.1.30** | [`form_elements/dns_records/`](form_elements/dns_records/) — host `a_records`/`djbdns_line` APIs |
 
 Programmatic registry: `InlineForms::ARCHIVED_FORM_ELEMENTS` in `lib/inline_forms.rb` (boot-time check if a model still declares an archived symbol).
 

@@ -55,6 +55,18 @@ module InlineForms
       archive_path: "archived/form_elements/ckeditor",
       summary: "Legacy plain-text alias; use :plain_text or :plain_text_area instead.",
     },
+    question_list: {
+      archived_in_version: "8.1.30",
+      archive_path: "archived/form_elements/question_list",
+      summary: "Survey-app checklist hardcoding a host Question model with subquestions.",
+    },
+    # The helper methods were named dnsrecords_* (no underscore), so the
+    # attribute-list symbol in host apps was :dnsrecords.
+    dnsrecords: {
+      archived_in_version: "8.1.30",
+      archive_path: "archived/form_elements/dns_records",
+      summary: "DNS-admin display of djbdns A-record lines via host a_records/djbdns_line APIs.",
+    },
   }.freeze
 
   def self.validate_no_archived_form_elements_for!(klass)

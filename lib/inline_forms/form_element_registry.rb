@@ -25,7 +25,6 @@ module InlineForms
       :multi_image_field => :string,
       :plain_text => :text,
       :plain_text_area => :text,
-      :question_list => :no_migration,
       :radio_button => :integer,
       :rich_text => :no_migration,
       :scale_with_integers => :integer,
