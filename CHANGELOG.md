@@ -4,6 +4,26 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [8.1.27] - 2026-07-06
+
+### Added
+
+- **In-repo integration test harness (`test/dummy` + `test/integration/`).** A minimal host app (in-memory SQLite, will_paginate + paper_trail + turbo-rails from the dev bundle, no Devise/CanCanCan/Sprockets/ActionText) boots the engine so `InlineFormsController`, the Turbo-frame views, and the form-element helpers can be exercised in ~1.5 s via `bundle exec rake test` — previously every such regression needed the full release gate (build gems → `inline_forms create MyApp --example` → app test suite, minutes). 19 new tests cover list/search/show/edit/update, the 8.1.19 failed-save behavior, destroy + undo, 8.1.13 destroy-version targeting, 8.1.17 revert idempotency, the versions panel, and every 8.1.25/8.1.26 native input. The example-app gate remains the release check.
+- **GitHub Actions workflow** (`.github/workflows/ci.yml`): engine tests + `bundler-audit` (checks out the `validation_hints` sibling for the path dependency).
+
+### Fixed
+
+Latent engine bugs on hosts without the full Devise+CanCanCan stack, found by the new harness (generated apps always bundle that stack, so they never hit these):
+
+- `_show.html.erb` called `can?(:list_versions, …)` and `link_to_versions_list` called `can?` without the `cancan_disabled?` guard every other call site uses — `NoMethodError` when CanCanCan is absent.
+- `destroy` and `revert` called `current_user.role?(:superadmin)` unguarded — `NoMethodError` on `nil.role?` for hosts without Devise/roles (or a signed-out replay). Both now use `destroy_permitted?`: superadmin-only when the host's user responds to `role?` (generated-app behavior unchanged), no extra gate otherwise (CanCan's `load_and_authorize_resource` still applies where enabled).
+- `slider_with_values` show/edit crashed with `NoMethodError` on `nil[1]` when the stored value has no entry in the values hash (e.g. `1..5` scale with the column still `nil`/`0` — exactly the state a fresh row is in); it now falls back to the bare number.
+- The engine's asset-precompile initializer assumed a Sprockets-style `config.assets`; it now skips hosts without one.
+
+### Lockstep
+
+- validation_hints 8.1.27, inline_forms_installer 8.1.27.
+
 ## [8.1.26] - 2026-07-06
 
 ### Changed

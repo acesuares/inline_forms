@@ -13,7 +13,11 @@ module InlineForms
     def slider_with_values_show(object, attribute)
       values = attribute_values(object, attribute)
       value = object.send(attribute).to_i         # should be an int
-      display_value = values.assoc(value)[1]      # values should be [ [ 0, value ], [ 3, value2 ] .... ] and we lookup the key, not the place in the array!
+      # values should be [ [ 0, value ], [ 3, value2 ] .... ] and we lookup the
+      # key, not the place in the array! A value with no entry (e.g. 0 when the
+      # values hash starts at 1) falls back to the bare number instead of
+      # crashing (pre-8.1.26 code did values.assoc(value)[1] unguarded).
+      display_value = (pair = values.assoc(value)) ? pair[1] : value.to_s
       css_id = "#{object.class.to_s.underscore}_#{object.id}_#{attribute}"
       if value == 0
         out = "?"   # we use this as the 'unknown' value. So in the data, 0 should always be the unknown value. This gives problems with sliders where the real value is 0.
@@ -38,7 +42,7 @@ module InlineForms
       values = attribute_values(object, attribute)
       value = object.send(attribute).to_i         # should be an int, will be 0 if nil
       css_id = "#{object.class.to_s.underscore}_#{object.id}_#{attribute}"
-      display_value = values.assoc(value)[1]      # values should be [ [ 0, value ], [ 3, value2 ] .... ] and we lookup the key, not the place in the array!
+      display_value = (pair = values.assoc(value)) ? pair[1] : value.to_s
       labels = values.collect { |x| x[1] }
       out = "".html_safe
       out << range_field_tag("_#{object.class.to_s.underscore}[#{attribute}]", value,

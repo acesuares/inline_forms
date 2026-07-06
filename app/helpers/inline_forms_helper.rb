@@ -181,7 +181,7 @@ module InlineFormsHelper
 
   # link to versions list
   def link_to_versions_list(path_to_versions_list, object, update_span, html_class = "button new_button", turbo_row: true)
-    if can? :list_versions, object
+    if cancan_disabled? || can?(:list_versions, object)
       if defined?(PaperTrail) && object.respond_to?(:versions)
         path = send(path_to_versions_list, object, update: update_span)
         opts = { class: html_class, title: t("inline_forms.view.list_versions") }

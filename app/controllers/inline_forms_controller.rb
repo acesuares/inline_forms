@@ -262,7 +262,7 @@ class InlineFormsController < ApplicationController
   def destroy
     @update_span = params[:update]
     @object = referenced_object
-    if current_user.role? :superadmin
+    if destroy_permitted?
       @object.destroy
       # Capture after destroy: `.last` before destroy was the latest *update*
       # (e.g. a plain_text_area edit), so undo reified the pre-edit state.
@@ -291,7 +291,9 @@ class InlineFormsController < ApplicationController
     @version = PaperTrail::Version.find(params[:id])
     @parent = revert_authorization_subject(@version)
     authorize!(:revert, @parent || @Klass) if cancan_enabled?
-    return head :forbidden unless current_user.role? :superadmin
+    # Same gate as :destroy (see destroy_permitted?): superadmin when the host
+    # has the Devise+roles system, otherwise no extra gate beyond CanCan.
+    return head :forbidden unless destroy_permitted?
     return head :not_found unless @parent
 
     @object = @version.reify(
@@ -342,6 +344,19 @@ class InlineFormsController < ApplicationController
   end
 
   private
+
+  # Hard-destroy gate. Generated apps restrict destroy to a Devise user with
+  # `role?(:superadmin)` (Role model + roles HABTM). Hosts without that role
+  # system (e.g. the engine's test/dummy harness, or apps using a different
+  # auth stack) have no gatekeeper here beyond CanCan's
+  # `load_and_authorize_resource`; pre-8.1.27 this crashed with
+  # `NoMethodError` on `nil.role?` instead of deciding either way.
+  def destroy_permitted?
+    user = respond_to?(:current_user, true) ? current_user : nil
+    return true unless user.respond_to?(:role?)
+
+    user.role?(:superadmin)
+  end
 
   # Persist a reified *primary* record (Apartment, Photo, ...) for +revert+.
   #

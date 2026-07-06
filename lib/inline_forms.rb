@@ -218,6 +218,10 @@ module InlineForms
     end
 
     initializer "inline_forms.assets.precompile" do |app|
+      # Skip when the host has no Sprockets-style pipeline (e.g. the test/dummy
+      # harness); generated apps always bundle sprockets-rails.
+      next unless app.config.respond_to?(:assets)
+
       app.config.assets.precompile += %w(
         inline_forms/inline_forms.css
         inline_forms/devise.css
