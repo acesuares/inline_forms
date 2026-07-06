@@ -65,3 +65,70 @@ body {
 a {
   color: var(--if-color-anchor);
 }
+
+// ---------------------------------------------------------------------------
+// Preset themes (Pattern 1, stuff/user-preferences-and-theming.md).
+// The engine layouts put `theme-<name>` on <body> via
+// inline_forms_body_theme_class; a host user model opts in by responding to
+// #inline_forms_theme (installer-generated user models store an integer
+// `theme` column and map it). `theme-default` is the :root palette above.
+// ---------------------------------------------------------------------------
+
+body.theme-dark {
+  --if-color-primary: #7d2a15;
+  --if-color-accent: #d0603f;
+  --if-color-secondary: #6b5a22;
+  --if-color-header-band: #7a6829;
+  --if-color-row-odd: #2e2a20;
+  --if-color-row-even: #262319;
+  --if-color-input-bg: #2c2820;
+  --if-color-input-bg-hover: #332e25;
+  --if-color-input-bg-focus: #3a352b;
+  --if-color-flash-accent: #7a6829;
+  --if-color-body-bg: #1c1a16;
+  --if-color-body-text: #e8e4da;
+  --if-color-anchor: #e0a179;
+
+  // Foundation's body/input styles are compiled from Sass (light palette);
+  // patch the pieces the chrome uses that are not variable-driven.
+  input, select, textarea, trix-editor {
+    background-color: var(--if-color-input-bg);
+    color: var(--if-color-body-text);
+  }
+}
+
+body.theme-sepia {
+  --if-color-primary: #8a4a2a;
+  --if-color-accent: #a35a32;
+  --if-color-secondary: #d4b45a;
+  --if-color-header-band: #dcc078;
+  --if-color-row-odd: #ece0c0;
+  --if-color-row-even: #f2ead2;
+  --if-color-input-bg: #fdf6e3;
+  --if-color-input-bg-hover: #fffaf0;
+  --if-color-input-bg-focus: #fffdf7;
+  --if-color-flash-accent: #dcc078;
+  --if-color-body-bg: #f4ecd8;
+  --if-color-body-text: #5b4636;
+  --if-color-anchor: #8b5e3c;
+}
+
+body.theme-high-contrast {
+  --if-color-primary: #000000;
+  --if-color-accent: #b30000;
+  --if-color-secondary: #ffd500;
+  --if-color-header-band: #ffe066;
+  --if-color-row-odd: #ffffff;
+  --if-color-row-even: #ededed;
+  --if-color-input-bg: #ffffff;
+  --if-color-input-bg-hover: #f5f5f5;
+  --if-color-input-bg-focus: #ffffff;
+  --if-color-flash-accent: #ffd500;
+  --if-color-body-bg: #ffffff;
+  --if-color-body-text: #000000;
+  --if-color-anchor: #0000d6;
+
+  a, .top-level a {
+    text-decoration: underline;
+  }
+}

@@ -11,7 +11,7 @@
     <%= csrf_meta_tags %>
   </head>
 
-  <body>
+  <body class="<%= inline_forms_body_theme_class %>">
     <%= render "inline_forms/header" %>
     <%# Read string keys (FlashHash stores strings); avoid `notice`/`alert` helpers %>
     <%# so we do not depend on add_flash_types wiring in every layout context. %>

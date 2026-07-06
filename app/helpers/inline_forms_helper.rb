@@ -6,6 +6,19 @@ module InlineFormsHelper
     InlineForms::VERSION
   end
 
+  # Pattern 1 preset theming (8.1.29; stuff/user-preferences-and-theming.md).
+  # Emits the <body> theme class. The host's user model opts in by responding
+  # to #inline_forms_theme with one of the preset names shipped in _theme.scss
+  # (default | dark | sepia | high-contrast); installer-generated user models
+  # store an integer `theme` column and map it. Anonymous users, or hosts
+  # without the method, get the default palette.
+  def inline_forms_body_theme_class
+    user = respond_to?(:current_user) ? current_user : nil
+    theme = user.inline_forms_theme.to_s if user.respond_to?(:inline_forms_theme)
+    theme = "default" if theme.blank? || !theme.match?(/\A[a-z][a-z-]*\z/)
+    "theme-#{theme}"
+  end
+
   # Returns versions for `object`, merged with versions of any associated
   # `ActionText::RichText` records (Rails `has_rich_text :foo` declarations).
   #

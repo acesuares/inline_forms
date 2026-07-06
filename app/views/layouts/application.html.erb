@@ -12,7 +12,7 @@
     <%= csrf_meta_tags %>
   </head>
 
-  <body>
+  <body class="<%= inline_forms_body_theme_class %>">
     <%= yield %>
     <%= javascript_include_tag "application" %>
     <%# Turbo (Hotwire) is loaded as an ES module so it does not collide with %>

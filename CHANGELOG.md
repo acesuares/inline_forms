@@ -4,6 +4,20 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [8.1.29] - 2026-07-06
+
+### Added
+
+- **Per-user preset themes (Pattern 1 of `stuff/user-preferences-and-theming.md`), built on the 8.1.24 CSS-variable bridge.**
+  - Engine `_theme.scss` ships three preset palettes — `theme-dark`, `theme-sepia`, `theme-high-contrast` — as `body.<class>` blocks overriding the `--if-color-*` custom properties (`theme-default` is the `:root` palette). Dark also patches input/textarea/trix backgrounds (Foundation compiles those from the light Sass palette); high-contrast underlines links.
+  - Engine layouts emit `<body class="theme-<name>">` via the new `inline_forms_body_theme_class` helper. The host opts in by having `current_user` respond to `#inline_forms_theme` (one of `default|dark|sepia|high-contrast`); anonymous users and non-opted hosts get `theme-default`, and the class name is validated against a safe pattern before interpolation.
+  - Installer: generated user models get an integer `theme` column (default 0), an `INLINE_FORMS_THEMES` map, `#inline_forms_theme`, and a `[:theme, :dropdown_with_values, …]` row on the user panel — so picking a theme is ordinary inline editing, stored on the user record (no localStorage; per the design doc's "Rejected" list).
+  - Example-app regression tests (`example_app_user_theme_test.rb`): default body class, dark/high-contrast switching, and the theme dropdown frame on the user panel.
+
+### Lockstep
+
+- validation_hints 8.1.29, inline_forms_installer 8.1.29.
+
 ## [8.1.28] - 2026-07-06
 
 ### Added

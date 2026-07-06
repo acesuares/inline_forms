@@ -352,6 +352,9 @@ class #{user_cfg.devise_migration_class} < ActiveRecord::Migration[8.1]
 
       t.string :name
       t.integer :locale_id
+      # Preset UI theme (inline_forms 8.1.29+): 0 default, 1 dark, 2 sepia,
+      # 3 high-contrast — see #{user_cfg.class_name}::INLINE_FORMS_THEMES.
+      t.integer :theme, default: 0, null: false
 
       t.timestamps
     end
@@ -414,12 +417,23 @@ create_file user_cfg.model_path, <<-USER_MODEL.strip_heredoc
       return !!self.roles.find_by_name(role)
     end
 
+    # Preset UI themes (inline_forms Pattern 1 theming). The integer `theme`
+    # column maps to a body class `theme-<name>`; the palettes ship in the
+    # inline_forms engine (_theme.scss). The engine layout calls
+    # #inline_forms_theme on current_user when the method exists.
+    INLINE_FORMS_THEMES = { 0 => 'default', 1 => 'dark', 2 => 'sepia', 3 => 'high-contrast' }.freeze
+
+    def inline_forms_theme
+      INLINE_FORMS_THEMES.fetch(theme.to_i, 'default')
+    end
+
     def inline_forms_attribute_list
       @inline_forms_attribute_list ||= [
         [ :header_user_login,         :header ],
         [ :name,                      :text_field ],
         [ :email,                     :text_field ],
         [ :locale,                    :dropdown ],
+        [ :theme,                     :dropdown_with_values, { 0 => 'default', 1 => 'dark', 2 => 'sepia', 3 => 'high contrast' } ],
         [ :password,                  :devise_password_field ],
         [ :header_user_roles,         :header ],
         [ :roles,                     :check_list ],
