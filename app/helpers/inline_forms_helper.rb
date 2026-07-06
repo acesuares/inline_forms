@@ -333,7 +333,10 @@ module InlineFormsHelper
 
     attributes = @inline_forms_attribute_list || object.inline_forms_attribute_list # if we do this as a form_element, @inline.. is nil!!!
     values = attributes.assoc(attribute.to_sym)[2]
-    raise t("fatal.no_values_defined_in", @Klass, attribute) if values.nil?
+    # (was `raise t("fatal.no_values_defined_in", @Klass, attribute)` — Rails'
+    # translate takes a key plus keyword interpolations, so the raise itself
+    # crashed with ArgumentError instead of reporting the real problem.)
+    raise "inline_forms: no values defined in #{object.class} for #{attribute} (add a values hash to the inline_forms_attribute_list row)" if values.nil?
     if values.is_a?(Hash)
       temp = Array.new
       values.to_a.each do |k,v|

@@ -4,6 +4,23 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [8.1.28] - 2026-07-06
+
+### Added
+
+- **`multi_image_field` joins the FormElementShowcase** as `gallery` (deferred item from the original showcase plan): `mount_uploaders :gallery, ImageUploader` with the filename array JSON-serialized into a `text` column, a seeded one-image gallery on "Full demo", a `Gallery (multiple images)` label, and a new `example_app_showcase_gallery_test.rb` (array show render, `gallery[]` multiple file input, empty-state plus link).
+- Dummy-harness render coverage for `simple_file_field` and `pdf_link` (`test/integration/legacy_elements_test.rb`) — first tests these two legacy elements have ever had.
+
+### Fixed
+
+- **`multi_image_field_show` crashed the moment the column actually held images.** A `mount_uploaders` (plural) reader returns an *array* of uploaders; the old code called `.url` on that array (`NoMethodError`). It now renders every image in the array (using the `palm` thumb version when defined) and still accepts a bare single uploader.
+- **`multi_image_field_edit` lost all but the last chosen file.** The input was named `gallery` (no `[]`), so Rack kept only the final part of a multiple-file submission; it now submits `gallery[]` and the update assigns the full array (ignoring blank submissions instead of clearing).
+- **`attribute_values`' error path raised the wrong error.** `raise t("fatal.no_values_defined_in", @Klass, attribute)` passed positional args to Rails' `translate` (key + kwargs API) and died with `ArgumentError (given 3, expected 1)` instead of the intended message. Now raises a plain descriptive RuntimeError naming the model and attribute.
+
+### Lockstep
+
+- validation_hints 8.1.28, inline_forms_installer 8.1.28.
+
 ## [8.1.27] - 2026-07-06
 
 ### Added

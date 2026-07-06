@@ -26,6 +26,7 @@ ActiveRecord::Schema.define do
     t.integer :kind_id
     t.string  :kind_other
     t.integer :rating
+    t.string  :manual
     t.timestamps
   end
 

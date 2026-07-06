@@ -1118,7 +1118,7 @@ if ENV['install_example'] == 'true'
   # ---------------------------------------------------------------------
   say "- Generating FormElementShowcase (one resource per kept Tier 1 form_element)..."
   sleep 1
-  run %q{bundle exec rails g inline_forms FormElementShowcase title:string body_plain_area:plain_text_area count:integer_field price:decimal_field amount:money_field latitude:decimal_field{9,6} longitude:decimal_field{10,6} meeting_date:date_select meeting_time:time_select birth_month:month_select start_month:month_year_picker is_active:check_box gender:radio_button rating_int:dropdown_with_integers priority:dropdown_with_values priority2:dropdown_with_values stars:dropdown_with_values_with_stars scale_int:scale_with_integers scale_val:scale_with_values attachment:file_field jingle:audio_field cover:image_field description:rich_text locales:has_and_belongs_to_many _enabled:yes _list_order:title _list_search:title _presentation:'#{title}'}
+  run %q{bundle exec rails g inline_forms FormElementShowcase title:string body_plain_area:plain_text_area count:integer_field price:decimal_field amount:money_field latitude:decimal_field{9,6} longitude:decimal_field{10,6} meeting_date:date_select meeting_time:time_select birth_month:month_select start_month:month_year_picker is_active:check_box gender:radio_button rating_int:dropdown_with_integers priority:dropdown_with_values priority2:dropdown_with_values stars:dropdown_with_values_with_stars scale_int:scale_with_integers scale_val:scale_with_values attachment:file_field jingle:audio_field cover:image_field gallery:multi_image_field description:rich_text locales:has_and_belongs_to_many _enabled:yes _list_order:title _list_search:title _presentation:'#{title}'}
 
   say "- Generating Attachment + Jingle uploaders (Cover reuses ImageUploader)..."
   run "bundle exec rails generate uploader Attachment"
@@ -1149,6 +1149,9 @@ if ENV['install_example'] == 'true'
   showcase_migration = Dir.glob("db/migrate/*_inline_forms_create_form_element_showcases.rb").first
   if showcase_migration
     gsub_file showcase_migration, /t\.integer :amount\b/, "t.integer :amount_cents, default: 0, null: false"
+    # multi_image_field stores a JSON array of filenames (mount_uploaders);
+    # the registry maps it to :string, widen to :text for the serialized list.
+    gsub_file showcase_migration, /t\.string :gallery\b/, "t.text :gallery"
   end
 
   create_file "config/initializers/money.rb", <<-MONEY_INIT.strip_heredoc
@@ -1184,7 +1187,9 @@ if ENV['install_example'] == 'true'
                    "  validates :price, numericality: true, allow_blank: true\n" \
                    "  validates :latitude,  numericality: { greater_than_or_equal_to:  -90, less_than_or_equal_to:  90 }, allow_blank: true\n" \
                    "  validates :longitude, numericality: { greater_than_or_equal_to: -180, less_than_or_equal_to: 180 }, allow_blank: true\n" \
-                   "  mount_uploader :attachment, AttachmentUploader\n  monetize :amount_cents\n\n  def locales_display\n    locales\n  end\n",
+                   "  mount_uploader :attachment, AttachmentUploader\n" \
+                   "  serialize :gallery, coder: JSON\n  mount_uploaders :gallery, ImageUploader\n" \
+                   "  monetize :amount_cents\n\n  def locales_display\n    locales\n  end\n",
                    after: "class FormElementShowcase < ApplicationRecord\n"
 
   # Value-bearing rows for every form_element that needs a values hash
@@ -1271,6 +1276,7 @@ if ENV['install_example'] == 'true'
           attachment: Attachment
           jingle: Jingle
           cover: Cover
+          gallery: Gallery (multiple images)
           description: Description
           locales: Locales (editable)
           locales_display: Locales (read-only)
@@ -1380,6 +1386,13 @@ if ENV['install_example'] == 'true'
           next unless path.file?
           next if full.public_send(attr).present?
           File.open(path, "rb") { |io| full.public_send("\#{attr}=", io) }
+        end
+
+        # multi_image_field demo: an *array* assignment through the plural
+        # mount_uploaders. One file is enough to exercise the array path.
+        gallery_src = seed_uploads.join("sample_cover.png")
+        if full.respond_to?(:gallery) && gallery_src.file? && full.gallery.blank?
+          File.open(gallery_src, "rb") { |io| full.gallery = [io] }
         end
         full.save! if full.changed?
 
