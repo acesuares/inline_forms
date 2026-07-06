@@ -45,6 +45,15 @@ jobs:
             inline_forms/inline_forms-*.gem \
             inline_forms/inline_forms_installer-*.gem
 
+      # The installer git-inits the generated app and makes an initial commit
+      # (installer_core.rb: `git add .` + `git commit`); a bare container has
+      # no git identity and the commit — and with it the whole create — fails
+      # ("unable to auto-detect email address", seen in run 3).
+      - name: Git identity for the installer's initial commit
+        run: |
+          git config --global user.email "forgejo-ci@dev02.invalid"
+          git config --global user.name "Forgejo CI"
+
       # The installer's example gate runs `bundle exec rails test` itself and
       # aborts (non-zero) on any failure — this step IS the release gate.
       # HOME keeps Rails/Bundler caches inside the workspace container.
