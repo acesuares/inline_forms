@@ -120,7 +120,9 @@ else
   gem "inline_forms", "~> 8"
 end
 gem 'jquery-rails'
-gem 'jquery-timepicker-rails'
+# jquery-timepicker-rails was dropped in 8.1.25: time_select now renders a
+# native <input type="time"> (date_select/month_year_picker likewise use
+# native date/month inputs).
 # jQuery UI JavaScript (`//= require jquery.ui.all` in inline_forms.js). SCSS + PNGs
 # are vendored in the inline_forms engine (Dart Sass cannot evaluate sass-rails
 # `image-path()`). Pin matches former jquery-ui-sass-rails 4.0.3.x stack.

@@ -12,7 +12,8 @@ class ExampleAppShowcaseDateTimeFieldsTest < ExampleAppIntegrationTestCase
     @showcase = FormElementShowcase.find_or_create_by!(title: "Date/time demo")
   end
 
-  test "date_select meeting_date renders datepicker on edit" do
+  test "date_select meeting_date renders native date input on edit" do
+    @showcase.update!(meeting_date: Date.new(2026, 5, 17))
     frame = "form_element_showcase_#{@showcase.id}_meeting_date"
     headers = { "Turbo-Frame" => frame, "Accept" => "text/html" }
 
@@ -25,11 +26,13 @@ class ExampleAppShowcaseDateTimeFieldsTest < ExampleAppIntegrationTestCase
 
     assert_response :success
     assert_includes @response.body, %(<turbo-frame id="#{frame}">)
-    assert_includes @response.body, %(class="datepicker")
+    assert_includes @response.body, %(type="date")
     assert_includes @response.body, %(name="meeting_date")
+    assert_includes @response.body, %(value="2026-05-17"), "value must be ISO 8601"
+    refute_includes @response.body, "<script", "no inline picker init"
   end
 
-  test "time_select meeting_time renders timepicker on edit" do
+  test "time_select meeting_time renders native time input on edit" do
     @showcase.update!(meeting_time: Time.utc(2000, 1, 1, 9, 15))
     frame = "form_element_showcase_#{@showcase.id}_meeting_time"
     headers = { "Turbo-Frame" => frame, "Accept" => "text/html" }
@@ -43,8 +46,42 @@ class ExampleAppShowcaseDateTimeFieldsTest < ExampleAppIntegrationTestCase
 
     assert_response :success
     assert_includes @response.body, %(<turbo-frame id="#{frame}">)
-    assert_includes @response.body, %(class="timepicker")
+    assert_includes @response.body, %(type="time")
     assert_includes @response.body, %(name="meeting_time")
+    assert_includes @response.body, %(value="09:15"), "value must be 24h HH:MM"
+  end
+
+  test "time_select round-trips a native HH:MM submission" do
+    @showcase.update!(meeting_time: Time.utc(2000, 1, 1, 9, 15))
+    frame = "form_element_showcase_#{@showcase.id}_meeting_time"
+
+    put form_element_showcase_path(
+      @showcase,
+      attribute: "meeting_time",
+      form_element: "time_select",
+      update: frame
+    ), params: { meeting_time: "14:30" },
+       headers: { "Turbo-Frame" => frame, "Accept" => "text/html" }
+
+    assert_response :success
+    @showcase.reload
+    assert_equal 14, @showcase.meeting_time.hour
+    assert_equal 30, @showcase.meeting_time.min
+  end
+
+  test "date_select round-trips a native ISO submission" do
+    frame = "form_element_showcase_#{@showcase.id}_meeting_date"
+
+    put form_element_showcase_path(
+      @showcase,
+      attribute: "meeting_date",
+      form_element: "date_select",
+      update: frame
+    ), params: { meeting_date: "2027-01-09" },
+       headers: { "Turbo-Frame" => frame, "Accept" => "text/html" }
+
+    assert_response :success
+    assert_equal Date.new(2027, 1, 9), @showcase.reload.meeting_date
   end
 
   test "month_select birth_month renders 12 options on edit" do
@@ -64,7 +101,7 @@ class ExampleAppShowcaseDateTimeFieldsTest < ExampleAppIntegrationTestCase
     assert_match(/<select[^>]+name="date\[birth_month\]"/, @response.body)
   end
 
-  test "month_year_picker start_month renders datepicker class hook" do
+  test "month_year_picker start_month renders native month input on edit" do
     @showcase.update!(start_month: Date.new(2026, 5, 1))
     frame = "form_element_showcase_#{@showcase.id}_start_month"
     headers = { "Turbo-Frame" => frame, "Accept" => "text/html" }
@@ -78,7 +115,33 @@ class ExampleAppShowcaseDateTimeFieldsTest < ExampleAppIntegrationTestCase
 
     assert_response :success
     assert_includes @response.body, %(<turbo-frame id="#{frame}">)
-    assert_includes @response.body, %(datepicker-month-year)
+    assert_includes @response.body, %(type="month")
     assert_includes @response.body, %(name="start_month")
+    assert_includes @response.body, %(value="2026-05"), "value must be ISO YYYY-MM"
+  end
+
+  test "month_year_picker round-trips native YYYY-MM and legacy 'Month YYYY' submissions" do
+    frame = "form_element_showcase_#{@showcase.id}_start_month"
+    headers = { "Turbo-Frame" => frame, "Accept" => "text/html" }
+
+    # Native <input type="month"> value.
+    put form_element_showcase_path(
+      @showcase,
+      attribute: "start_month",
+      form_element: "month_year_picker",
+      update: frame
+    ), params: { start_month: "2026-09" }, headers: headers
+    assert_response :success
+    assert_equal Date.new(2026, 9, 1), @showcase.reload.start_month
+
+    # Legacy pre-8.1.25 display format still parses via the fallback.
+    put form_element_showcase_path(
+      @showcase,
+      attribute: "start_month",
+      form_element: "month_year_picker",
+      update: frame
+    ), params: { start_month: "November 2027" }, headers: headers
+    assert_response :success
+    assert_equal Date.new(2027, 11, 1), @showcase.reload.start_month
   end
 end

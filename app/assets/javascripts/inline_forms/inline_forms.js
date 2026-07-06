@@ -1,6 +1,5 @@
 //= require jquery
 //= require jquery.ui.all
-//= require jquery.timepicker.js
 //= require foundation
 //= require autocomplete-rails
 
@@ -13,13 +12,10 @@
 // (and `application.html.erb`) as `<script type="module">`. Inline flows use
 // `<turbo-frame>` + HTML responses; jquery-ujs / remotipart were removed in 7.8.0.
 
+// Date/time/month inputs are native (<input type="date|time|month">) since
+// 8.1.25 — no jQuery UI datepicker/timepicker init. jQuery UI remains in the
+// bundle only for the autocomplete widget (dropdown_with_other).
 $(function(){
-  $.datepicker.setDefaults({
-    changeMonth : true,
-    changeYear : true,
-    yearRange: '-100:+100',
-    dateFormat: 'dd-mm-yy'
-  });
   $(document).foundation();
   initInlineFormsWidgets(document);
 });
@@ -28,42 +24,13 @@ document.addEventListener("turbo:load", function() {
   initInlineFormsWidgets(document);
 });
 
-// jQuery UI date/time pickers: one init path for first paint and turbo:frame-load
-// (form element helpers emit class hooks only — no inline <script> tags).
+// Widget init: one path for first paint, turbo:load and turbo:frame-load.
+// Form element helpers emit class hooks only — no inline <script> tags.
+// Currently only the validation-hint tooltips need JS; date/time/month
+// pickers are native inputs, and Trix 2's <trix-editor> is a custom element
+// the browser upgrades automatically after Turbo frame swaps.
 function initInlineFormsWidgets(root) {
-  var $root = root instanceof jQuery ? root : $(root);
-
   initValidationHintTooltips(root);
-
-  $root.find("input.datepicker-month-year").each(function() {
-    var $el = $(this);
-    if ($el.hasClass("hasDatepicker")) { return; }
-    $el.datepicker({
-      changeMonth: true,
-      changeYear: true,
-      showButtonPanel: true,
-      dateFormat: "MM yy",
-      onClose: function() {
-        var month = $("#ui-datepicker-div .ui-datepicker-month :selected").val();
-        var year = $("#ui-datepicker-div .ui-datepicker-year :selected").val();
-        $(this).datepicker("setDate", new Date(year, month, 1));
-      }
-    });
-  });
-
-  $root.find("input.datepicker").not(".datepicker-month-year").each(function() {
-    var $el = $(this);
-    if (!$el.hasClass("hasDatepicker")) { $el.datepicker(); }
-  });
-
-  $root.find("input.timepicker").each(function() {
-    var $el = $(this);
-    if (!$el.data("timepicker")) { $el.timepicker(); }
-  });
-
-  // Trix 2: <trix-editor> is a custom element; the browser upgrades it
-  // automatically when a Turbo frame swap inserts it, so no manual re-init
-  // (the Trix 1-era `new Trix.Editor(el)` fallback is not valid Trix 2 API).
 }
 
 // Validation hint tooltips: HTML lists from hidden source divs, rendered via Tippy.js
@@ -106,7 +73,7 @@ $(document).ready(function() {
   });
 });
 
-// Re-bind jQuery UI widgets and Trix after Turbo Frame swaps (Step 3).
+// Re-bind widgets (tooltips) after Turbo Frame swaps.
 document.addEventListener("turbo:frame-load", function(event) {
   var root = event.target;
   if (!root || !root.querySelectorAll) { return; }

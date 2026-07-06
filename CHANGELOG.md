@@ -4,6 +4,26 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [8.1.25] - 2026-07-06
+
+### Changed
+
+- **Date/time/month pickers are native HTML inputs; jQuery UI datepicker and the jquery.timepicker plugin are gone.**
+  - `date_select` edit renders `<input type="date">` (was `text_field_tag class="datepicker"` + jQuery UI datepicker). The browser shows a locale-formatted picker with month/year dropdowns built in; the wire format is ISO 8601 (`YYYY-MM-DD`), which Active Record casts directly — sturdier than the old `dd-mm-yy` text parsing.
+  - `time_select` edit renders `<input type="time">` (was `class="timepicker"` + jquery.timepicker); submits 24h `HH:MM`. Value now pre-fills as `09:15` instead of `" 9:15am"`; the show format (`%l:%M%P`) is unchanged.
+  - `month_year_picker` edit renders `<input type="month">` (was the jQuery UI `MM yy` datepicker hack with the onClose month/year scrape); submits `YYYY-MM`. `month_year_picker_update` parses `YYYY-MM` via `Date.strptime` (Ruby's `Date.parse` raises on it) and still accepts the legacy `"September 2026"` display format as a fallback.
+  - Edit-input CSS classes renamed to match the form element names (`date_select`, `time_select`, `month_year_picker`); the old `datepicker`/`timepicker`/`datepicker-month-year` hooks are gone so host-app JS that still binds jQuery pickers to them will not double-bind against the native inputs.
+  - `initInlineFormsWidgets` now wires only validation-hint tooltips; `$.datepicker.setDefaults` and all picker init removed from `inline_forms.js`. `jquery.ui.all` stays in the bundle solely for the autocomplete widget (`dropdown_with_other`) and `slider_with_values`.
+  - Installer: **`jquery-timepicker-rails` removed** from generated Gemfiles.
+
+### Added
+
+- Example-app regression tests: native `type="date"`/`type="time"`/`type="month"` edits with ISO value prefill, plus round-trips for a native `HH:MM` time submission, a native `YYYY-MM` month submission, the legacy `"November 2027"` month fallback, and an ISO date submission.
+
+### Lockstep
+
+- validation_hints 8.1.25, inline_forms_installer 8.1.25.
+
 ## [8.1.24] - 2026-07-06
 
 ### Added

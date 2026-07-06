@@ -2,7 +2,7 @@
 
 require_relative "../example_app/example_integration_test_case"
 
-# Example app includes opening_date:date on Apartment (jQuery UI datepicker).
+# Example app includes opening_date:date on Apartment (native date input since 8.1.25).
 class ExampleAppApartmentOpeningDateTest < ExampleAppIntegrationTestCase
   setup do
     @apartment = Apartment.find_or_create_by!(name: "Datepicker Apt") do |a|
@@ -24,7 +24,7 @@ class ExampleAppApartmentOpeningDateTest < ExampleAppIntegrationTestCase
     assert_includes @response.body, "15-03-2019"
   end
 
-  test "inline edit opening_date uses datepicker class hook" do
+  test "inline edit opening_date renders a native date input" do
     get edit_apartment_path(
       @apartment,
       attribute: "opening_date",
@@ -33,17 +33,18 @@ class ExampleAppApartmentOpeningDateTest < ExampleAppIntegrationTestCase
     ), headers: @turbo_headers
 
     assert_response :success
-    assert_includes @response.body, %(class="datepicker")
+    assert_includes @response.body, %(type="date")
     assert_includes @response.body, %(name="opening_date")
+    assert_includes @response.body, %(value="2019-03-15"), "value must be ISO 8601"
     refute_includes @response.body, "<script",
-      "datepicker init is centralized in inline_forms.js"
+      "native inputs need no per-field init script"
   end
 
-  test "new apartment form includes datepicker for opening_date" do
+  test "new apartment form includes a native date input for opening_date" do
     get new_apartment_path(update: @list_frame), headers: @list_headers
 
     assert_response :success
     assert_includes @response.body, %(name="opening_date")
-    assert_includes @response.body, %(class="datepicker")
+    assert_includes @response.body, %(type="date")
   end
 end

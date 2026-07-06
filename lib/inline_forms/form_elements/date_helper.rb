@@ -10,9 +10,12 @@ module InlineForms
       link_to_inline_edit object, attribute, object.send(attribute).nil? ? "<i class='fi-plus'></i>".html_safe : object.send(attribute).to_date.strftime("%d-%m-%Y"), from_callee: __callee__
     end
     
+    # Native <input type="date"> (8.1.25; replaces jQuery UI datepicker).
+    # The browser shows a locale-formatted date but always submits ISO 8601
+    # (YYYY-MM-DD), which Active Record casts directly.
     def date_select_edit(object, attribute)
       css_id = 'datepicker_' + object.class.to_s.underscore + '_' + object.id.to_s + '_' + attribute.to_s
-      out = text_field_tag attribute, ( object.send(attribute).nil? ? "" : object.send(attribute).to_date.strftime("%d-%m-%Y") ), :id => css_id, :class =>'datepicker'
+      date_field_tag attribute, ( object.send(attribute).nil? ? "" : object.send(attribute).to_date.strftime("%F") ), :id => css_id, :class => 'date_select'
     end
     
     def date_select_update(object, attribute)
