@@ -6,6 +6,7 @@ module InlineForms
       :audio_field => :string,
       :check_box => :boolean,
       :check_list => :no_migration,
+      :color_field => :string,
       :date_select => :date,
       :decimal_field => :decimal,
       :devise_password_field => :string,

@@ -50,5 +50,27 @@ class ExampleAppUserThemeTest < ExampleAppIntegrationTestCase
 
     assert_response :success
     assert_includes @response.body, %(<turbo-frame id="user_#{admin.id}_theme">)
+    assert_includes @response.body, %(<turbo-frame id="user_#{admin.id}_primary_color">)
+  end
+
+  test "user color overrides render as a scoped inline style (Pattern 2)" do
+    admin = User.find_by!(email: "admin@example.com")
+    admin.update!(primary_color: "#2563eb")
+    sign_in admin
+
+    get apartments_path
+
+    assert_response :success
+    assert_includes @response.body, %(id="inline_forms_user_color_overrides")
+    assert_includes @response.body, "body.theme-default { --if-color-primary: #2563eb; }"
+  ensure
+    admin&.update!(primary_color: nil)
+  end
+
+  test "no override style tag renders when the user has no custom colors" do
+    get apartments_path
+
+    assert_response :success
+    refute_includes @response.body, %(id="inline_forms_user_color_overrides")
   end
 end

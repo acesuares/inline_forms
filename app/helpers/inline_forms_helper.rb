@@ -19,6 +19,33 @@ module InlineFormsHelper
     "theme-#{theme}"
   end
 
+  # Pattern 2 theming (8.1.32): per-user color overrides as an inline <style>
+  # in <head>. The host's user model opts in by responding to
+  # #inline_forms_color_overrides with a hash of `--if-color-` suffix => hex,
+  # e.g. { 'primary' => '#2563eb', 'accent' => '#7c3aed' }. Every key and
+  # value is re-validated here before interpolation (never trust a column
+  # edited outside the app), and the rules are scoped to the current theme
+  # class so they win the cascade over the preset palette (same specificity,
+  # later in the document).
+  def inline_forms_user_color_overrides_style
+    user = respond_to?(:current_user) ? current_user : nil
+    return unless user.respond_to?(:inline_forms_color_overrides)
+
+    overrides = user.inline_forms_color_overrides
+    return if overrides.blank?
+
+    rules = overrides.filter_map do |key, value|
+      next unless key.to_s.match?(/\A[a-z][a-z-]*\z/)
+      next unless value.to_s.match?(/\A#\h{6}\z/i)
+
+      "--if-color-#{key}: #{value};"
+    end
+    return if rules.empty?
+
+    css = "body.#{inline_forms_body_theme_class} { #{rules.join(' ')} }"
+    content_tag(:style, css.html_safe, id: "inline_forms_user_color_overrides")
+  end
+
   # Returns versions for `object`, merged with versions of any associated
   # `ActionText::RichText` records (Rails `has_rich_text :foo` declarations).
   #

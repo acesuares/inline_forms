@@ -4,6 +4,20 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [8.1.32] - 2026-07-06
+
+### Added
+
+- **Theming Pattern 2: per-user color overrides** (completes the `stuff/user-preferences-and-theming.md` baseline of Pattern 1 + 2).
+  - New engine helper `inline_forms_user_color_overrides_style`, rendered in the layouts' `<head>`: when `current_user` responds to `#inline_forms_color_overrides` (a hash of `--if-color-` suffix => `"#rrggbb"`), it emits one scoped inline `<style>` (`body.theme-<name> { --if-color-primary: …; }`) so user colors win over the preset palette while the main CSS stays fully cached. Keys and values are strictly re-validated before interpolation; no style tag is emitted when there are no overrides.
+  - **New Tier 1 form element `:color_field`** — native `<input type="color">` editing a `"#rrggbb"` string column; show renders a color swatch + hex, update normalizes to lowercase and rejects anything that is not a 6-digit hex (stored as `nil`). Registered as `:string` in the generator registry.
+  - Installer: generated user models get `primary_color` / `accent_color` columns with format validations, `#inline_forms_color_overrides`, and two `color_field` rows on the user panel.
+  - Tests: dummy-harness color_field render/round-trip/junk-rejection; example-app tests for the scoped override style, the no-overrides case, and the user-panel rows.
+
+### Lockstep
+
+- validation_hints 8.1.32, inline_forms_installer 8.1.32.
+
 ## [8.1.31] - 2026-07-06
 
 ### Added

@@ -28,6 +28,7 @@ class Widget < ApplicationRecord
       # simple_file_field's values entry names the host download route method
       # (attribute_values(...)[0][1]); only used when a file is present.
       [ :manual, :simple_file_field, { 0 => 'download' } ],
+      [ :accent, :color_field ],
       [ :report, :pdf_link ],
     ]
   end

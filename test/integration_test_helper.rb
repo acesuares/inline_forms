@@ -27,6 +27,7 @@ ActiveRecord::Schema.define do
     t.string  :kind_other
     t.integer :rating
     t.string  :manual
+    t.string  :accent
     t.timestamps
   end
 

@@ -355,6 +355,10 @@ class #{user_cfg.devise_migration_class} < ActiveRecord::Migration[8.1]
       # Preset UI theme (inline_forms 8.1.29+): 0 default, 1 dark, 2 sepia,
       # 3 high-contrast — see #{user_cfg.class_name}::INLINE_FORMS_THEMES.
       t.integer :theme, default: 0, null: false
+      # Per-user color overrides (inline_forms 8.1.32+, theming Pattern 2):
+      # hex "#rrggbb" or NULL; rendered as --if-color-* overrides in <head>.
+      t.string :primary_color
+      t.string :accent_color
 
       t.timestamps
     end
@@ -398,6 +402,10 @@ create_file user_cfg.model_path, <<-USER_MODEL.strip_heredoc
 
     # validations
     validates :name, :presence => true
+    # Theming Pattern 2 color overrides; the color_field element only ever
+    # submits "#rrggbb" or nil, but validate anyway (console edits, imports).
+    validates :primary_color, format: { with: /\\A#\\h{6}\\z/i }, allow_blank: true
+    validates :accent_color,  format: { with: /\\A#\\h{6}\\z/i }, allow_blank: true
 
     # Default ordering for inline_forms list views (and any explicit caller
     # via `#{user_cfg.class_name}.inline_forms_list`). Avoids `default_scope`
@@ -427,6 +435,13 @@ create_file user_cfg.model_path, <<-USER_MODEL.strip_heredoc
       INLINE_FORMS_THEMES.fetch(theme.to_i, 'default')
     end
 
+    # Theming Pattern 2: --if-color-* overrides for this user, rendered as an
+    # inline <style> by the engine layout (inline_forms_user_color_overrides_style).
+    # Keys are --if-color- suffixes; values must be "#rrggbb".
+    def inline_forms_color_overrides
+      { 'primary' => primary_color, 'accent' => accent_color }.compact
+    end
+
     def inline_forms_attribute_list
       @inline_forms_attribute_list ||= [
         [ :header_user_login,         :header ],
@@ -434,6 +449,8 @@ create_file user_cfg.model_path, <<-USER_MODEL.strip_heredoc
         [ :email,                     :text_field ],
         [ :locale,                    :dropdown ],
         [ :theme,                     :dropdown_with_values, { 0 => 'default', 1 => 'dark', 2 => 'sepia', 3 => 'high contrast' } ],
+        [ :primary_color,             :color_field ],
+        [ :accent_color,              :color_field ],
         [ :password,                  :devise_password_field ],
         [ :header_user_roles,         :header ],
         [ :roles,                     :check_list ],

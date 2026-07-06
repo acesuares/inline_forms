@@ -115,4 +115,24 @@ class NativeInputsTest < InlineFormsIntegrationTestCase
     assert_response :success
     assert_includes response.body, "<progress"
   end
+
+  test "color_field renders a native color input and round-trips a hex value" do
+    @widget.update!(accent: "#a3381e")
+    body = edit_attribute("accent", "color_field")
+    assert_includes body, %(type="color")
+    assert_includes body, %(value="#a3381e")
+
+    frame = "widget_#{@widget.id}_accent"
+    put widget_path(@widget, attribute: "accent", form_element: "color_field",
+                    update: frame),
+        params: { accent: "#2563EB" }, headers: frame_headers(frame)
+    assert_response :success
+    assert_equal "#2563eb", @widget.reload.accent, "hex is normalized to lowercase"
+
+    # Junk input is rejected server-side (stored as nil), not persisted raw.
+    put widget_path(@widget, attribute: "accent", form_element: "color_field",
+                    update: frame),
+        params: { accent: "red; background:url(x)" }, headers: frame_headers(frame)
+    assert_nil @widget.reload.accent
+  end
 end
