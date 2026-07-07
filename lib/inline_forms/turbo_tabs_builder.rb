@@ -1,4 +1,5 @@
 # -*- encoding : utf-8 -*-
+
 require "inline_forms/tabs"
 
 module InlineForms
@@ -44,7 +45,7 @@ module InlineForms
       if active
         active_class = @options[:active_class] || "current"
         existing = item_options[:class].to_s.split(/\s+/).reject(&:empty?)
-        item_options[:class] = (existing + [active_class]).uniq.join(" ")
+        item_options[:class] = (existing + [ active_class ]).uniq.join(" ")
       end
 
       # The active label is rendered as an `<a>` *without* an href so that
@@ -53,14 +54,15 @@ module InlineForms
       # it up just like the inactive tabs. Skipping the href keeps the
       # active tab non-clickable, and `aria-current="page"` advertises
       # the selection state to assistive tech / Foundation's CSS.
-      content = if active
-                  @context.content_tag(:a, name,
-                    link_options.merge("aria-current" => "page",
-                                       "aria-selected" => "true"))
-                else
-                  @context.link_to(name, url_options,
-                    link_options.merge("aria-selected" => "false"))
-                end
+      content =
+        if active
+          @context.content_tag(:a, name,
+            link_options.merge("aria-current" => "page",
+                               "aria-selected" => "true"))
+        else
+          @context.link_to(name, url_options,
+            link_options.merge("aria-selected" => "false"))
+        end
 
       @context.content_tag(:li, content, item_options)
     end

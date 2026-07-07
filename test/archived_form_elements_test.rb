@@ -6,25 +6,25 @@ require "inline_forms/archived_form_elements"
 class ArchivedFormElementsTest < Minitest::Test
   class ModelWithArchivedElement
     def inline_forms_attribute_list
-      [[:address, :geo_code_curacao]]
+      [ [ :address, :geo_code_curacao ] ]
     end
   end
 
   class ModelWithArchivedTree
     def inline_forms_attribute_list
-      [[:children, :tree]]
+      [ [ :children, :tree ] ]
     end
   end
 
   class ModelWithArchivedCkeditor
     def inline_forms_attribute_list
-      [[:body, :ckeditor]]
+      [ [ :body, :ckeditor ] ]
     end
   end
 
   class ModelWithArchivedTextAreaWithoutCkeditor
     def inline_forms_attribute_list
-      [[:notes, :text_area_without_ckeditor]]
+      [ [ :notes, :text_area_without_ckeditor ] ]
     end
   end
 
@@ -71,13 +71,13 @@ class ArchivedFormElementsTest < Minitest::Test
 
   class ModelWithArchivedQuestionList
     def inline_forms_attribute_list
-      [[:questions, :question_list]]
+      [ [ :questions, :question_list ] ]
     end
   end
 
   class ModelWithArchivedDnsrecords
     def inline_forms_attribute_list
-      [[:records, :dnsrecords]]
+      [ [ :records, :dnsrecords ] ]
     end
   end
 

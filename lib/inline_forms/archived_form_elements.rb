@@ -1,4 +1,5 @@
 # -*- encoding : utf-8 -*-
+
 module InlineForms
   class ArchivedFormElementError < StandardError; end
 
@@ -8,65 +9,65 @@ module InlineForms
     geo_code_curacao: {
       archived_in_version: "7.6.0",
       archive_path: "archived/form_elements/geo_code_curacao",
-      summary: "Curaçao street geocode (MySQL Zones/Buurten/Straatcode, jQuery autocomplete, UJS list_streets).",
+      summary: "Curaçao street geocode (MySQL Zones/Buurten/Straatcode, jQuery autocomplete, UJS list_streets)."
     },
     chicas_photo_list: {
       archived_in_version: "7.6.0",
       archive_path: "archived/form_elements/chicas",
-      summary: "Chicas app read-only member photo gallery (show-only).",
+      summary: "Chicas app read-only member photo gallery (show-only)."
     },
     chicas_family_photo_list: {
       archived_in_version: "7.6.0",
       archive_path: "archived/form_elements/chicas",
-      summary: "Chicas app read-only family member photo gallery (show-only).",
+      summary: "Chicas app read-only family member photo gallery (show-only)."
     },
     chicas_dropdown_with_family_members: {
       archived_in_version: "7.6.0",
       archive_path: "archived/form_elements/chicas",
-      summary: "Chicas client picker via family.clients; moves CarrierWave upload dir on update.",
+      summary: "Chicas client picker via family.clients; moves CarrierWave upload dir on update."
     },
     kansen_slider: {
       archived_in_version: "7.6.0",
       archive_path: "archived/form_elements/kansen_slider",
-      summary: "jQuery UI slider for integer-coded chance scale; uses model attribute_values.",
+      summary: "jQuery UI slider for integer-coded chance scale; uses model attribute_values."
     },
     tree: {
       archived_in_version: "7.7.0",
       archive_path: "archived/form_elements/tree",
-      summary: "Self-referential children list via parent.children; requires host tree APIs (see README).",
+      summary: "Self-referential children list via parent.children; requires host tree APIs (see README)."
     },
     move: {
       archived_in_version: "7.7.0",
       archive_path: "archived/form_elements/tree",
-      summary: "Reparent via hash_tree_to_collection + add_child (host must implement; pairs with :tree).",
+      summary: "Reparent via hash_tree_to_collection + add_child (host must implement; pairs with :tree)."
     },
     absence_list: {
       removed_in_version: "6.3.0",
       archive_path: nil,
-      summary: "Project-specific absence list UI; removed without a copy in this repo (see CHANGELOG 6.3.0).",
+      summary: "Project-specific absence list UI; removed without a copy in this repo (see CHANGELOG 6.3.0)."
     },
     ckeditor: {
       archived_in_version: "8.1.21",
       archive_path: "archived/form_elements/ckeditor",
-      summary: "Legacy CKEditor form element; use :rich_text (ActionText) instead.",
+      summary: "Legacy CKEditor form element; use :rich_text (ActionText) instead."
     },
     text_area_without_ckeditor: {
       archived_in_version: "8.1.21",
       archive_path: "archived/form_elements/ckeditor",
-      summary: "Legacy plain-text alias; use :plain_text or :plain_text_area instead.",
+      summary: "Legacy plain-text alias; use :plain_text or :plain_text_area instead."
     },
     question_list: {
       archived_in_version: "8.1.30",
       archive_path: "archived/form_elements/question_list",
-      summary: "Survey-app checklist hardcoding a host Question model with subquestions.",
+      summary: "Survey-app checklist hardcoding a host Question model with subquestions."
     },
     # The helper methods were named dnsrecords_* (no underscore), so the
     # attribute-list symbol in host apps was :dnsrecords.
     dnsrecords: {
       archived_in_version: "8.1.30",
       archive_path: "archived/form_elements/dns_records",
-      summary: "DNS-admin display of djbdns A-record lines via host a_records/djbdns_line APIs.",
-    },
+      summary: "DNS-admin display of djbdns A-record lines via host a_records/djbdns_line APIs."
+    }
   }.freeze
 
   def self.validate_no_archived_form_elements_for!(klass)

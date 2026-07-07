@@ -8,7 +8,7 @@ class ApplicationRecord < ActiveRecord::Base
   # in the inline_forms versions panel as a meaningless "empty" row whose
   # Restore link reifies the same state (no-op). Excluding `:touch` here
   # suppresses that noise without affecting real attribute updates.
-  has_paper_trail on: [:create, :update, :destroy]
+  has_paper_trail on: [ :create, :update, :destroy ]
 
   attr_writer :inline_forms_attribute_list
 

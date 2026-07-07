@@ -1,4 +1,5 @@
 # -*- encoding: utf-8 -*-
+
 module InlineFormsGemFiles
   INSTALLER_FILE_PREFIXES = %w[
     bin/inline_forms

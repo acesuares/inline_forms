@@ -1,4 +1,5 @@
 # -*- encoding : utf-8 -*-
+
 module InlineForms
   # Maps +__callee__+ from a +*_show+ helper to the +params[:form_element]+ string
   # (e.g. +:text_field_show+ → +"text_field"+).

@@ -1,4 +1,5 @@
 # -*- encoding : utf-8 -*-
+
 require "inline_forms/version"
 require "inline_forms/form_element_from_callee"
 require "inline_forms/archived_form_elements"
@@ -34,17 +35,17 @@ module InlineForms
   #   end
   #
   DEFAULT_COLUMN_TYPES = {
-    :string     => :string,
-    :text       => :text,
-    :integer    => :integer,
-    :float      => :float,
-    :decimal    => :decimal,
-    :datetime   => :datetime,
-    :timestamp  => :timestamp,
-    :time       => :time,
-    :date       => :date,
-    :binary     => :binary,
-    :boolean    => :boolean,
+    string: :string,
+    text: :text,
+    integer: :integer,
+    float: :float,
+    decimal: :decimal,
+    datetime: :datetime,
+    timestamp: :timestamp,
+    time: :time,
+    date: :date,
+    binary: :binary,
+    boolean: :boolean
     # :references => :belongs_to,
     # :belongs_to => :belongs_to,
   }
@@ -68,17 +69,17 @@ module InlineForms
   # as you see, both :string and :integer are mapped to a :text_field
   #
   DEFAULT_FORM_ELEMENTS = {
-    :string     => :text_field,
-    :text       => :plain_text,
-    :integer    => :text_field,
-    :float      => :text_field,
-    :decimal    => :text_field,
-    :datetime   => :datetime_select,
-    :timestamp  => :datetime_select,
-    :time       => :time_select,
-    :date       => :date_select,
-    :binary     => :text_field,
-    :boolean    => :check_box,
+    string: :text_field,
+    text: :plain_text,
+    integer: :text_field,
+    float: :text_field,
+    decimal: :text_field,
+    datetime: :datetime_select,
+    timestamp: :datetime_select,
+    time: :time_select,
+    date: :date_select,
+    binary: :text_field,
+    boolean: :check_box
   }
 
   # SPECIAL_COLUMN_TYPES maps the column types that we define here and in
@@ -97,7 +98,7 @@ module InlineForms
   # to the inline_forms_attribute_list in the model.
   #
   SPECIAL_COLUMN_TYPES = {
-    :associated => :no_migration
+    associated: :no_migration
   }
 
   PLAIN_TEXT_FORM_ELEMENTS = %i[
@@ -162,19 +163,19 @@ module InlineForms
   #  rails g inline_forms Example phone_number:string type_of_number:dropdown client:belongs_to
   #
   RELATIONS = {
-    :belongs_to => :belongs_to,
-    :references => :belongs_to,
+    belongs_to: :belongs_to,
+    references: :belongs_to
   }
 
   # SPECIAL_RELATIONS maps AR relations to migrations.
   # In most cases, these relations have no migration at all, but they do need
   # a line in the model.
   SPECIAL_RELATIONS = {
-    :has_many                 => :no_migration,
-    :has_many_destroy         => :no_migration,
-    :has_one                  => :no_migration,
-    :has_and_belongs_to_many  => :no_migration,
-    :habtm                    => :no_migration,
+    has_many: :no_migration,
+    has_many_destroy: :no_migration,
+    has_one: :no_migration,
+    has_and_belongs_to_many: :no_migration,
+    habtm: :no_migration
   }
 
   # load form elements. Each element goes into a separate file
@@ -183,7 +184,6 @@ module InlineForms
 
   # Declare as a Rails::Engine, see http://www.ruby-forum.com/topic/211017#927932
   class Engine < Rails::Engine
-
     initializer "inline_forms.form_element_registry" do
       InlineForms::FormElementRegistry.apply!
     end
@@ -222,7 +222,7 @@ module InlineForms
       # harness); generated apps always bundle sprockets-rails.
       next unless app.config.respond_to?(:assets)
 
-      app.config.assets.precompile += %w(
+      app.config.assets.precompile += %w[
         inline_forms/inline_forms.css
         inline_forms/devise.css
         inline_forms/inline_forms.js
@@ -237,7 +237,7 @@ module InlineForms
         foundation-icons.svg
         opensans-v44-latin-regular.woff2
         opensans-v44-latin-italic.woff2
-      )
+      ]
     end
 
     config.to_prepare do
@@ -257,8 +257,7 @@ module InlineForms
       end
     end
 
-    I18n.load_path << Dir[File.join(File.expand_path(File.dirname(__FILE__) + '/locales'), '*.yml')]
+    I18n.load_path << Dir[File.join(File.expand_path(File.dirname(__FILE__) + "/locales"), "*.yml")]
     I18n.load_path.flatten!
   end
-
 end

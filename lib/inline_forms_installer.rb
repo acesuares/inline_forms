@@ -1,4 +1,5 @@
 # -*- encoding : utf-8 -*-
+
 require "inline_forms_installer/version"
 
 module InlineFormsInstaller

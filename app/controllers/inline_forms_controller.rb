@@ -1,4 +1,5 @@
 # -*- encoding : utf-8 -*-
+
 # == Generic controller for the inline_forms plugin.
 # === Usage
 # If you have an Example class, make an ExampleController
@@ -28,7 +29,7 @@ class InlineFormsController < ApplicationController
 
   before_action :getKlass
 
-  load_and_authorize_resource :except => :revert, :no_params => true if cancan_enabled?
+  load_and_authorize_resource except: :revert, no_params: true if cancan_enabled?
   # :index shows a list of all objects from class @Klass, using will_paginate,
   # including a link to 'new', that allows you to create a new record.
   def index
@@ -56,7 +57,7 @@ class InlineFormsController < ApplicationController
       @objects = @objects.merge(@Klass.inline_forms_search(params[:search]))
     end
     @objects = @objects.where(fk_conditions) if fk_conditions
-    @objects = @objects.paginate(:page => params[:page])
+    @objects = @objects.paginate(page: params[:page])
     respond_to do |format|
       # `not_accessible_through_html?` is about preventing direct top-level
       # HTML CRUD on this resource (e.g. /photos when only Apartment is the
@@ -137,7 +138,7 @@ class InlineFormsController < ApplicationController
     attributes = @inline_forms_attribute_list || @object.inline_forms_attribute_list
     attributes.each do | attribute, form_element |
       InlineForms.assert_plain_text_column!(object: @object, attribute: attribute, form_element: form_element)
-      send("#{form_element.to_s}_update", @object, attribute) unless form_element == :associated || (cancan_enabled? && cannot?(:read, @object, attribute))
+      send("#{form_element}_update", @object, attribute) unless form_element == :associated || (cancan_enabled? && cannot?(:read, @object, attribute))
     end
     @parent_class = params[:parent_class]
     @parent_id = params[:parent_id]
@@ -150,20 +151,20 @@ class InlineFormsController < ApplicationController
     end
 
     if @object.save
-      flash.now[:success] = t('success', :message => @object.class.model_name.human)
+      flash.now[:success] = t("success", message: @object.class.model_name.human)
       @objects = cancan_enabled? ? @Klass.accessible_by(current_ability) : @Klass.all
       @objects = @objects.merge(@Klass.inline_forms_list) if @Klass.respond_to?(:inline_forms_list)
       if fk_conditions.nil? && params[:search].present? && @Klass.respond_to?(:inline_forms_search)
         @objects = @objects.merge(@Klass.inline_forms_search(params[:search]))
       end
       @objects = @objects.where(fk_conditions) if fk_conditions
-      @objects = @objects.paginate(:page => params[:page])
+      @objects = @objects.paginate(page: params[:page])
       @object = nil
       respond_to do |format|
         format.html { render_list_frame_after_save } if html_list_flow_allowed?
       end
     else
-      flash.now[:header] = ["Kan #{@object.class.to_s.underscore} niet aanmaken."]
+      flash.now[:header] = [ "Kan #{@object.class.to_s.underscore} niet aanmaken." ]
       flash.now[:error] = @object.errors.to_a
       respond_to do |format|
         @object.inline_forms_attribute_list = attributes
@@ -180,7 +181,7 @@ class InlineFormsController < ApplicationController
     @sub_id = params[:sub_id]
     @update_span = params[:update]
     InlineForms.assert_plain_text_column!(object: @object, attribute: @attribute, form_element: @form_element)
-    send("#{@form_element.to_s}_update", @object, @attribute)
+    send("#{@form_element}_update", @object, @attribute)
     # Branch on the actual save result. Previously the return value of
     # `@object.save` was ignored and `field_show` was rendered
     # unconditionally from the in-memory `@object`. When a save failed
@@ -474,13 +475,13 @@ class InlineFormsController < ApplicationController
     row_html = render_to_string(
       "inline_forms/row_close",
       layout: false,
-      formats: [:html],
+      formats: [ :html ],
       locals: { update_span: row_id, object: @parent, inline_forms_turbo_row: true }
     )
     versions_html = render_to_string(
       "inline_forms/versions_panel",
       layout: false,
-      formats: [:html],
+      formats: [ :html ],
       locals: { update_span: versions_id, object: @parent, inline_forms_turbo_row: true }
     )
     render turbo_stream: [
@@ -594,7 +595,7 @@ class InlineFormsController < ApplicationController
   # Get the class from the controller name.
   # CountryController < InlineFormsController, so what class are we?
   # TODO think about this a bit more.
-  def getKlass #:doc:
+  def getKlass # :doc:
     @Klass = self.controller_name.classify.constantize
     InlineForms.validate_plain_text_configuration_for!(@Klass)
     @Klass
@@ -611,5 +612,4 @@ class InlineFormsController < ApplicationController
   def revert_params
     params.require(:id).permit(:update)
   end
-
 end

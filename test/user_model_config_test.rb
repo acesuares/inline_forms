@@ -1,4 +1,5 @@
 # -*- encoding : utf-8 -*-
+
 require "minitest/autorun"
 require "inline_forms_installer/user_model_config"
 

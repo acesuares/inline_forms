@@ -1,11 +1,11 @@
 # -*- encoding : utf-8 -*-
+
 # == usage:
 # in your model, add:
 #  validates :sex, :must_be_a_value => true;
-# 
+#
 #  this checks against the objects attribute_values
 class MustBeAValueValidator < ActiveModel::EachValidator
-
   def error_message
     "is geen geldige keuze."
   end
@@ -16,7 +16,7 @@ class MustBeAValueValidator < ActiveModel::EachValidator
   def validate_each(record, attribute, value)
     values = attribute_values(record, attribute)
     if values.assoc(value).nil?
-      record.errors[attribute] << (options[:message] || error_message )
+      record.errors[attribute] << (options[:message] || error_message)
     end
   end
 
@@ -48,16 +48,16 @@ class MustBeAValueValidator < ActiveModel::EachValidator
     raise "No Values defined in #{@Klass}, #{attribute}" if values.nil?
     if values.is_a?(Hash)
       temp = Array.new
-      values.to_a.each do |k,v|
+      values.to_a.each do |k, v|
         temp << [ k, v ]
       end
-      values = temp.sort {|a,b| a[0]<=>b[0]}
+      values = temp.sort { |a, b| a[0]<=>b[0] }
     else
       temp = Array.new
       values.to_a.each_index do |i|
         temp << [ i, values.to_a[i] ]
       end
-      values = temp.sort {|a,b| a[1]<=>b[1]}
+      values = temp.sort { |a, b| a[1]<=>b[1] }
     end
     values
   end

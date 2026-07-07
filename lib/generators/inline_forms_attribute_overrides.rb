@@ -1,4 +1,5 @@
 # -*- encoding : utf-8 -*-
+
 require "rails/generators"
 require "rails/generators/generated_attribute"
 require "inline_forms"
@@ -106,11 +107,11 @@ Rails::Generators::GeneratedAttribute.class_eval do
 
   def migration?
     not ( column_type == :no_migration  ||
-        SPECIAL_GENERATOR_NAMES.include?(name) )
+        SPECIAL_GENERATOR_NAMES.include?(name))
   end
 
   def attribute?
     not ( SPECIAL_GENERATOR_NAMES.include?(name) ||
-        relation? )
+        relation?)
   end
 end

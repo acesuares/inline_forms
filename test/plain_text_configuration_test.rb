@@ -20,7 +20,7 @@ class PlainTextConfigurationTest < Minitest::Test
 
     def inline_forms_attribute_list
       [
-        [:description, :plain_text]
+        [ :description, :plain_text ]
       ]
     end
   end
@@ -40,7 +40,7 @@ class PlainTextConfigurationTest < Minitest::Test
 
     def inline_forms_attribute_list
       [
-        [:description, :plain_text]
+        [ :description, :plain_text ]
       ]
     end
   end
@@ -56,7 +56,7 @@ class PlainTextConfigurationTest < Minitest::Test
 
     def inline_forms_attribute_list
       [
-        [:description, :rich_text]
+        [ :description, :rich_text ]
       ]
     end
   end

@@ -26,10 +26,10 @@ def validation_hints_pkg_gem
 end
 
 desc "Build both inline_forms and inline_forms_installer into pkg/"
-task "build:all" => ["build", "installer:build"]
+task "build:all" => [ "build", "installer:build" ]
 
 desc "Install freshly built gems from pkg/ into the current gemset (required before inline_forms create)"
-task "install:local" => ["build:all"] do
+task "install:local" => [ "build:all" ] do
   gems = inline_forms_pkg_gems
   vh = validation_hints_pkg_gem
   gems << vh if vh

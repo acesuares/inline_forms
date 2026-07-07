@@ -1,4 +1,5 @@
 # -*- encoding : utf-8 -*-
+
 module InlineFormsHelper
   include InlineForms::FormElements::HelperIncludes
 
@@ -290,14 +291,14 @@ module InlineFormsHelper
   # Pass +from_callee:+ +__callee__+ from the enclosing +*_show+ method so the edit route receives the correct form element name.
   # When +turbo_frame:+ is true the link targets +_self+; otherwise it targets the
   # field frame id (+css_class_id+) so edit works without a surrounding +_show+ wrap.
-  def link_to_inline_edit(object, attribute, attribute_value='', from_callee:, turbo_frame: false)
+  def link_to_inline_edit(object, attribute, attribute_value = "", from_callee:, turbo_frame: false)
     form_element = InlineForms.form_element_string_from_callee(from_callee)
     attribute_value = attribute_value.to_s
     spaces = attribute_value.length > 40 ? 0 : 40 - attribute_value.length
     value = h(attribute_value) + ("&nbsp;" * spaces).html_safe
     css_class_id = "#{object.class.to_s.underscore}_#{object.id}_#{attribute}"
     use_turbo_frame = turbo_frame || (@inline_forms_turbo_field == true)
-    if (cancan_disabled? rescue true) || ( can? :update, object, attribute )
+    if (cancan_disabled? rescue true) || (can? :update, object, attribute)
       # some problem with concerns makes this function not available when called direct. FIXME
       link_opts = if use_turbo_frame
         { data: { turbo: true, turbo_frame: "_self" } }
@@ -307,9 +308,9 @@ module InlineFormsHelper
       link_to value,
         edit_polymorphic_path(
           object,
-          :attribute => attribute.to_s,
-          :form_element => form_element,
-          :update => css_class_id ),
+          attribute: attribute.to_s,
+          form_element: form_element,
+          update: css_class_id),
         link_opts
     else
       h(attribute_value)
@@ -320,16 +321,16 @@ module InlineFormsHelper
   def locale_url(request, locale)
     subdomains = request.subdomains
     # if there are no subdomains, prepend the locale to the domain
-    return request.protocol + [ locale, request.domain ].join('.') + request.port_string if subdomains.empty?
+    return request.protocol + [ locale, request.domain ].join(".") + request.port_string if subdomains.empty?
     # if there is a subdomain, find out if it's an available locale and strip it
     subdomains.shift if I18n.available_locales.include?(subdomains.first.to_sym)
     # if there are no subdomains, prepend the locale to the domain
-    return request.protocol + [ locale, request.domain ].join('.') + request.port_string if subdomains.empty?
+    return request.protocol + [ locale, request.domain ].join(".") + request.port_string if subdomains.empty?
     # else return the rest
-    request.protocol + [ locale, subdomains.join('.'), request.domain ].join('.') + request.port_string
+    request.protocol + [ locale, subdomains.join("."), request.domain ].join(".") + request.port_string
   end
 
-  def translated_attribute(object,attribute)
+  def translated_attribute(object, attribute)
     t("activerecord.attributes.#{object.class.name.underscore}.#{attribute}")
     #          "activerecord.attributes.#{attribute}",
     #          "attributes.#{attribute}" ] )
@@ -379,16 +380,16 @@ module InlineFormsHelper
     raise "inline_forms: no values defined in #{object.class} for #{attribute} (add a values hash to the inline_forms_attribute_list row)" if values.nil?
     if values.is_a?(Hash)
       temp = Array.new
-      values.to_a.each do |k,v|
+      values.to_a.each do |k, v|
         temp << [ k, t(v) ]
       end
-      values = temp.sort {|a,b| a[0]<=>b[0]}
+      values = temp.sort { |a, b| a[0]<=>b[0] }
     else
       temp = Array.new
       values.to_a.each_index do |i|
         temp << [ i, t(values.to_a[i]) ]
       end
-      values = temp.sort {|a,b| a[1]<=>b[1]}
+      values = temp.sort { |a, b| a[1]<=>b[1] }
     end
     values
   end
@@ -402,5 +403,4 @@ module InlineFormsHelper
     user = user_class.find_by(id: id)
     user.nil? ? "Unknown" : user.name
   end
-
 end

@@ -1,4 +1,5 @@
 # -*- encoding : utf-8 -*-
+
 require "securerandom"
 require "thor"
 require_relative "create_log"
@@ -16,13 +17,13 @@ module InlineFormsInstaller
     end
 
     desc "create APP", "create an application with inline_forms v#{InlineFormsInstaller.inline_forms_version}"
-    DATABASE_OPTIONS = %w(sqlite mysql)
-    method_option :database, :aliases => "-d", :banner => DATABASE_OPTIONS.join("|"), :desc => "specify development database"
-    method_option :example, :type => :boolean, :desc => "install the example app. uses sqlite as development database"
-    method_option :email, :aliases => "-e", :default => "admin@example.com", :desc => "specify admin email"
-    method_option :password, :aliases => "-p", :default => "admin999", :desc => "specify admin password"
-    method_option :skiprvm, :aliases => "--no-rvm", :type => :boolean, :default => false, :desc => "install inline_forms without RVM"
-    method_option :user_model, :aliases => "-U", :default => "User", :banner => "CLASS", :desc => "Devise model class (e.g. Member); Warden scope stays :user (current_user)"
+    DATABASE_OPTIONS = %w[sqlite mysql]
+    method_option :database, aliases: "-d", banner: DATABASE_OPTIONS.join("|"), desc: "specify development database"
+    method_option :example, type: :boolean, desc: "install the example app. uses sqlite as development database"
+    method_option :email, aliases: "-e", default: "admin@example.com", desc: "specify admin email"
+    method_option :password, aliases: "-p", default: "admin999", desc: "specify admin password"
+    method_option :skiprvm, aliases: "--no-rvm", type: :boolean, default: false, desc: "install inline_forms without RVM"
+    method_option :user_model, aliases: "-U", default: "User", banner: "CLASS", desc: "Devise model class (e.g. Member); Warden scope stays :user (current_user)"
 
     def create(app_name)
       def self.skiprvm

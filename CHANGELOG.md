@@ -4,6 +4,18 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [8.1.38] - 2026-07-07
+
+### Changed
+
+- **RuboCop todo shrunk from 590 to 196 offenses (54 → 40 files, all heredoc-bearing).** Every heredoc-free file was safe-autocorrected in reviewed batches (engine tests green after each): validators, gemspecs, Rakefile, dummy-app models, engine core (`lib/inline_forms.rb`, form-element registry, turbo tabs builder), controller/helpers, installer `creator.rb`/`user_model_config.rb`, and the archived-elements list — bracket spacing, hash syntax (`:a => 1` → `a: 1`), string quotes, comment spacing, `%q{}` → `%q()`. One manual fix: the `if/else` alignment in `turbo_tabs_builder.rb` that autocorrect mangled cosmetically (rewritten as an indented assignment).
+- **Heredoc policy, made explicit:** files whose heredocs emit generated-app code (installer core, generators, form-element helpers, generator tests) are deliberately untouched — autocorrect near heredocs risks changing emitted code. `Layout/TrailingWhitespace` now runs with `AllowInHeredoc: true` (heredoc bodies are generated-file content); outside heredocs the tree is whitespace-clean. The remaining todo entries are per-file excludes on exactly those 40 heredoc files.
+- Full example-app gate passed: MyApp generated from the 8.1.38 gems, 157 runs / 960 assertions / 0 failures.
+
+### Lockstep
+
+- validation_hints 8.1.38, inline_forms_installer 8.1.38 (no changes of their own).
+
 ## [8.1.37] - 2026-07-06
 
 ### Lockstep

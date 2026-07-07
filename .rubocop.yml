@@ -1,6 +1,8 @@
 # RuboCop with the Rails "omakase" preset (same recipe as Papiamentu).
-# Pre-existing violations are grandfathered in .rubocop_todo.yml; fix them
-# incrementally and delete entries as files get cleaned.
+# All heredoc-free files are clean. The remaining violations (grandfathered in
+# .rubocop_todo.yml) live in files with heredocs that emit generated-app code
+# (installer core, generators, form-element helpers); those files are left
+# untouched on purpose — autocorrect near heredocs risks changing emitted code.
 # Run with: bundle exec rubocop
 inherit_gem:
   rubocop-rails-omakase: rubocop.yml
@@ -21,3 +23,8 @@ AllCops:
     - "test/dummy/log/**/*"
     - "test/dummy/tmp/**/*"
     - "script/**/*"              # one-off maintainer migration script
+
+# Heredoc bodies are generated-file content (installer/form-element templates);
+# whitespace there is part of the emitted output and is never auto-fixed.
+Layout/TrailingWhitespace:
+  AllowInHeredoc: true

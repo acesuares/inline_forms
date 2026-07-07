@@ -7,7 +7,7 @@
 class ApplicationRecord < ActiveRecord::Base
   self.abstract_class = true
 
-  has_paper_trail on: [:create, :update, :destroy]
+  has_paper_trail on: [ :create, :update, :destroy ]
 
   attr_writer :inline_forms_attribute_list
 

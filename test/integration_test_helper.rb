@@ -46,7 +46,7 @@ ActiveRecord::Schema.define do
     t.text     :object_changes, limit: 1_073_741_823
     t.datetime :created_at
   end
-  add_index :versions, [:item_type, :item_id]
+  add_index :versions, [ :item_type, :item_id ]
 end
 
 class InlineFormsIntegrationTestCase < ActionDispatch::IntegrationTest

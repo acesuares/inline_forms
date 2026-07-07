@@ -1,4 +1,5 @@
 # -*- encoding : utf-8 -*-
+
 class InlineFormsApplicationController < ActionController::Base
   protect_from_forgery
   # `layout 'devise' if :devise_controller?` was wrong: `:devise_controller?` is a
@@ -14,7 +15,7 @@ class InlineFormsApplicationController < ActionController::Base
   # Configure available locales in the app: config/application.rb
   #   config.i18n.available_locales = [:en, :nl, :pp]
 
-  #set the locale based on the subdomain
+  # set the locale based on the subdomain
   def set_locale
     I18n.locale = extract_locale_from_subdomain || I18n.default_locale
   end
@@ -25,5 +26,4 @@ class InlineFormsApplicationController < ActionController::Base
     return nil if locale.nil?
     I18n.available_locales.include?(locale.to_sym) ? locale.to_s : nil
   end
-
 end

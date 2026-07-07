@@ -1,4 +1,5 @@
 # -*- encoding : binary -*-
+
 # == usage:
 # in your model, add:
 #  validates :email, :presence => true, :is_email_address => true;
@@ -25,11 +26,10 @@ class IsEmailAddressValidator < ActiveModel::EachValidator
   def error_message
     "is not a valid email address."
   end
-  
+
   def validate_each(record, attribute, value)
     unless value =~ EmailAddress
-      record.errors[attribute] << (options[:message] || error_message )
+      record.errors[attribute] << (options[:message] || error_message)
     end
   end
-
 end

@@ -1,4 +1,5 @@
 # -*- encoding : utf-8 -*-
+
 require "active_support/core_ext/string/inflections"
 
 module InlineFormsInstaller
@@ -47,7 +48,7 @@ module InlineFormsInstaller
     def join_table
       return "roles_users" if default?
 
-      [table_name, "roles"].sort.join("_")
+      [ table_name, "roles" ].sort.join("_")
     end
 
     def controller_name
