@@ -7,9 +7,11 @@
 # 8.1.34): pushing to GitHub triggers nothing; CI runs only on Forgejo.
 name: CI
 
+# Push triggers on EVERY branch (stuff/prompt/workflow.md: "every commit runs
+# through CI") — feature branches were silently skipping CI when this was
+# `branches: [master]`.
 on:
   push:
-    branches: [master]
   pull_request:
 
 jobs:
