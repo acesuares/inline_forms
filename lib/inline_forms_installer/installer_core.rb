@@ -840,8 +840,16 @@ git commit: " -a -m 'Initial Commit'"
 # example
 if ENV['install_example'] == 'true'
   say "\nInstalling example application..."
-  run 'bundle exec rails g inline_forms Photo name:string caption:string image:image_field description:rich_text apartment:belongs_to _list_order:name _presentation:\'#{name}\''
+  run 'bundle exec rails g inline_forms Photo name:string caption:string image:image_field description:rich_text apartment:belongs_to comments:has_many comments:associated _list_order:name _presentation:\'#{name}\''
   run 'bundle exec rails generate uploader Image'
+
+  # Comment: second nesting level (Apartment -> Photo -> Comment) so the
+  # example app demonstrates :associated panels inside an opened nested row.
+  # Like Photo it has no `_enabled`, so it is not accessible through
+  # top-level HTML — only through the comments panel on an opened photo.
+  say "- Generating Comment model (nested under Photo -- nesting-in-nesting demo)..."
+  sleep 1
+  run 'bundle exec rails g inline_forms Comment body:text_area photo:belongs_to _list_order:body _presentation:\'#{body}\''
   run 'bundle exec rails g inline_forms Apartment name:string title:string opening_date:date description:rich_text photos:has_many photos:associated _enabled:yes _list_order:name _list_search:name _presentation:\'#{name}\''
 
   say "- Apartment name is required..."
@@ -1093,6 +1101,13 @@ if ENV['install_example'] == 'true'
           apartments: [] },
       ].freeze
 
+      # Comments seeded on each apartment's first photo (Apartment ->
+      # Photo -> Comment: the second nesting level).
+      COMMENTS = [
+        "Lovely light in this room!",
+        "Could use a fresh coat of paint.",
+      ].freeze
+
       def up
         seed_dir = Rails.root.join("db", "seed_images")
         all_pics = seed_dir.directory? ?
@@ -1123,6 +1138,15 @@ if ENV['install_example'] == 'true'
             end
           end
 
+          # Nesting-in-nesting demo data: two comments on each apartment's
+          # first photo, so the comments panel inside an opened photo row
+          # is visibly populated out of the box.
+          if (first_photo = apt.photos.order(:id).first)
+            COMMENTS.each do |body|
+              Comment.find_or_create_by!(photo: first_photo, body: body)
+            end
+          end
+
           apt_records[spec[:name]] = apt
         end
 
@@ -1149,6 +1173,7 @@ if ENV['install_example'] == 'true'
         APARTMENTS.each do |spec|
           apt = Apartment.find_by(name: spec[:name])
           next unless apt
+          apt.photos.each { |photo| photo.comments.destroy_all }
           apt.photos.destroy_all
           apt.destroy
         end

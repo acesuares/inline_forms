@@ -4,6 +4,17 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [8.1.40] - 2026-07-10
+
+### Added
+
+- **Example app demonstrates nesting-in-nesting** (Apartment → Photo → Comment): the installer now generates a `Comment` model (`body:text_area photo:belongs_to`, not accessible through top-level HTML, like Photo) and gives Photo `comments:has_many comments:associated`, so opening a photo row inside an apartment's photos panel exposes a second-level comments panel with its own nested new/create/open/close flows. The seed migration puts two comments on each seeded apartment's first photo so the panel is visibly populated out of the box (and removes them in `down`).
+- Example-app test `example_app_photo_comments_test.rb`: comments blocked as a standalone HTML resource, comments panel + new link inside the opened nested photo row, panel lists existing comments, nested new/create with the photo FK, comment row open/close. Also documents that open-after-create does not fire for nested creates (Comment has no `:associated` panel; the nested flow keeps the plain frame response).
+
+### Lockstep
+
+- validation_hints 8.1.40, inline_forms_installer 8.1.40 (no changes of their own).
+
 ## [8.1.39] - 2026-07-10
 
 ### Added
