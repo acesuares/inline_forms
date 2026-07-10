@@ -67,4 +67,32 @@ class ExampleAppApartmentTopLevelNewTest < ExampleAppIntegrationTestCase
     assert_includes @response.body, %(<turbo-frame id="#{@frame}">)
     assert_includes @response.body, name
   end
+
+  # "Open after create": Apartment has photos:associated, so a turbo-stream
+  # create response refreshes the list AND opens the new row, landing the user
+  # where the photos panel (only available on a persisted record) is usable.
+  test "top-level create with turbo-stream accept opens the new row" do
+    name = "AAA-OpenAfterCreate-#{SecureRandom.hex(4)}"
+    assert_difference("Apartment.count", 1) do
+      post apartments_path(update: @frame),
+        params: { name: name, title: "Open after create test" },
+        headers: { "Turbo-Frame" => @frame,
+                   "Accept" => "text/vnd.turbo-stream.html, text/html" }
+    end
+    assert_response :success
+    assert_equal "text/vnd.turbo-stream.html", @response.media_type
+
+    apartment = Apartment.find_by!(name: name)
+    assert_includes @response.body,
+      %(<turbo-stream action="replace" target="#{@frame}">)
+    assert_includes @response.body,
+      %(<turbo-stream action="replace" target="apartment_#{apartment.id}">)
+    assert_includes @response.body,
+      %(id="apartment_#{apartment.id}_photos_list_auto_header")
+    assert_match(
+      %r{/photos/new\?[^"]*parent_id=#{apartment.id}},
+      @response.body,
+      "expected the photos panel's new link for the created apartment"
+    )
+  end
 end

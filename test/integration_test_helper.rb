@@ -36,6 +36,19 @@ ActiveRecord::Schema.define do
     t.timestamps
   end
 
+  # Machine has_many :parts with an :associated panel (open-after-create).
+  create_table :machines, force: true do |t|
+    t.string :name
+    t.timestamps
+  end
+
+  create_table :parts, force: true do |t|
+    t.string  :name
+    t.integer :machine_id
+    t.timestamps
+  end
+  add_index :parts, :machine_id
+
   # PaperTrail (paper_trail 17.x shape).
   create_table :versions, force: true do |t|
     t.string   :item_type, null: false
@@ -60,6 +73,8 @@ class InlineFormsIntegrationTestCase < ActionDispatch::IntegrationTest
   setup do
     Widget.delete_all
     Kind.delete_all
+    Part.delete_all
+    Machine.delete_all
     PaperTrail::Version.delete_all
   end
 end

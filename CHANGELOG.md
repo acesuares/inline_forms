@@ -4,6 +4,18 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [8.1.39] - 2026-07-10
+
+### Added
+
+- **"Open after create"** (Option A of `stuff/2026-07-10-nested-creation-options.md`): a successful *top-level* create of a model whose attribute list contains an `:associated` (has_many) panel now responds with Turbo Streams that refresh the list **and** open the freshly created record's row. The user lands directly where the nested panel — which only exists on a persisted record — is usable (e.g. create an Apartment, immediately add Photos), instead of hunting for the new row in the closed list. Nested creates, models without `:associated` panels, failed saves, and clients without a turbo-stream Accept header keep the existing list-frame HTML responses. If the new record sorts onto a different page of the list, the row-open stream finds no target and degrades silently to the old list-refresh behavior. (`InlineFormsController#open_created_row?` / `#render_created_row_open_streams`.)
+- Engine test coverage: new dummy models `Machine`/`Part` (mirroring Apartment/Photo) plus `test/integration/open_after_create_test.rb` (stream response, html fallback, no-associated fallback, nested create unchanged, failed create unchanged). The dummy host app gained the minimal chrome the full `inline_forms` layout needs (current_user stub with `role?`, `application_name` helper, `_inline_forms_tabs` partial, empty `MODEL_TABS`, devise logout route stand-in), so create/new HTML flows are now testable in the fast engine suite at all.
+- Example-app test: `example_app_apartment_top_level_new_test.rb` verifies the turbo-stream create response opens the new Apartment's row with the photos panel and its "new photo" link.
+
+### Lockstep
+
+- validation_hints 8.1.39, inline_forms_installer 8.1.39 (no changes of their own).
+
 ## [8.1.38] - 2026-07-07
 
 ### Changed

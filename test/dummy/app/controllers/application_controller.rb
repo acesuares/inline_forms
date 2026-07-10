@@ -1,14 +1,21 @@
 # frozen_string_literal: true
 
 class ApplicationController < ActionController::Base
-  # Devise stand-ins: the engine only touches current_user in the full
-  # `layouts/inline_forms` chrome (header) and via PaperTrail's whodunnit,
-  # both of which tolerate nil. Integration tests use Turbo-Frame requests,
-  # which render through the minimal turbo_rails/frame layout.
+  # Devise/role stand-in. The full `layouts/inline_forms` chrome (rendered by
+  # create/new HTML responses) calls `current_user.name` and
+  # `current_user.role?`, so a nil current_user cannot render it. The stub is
+  # superadmin so `destroy_permitted?` allows hard destroy, matching the
+  # generated apps' test user.
+  DummyUser = Struct.new(:id, :name) do
+    def role?(role)
+      role.to_sym == :superadmin
+    end
+  end
+
   helper_method :current_user
 
   def current_user
-    nil
+    @current_user ||= DummyUser.new(1, "Dummy User")
   end
 
   def devise_controller?

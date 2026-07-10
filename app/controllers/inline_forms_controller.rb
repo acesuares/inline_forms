@@ -159,9 +159,15 @@ class InlineFormsController < ApplicationController
       end
       @objects = @objects.where(fk_conditions) if fk_conditions
       @objects = @objects.paginate(page: params[:page])
+      created_object = @object
       @object = nil
       respond_to do |format|
-        format.html { render_list_frame_after_save } if html_list_flow_allowed?
+        if html_list_flow_allowed?
+          if open_created_row?(created_object, attributes)
+            format.turbo_stream { render_created_row_open_streams(created_object) }
+          end
+          format.html { render_list_frame_after_save }
+        end
       end
     else
       flash.now[:header] = [ "Kan #{@object.class.to_s.underscore} niet aanmaken." ]
@@ -537,6 +543,44 @@ class InlineFormsController < ApplicationController
   def render_list_frame_after_save
     @ul_needed = true
     render "inline_forms/create_list_frame", layout: associated_list_frame_layout
+  end
+
+  # "Open after create" (stuff/2026-07-10-nested-creation-options.md, Option A).
+  #
+  # An `:associated` (has_many) panel only exists on a persisted record, so the
+  # new form hides it and the user historically had to find and reopen the
+  # record to add children. When a *top-level* create succeeds for a class
+  # whose attribute list has an `:associated` panel, respond with Turbo
+  # Streams that refresh the list *and* open the new record's row, landing the
+  # user where the nested panel (and its "new" link) is immediately usable.
+  #
+  # Nested creates are excluded (they already return to the parent's panel),
+  # and requests without a turbo-stream Accept header fall through to the
+  # plain list-frame response.
+  def open_created_row?(created_object, attributes)
+    return false if @parent_class.present?
+    attributes.any? { |_attribute, form_element, *| form_element.to_sym == :associated }
+  end
+
+  def render_created_row_open_streams(created_object)
+    list_frame_id = @update_span
+    @ul_needed = true
+    list_html = render_to_string(partial: "inline_forms/list", formats: [ :html ])
+
+    row_id = helpers.inline_forms_row_turbo_frame_id(created_object)
+    @object = created_object
+    @update_span = row_id
+    @inline_forms_turbo_row = true
+    row_html = render_to_string("inline_forms/row_show", layout: false, formats: [ :html ])
+
+    # Streams apply in order: the first inserts the fresh list (containing the
+    # new record's closed row frame), the second swaps that row open. If the
+    # new record sorted onto another page, the second replace finds no target
+    # and degrades silently to today's list-refresh behavior.
+    render turbo_stream: [
+      turbo_stream.replace(list_frame_id, list_html),
+      turbo_stream.replace(row_id, row_html)
+    ]
   end
 
   def associated_list_frame_layout
