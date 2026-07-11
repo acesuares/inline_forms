@@ -1,33 +1,44 @@
 # -*- encoding : utf-8 -*-
 
 module InlineForms
-  # Dev-only GUI to add a field to a model through the browser, building on the
-  # schema-staging services. Two kinds of addition:
+  # GUI to add a field to a model through the browser, building on the
+  # schema-staging services in inline_forms. Two ways to act on an intent:
   #
-  #  * a scalar field (text_field, integer_field, date_select, ...): apply runs
+  #  * DIRECT APPLY (dev only, the phase-0 flow): `create` runs
   #    inline_forms_addto in-process (model edit + migration file) but NOT
   #    db:migrate; the pending-migration gate covers the window.
-  #  * a :header (section separator): no column, so no migration at all — it
-  #    appears on the next reload with no db:migrate needed.
+  #  * BATCH DRAFTING (the pipeline flow): `draft` persists the intent into
+  #    the current draft SchemaBatch (the "cart"); `submit_batch` freezes it
+  #    for the automated pull -> CI -> deploy loop. Nothing is generated in
+  #    the request cycle.
   #
-  # Optionally writes a human label into config/locales/inline_forms_labels.
-  # <locale>.yml (via SchemaLabel) so the field/header renders friendly text.
-  #
-  # Authoring is confined to non-production (the sync guarantee: only a dev
-  # checkout authors; generated files land in the working tree and follow the
-  # normal commit -> deploy path). Mounted only in the example app + test dummy.
+  # Production posture: direct apply is NEVER available in production
+  # (production never writes code). Drafting is also non-production unless
+  # the app opts in (InlineFormsSchemaGui.production_drafting = true — the
+  # SaaS tenant case). The machine endpoints (export/batch_status) are
+  # token-authenticated and environment-independent, for the CI side.
   class SchemaController < InlineFormsApplicationController
-    # A section header: not a real column-backed field.
-    HEADER = "header"
+    HEADER = InlineFormsSchemaGui::IntentValidator::HEADER
 
     layout "inline_forms_schema"
 
-    before_action :require_non_production
-    before_action :load_form_options
+    skip_before_action :verify_authenticity_token, only: :batch_status, raise: false
+
+    before_action :require_non_production, only: :create
+    before_action :require_drafting_allowed, except: [ :create, :export, :batch_status ]
+    before_action :authenticate_pipeline_token!, only: [ :export, :batch_status ]
+    before_action :load_form_options, only: [ :new, :preview, :create, :draft ]
+    before_action :require_batch_tables, only: [ :index, :draft, :remove_draft, :submit_batch ]
 
     # Injectable so tests record instead of mutating the working tree.
     cattr_accessor :generator_executor
     cattr_accessor :label_writer
+
+    # The cart + batch history.
+    def index
+      @draft_batch = InlineForms::SchemaBatch.with_status(:draft).order(:id).first
+      @batches = InlineForms::SchemaBatch.where.not(status: "draft").order(id: :desc).limit(25)
+    end
 
     def new
       @intent_params = blank_intent_params
@@ -35,7 +46,7 @@ module InlineForms
 
     def preview
       @intent_params = intent_params
-      @error = validate_intent(@intent_params)
+      @error = InlineFormsSchemaGui::IntentValidator.error_for(@intent_params)
       return render(:new) if @error
 
       @intent    = build_intent(@intent_params)
@@ -45,11 +56,13 @@ module InlineForms
       else
         @preview, @attribute_list = InlineForms::SchemaPreview.build(@intent)
       end
+      @batching_available = batch_tables_present?
     end
 
+    # DIRECT APPLY (dev only): codegen into this checkout's tree.
     def create
       @intent_params = intent_params
-      @error = validate_intent(@intent_params)
+      @error = InlineFormsSchemaGui::IntentValidator.error_for(@intent_params)
       return render(:new) if @error
 
       @intent    = build_intent(@intent_params)
@@ -67,15 +80,108 @@ module InlineForms
       end
     end
 
+    # BATCH DRAFTING: persist the intent into the current draft batch.
+    def draft
+      @intent_params = intent_params
+      @error = InlineFormsSchemaGui::IntentValidator.error_for(@intent_params)
+      return render(:new) if @error
+
+      batch = InlineForms::SchemaBatch.current_draft
+      batch.intents.create!(
+        target_model: @intent_params[:model_name],
+        attr_name:    @intent_params[:attribute],
+        form_element: @intent_params[:form_element],
+        after_attr:   @intent_params[:after].presence,
+        label:        @intent_params[:label].presence,
+        locale:       @intent_params[:locale].presence
+      )
+      redirect_to inline_forms_schema_index_path
+    end
+
+    def remove_draft
+      intent = InlineForms::SchemaIntentRecord.find(params[:id])
+      if intent.batch&.draft?
+        intent.destroy
+        redirect_to inline_forms_schema_index_path
+      else
+        redirect_to inline_forms_schema_index_path, alert: "Batch is frozen."
+      end
+    end
+
+    def submit_batch
+      batch = InlineForms::SchemaBatch.current_draft
+      window = params[:window_at].presence && Time.zone.parse(params[:window_at])
+      batch.submit!(requested_by: requesting_identity, window_at: window)
+      redirect_to inline_forms_schema_index_path
+    rescue ArgumentError => e
+      redirect_to inline_forms_schema_index_path, alert: e.message
+    end
+
+    # MACHINE ENDPOINT (token): the frozen batch as JSON for the CI side.
+    def export
+      batch = InlineForms::SchemaBatch.find(params[:id])
+      return render(json: { error: "batch is still a draft" }, status: :conflict) if batch.draft?
+
+      render json: InlineFormsSchemaGui::BatchExport.payload(batch)
+    end
+
+    # MACHINE ENDPOINT (token): CI reports progress back.
+    # Params: status (processing|ready|applied|failed), git_sha, error.
+    def batch_status
+      batch = InlineForms::SchemaBatch.find(params[:id])
+      batch.transition!(params[:status].to_s, git_sha: params[:git_sha].presence, error: params[:error].presence)
+      render json: { id: batch.id, status: batch.status }
+    rescue ArgumentError => e
+      render json: { error: e.message }, status: :unprocessable_entity
+    end
+
     private
 
     def require_non_production
       head :not_found if Rails.env.production?
     end
 
+    def require_drafting_allowed
+      return unless Rails.env.production?
+
+      head :not_found unless InlineFormsSchemaGui.production_drafting
+    end
+
+    # 404 when unconfigured (don't advertise the endpoint), 401 on mismatch.
+    def authenticate_pipeline_token!
+      configured = InlineFormsSchemaGui.export_token
+      return head(:not_found) if configured.blank?
+
+      provided = request.headers["Authorization"].to_s[/\ABearer (.+)\z/, 1] || params[:token].to_s
+      unless ActiveSupport::SecurityUtils.secure_compare(configured, provided.to_s)
+        head :unauthorized
+      end
+    end
+
+    def batch_tables_present?
+      InlineForms::SchemaBatch.table_exists? && InlineForms::SchemaIntentRecord.table_exists?
+    rescue StandardError
+      false
+    end
+
+    def require_batch_tables
+      return if batch_tables_present?
+
+      render plain: "Schema-GUI batch tables missing. Run: bin/rails g inline_forms_schema_gui:install && bin/rails db:migrate",
+             status: :service_unavailable
+    end
+
+    def requesting_identity
+      return nil unless respond_to?(:current_user, true)
+
+      current_user&.email
+    rescue StandardError
+      nil
+    end
+
     def load_form_options
       @form_elements = InlineForms::SchemaPreview.supported_form_elements
-      @models        = candidate_models
+      @models        = InlineFormsSchemaGui::IntentValidator.candidate_models
       @locales       = I18n.available_locales.map(&:to_s)
       @default_locale = I18n.default_locale.to_s
     end
@@ -117,52 +223,6 @@ module InlineForms
         locale: @intent_params[:locale]
       )
       @label_basename = @label_path && File.basename(@label_path.to_s)
-    end
-
-    # Returns an error string, or nil when the params are usable.
-    def validate_intent(p)
-      return "Choose a model." if p[:model_name].blank?
-      return "Enter an attribute name." if p[:attribute].blank?
-      unless p[:attribute].match?(/\A[a-z_][a-z0-9_]*\z/)
-        return "Attribute name must be lowercase letters, digits and underscores (e.g. internal_note)."
-      end
-
-      allowed = @form_elements.map(&:to_s) + [ HEADER ]
-      return "Unsupported form element #{p[:form_element].inspect}." unless allowed.include?(p[:form_element])
-
-      klass = safe_model_class(p[:model_name])
-      return "Unknown model #{p[:model_name].inspect}." unless klass
-      unless model_usable?(klass)
-        return "#{p[:model_name]} is not an inline_forms model (no inline_forms_attribute_list)."
-      end
-      # A header has no column, so the column-collision check does not apply.
-      if p[:form_element] != HEADER && klass.column_names.include?(p[:attribute])
-        return "#{p[:model_name]} already has a #{p[:attribute]} column."
-      end
-
-      nil
-    end
-
-    def safe_model_class(name)
-      klass = name.safe_constantize
-      klass if klass.is_a?(Class) && klass < ActiveRecord::Base
-    rescue StandardError
-      nil
-    end
-
-    def model_usable?(klass)
-      !klass.abstract_class? &&
-        klass.instance_methods.include?(:inline_forms_attribute_list) &&
-        klass.respond_to?(:column_names)
-    rescue StandardError
-      false
-    end
-
-    def candidate_models
-      ActiveRecord::Base.descendants.select { |k| model_usable?(k) && k.name.present? }
-                        .map(&:name).uniq.sort
-    rescue StandardError
-      []
     end
   end
 end

@@ -44,14 +44,30 @@
 <% end %>
 
 <div class="actions">
-  <%= form_tag inline_forms_schema_path, method: :post, data: { turbo: false } do %>
-    <input type="hidden" name="model_name"   value="<%= @intent.model_name %>" />
-    <input type="hidden" name="attribute"    value="<%= @intent.attribute %>" />
-    <input type="hidden" name="form_element" value="<%= @intent.form_element %>" />
-    <input type="hidden" name="after"        value="<%= @intent.after %>" />
-    <input type="hidden" name="label"        value="<%= @intent_params[:label] %>" />
-    <input type="hidden" name="locale"       value="<%= @intent_params[:locale] %>" />
-    <%= submit_tag(@is_header ? "Apply (add header, no migration)" : "Apply (generate migration, no db:migrate)") %>
+  <% unless Rails.env.production? %>
+    <%= form_tag inline_forms_schema_path, method: :post, data: { turbo: false } do %>
+      <input type="hidden" name="model_name"   value="<%= @intent.model_name %>" />
+      <input type="hidden" name="attribute"    value="<%= @intent.attribute %>" />
+      <input type="hidden" name="form_element" value="<%= @intent.form_element %>" />
+      <input type="hidden" name="after"        value="<%= @intent.after %>" />
+      <input type="hidden" name="label"        value="<%= @intent_params[:label] %>" />
+      <input type="hidden" name="locale"       value="<%= @intent_params[:locale] %>" />
+      <%= submit_tag(@is_header ? "Apply (add header, no migration)" : "Apply (generate migration, no db:migrate)") %>
+    <% end %>
   <% end %>
-  <p><%= link_to "Back to edit", inline_forms_schema_new_path %></p>
+
+  <% if @batching_available %>
+    <%= form_tag inline_forms_schema_draft_path, method: :post, data: { turbo: false } do %>
+      <input type="hidden" name="model_name"   value="<%= @intent.model_name %>" />
+      <input type="hidden" name="attribute"    value="<%= @intent.attribute %>" />
+      <input type="hidden" name="form_element" value="<%= @intent.form_element %>" />
+      <input type="hidden" name="after"        value="<%= @intent.after %>" />
+      <input type="hidden" name="label"        value="<%= @intent_params[:label] %>" />
+      <input type="hidden" name="locale"       value="<%= @intent_params[:locale] %>" />
+      <%= submit_tag "Add to batch (draft — applies via the pipeline)" %>
+    <% end %>
+  <% end %>
+
+  <p><%= link_to "Back to edit", inline_forms_schema_new_path %>
+     &middot; <%= link_to "Batches", inline_forms_schema_index_path %></p>
 </div>

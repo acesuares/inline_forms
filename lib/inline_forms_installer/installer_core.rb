@@ -855,10 +855,16 @@ copy_file File.join(INSTALLER_ROOT,'lib/installer_templates/unicorn/production.r
 # Applies inline_forms_addto through the browser; does NOT run db:migrate.
 # Must precede the example section: its test gate exercises these routes.
 if ENV['install_schema_gui'] == 'true'
-  say "- Schema GUI: routes + nav link..."
-  route 'get  "schema/new",     to: "inline_forms/schema#new",     as: :inline_forms_schema_new'
-  route 'post "schema/preview", to: "inline_forms/schema#preview", as: :inline_forms_schema_preview'
-  route 'post "schema",         to: "inline_forms/schema#create",  as: :inline_forms_schema'
+  say "- Schema GUI: routes + nav link + batch tables..."
+  # One line: the gem owns its route set, so gem upgrades can add routes
+  # without editing the app's routes.rb.
+  route 'InlineFormsSchemaGui.draw_routes(self)'
+
+  # Batch-pipeline tables (drafted intents + batches). The generator writes
+  # the migration; migrate here for sqlite (mysql apps migrate by hand, same
+  # policy as the main install).
+  run "bundle exec rails g inline_forms_schema_gui:install"
+  run "bundle exec rake db:migrate" if ENV['using_sqlite'] == 'true'
 
   if File.exist?("app/views/_inline_forms_tabs.html.erb")
     inject_into_file "app/views/_inline_forms_tabs.html.erb",

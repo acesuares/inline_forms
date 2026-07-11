@@ -58,6 +58,35 @@ ActiveRecord::Schema.define do
     t.timestamps
   end
 
+  # Schema-GUI batch pipeline (inline_forms_schema_gui). Mirrors the gem's
+  # install-generator migration.
+  create_table :inline_forms_schema_batches, force: true do |t|
+    t.string   :status, null: false, default: "draft"
+    t.string   :requested_by
+    t.datetime :submitted_at
+    t.datetime :window_at
+    t.datetime :applied_at
+    t.string   :git_sha
+    t.string   :content_digest
+    t.text     :error
+    t.timestamps
+  end
+  add_index :inline_forms_schema_batches, :status
+
+  create_table :inline_forms_schema_intents, force: true do |t|
+    t.references :batch, null: false, index: true
+    t.string  :target_model, null: false
+    t.string  :attr_name, null: false
+    t.string  :form_element, null: false
+    t.string  :after_attr
+    t.string  :before_attr
+    t.string  :label
+    t.string  :locale
+    t.integer :position
+    t.string  :migration_version
+    t.timestamps
+  end
+
   # PaperTrail (paper_trail 17.x shape).
   create_table :versions, force: true do |t|
     t.string   :item_type, null: false
@@ -86,5 +115,7 @@ class InlineFormsIntegrationTestCase < ActionDispatch::IntegrationTest
     Machine.delete_all
     Gizmo.delete_all
     PaperTrail::Version.delete_all
+    InlineForms::SchemaIntentRecord.delete_all
+    InlineForms::SchemaBatch.delete_all
   end
 end

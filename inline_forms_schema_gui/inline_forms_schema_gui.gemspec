@@ -16,7 +16,7 @@ Gem::Specification.new do |s|
   s.required_ruby_version = ">= 4.0.0"
 
   s.files = Dir.chdir(File.expand_path(__dir__)) do
-    Dir["{app,lib}/**/*", "CHANGELOG.md"].select { |f| File.file?(f) }
+    Dir["{app,doc,lib}/**/*", "CHANGELOG.md"].select { |f| File.file?(f) }
   end
   s.require_paths = [ "lib" ]
 

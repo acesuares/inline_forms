@@ -1,0 +1,63 @@
+<% if flash[:alert].present? %>
+  <p class="error"><%= flash[:alert] %></p>
+<% end %>
+
+<h2>Draft batch (the cart)</h2>
+<% if @draft_batch && @draft_batch.intents.any? %>
+  <table class="schema_list">
+    <thead><tr><th>#</th><th>Model</th><th>Attribute</th><th>Element</th><th>Label</th><th></th></tr></thead>
+    <tbody>
+      <% @draft_batch.intents.each do |intent| %>
+        <tr>
+          <td><%= intent.position %></td>
+          <td><%= intent.target_model %></td>
+          <td><code><%= intent.attr_name %></code><%= " (after #{intent.after_attr})" if intent.after_attr.present? %></td>
+          <td><%= intent.form_element %></td>
+          <td><%= intent.label %></td>
+          <td>
+            <%= form_tag inline_forms_schema_remove_draft_path(intent), method: :delete, data: { turbo: false } do %>
+              <%= submit_tag "remove" %>
+            <% end %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+
+  <%= form_tag inline_forms_schema_submit_batch_path, method: :post, data: { turbo: false } do %>
+    <label for="window_at">Apply window (optional; blank = next default window)</label>
+    <input type="datetime-local" name="window_at" id="window_at" />
+    <div class="actions">
+      <%= submit_tag "Submit batch (freezes it)" %>
+    </div>
+  <% end %>
+  <p class="muted">Submitting freezes the batch: no more edits. The pipeline picks
+    it up, generates the code on a checkout, runs the test gate, and applies it in
+    the chosen window. New drafts go into a fresh batch.</p>
+<% else %>
+  <p class="muted">No drafted changes. <%= link_to "Add a field", inline_forms_schema_new_path %>.</p>
+<% end %>
+
+<h2>Batch history</h2>
+<% if @batches.any? %>
+  <table class="schema_list">
+    <thead><tr><th>Batch</th><th>Status</th><th>Submitted</th><th>Window</th><th>Fields</th><th>Git</th><th>Error</th></tr></thead>
+    <tbody>
+      <% @batches.each do |batch| %>
+        <tr>
+          <td>#<%= batch.id %></td>
+          <td><strong><%= batch.status %></strong></td>
+          <td><%= batch.submitted_at&.strftime("%F %R") %></td>
+          <td><%= batch.window_at ? batch.window_at.strftime("%F %R") : "next window" %></td>
+          <td><%= batch.intents.map { |i| "#{i.target_model}##{i.attr_name}" }.join(", ") %></td>
+          <td><code><%= batch.git_sha.to_s.first(10) %></code></td>
+          <td class="muted"><%= batch.error.to_s.truncate(120) %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+<% else %>
+  <p class="muted">No submitted batches yet.</p>
+<% end %>
+
+<p><%= link_to "Add a field", inline_forms_schema_new_path %></p>
