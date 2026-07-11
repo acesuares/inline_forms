@@ -49,6 +49,15 @@ ActiveRecord::Schema.define do
   end
   add_index :parts, :machine_id
 
+  # Gizmo intentionally has NO `pending_note` column: its attribute_list
+  # references one, modeling the inline_forms_addto pre-migrate window that
+  # InlineForms.attribute_pending_migration? gates. See
+  # test/integration/pending_migration_gate_test.rb.
+  create_table :gizmos, force: true do |t|
+    t.string :name
+    t.timestamps
+  end
+
   # PaperTrail (paper_trail 17.x shape).
   create_table :versions, force: true do |t|
     t.string   :item_type, null: false
@@ -75,6 +84,7 @@ class InlineFormsIntegrationTestCase < ActionDispatch::IntegrationTest
     Kind.delete_all
     Part.delete_all
     Machine.delete_all
+    Gizmo.delete_all
     PaperTrail::Version.delete_all
   end
 end

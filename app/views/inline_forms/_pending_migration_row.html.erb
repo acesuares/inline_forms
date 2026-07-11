@@ -1,0 +1,15 @@
+<%# Rendered in place of a field whose column does not exist yet (the model
+    file has the attribute_list row but its migration has not run). Read-only,
+    harmless, self-explanatory — see InlineForms.attribute_pending_migration?. %>
+<div class="row pending_migration_row <%= cycle('odd', 'even') %>">
+  <div class='medium-5 large-5 column'>
+    <%= render partial: "inline_forms/attribute_label",
+          locals: { object: object, attribute: attribute } -%>
+  </div>
+  <div class='medium-7 large-7 column'>
+    <span class="pending_migration_notice">
+      <%= t("inline_forms.pending_migration.notice",
+            default: "pending migration \u2014 run rails db:migrate") -%>
+    </span>
+  </div>
+</div>
