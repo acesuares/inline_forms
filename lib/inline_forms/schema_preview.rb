@@ -89,6 +89,13 @@ module InlineForms
       list    = InlineForms::AttributeList.wrap(current.map(&:dup))
       opts    = { values: intent.values, disabled: intent.disabled }.compact
 
+      # Value-bearing choice elements need a values hash or their _edit/_show
+      # helper raises. Mirror the addto generator: inject a placeholder the user
+      # edits after apply (so preview and apply produce the same row).
+      if opts[:values].nil? && InlineForms::VALUE_BEARING_FORM_ELEMENTS.include?(intent.form_element)
+        opts[:values] = InlineForms::PLACEHOLDER_VALUES
+      end
+
       if intent.after && list.include_attribute?(intent.after)
         list.insert_after(intent.after, intent.attribute, intent.form_element, **opts)
       elsif intent.before && list.include_attribute?(intent.before)

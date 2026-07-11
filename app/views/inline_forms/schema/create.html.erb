@@ -31,6 +31,14 @@
     <p class="notice">Ran the generator for <code><%= @intent.generator_args.join(" ") %></code>.</p>
   <% end %>
 
+  <% if InlineForms::VALUE_BEARING_FORM_ELEMENTS.include?(@intent.form_element) %>
+    <p class="notice">
+      Choice element: a placeholder values hash was inserted. Edit the
+      <code>[ :<%= @intent.attribute %>, :<%= @intent.form_element %>, { ... } ]</code>
+      row in the model to your real values.
+    </p>
+  <% end %>
+
   <p class="notice">
     <strong>Heads up (development):</strong> Rails now blocks every page with a
     <code>PendingMigrationError</code> until this migration is applied. That is

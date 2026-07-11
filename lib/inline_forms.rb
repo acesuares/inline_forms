@@ -111,6 +111,25 @@ module InlineForms
     plain_text_area
   ].freeze
 
+  # Form elements that render a set of choices and therefore REQUIRE a values
+  # hash as the 3rd element of their attribute_list row (their _show/_edit
+  # helpers call `attribute_values`, which raises when it is missing). Shared by
+  # the addto generator and the schema GUI/preview so both insert a placeholder.
+  VALUE_BEARING_FORM_ELEMENTS = %i[
+    dropdown_with_values
+    dropdown_with_integers
+    dropdown_with_values_with_stars
+    radio_button
+    check_box
+    scale_with_integers
+    scale_with_values
+    slider_with_values
+  ].freeze
+
+  # Placeholder values hash inserted when a value-bearing element is added
+  # programmatically (generator / GUI); the user edits it to real values after.
+  PLACEHOLDER_VALUES = { 1 => "one", 2 => "two" }.freeze
+
   def self.plain_text_form_element?(form_element)
     PLAIN_TEXT_FORM_ELEMENTS.include?(form_element.to_sym)
   rescue NoMethodError

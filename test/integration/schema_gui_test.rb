@@ -98,6 +98,15 @@ class SchemaGuiTest < InlineFormsIntegrationTestCase
     assert_includes response.body, "Unsupported form element"
   end
 
+  test "a value-bearing element previews with a placeholder values hash (no raise)" do
+    post inline_forms_schema_preview_path,
+         params: { model_name: "Widget", attribute: "rank",
+                   form_element: "dropdown_with_values_with_stars", after: "name" }
+    assert_response :success
+    assert_includes response.body, "rank (new)"
+    assert_includes response.body, "placeholder values hash"
+  end
+
   test "invalid input re-renders the form with an error" do
     post inline_forms_schema_preview_path,
          params: { model_name: "Widget", attribute: "Bad Name", form_element: "text_field" }

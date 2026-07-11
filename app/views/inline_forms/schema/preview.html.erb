@@ -29,6 +29,13 @@
   <div class="schema_field_preview">
     <%= send("#{@intent.form_element}_edit", @preview, @intent.attribute) %>
   </div>
+  <% if InlineForms::VALUE_BEARING_FORM_ELEMENTS.include?(@intent.form_element) %>
+    <p class="notice">
+      This is a choice element: a placeholder values hash
+      <code>{ 1 =&gt; 'one', 2 =&gt; 'two' }</code> is used. After applying, edit
+      the row in the model to your real values.
+    </p>
+  <% end %>
 <% end %>
 
 <% if @intent_params[:label].present? %>

@@ -36,16 +36,9 @@ class InlineFormsAddtoGenerator < Rails::Generators::NamedBase
     # Form elements that render a set of choices and therefore need a values
     # hash as the 3rd element of their attribute_list row. Emitting the bare
     # 2-element row for these raises at show time, so we insert a placeholder
-    # hash and warn the user to fill it in.
-    VALUE_BEARING_ELEMENTS = %i[
-      dropdown_with_values
-      dropdown_with_integers
-      dropdown_with_values_with_stars
-      radio_button
-      check_box
-      scale_with_integers
-      scale_with_values
-    ].freeze
+    # hash and warn the user to fill it in. Canonical list lives in InlineForms
+    # (shared with the schema GUI/preview).
+    VALUE_BEARING_ELEMENTS = InlineForms::VALUE_BEARING_FORM_ELEMENTS
 
     # attribute_list rows whose form element (or name) marks the start of the
     # trailing "metadata" block. The smart-default placement inserts new rows
