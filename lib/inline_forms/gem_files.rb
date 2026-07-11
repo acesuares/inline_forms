@@ -9,6 +9,13 @@ module InlineFormsGemFiles
     inline_forms_installer.gemspec
   ].freeze
 
+  # The schema-GUI gem lives in its own subdirectory with its own gemspec
+  # (inline_forms_schema_gui/inline_forms_schema_gui.gemspec) and packages
+  # its files itself; exclude the whole subtree from BOTH gems here.
+  SCHEMA_GUI_FILE_PREFIXES = %w[
+    inline_forms_schema_gui/
+  ].freeze
+
   module_function
 
   REPO_ROOT = File.expand_path("../..", __dir__)
@@ -31,6 +38,10 @@ module InlineFormsGemFiles
       end
 
     files.select! { |f| File.file?(File.join(REPO_ROOT, f)) }
+
+    files.reject! do |f|
+      SCHEMA_GUI_FILE_PREFIXES.any? { |prefix| f == prefix || f.start_with?(prefix) }
+    end
 
     files.reject do |f|
       installer_file = INSTALLER_FILE_PREFIXES.any? { |prefix| f == prefix || f.start_with?(prefix) }

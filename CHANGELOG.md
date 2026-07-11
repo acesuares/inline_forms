@@ -4,6 +4,18 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+### Changed
+
+- **Schema-change GUI extracted into its own gem** (`inline_forms_schema_gui`,
+  same repo, own gemspec; phase 0 of
+  `stuff/2026-07-11-schema-gui-gem-and-automated-pipeline-plan.md`).
+  `InlineForms::SchemaController`, its views and the `inline_forms_schema`
+  layout move out of the engine; the staging services (`SchemaIntent`,
+  `SchemaPreview`, `SchemaApply`, `SchemaLabel`) stay. The installer gains a
+  `--schema-gui` flag (default off, implied by `--example`) that adds the gem
+  to the generated Gemfile and wires the schema routes + "+ field" nav link;
+  apps created without it ship no schema-GUI surface at all.
+
 ## [8.1.41] - 2026-07-11
 
 ### Changed

@@ -16,6 +16,9 @@ require "action_view/railtie"
 Bundler.require(*Rails.groups)
 
 require "inline_forms"
+# The schema-GUI engine (separate gem, same repo; on the load path via the
+# Gemfile's test group). Its integration tests live in test/integration/.
+require "inline_forms_schema_gui"
 
 module Dummy
   class Application < Rails::Application

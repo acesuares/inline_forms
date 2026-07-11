@@ -13,6 +13,10 @@ group :test do
   gem "will_paginate", "~> 4.0"
   gem "paper_trail", "~> 17.0"
   gem "turbo-rails"
+  # The schema-GUI engine gem (same repo, own gemspec). Test group so the
+  # dummy app's `Bundler.require(*Rails.groups)` loads it and the engine's
+  # schema_gui integration tests exercise the extracted controller/views.
+  gem "inline_forms_schema_gui", path: "inline_forms_schema_gui"
 end
 
 group :development, :test do

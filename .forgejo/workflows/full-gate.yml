@@ -33,17 +33,19 @@ jobs:
           token: ${{ secrets.VALIDATION_HINTS }}
           path: validation_hints
 
-      - name: Build the three gems
+      - name: Build the four gems
         run: |
           cd validation_hints && gem build validation_hints.gemspec && cd ..
           cd inline_forms && gem build inline_forms.gemspec && gem build inline_forms_installer.gemspec
+          cd inline_forms_schema_gui && gem build inline_forms_schema_gui.gemspec
 
       - name: Install built gems
         run: |
           gem install --no-document \
             validation_hints/validation_hints-*.gem \
             inline_forms/inline_forms-*.gem \
-            inline_forms/inline_forms_installer-*.gem
+            inline_forms/inline_forms_installer-*.gem \
+            inline_forms/inline_forms_schema_gui/inline_forms_schema_gui-*.gem
 
       # The installer git-inits the generated app and makes an initial commit
       # (installer_core.rb: `git add .` + `git commit`); a bare container has

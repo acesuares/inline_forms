@@ -45,7 +45,7 @@ def install_prerelease_gems_from_roots!
   roots.uniq!
   return if roots.empty?
 
-  %w[validation_hints inline_forms inline_forms_installer].each do |name|
+  %w[validation_hints inline_forms inline_forms_installer inline_forms_schema_gui].each do |name|
     # Pick the *highest version*, not the highest filename. String sort
     # placed `inline_forms-8.1.7.gem` above `inline_forms-8.1.10.gem`
     # because "7" > "1" lexicographically — silently picking up a stale
@@ -62,7 +62,13 @@ def install_prerelease_gems_from_roots!
     # the exact shape that bit us between 8.1.6 (default gemset's
     # highest installer) and 8.1.10.
     candidates = roots.flat_map { |root|
-      Dir[File.join(root, "#{name}-*.gem"), File.join(root, "pkg", "#{name}-*.gem")]
+      # inline_forms_schema_gui lives in a subdirectory of the inline_forms
+      # checkout with its own pkg/; glob both layouts for every name (the
+      # extra patterns simply match nothing for the root-level gems).
+      Dir[File.join(root, "#{name}-*.gem"),
+          File.join(root, "pkg", "#{name}-*.gem"),
+          File.join(root, name, "#{name}-*.gem"),
+          File.join(root, name, "pkg", "#{name}-*.gem")]
     }
     gem_file = candidates.max_by do |path|
       ver_str = File.basename(path, ".gem").sub(/\A#{Regexp.escape(name)}-/, "")
@@ -118,6 +124,18 @@ if ENV["INLINE_FORMS_GEMFILE_PATH"] && File.directory?(ENV["INLINE_FORMS_GEMFILE
   gem "inline_forms", path: ENV["INLINE_FORMS_GEMFILE_PATH"]
 else
   gem "inline_forms", "~> 8"
+end
+# Schema-change GUI (separate mountable engine gem): only when requested via
+# `--schema-gui` (implied by `--example`). Apps that never change their own
+# schema ship without this surface entirely.
+if ENV["install_schema_gui"] == "true"
+  schema_gui_path = ENV["INLINE_FORMS_GEMFILE_PATH"] &&
+                    File.join(ENV["INLINE_FORMS_GEMFILE_PATH"], "inline_forms_schema_gui")
+  if schema_gui_path && File.directory?(schema_gui_path)
+    gem "inline_forms_schema_gui", path: schema_gui_path
+  else
+    gem "inline_forms_schema_gui", "~> 8"
+  end
 end
 # jQuery is required by Foundation 6's JS only. jQuery UI is fully gone since
 # 8.1.26 (native date/time/month inputs in 8.1.25; datalist combobox + range
@@ -831,6 +849,26 @@ copy_file File.join(INSTALLER_ROOT,'lib/installer_templates/capistrano/Capfile')
 say "- Unicorn Config..."
 copy_file File.join(INSTALLER_ROOT,'lib/installer_templates/unicorn/production.rb'), "config/unicorn/production.rb"
 
+# Schema-change GUI (dev-only authoring; InlineForms::SchemaController from
+# the inline_forms_schema_gui gem). Wired only when requested via
+# `--schema-gui` (implied by `--example`): routes + a "+ field" nav link.
+# Applies inline_forms_addto through the browser; does NOT run db:migrate.
+# Must precede the example section: its test gate exercises these routes.
+if ENV['install_schema_gui'] == 'true'
+  say "- Schema GUI: routes + nav link..."
+  route 'get  "schema/new",     to: "inline_forms/schema#new",     as: :inline_forms_schema_new'
+  route 'post "schema/preview", to: "inline_forms/schema#preview", as: :inline_forms_schema_preview'
+  route 'post "schema",         to: "inline_forms/schema#create",  as: :inline_forms_schema'
+
+  if File.exist?("app/views/_inline_forms_tabs.html.erb")
+    inject_into_file "app/views/_inline_forms_tabs.html.erb",
+                     "        <li class=\"menu-text\">\n" \
+                     "          <a href=\"/schema/new\" data-turbo=\"false\" title=\"Add a field to a model (dev only)\">+ field</a>\n" \
+                     "        </li>\n",
+                     before: "      </ul>\n    </div>\n    <div class=\"top-bar-right\">"
+  end
+end
+
 # Git
 say "- adding and committing to git..."
 
@@ -1516,23 +1554,6 @@ if ENV['install_example'] == 'true'
   end
 
   route 'get "apartments/name_list", to: "apartments#name_list", as: :apartment_name_list'
-
-  # Schema-change GUI (dev-only; InlineForms::SchemaController). Mounted only in
-  # the example app to demonstrate adding a scalar attribute through the browser
-  # (runs inline_forms_addto; does NOT run db:migrate). Not wired into real
-  # generated apps.
-  say "- Schema GUI: routes + nav link (example app only)..."
-  route 'get  "schema/new",     to: "inline_forms/schema#new",     as: :inline_forms_schema_new'
-  route 'post "schema/preview", to: "inline_forms/schema#preview", as: :inline_forms_schema_preview'
-  route 'post "schema",         to: "inline_forms/schema#create",  as: :inline_forms_schema'
-
-  if File.exist?("app/views/_inline_forms_tabs.html.erb")
-    inject_into_file "app/views/_inline_forms_tabs.html.erb",
-                     "        <li class=\"menu-text\">\n" \
-                     "          <a href=\"/schema/new\" data-turbo=\"false\" title=\"Add a field to a model (dev only)\">+ field</a>\n" \
-                     "        </li>\n",
-                     before: "      </ul>\n    </div>\n    <div class=\"top-bar-right\">"
-  end
 
   route "root :to => 'apartments#index'"
 
