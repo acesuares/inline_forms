@@ -11,17 +11,22 @@
   </p>
 <% end %>
 
+<p class="notice">
+  <strong>Heads up (development):</strong> Rails now blocks every page with a
+  <code>PendingMigrationError</code> until this migration is applied. That is
+  Rails&rsquo; own check, not inline_forms &mdash; it is your cue to migrate.
+</p>
+
 <h2>Next steps (you run these)</h2>
 <ol>
   <li>Review the changes: <code>git status</code> / <code>git diff</code></li>
-  <li>Apply the migration: <code>bundle exec rails db:migrate</code></li>
+  <li>Apply the migration: <code>bin/rails db:migrate</code></li>
   <li>Restart the server so the new column is picked up.</li>
+  <li>Commit the generated files so the change flows through git to every environment.</li>
 </ol>
 <p class="muted">
-  Until you migrate, <code><%= @intent.attribute %></code> shows as a
-  &ldquo;pending migration&rdquo; placeholder on the model&rsquo;s page (it does
-  not error). Commit the generated files so the change flows through git to
-  every environment.
+  After migrating and restarting, add another field at
+  <code>/schema/new</code>. (The per-field &ldquo;pending migration&rdquo;
+  placeholder only applies where Rails&rsquo; global check is off &mdash;
+  production/staging &mdash; or once you have migrated here.)
 </p>
-
-<p><%= link_to "Add another field", inline_forms_schema_new_path %></p>

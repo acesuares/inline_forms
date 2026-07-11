@@ -18,6 +18,18 @@ class SchemaGuiTest < InlineFormsIntegrationTestCase
     assert_includes response.body, "Form element"
     assert_includes response.body, "text_field"
     assert_includes response.body, "Preview"
+    # data-turbo opt-out so the standalone utility navigates on POST
+    assert_includes response.body, %(data-turbo="false")
+  end
+
+  test "header and info are not offered as addable fields" do
+    refute_includes InlineForms::SchemaPreview.supported_form_elements, :header
+    refute_includes InlineForms::SchemaPreview.supported_form_elements, :info
+
+    post inline_forms_schema_preview_path,
+         params: { model_name: "Widget", attribute: "frokl", form_element: "header" }
+    assert_response :success
+    assert_includes response.body, "Unsupported form element"
   end
 
   test "preview shows the field at the right position with no migration" do

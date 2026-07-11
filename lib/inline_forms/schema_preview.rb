@@ -35,12 +35,16 @@ module InlineForms
       timestamp: :datetime
     }.freeze
 
-    # Column-backed elements a virtual attribute alone cannot faithfully
-    # preview: uploaders need a mounted CarrierWave uploader; money_field a
-    # monetize declaration; devise_password_field a Devise model; pdf_link a
-    # route. The stab reports these as unsupported so a caller shows an
-    # "available after apply" placeholder instead of a broken field.
+    # Form elements the GUI must not offer as "add a scalar field":
+    #  * :header / :info are not real fields — :header is a display-only
+    #    separator (adding one via addto would create a pointless string
+    #    column), :info is read-only over an existing column.
+    #  * uploaders need a mounted CarrierWave uploader; :money_field a
+    #    monetize declaration; :devise_password_field a Devise model; :pdf_link
+    #    a route — a virtual attribute alone cannot faithfully preview them.
     PREVIEW_UNSUPPORTED_FORM_ELEMENTS = %i[
+      header
+      info
       image_field
       audio_field
       file_field
