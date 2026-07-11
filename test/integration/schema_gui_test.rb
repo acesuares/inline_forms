@@ -8,6 +8,7 @@ require_relative "../integration_test_helper"
 class SchemaGuiTest < InlineFormsIntegrationTestCase
   def teardown
     InlineForms::SchemaController.generator_executor = nil
+    InlineForms::SchemaController.label_writer = nil
     super
   end
 
@@ -22,14 +23,55 @@ class SchemaGuiTest < InlineFormsIntegrationTestCase
     assert_includes response.body, %(data-turbo="false")
   end
 
-  test "header and info are not offered as addable fields" do
+  test "info is not offered and is rejected; header is not a scalar field" do
     refute_includes InlineForms::SchemaPreview.supported_form_elements, :header
     refute_includes InlineForms::SchemaPreview.supported_form_elements, :info
 
     post inline_forms_schema_preview_path,
-         params: { model_name: "Widget", attribute: "frokl", form_element: "header" }
+         params: { model_name: "Widget", attribute: "meta", form_element: "info" }
     assert_response :success
     assert_includes response.body, "Unsupported form element"
+  end
+
+  test "header preview adds a no-column row (no migration, no widget)" do
+    post inline_forms_schema_preview_path,
+         params: { model_name: "Widget", attribute: "section_title",
+                   form_element: "header", after: "name", label: "Section" }
+    assert_response :success
+    assert_includes response.body, "no column, no migration"
+    assert_includes response.body, "section_title (new)"
+    # header shows its label, not an input widget
+    assert_includes response.body, "Section"
+    refute_includes response.body, %(name="section_title")
+    refute_includes Widget.column_names, "section_title"
+  end
+
+  test "header apply invokes the generator without a column (no migration)" do
+    recorded = []
+    InlineForms::SchemaController.generator_executor = ->(args, _root) { recorded << args }
+
+    post inline_forms_schema_path,
+         params: { model_name: "Widget", attribute: "section_title", form_element: "header" }
+    assert_response :success
+    assert_includes response.body, "header"
+    assert_includes response.body, "no migration"
+    assert_equal [ "Widget", "section_title:header" ], recorded.first
+  end
+
+  test "a label is written through the injected label writer" do
+    recorded = []
+    InlineForms::SchemaController.generator_executor = ->(_args, _root) { }
+    InlineForms::SchemaController.label_writer = ->(**kw) { recorded << kw; "/tmp/inline_forms_labels.en.yml" }
+
+    post inline_forms_schema_path,
+         params: { model_name: "Widget", attribute: "section_title", form_element: "header",
+                   label: "Section", locale: "en" }
+    assert_response :success
+    assert_includes response.body, "Wrote label"
+    assert_equal 1, recorded.size
+    assert_equal :section_title, recorded.first[:attribute]
+    assert_equal "Section", recorded.first[:label]
+    assert_equal "en", recorded.first[:locale]
   end
 
   test "preview shows the field at the right position with no migration" do

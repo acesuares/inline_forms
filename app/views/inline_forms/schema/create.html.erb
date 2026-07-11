@@ -1,32 +1,49 @@
 <h2>Applied: <code><%= @intent.attribute %>:<%= @intent.form_element %></code> on <code><%= @intent.model_name %></code></h2>
 
-<% if @migration_basename %>
+<% if @label_basename %>
   <p class="notice">
-    Generated migration <code><%= @migration_basename %></code> and edited
-    <code>app/models/<%= @intent.model_name.underscore %>.rb</code>.
-  </p>
-<% else %>
-  <p class="notice">
-    Ran the generator for <code><%= @intent.generator_args.join(" ") %></code>.
+    Wrote label <code><%= @intent_params[:label] %></code> (locale
+    <code><%= @intent_params[:locale] %></code>) to
+    <code><%= @label_basename %></code>. Restart to load the new translation.
   </p>
 <% end %>
 
-<p class="notice">
-  <strong>Heads up (development):</strong> Rails now blocks every page with a
-  <code>PendingMigrationError</code> until this migration is applied. That is
-  Rails&rsquo; own check, not inline_forms &mdash; it is your cue to migrate.
-</p>
+<% if @is_header %>
+  <p class="notice">
+    Added a <strong>header</strong> row to
+    <code>app/models/<%= @intent.model_name.underscore %>.rb</code>. No column,
+    <strong>no migration</strong> &mdash; it appears on the next reload.
+  </p>
 
-<h2>Next steps (you run these)</h2>
-<ol>
-  <li>Review the changes: <code>git status</code> / <code>git diff</code></li>
-  <li>Apply the migration: <code>bin/rails db:migrate</code></li>
-  <li>Restart the server so the new column is picked up.</li>
-  <li>Commit the generated files so the change flows through git to every environment.</li>
-</ol>
-<p class="muted">
-  After migrating and restarting, add another field at
-  <code>/schema/new</code>. (The per-field &ldquo;pending migration&rdquo;
-  placeholder only applies where Rails&rsquo; global check is off &mdash;
-  production/staging &mdash; or once you have migrated here.)
-</p>
+  <h2>Next steps (you run these)</h2>
+  <ol>
+    <li>Review the change: <code>git status</code> / <code>git diff</code></li>
+    <li>Commit it so the change flows through git to every environment.</li>
+    <% if @label_basename %><li>Restart the server to load the label.</li><% end %>
+  </ol>
+<% else %>
+  <% if @migration_basename %>
+    <p class="notice">
+      Generated migration <code><%= @migration_basename %></code> and edited
+      <code>app/models/<%= @intent.model_name.underscore %>.rb</code>.
+    </p>
+  <% else %>
+    <p class="notice">Ran the generator for <code><%= @intent.generator_args.join(" ") %></code>.</p>
+  <% end %>
+
+  <p class="notice">
+    <strong>Heads up (development):</strong> Rails now blocks every page with a
+    <code>PendingMigrationError</code> until this migration is applied. That is
+    Rails&rsquo; own check, not inline_forms &mdash; your cue to migrate.
+  </p>
+
+  <h2>Next steps (you run these)</h2>
+  <ol>
+    <li>Review the changes: <code>git status</code> / <code>git diff</code></li>
+    <li>Apply the migration: <code>bin/rails db:migrate</code></li>
+    <li>Restart the server so the new column is picked up.</li>
+    <li>Commit the generated files so the change flows through git to every environment.</li>
+  </ol>
+<% end %>
+
+<p class="muted">After the above, add another field at <code>/schema/new</code>.</p>

@@ -40,8 +40,10 @@ module InlineForms
     def generate!(destination_root:, executor: DEFAULT_GENERATE_EXECUTOR)
       before = addto_migrations(destination_root)
       executor.call(intent.generator_args, destination_root)
-      (addto_migrations(destination_root) - before).max ||
-        addto_migrations(destination_root).max
+      # Only report a migration this run actually created. nil is correct and
+      # expected for a :header (no column -> no migration) and must NOT fall
+      # back to a pre-existing migration file.
+      (addto_migrations(destination_root) - before).max
     end
 
     # `rails g inline_forms_addto <Model> <attr:fe> [--after=..]`.

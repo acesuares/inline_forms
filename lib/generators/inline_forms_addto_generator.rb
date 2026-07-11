@@ -117,6 +117,10 @@ class InlineFormsAddtoGenerator < Rails::Generators::NamedBase
         next if INSTALL_TIME_ONLY_NAMES.include?(attribute.name)
         next if REPLACE_ONLY_NAMES.include?(attribute.name)
         next unless attribute.migration?
+        # A :header is a display-only separator in the attribute list; it has
+        # no backing column, so it must not emit a migration line (otherwise
+        # `foo:header` created a pointless `foo` string column).
+        next if attribute.attribute_type == :header
 
         if attribute.column_type == :belongs_to
           @migration_lines << "    add_reference :#{table_name}, :#{attribute.name}, foreign_key: true\n"

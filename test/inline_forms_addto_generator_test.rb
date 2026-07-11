@@ -150,6 +150,27 @@ class InlineFormsAddtoGeneratorTest < Minitest::Test
     refute_includes(migration, "create_table")
   end
 
+  def test_header_adds_a_row_but_no_migration_column
+    write_model("widget.rb", GENERATOR_SHAPED_MODEL)
+
+    capture_io { run_generator("Widget", "section:header") }
+
+    model = read("app/models/widget.rb")
+    assert_includes(model, "[ :section, :header ]")
+    # A header needs no column, so no migration should be written at all.
+    refute_addto_migration_for("widgets")
+  end
+
+  def test_header_alongside_scalar_migrates_only_the_scalar
+    write_model("widget.rb", GENERATOR_SHAPED_MODEL)
+
+    capture_io { run_generator("Widget", "section:header", "note:string") }
+
+    migration = read_single_addto_migration_for("widgets")
+    assert_includes(migration, "add_column :widgets, :note, :string")
+    refute_includes(migration, ":section")
+  end
+
   def test_idempotent_rerun_does_not_duplicate_lines
     write_model("widget.rb", GENERATOR_SHAPED_MODEL)
 

@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 require_relative "test_helper"
+require "tmpdir"
+require "fileutils"
 
 class SchemaApplyTest < Minitest::Test
   def intent(**overrides)
@@ -37,6 +39,28 @@ class SchemaApplyTest < Minitest::Test
     assert_equal 2, calls.size
     assert_equal %w[bundle exec rails g inline_forms_addto Apartment internal_note:text_field], calls.first
     assert_equal %w[bundle exec rails db:migrate], calls.last
+  end
+
+  def test_generate_returns_only_a_newly_created_migration
+    Dir.mktmpdir("schema_apply_generate") do |root|
+      migrate_dir = File.join(root, "db", "migrate")
+      FileUtils.mkdir_p(migrate_dir)
+      # A pre-existing addto migration must NOT be reported when this run
+      # creates nothing (the :header case).
+      FileUtils.touch(File.join(migrate_dir, "20200101000000_inline_forms_add_to_widgets_old.rb"))
+
+      header_executor = ->(_args, _root) { } # header: no migration created
+      result = InlineForms::SchemaApply.new(intent(form_element: :header))
+                                       .generate!(destination_root: root, executor: header_executor)
+      assert_nil result, "header apply must report no migration, not a stale one"
+
+      # A run that creates a migration reports that one.
+      creating = lambda do |_args, _root|
+        FileUtils.touch(File.join(migrate_dir, "20260101000000_inline_forms_add_to_widgets_note.rb"))
+      end
+      created = InlineForms::SchemaApply.new(intent).generate!(destination_root: root, executor: creating)
+      assert_equal "20260101000000_inline_forms_add_to_widgets_note.rb", File.basename(created)
+    end
   end
 
   def test_run_bang_stops_at_first_failure

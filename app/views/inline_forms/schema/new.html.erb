@@ -16,14 +16,30 @@
 
   <label for="form_element">Form element</label>
   <select name="form_element" id="form_element">
-    <% @form_elements.each do |fe| %>
-      <option value="<%= fe %>" <%= "selected" if @intent_params[:form_element] == fe.to_s %>><%= fe %></option>
-    <% end %>
+    <optgroup label="Fields (add a column)">
+      <% @form_elements.each do |fe| %>
+        <option value="<%= fe %>" <%= "selected" if @intent_params[:form_element] == fe.to_s %>><%= fe %></option>
+      <% end %>
+    </optgroup>
+    <optgroup label="No column">
+      <option value="header" <%= "selected" if @intent_params[:form_element] == "header" %>>header (section separator &mdash; no migration)</option>
+    </optgroup>
   </select>
 
   <label for="after">Insert after (optional attribute name)</label>
   <input type="text" name="after" id="after"
          value="<%= @intent_params[:after] %>" placeholder="leave blank to append" />
+
+  <label for="label">Label (optional) &mdash; the text shown for this field/header</label>
+  <input type="text" name="label" id="label"
+         value="<%= @intent_params[:label] %>" placeholder="e.g. Internal note" />
+
+  <label for="locale">Label locale</label>
+  <select name="locale" id="locale">
+    <% @locales.each do |loc| %>
+      <option value="<%= loc %>" <%= "selected" if @intent_params[:locale] == loc %>><%= loc %></option>
+    <% end %>
+  </select>
 
   <div class="actions">
     <%= submit_tag "Preview" %>
