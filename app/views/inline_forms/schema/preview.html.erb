@@ -20,7 +20,7 @@
 </div>
 
 <div class="actions">
-  <%= form_tag inline_forms_schema_path, method: :post do %>
+  <%= form_tag inline_forms_schema_path, method: :post, data: { turbo: false } do %>
     <input type="hidden" name="model_name"   value="<%= @intent.model_name %>" />
     <input type="hidden" name="attribute"    value="<%= @intent.attribute %>" />
     <input type="hidden" name="form_element" value="<%= @intent.form_element %>" />

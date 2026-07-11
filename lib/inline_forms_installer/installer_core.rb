@@ -1529,7 +1529,7 @@ if ENV['install_example'] == 'true'
   if File.exist?("app/views/_inline_forms_tabs.html.erb")
     inject_into_file "app/views/_inline_forms_tabs.html.erb",
                      "        <li class=\"menu-text\">\n" \
-                     "          <a href=\"/schema/new\" title=\"Add a field to a model (dev only)\">+ field</a>\n" \
+                     "          <a href=\"/schema/new\" data-turbo=\"false\" title=\"Add a field to a model (dev only)\">+ field</a>\n" \
                      "        </li>\n",
                      before: "      </ul>\n    </div>\n    <div class=\"top-bar-right\">"
   end
