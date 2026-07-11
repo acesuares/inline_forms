@@ -5,6 +5,7 @@ require "tmpdir"
 require "fileutils"
 require "logger"
 require "rails"
+require "active_record"
 require "rails/generators"
 require "inline_forms"
 require_relative "../lib/generators/inline_forms_addto_generator"
@@ -53,6 +54,45 @@ class InlineFormsAddtoGeneratorTest < Minitest::Test
 
   BARE_MODEL = <<~RUBY
     class Bare < ApplicationRecord
+    end
+  RUBY
+
+  # A model whose list ends with a trailing metadata block (a :header above
+  # :info / timestamps rows). New rows must land above the header, not after
+  # the info rows.
+  METADATA_MODEL = <<~RUBY
+    class Profile < ApplicationRecord
+
+      def inline_forms_attribute_list
+        @inline_forms_attribute_list ||= [
+          [ :name, :text_field ],
+          [ :bio, :text_area ],
+          [ :header_meta, :header ],
+          [ :encrypted_password, :info ],
+          [ :created_at, :info ],
+          [ :updated_at, :info ],
+        ]
+      end
+
+    end
+  RUBY
+
+  # List closed with `].freeze` and a method defined *after* the list. The old
+  # greedy `]\\n end` regex could mismatch here; the bracket-depth scan must not.
+  FROZEN_LIST_MODEL = <<~RUBY
+    class Gadget < ApplicationRecord
+
+      def inline_forms_attribute_list
+        @inline_forms_attribute_list ||= [
+          [ :name, :text_field ],
+          [ :size, :integer_field ],
+        ].freeze
+      end
+
+      def _presentation
+        "\#{name}"
+      end
+
     end
   RUBY
 
@@ -220,10 +260,145 @@ class InlineFormsAddtoGeneratorTest < Minitest::Test
     refute_includes(model, "self.name <=> other.name")
   end
 
+  def test_smart_placement_lands_above_trailing_metadata_block
+    write_model("profile.rb", METADATA_MODEL)
+
+    capture_io { run_generator("Profile", "occupation:string") }
+
+    model = read("app/models/profile.rb")
+    assert_includes(model, "[ :occupation, :text_field ]")
+    # Above the metadata header, and therefore above every :info row.
+    assert(model.index("[ :occupation") < model.index("[ :header_meta"),
+           "occupation should be inserted above the metadata header")
+    assert(model.index("[ :bio") < model.index("[ :occupation"),
+           "occupation should stay below the existing content rows")
+  end
+
+  def test_frozen_list_and_trailing_method_do_not_break_insertion
+    write_model("gadget.rb", FROZEN_LIST_MODEL)
+
+    capture_io { run_generator("Gadget", "color:string") }
+
+    model = read("app/models/gadget.rb")
+    assert_includes(model, "[ :color, :text_field ]")
+    # Still a single, valid, frozen list; the trailing method is untouched.
+    assert_equal(1, model.scan("].freeze").size)
+    assert_includes(model, "def _presentation")
+    assert(model.index("[ :size") < model.index("[ :color"),
+           "color should be appended after the last existing row")
+    assert(model.index("[ :color") < model.index("].freeze"),
+           "color should be inside the frozen array")
+    refute_includes(model, "no inline_forms_attribute_list found")
+  end
+
+  def test_after_option_places_row_after_named_attribute
+    write_model("widget.rb", GENERATOR_SHAPED_MODEL)
+
+    capture_io { run_generator("Widget", "occupation:string", "--after=name") }
+
+    model = read("app/models/widget.rb")
+    assert(model.index("[ :name") < model.index("[ :occupation"))
+    assert(model.index("[ :occupation") < model.index("[ :category"))
+  end
+
+  def test_before_option_places_row_before_named_attribute
+    write_model("widget.rb", GENERATOR_SHAPED_MODEL)
+
+    capture_io { run_generator("Widget", "occupation:string", "--before=category") }
+
+    model = read("app/models/widget.rb")
+    assert(model.index("[ :occupation") < model.index("[ :category"))
+  end
+
+  def test_missing_anchor_warns_and_falls_back_to_default
+    write_model("widget.rb", GENERATOR_SHAPED_MODEL)
+
+    out, _err = capture_io do
+      run_generator("Widget", "occupation:string", "--after=nope")
+    end
+
+    assert_includes(out, "--after nope not found")
+    model = read("app/models/widget.rb")
+    assert_includes(model, "[ :occupation, :text_field ]")
+  end
+
+  def test_value_bearing_element_gets_placeholder_hash_and_warns
+    write_model("widget.rb", GENERATOR_SHAPED_MODEL)
+
+    out, _err = capture_io do
+      run_generator("Widget", "status:dropdown_with_values")
+    end
+
+    model = read("app/models/widget.rb")
+    assert_includes(model, "[ :status, :dropdown_with_values, { 1 => 'one', 2 => 'two' } ]")
+    assert_includes(out, "values hash")
+  end
+
+  def test_back_to_back_runs_produce_distinct_migration_filenames
+    write_model("widget.rb", GENERATOR_SHAPED_MODEL)
+
+    # No sleep between runs: unique_time_stamp must still disambiguate.
+    capture_io { run_generator("Widget", "alpha:string") }
+    capture_io { run_generator("Widget", "beta:string") }
+
+    files = Dir.glob(File.join(@destination_root, "db/migrate/*_inline_forms_add_to_widgets_*.rb"))
+    assert_equal(2, files.size, "expected two distinct addto migrations, got #{files.inspect}")
+    prefixes = files.map { |f| File.basename(f)[/\A(\d{14})/, 1] }
+    assert_equal(prefixes.uniq.size, prefixes.size, "migration timestamps collided: #{prefixes.inspect}")
+  end
+
+  def test_generated_migration_applies_cleanly_to_sqlite
+    write_model("widget.rb", GENERATOR_SHAPED_MODEL)
+
+    capture_io { run_generator("Widget", "occupation:string", "organization:belongs_to") }
+
+    migration_file = Dir.glob(
+      File.join(@destination_root, "db/migrate/*_inline_forms_add_to_widgets_*.rb")
+    ).first
+    refute_nil(migration_file, "expected an addto migration to be generated")
+
+    apply_migration_to_memory_sqlite(migration_file, tables: %i[organizations widgets])
+
+    conn = ActiveRecord::Base.connection
+    assert(conn.column_exists?(:widgets, :occupation), "occupation column should exist after migrate")
+    assert(conn.column_exists?(:widgets, :organization_id), "organization_id column should exist after migrate")
+  ensure
+    teardown_sqlite
+  end
+
   private
 
   def run_generator(*args)
     InlineForms::InlineFormsAddtoGenerator.start(args, destination_root: @destination_root)
+  end
+
+  # Applies a generated migration file against a fresh in-memory sqlite DB,
+  # pre-creating the referenced tables. Proves the emitted migration DSL is
+  # syntactically and semantically valid without a full Rails app.
+  def apply_migration_to_memory_sqlite(path, tables:)
+    ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
+    ActiveRecord::Migration.verbose = false
+    tables.each do |t|
+      ActiveRecord::Base.connection.create_table(t) { |tbl| tbl.string :name }
+    end
+
+    src = File.read(path)
+    klass_name = src[/class\s+(\w+)\s*</, 1]
+    Object.send(:remove_const, klass_name.to_sym) if Object.const_defined?(klass_name.to_sym)
+    Object.class_eval(src)
+    klass = Object.const_get(klass_name)
+    @sqlite_migration_const = klass_name
+    ActiveRecord::Migration.suppress_messages { klass.new.migrate(:up) }
+  end
+
+  def teardown_sqlite
+    if @sqlite_migration_const && Object.const_defined?(@sqlite_migration_const.to_sym)
+      Object.send(:remove_const, @sqlite_migration_const.to_sym)
+    end
+    @sqlite_migration_const = nil
+    ActiveRecord::Base.connection.disconnect! if ActiveRecord::Base.connected?
+  rescue StandardError
+    nil
   end
 
   def write_model(file, content)

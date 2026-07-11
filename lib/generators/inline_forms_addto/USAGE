@@ -13,6 +13,37 @@ Description:
     rejected. `_presentation`, `_list_order`, `_list_search`, and `_order` are
     skipped unless you pass `--replace`.
 
+Placement:
+    By default a new attribute_list row is inserted above the model's trailing
+    "metadata" block (its `:info` rows / created_at / updated_at, and a
+    `:header` directly above them) rather than at the very end, so an editable
+    field does not land inside the read-only info section. Override with:
+
+      --before=ATTR   insert the new row before an existing attribute
+      --after=ATTR    insert the new row after an existing attribute
+
+    If the named anchor is not found, the generator warns and falls back to the
+    default placement.
+
+Value-bearing form elements:
+    Choice elements (dropdown_with_values, dropdown_with_integers,
+    dropdown_with_values_with_stars, radio_button, check_box,
+    scale_with_integers, scale_with_values) need a values hash as the 3rd row
+    element. The generator inserts a placeholder `{ 1 => 'one', 2 => 'two' }`
+    and warns; edit it to your real values.
+
+Constraints and caveats:
+    - Additive only: the generated migration uses `add_column` / `add_reference`
+      (nullable, no default). Renaming, dropping, or making a column NOT NULL
+      (and the SQLite table-rebuild that would require) is out of scope; do
+      those by hand.
+    - Run `bundle exec rails db:migrate` after generating: the model row is
+      written immediately, but the column only exists once the migration runs.
+    - PaperTrail: versions recorded before this migration have no value for the
+      new column, so reverting an old record leaves the new column at its
+      default (nil), and the versions panel shows no history for it prior to
+      the migration.
+
 Example:
     rails generate inline_forms_addto User occupation:text_field birthdate:date organization:dropdown bio:rich_text
 

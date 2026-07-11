@@ -33,11 +33,34 @@ class InlineFormsAddtoGenerator < Rails::Generators::NamedBase
     INSTALL_TIME_ONLY_NAMES = %w[_no_model _no_migration _id _enabled].freeze
     REPLACE_ONLY_NAMES      = %w[_presentation _list_order _list_search _order].freeze
 
+    # Form elements that render a set of choices and therefore need a values
+    # hash as the 3rd element of their attribute_list row. Emitting the bare
+    # 2-element row for these raises at show time, so we insert a placeholder
+    # hash and warn the user to fill it in.
+    VALUE_BEARING_ELEMENTS = %i[
+      dropdown_with_values
+      dropdown_with_integers
+      dropdown_with_values_with_stars
+      radio_button
+      check_box
+      scale_with_integers
+      scale_with_values
+    ].freeze
+
+    # attribute_list rows whose form element (or name) marks the start of the
+    # trailing "metadata" block. The smart-default placement inserts new rows
+    # above this block instead of at the very end of the list.
+    METADATA_ROW_NAMES = %w[created_at updated_at].freeze
+
     argument :attributes, type: :array, banner: "[name:form_element]..."
     class_option :allow_unknown, type: :boolean, default: false,
                  desc: "Allow unknown field types (legacy behavior: comment generated lines instead of failing)."
     class_option :replace, type: :boolean, default: false,
                  desc: "Replace existing _presentation/_list_order/_list_search instead of skipping."
+    class_option :before, type: :string, default: nil,
+                 desc: "Insert the new attribute_list row before this existing attribute name."
+    class_option :after, type: :string, default: nil,
+                 desc: "Insert the new attribute_list row after this existing attribute name."
 
     source_root File.expand_path("inline_forms_addto/templates", __dir__)
 
@@ -106,7 +129,7 @@ class InlineFormsAddtoGenerator < Rails::Generators::NamedBase
       return if @migration_lines.empty?
 
       template "add_columns_migration.erb",
-               "db/migrate/#{time_stamp}_#{migration_file_basename}.rb"
+               "db/migrate/#{unique_time_stamp}_#{migration_file_basename}.rb"
     end
 
     def update_model
@@ -144,6 +167,20 @@ class InlineFormsAddtoGenerator < Rails::Generators::NamedBase
 
         add_attribute_list_row!(attribute)
       end
+    end
+
+    # Run last (Thor invokes public methods in definition order). The model
+    # row was injected above, but it references a column that does not exist
+    # until the generated migration is applied; rendering the model before
+    # then raises. Remind the user loudly. No-op when no migration was written
+    # (e.g. only has_many/rich_text/habtm additions).
+    def remind_to_migrate
+      return if @migration_lines.nil? || @migration_lines.empty?
+
+      say ""
+      say "  Next step: apply the generated migration before rendering #{model_class_name}:", :yellow
+      say "    bundle exec rails db:migrate", :yellow
+      say "  (the attribute_list row was added now, but its column only exists after migrating.)", :yellow
     end
 
     private
@@ -204,43 +241,181 @@ class InlineFormsAddtoGenerator < Rails::Generators::NamedBase
     end
 
     # Inserts a new row into the existing `inline_forms_attribute_list`
-    # method. Falls back to appending a fresh method when the model has
-    # only `attr_writer :inline_forms_attribute_list` (inherited from
-    # `ApplicationRecord`) and no body.
+    # method. Falls back to appending a fresh method when the model has no
+    # generator-shaped list (e.g. only the inherited
+    # `attr_writer :inline_forms_attribute_list` and no body).
+    #
+    # Row-aware, not regex-greedy: we locate the `[` after
+    # `@inline_forms_attribute_list ||=` and bracket-depth scan to its
+    # matching `]`, so the edit survives `].freeze`, trailing comments, and
+    # any methods defined after the list. Placement honors `--after`/`--before`
+    # (by attribute name) and otherwise lands above the trailing metadata block
+    # (`:info` rows / created_at / updated_at, and a `:header` directly above
+    # them) instead of after it.
     def add_attribute_list_row!(attribute)
-      content = File.read(File.join(destination_root, model_file_path))
-      row = "      [ :#{attribute.name}, :#{attribute.attribute_type} ],\n"
+      path    = File.join(destination_root, model_file_path)
+      content = File.read(path)
 
-      if content.match?(/@inline_forms_attribute_list \|\|=\s*\[/)
-        if content.match?(/\[\s*:#{Regexp.escape(attribute.name)}\s*,/)
-          say_status :identical, "#{model_file_path}: row :#{attribute.name}", :blue
-          return
-        end
-        # Insert before the closing `]` of the array, keeping appended order.
-        # Match against the file's full text and write it back so we work
-        # around Thor's `gsub_file` block-arg quirk (the block sees only the
-        # full match, no $1/$2). MatchData captures are explicit here.
-        m = content.match(/(@inline_forms_attribute_list \|\|=\s*\[(?:.|\n)*?)(\n\s*\]\s*\n\s*end)/)
-        if m
-          replacement = m[1] + "\n" + row.chomp + m[2]
-          new_content = content.sub(m[0], replacement)
-          File.write(File.join(destination_root, model_file_path), new_content)
-          say_status :insert, "#{model_file_path}: row :#{attribute.name}", :green
-        else
-          say_status :warn, "#{model_file_path}: could not locate end of @inline_forms_attribute_list, skipping :#{attribute.name}", :yellow
-        end
-      else
+      # Idempotent: skip if a row for this attribute already exists anywhere.
+      if content.match?(/\[\s*:#{Regexp.escape(attribute.name)}\s*,/)
+        say_status :identical, "#{model_file_path}: row :#{attribute.name}", :blue
+        return
+      end
+
+      bounds = attribute_list_bounds(content)
+      unless bounds
         say_status :warn, "#{model_file_path}: no inline_forms_attribute_list found, appending a fresh method", :yellow
         body = <<~RUBY.gsub(/^/, "  ")
 
           def inline_forms_attribute_list
             @inline_forms_attribute_list ||= [
-              [ :#{attribute.name}, :#{attribute.attribute_type} ],
+              #{attribute_row_literal(attribute)},
             ]
           end
         RUBY
         inject_into_class model_file_path, model_class_name, body
+        return
       end
+
+      warn_if_value_bearing!(attribute)
+
+      open_idx, close_idx = bounds
+      inner  = content[(open_idx + 1)...close_idx]
+      lines  = inner.lines
+      indent = detect_row_indent(lines)
+      new_line = "#{indent}#{attribute_row_literal(attribute)},\n"
+
+      insert_at, note = insertion_index(lines, attribute)
+
+      # Keep the array valid: ensure the row we insert after ends with a comma.
+      if insert_at.positive?
+        prev = lines[insert_at - 1]
+        if prev && prev.match?(/\S/) && !prev.match?(/,\s*\z/)
+          lines[insert_at - 1] = prev.sub(/(\S)(\s*)\z/, "\\1,\\2")
+        end
+      end
+
+      lines.insert(insert_at, new_line)
+      new_content = content[0..open_idx] + lines.join + content[close_idx..-1]
+      File.write(path, new_content)
+      say_status :insert, "#{model_file_path}: row :#{attribute.name}#{note}", :green
+    end
+
+    # Returns [open_bracket_index, close_bracket_index] for the
+    # `@inline_forms_attribute_list ||= [ ... ]` array literal, or nil when the
+    # model has no such list. Bracket-depth scan; nested `[ ]` (e.g. an
+    # options_disabled array inside a choice row) balances correctly.
+    def attribute_list_bounds(content)
+      m = content.match(/@inline_forms_attribute_list\s*\|\|=\s*\[/)
+      return nil unless m
+
+      open_idx = m.end(0) - 1 # index of the '[' itself
+      depth = 0
+      i = open_idx
+      while i < content.length
+        case content[i]
+        when "[" then depth += 1
+        when "]"
+          depth -= 1
+          return [ open_idx, i ] if depth.zero?
+        end
+        i += 1
+      end
+      nil
+    end
+
+    # Decide where the new row goes. Returns [line_index, status_note].
+    def insertion_index(lines, _attribute)
+      if (anchor = options[:after].to_s) != ""
+        idx = row_line_index(lines, anchor)
+        return [ idx + 1, " (after :#{anchor})" ] if idx
+        say_status :warn, "#{model_file_path}: --after #{anchor} not found; using default placement", :yellow
+      elsif (anchor = options[:before].to_s) != ""
+        idx = row_line_index(lines, anchor)
+        return [ idx, " (before :#{anchor})" ] if idx
+        say_status :warn, "#{model_file_path}: --before #{anchor} not found; using default placement", :yellow
+      end
+
+      if (meta = metadata_start_index(lines))
+        return [ meta, " (above metadata)" ]
+      end
+
+      [ last_row_index(lines) + 1, "" ]
+    end
+
+    def row_line_index(lines, name)
+      lines.index { |l| row_name(l) == name.to_s }
+    end
+
+    def row_name(line)
+      m = line.match(/\A\s*\[\s*:(\w+)\s*,/)
+      m && m[1]
+    end
+
+    def row_element(line)
+      m = line.match(/\A\s*\[\s*:\w+\s*,\s*:(\w+)/)
+      m && m[1]
+    end
+
+    # Index of the first row that starts the trailing metadata block. If a
+    # `:header` sits directly above that row, the header is treated as the
+    # block start (so the new field lands above the header, not between it and
+    # its info rows). nil when the list has no metadata block.
+    def metadata_start_index(lines)
+      first = nil
+      lines.each_with_index do |l, i|
+        if row_element(l) == "info" || METADATA_ROW_NAMES.include?(row_name(l))
+          first = i
+          break
+        end
+      end
+      return nil unless first
+
+      prev = first - 1
+      (prev >= 0 && row_element(lines[prev]) == "header") ? prev : first
+    end
+
+    def last_row_index(lines)
+      idx = nil
+      lines.each_with_index { |l, i| idx = i if row_name(l) }
+      idx || (lines.length - 1)
+    end
+
+    def detect_row_indent(lines)
+      lines.each do |l|
+        m = l.match(/\A(\s*)\[/)
+        return m[1] if m
+      end
+      "      " # 6 spaces, matching the create-time template
+    end
+
+    # `[ :name, :element ]`, or `[ :name, :element, { 1 => 'one', 2 => 'two' } ]`
+    # for value-bearing choice elements (a placeholder the user then edits).
+    def attribute_row_literal(attribute)
+      el = attribute.attribute_type
+      if VALUE_BEARING_ELEMENTS.include?(el)
+        "[ :#{attribute.name}, :#{el}, { 1 => 'one', 2 => 'two' } ]"
+      else
+        "[ :#{attribute.name}, :#{el} ]"
+      end
+    end
+
+    def warn_if_value_bearing!(attribute)
+      return unless VALUE_BEARING_ELEMENTS.include?(attribute.attribute_type)
+
+      say_status :warn,
+                 "#{model_file_path}: :#{attribute.name} is a #{attribute.attribute_type}; " \
+                 "edit the placeholder values hash { 1 => 'one', ... }",
+                 :yellow
+    end
+
+    def unique_time_stamp
+      base = Time.now.utc.strftime("%Y%m%d%H%M%S").to_i
+      dir  = File.join(destination_root, "db", "migrate")
+      existing = Dir.glob(File.join(dir, "*.rb")).filter_map do |f|
+        File.basename(f)[/\A(\d{14})/, 1]&.to_i
+      end
+      [ base, (existing.max || 0) + 1 ].max.to_s.rjust(14, "0")
     end
 
     def replace_special!(attribute)

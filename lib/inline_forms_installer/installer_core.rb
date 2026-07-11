@@ -1498,6 +1498,16 @@ if ENV['install_example'] == 'true'
   say "- Running showcase migrations (create table + join + seed)..."
   run "bundle exec rake db:migrate"
 
+  # End-to-end exercise of `rails g inline_forms_addto` on an existing model.
+  # Apartment is _enabled and uses the stock inline_forms show (Owner's tabbed
+  # controller whitelists fields, so a new field would be hidden there). This
+  # proves generate + migrate + boot + render + update against a real app; the
+  # accompanying integration test is example_app_apartment_addto_field_test.rb.
+  say "- addto demo: adding Apartment#internal_note via inline_forms_addto..."
+  sleep 1
+  run "bundle exec rails g inline_forms_addto Apartment internal_note:string"
+  run "bundle exec rake db:migrate"
+
   example_views_root = File.join(INSTALLER_ROOT, "lib/installer_templates/example_app_views")
   Dir.glob(File.join(example_views_root, "**", "*")).sort.each do |abs|
     next unless File.file?(abs)

@@ -4,6 +4,26 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [8.1.41] - 2026-07-11
+
+### Changed
+
+- **`inline_forms_addto` hardened** (see `stuff/2026-07-11-add-scalar-attribute-to-existing-model.md`). Adding a field to an existing model is now safer:
+  - **Smarter row placement.** New `inline_forms_attribute_list` rows land above the trailing metadata block (the first `:info` / `created_at` / `updated_at` row, and a `:header` directly above it) instead of at the very end, so an editable field no longer drops into the read-only info section. New `--before=ATTR` / `--after=ATTR` options place the row explicitly (warn + fall back to the default when the anchor is missing).
+  - **Robust model rewriting.** The greedy `]…end` regex is replaced by a bracket-depth scan from `@inline_forms_attribute_list ||= [` to its matching `]`, which survives `].freeze`, trailing comments, methods defined after the list, and nested `[ ]` in choice rows.
+  - **Value-bearing elements.** Choice elements (`dropdown_with_values`, `dropdown_with_integers`, `dropdown_with_values_with_stars`, `radio_button`, `check_box`, `scale_with_integers`, `scale_with_values`) now emit a placeholder `{ 1 => 'one', 2 => 'two' }` values hash and a warning instead of a bare 2-element row that raised at show time.
+  - **Collision-free migration timestamps.** Migration filenames use `max(now, highest_existing + 1)` so back-to-back runs (or a run right after another generator in the same second) never collide.
+  - **"Run db:migrate" reminder** printed after generation, since the attribute_list row is written immediately but its column only exists after migrating.
+
+### Added
+
+- Example app now exercises `inline_forms_addto` end to end: the installer adds `Apartment#internal_note` via `rails g inline_forms_addto` + `db:migrate`, and `example_app_apartment_addto_field_test.rb` asserts the column migrated, the row renders on the stock show panel, and an inline update round-trips.
+- Generator unit tests for the above (smart/explicit placement, `].freeze` + trailing-method robustness, value-bearing placeholder, timestamp uniqueness, and applying the generated migration to an in-memory sqlite DB).
+
+### Lockstep
+
+- validation_hints 8.1.41, inline_forms_installer 8.1.41.
+
 ## [8.1.40] - 2026-07-10
 
 ### Added
