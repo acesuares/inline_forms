@@ -1,6 +1,7 @@
 # -*- encoding : utf-8 -*-
 
 require "inline_forms/version"
+require "inline_forms/attribute_list"
 require "inline_forms/form_element_from_callee"
 require "inline_forms/archived_form_elements"
 require "inline_forms/form_element_registry"
