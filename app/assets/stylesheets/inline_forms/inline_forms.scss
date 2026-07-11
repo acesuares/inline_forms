@@ -145,6 +145,25 @@ input {
   margin: 2px 0 !important;
 }
 
+// Foundation's form reset (_forms.scss) lumps the native temporal/colour
+// input types in with plain text inputs and applies `appearance: none` to
+// normalize them. For the native <input type="date|time|month|week|color">
+// pickers (8.1.25+, which replaced the jQuery UI date/time/month widgets)
+// that strips the browser's calendar/clock/month/colour picker indicator,
+// so the field renders as a bare text box with no way to open the picker.
+// Restore the native appearance for these so their picker control shows.
+// (`input[type=...]` is more specific than Foundation's `[type=...]`, so
+// this wins regardless of source order.)
+input[type="date"],
+input[type="datetime-local"],
+input[type="month"],
+input[type="week"],
+input[type="time"],
+input[type="color"] {
+  -webkit-appearance: auto;
+  appearance: auto;
+}
+
 select {
   background-color: var(--if-color-input-bg) !important;
   border: 0 !important;

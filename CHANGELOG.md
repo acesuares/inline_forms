@@ -4,6 +4,16 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [8.1.42] - 2026-07-11
+
+### Fixed
+
+- **Native date/time/month/week/colour pickers show their picker control again.** Foundation's form reset (`_forms.scss`) applies `appearance: none` to a shared list of input types that includes `date`, `datetime-local`, `month`, `week`, `time`, and `color`. For plain text inputs that is harmless, but for the native `<input type="…">` pickers introduced in 8.1.25/8.1.26 (which replaced the jQuery UI date/time/month widgets) it stripped the browser's calendar/clock/month/colour indicator, leaving a bare text box with no way to open the picker. `inline_forms.scss` now restores `appearance: auto` for these input types (the `input[type=…]` selector outranks Foundation's `[type=…]`, so it wins regardless of source order).
+
+### Lockstep
+
+- validation_hints 8.1.42, inline_forms_installer 8.1.42.
+
 ## [8.1.41] - 2026-07-11
 
 ### Changed
