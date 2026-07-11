@@ -357,9 +357,8 @@ class InlineFormsAddtoGeneratorTest < Minitest::Test
     ).first
     refute_nil(migration_file, "expected an addto migration to be generated")
 
-    apply_migration_to_memory_sqlite(migration_file, tables: %i[organizations widgets])
+    conn = apply_migration_to_memory_sqlite(migration_file, tables: %i[organizations widgets])
 
-    conn = ActiveRecord::Base.connection
     assert(conn.column_exists?(:widgets, :occupation), "occupation column should exist after migrate")
     assert(conn.column_exists?(:widgets, :organization_id), "organization_id column should exist after migrate")
   ensure
@@ -372,14 +371,18 @@ class InlineFormsAddtoGeneratorTest < Minitest::Test
     InlineForms::InlineFormsAddtoGenerator.start(args, destination_root: @destination_root)
   end
 
-  # Applies a generated migration file against a fresh in-memory sqlite DB,
-  # pre-creating the referenced tables. Proves the emitted migration DSL is
-  # syntactically and semantically valid without a full Rails app.
+  # Applies a generated migration file against a fresh in-memory sqlite DB on a
+  # dedicated connection (ScratchMigrationBase), pre-creating the referenced
+  # tables. Proves the emitted migration DSL is syntactically and semantically
+  # valid without a full Rails app — and without disturbing ActiveRecord::Base's
+  # connection (the engine integration tests share this process). Returns the
+  # scratch connection for assertions.
   def apply_migration_to_memory_sqlite(path, tables:)
-    ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
+    scratch_migration_base.establish_connection(adapter: "sqlite3", database: ":memory:")
+    conn = scratch_migration_base.connection
     ActiveRecord::Migration.verbose = false
     tables.each do |t|
-      ActiveRecord::Base.connection.create_table(t) { |tbl| tbl.string :name }
+      conn.create_table(t, force: true) { |tbl| tbl.string :name }
     end
 
     src = File.read(path)
@@ -388,7 +391,10 @@ class InlineFormsAddtoGeneratorTest < Minitest::Test
     Object.class_eval(src)
     klass = Object.const_get(klass_name)
     @sqlite_migration_const = klass_name
-    ActiveRecord::Migration.suppress_messages { klass.new.migrate(:up) }
+    # exec_migration(conn, dir) runs the migration against `conn` specifically,
+    # unlike migrate(:up) which uses ActiveRecord::Base.connection.
+    ActiveRecord::Migration.suppress_messages { klass.new.exec_migration(conn, :up) }
+    conn
   end
 
   def teardown_sqlite
@@ -396,9 +402,27 @@ class InlineFormsAddtoGeneratorTest < Minitest::Test
       Object.send(:remove_const, @sqlite_migration_const.to_sym)
     end
     @sqlite_migration_const = nil
-    ActiveRecord::Base.connection.disconnect! if ActiveRecord::Base.connected?
+    @@scratch_migration_base&.remove_connection
   rescue StandardError
     nil
+  end
+
+  # A dedicated abstract ActiveRecord::Base subclass whose connection is the
+  # scratch in-memory sqlite DB. Created lazily at *runtime* (not file-load
+  # time): subclassing ActiveRecord::Base before the dummy app boots trips the
+  # railtie into resolving the wrong Rails env. Never touches Base's own
+  # connection, so the engine integration tests sharing this process keep the
+  # dummy app's in-memory schema.
+  @@scratch_migration_base = nil
+
+  def scratch_migration_base
+    @@scratch_migration_base ||= begin
+      unless Object.const_defined?(:ScratchAddtoMigrationBase)
+        Object.const_set(:ScratchAddtoMigrationBase,
+                         Class.new(ActiveRecord::Base) { self.abstract_class = true })
+      end
+      Object.const_get(:ScratchAddtoMigrationBase)
+    end
   end
 
   def write_model(file, content)
