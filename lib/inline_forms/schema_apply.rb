@@ -16,11 +16,32 @@ module InlineForms
   class SchemaApply
     STEPS = %i[generate migrate].freeze
 
+    # In-process generate-only executor used by the schema GUI: runs the addto
+    # generator against the app's tree (edits the model, writes the migration
+    # file) but never migrates. Overridable so tests can record the args
+    # instead of mutating the working tree.
+    DEFAULT_GENERATE_EXECUTOR = lambda do |args, destination_root|
+      require "generators/inline_forms_addto_generator"
+      InlineFormsAddtoGenerator.start(args, destination_root: destination_root)
+    end
+
     attr_reader :intent
 
     def initialize(intent, runner: nil)
       @intent = intent
       @runner = runner || ->(cmd) { system(*cmd) }
+    end
+
+    # Run the addto generator in-process (model edit + migration file) WITHOUT
+    # running db:migrate. Returns the path of the migration it created (or nil
+    # when the executor did not create one, e.g. a recording test executor).
+    # The caller (GUI) then tells the user to run `rails db:migrate` + restart;
+    # the pending-migration gate covers the interim.
+    def generate!(destination_root:, executor: DEFAULT_GENERATE_EXECUTOR)
+      before = addto_migrations(destination_root)
+      executor.call(intent.generator_args, destination_root)
+      (addto_migrations(destination_root) - before).max ||
+        addto_migrations(destination_root).max
     end
 
     # `rails g inline_forms_addto <Model> <attr:fe> [--after=..]`.
@@ -51,6 +72,12 @@ module InlineForms
         return step unless ok
       end
       nil
+    end
+
+    private
+
+    def addto_migrations(destination_root)
+      Dir.glob(File.join(destination_root.to_s, "db", "migrate", "*_inline_forms_add_to_*.rb"))
     end
   end
 end

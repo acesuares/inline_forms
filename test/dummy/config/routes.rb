@@ -24,4 +24,10 @@ Rails.application.routes.draw do
     post "revert", on: :member
     get "list_versions", on: :member
   end
+
+  # Schema-change GUI (example-app-only in real installs; routed here for the
+  # engine's fast test suite). See InlineForms::SchemaController.
+  get  "schema/new",     to: "inline_forms/schema#new",     as: :inline_forms_schema_new
+  post "schema/preview", to: "inline_forms/schema#preview", as: :inline_forms_schema_preview
+  post "schema",         to: "inline_forms/schema#create",  as: :inline_forms_schema
 end

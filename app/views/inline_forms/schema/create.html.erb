@@ -1,0 +1,27 @@
+<h2>Applied: <code><%= @intent.attribute %>:<%= @intent.form_element %></code> on <code><%= @intent.model_name %></code></h2>
+
+<% if @migration_basename %>
+  <p class="notice">
+    Generated migration <code><%= @migration_basename %></code> and edited
+    <code>app/models/<%= @intent.model_name.underscore %>.rb</code>.
+  </p>
+<% else %>
+  <p class="notice">
+    Ran the generator for <code><%= @intent.generator_args.join(" ") %></code>.
+  </p>
+<% end %>
+
+<h2>Next steps (you run these)</h2>
+<ol>
+  <li>Review the changes: <code>git status</code> / <code>git diff</code></li>
+  <li>Apply the migration: <code>bundle exec rails db:migrate</code></li>
+  <li>Restart the server so the new column is picked up.</li>
+</ol>
+<p class="muted">
+  Until you migrate, <code><%= @intent.attribute %></code> shows as a
+  &ldquo;pending migration&rdquo; placeholder on the model&rsquo;s page (it does
+  not error). Commit the generated files so the change flows through git to
+  every environment.
+</p>
+
+<p><%= link_to "Add another field", inline_forms_schema_new_path %></p>

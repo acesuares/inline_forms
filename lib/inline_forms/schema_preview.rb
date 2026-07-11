@@ -70,6 +70,14 @@ module InlineForms
       !virtual_type(intent.form_element).nil?
     end
 
+    # The sorted list of form elements the GUI offers (those that preview via a
+    # virtual attribute): scalar text/number/date/boolean/choice elements.
+    def supported_form_elements
+      candidates = InlineForms::SPECIAL_COLUMN_TYPES.keys +
+                   InlineForms::DEFAULT_FORM_ELEMENTS.values
+      candidates.uniq.select { |fe| !virtual_type(fe).nil? }.sort
+    end
+
     # The AttributeList the preview should render: the model's current list with
     # the proposed row inserted at --after/--before (falling back to append).
     def attribute_list_for(base_class, intent)

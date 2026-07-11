@@ -1516,6 +1516,24 @@ if ENV['install_example'] == 'true'
   end
 
   route 'get "apartments/name_list", to: "apartments#name_list", as: :apartment_name_list'
+
+  # Schema-change GUI (dev-only; InlineForms::SchemaController). Mounted only in
+  # the example app to demonstrate adding a scalar attribute through the browser
+  # (runs inline_forms_addto; does NOT run db:migrate). Not wired into real
+  # generated apps.
+  say "- Schema GUI: routes + nav link (example app only)..."
+  route 'get  "schema/new",     to: "inline_forms/schema#new",     as: :inline_forms_schema_new'
+  route 'post "schema/preview", to: "inline_forms/schema#preview", as: :inline_forms_schema_preview'
+  route 'post "schema",         to: "inline_forms/schema#create",  as: :inline_forms_schema'
+
+  if File.exist?("app/views/_inline_forms_tabs.html.erb")
+    inject_into_file "app/views/_inline_forms_tabs.html.erb",
+                     "        <li class=\"menu-text\">\n" \
+                     "          <a href=\"/schema/new\" title=\"Add a field to a model (dev only)\">+ field</a>\n" \
+                     "        </li>\n",
+                     before: "      </ul>\n    </div>\n    <div class=\"top-bar-right\">"
+  end
+
   route "root :to => 'apartments#index'"
 
   example_tests_root = File.join(INSTALLER_ROOT, "lib/installer_templates/example_app_tests")

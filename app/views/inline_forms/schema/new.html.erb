@@ -1,0 +1,31 @@
+<% if @error.present? %>
+  <p class="error"><%= @error %></p>
+<% end %>
+
+<%= form_tag inline_forms_schema_preview_path, method: :post do %>
+  <label for="model_name">Model</label>
+  <input type="text" name="model_name" id="model_name" list="schema_models"
+         value="<%= @intent_params[:model_name] %>" placeholder="e.g. Apartment" />
+  <datalist id="schema_models">
+    <% @models.each do |m| %><option value="<%= m %>"></option><% end %>
+  </datalist>
+
+  <label for="attribute">Attribute name</label>
+  <input type="text" name="attribute" id="attribute"
+         value="<%= @intent_params[:attribute] %>" placeholder="e.g. internal_note" />
+
+  <label for="form_element">Form element</label>
+  <select name="form_element" id="form_element">
+    <% @form_elements.each do |fe| %>
+      <option value="<%= fe %>" <%= "selected" if @intent_params[:form_element] == fe.to_s %>><%= fe %></option>
+    <% end %>
+  </select>
+
+  <label for="after">Insert after (optional attribute name)</label>
+  <input type="text" name="after" id="after"
+         value="<%= @intent_params[:after] %>" placeholder="leave blank to append" />
+
+  <div class="actions">
+    <%= submit_tag "Preview" %>
+  </div>
+<% end %>

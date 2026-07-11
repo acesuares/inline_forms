@@ -1,0 +1,31 @@
+<h2>Preview: add <code><%= @intent.attribute %>:<%= @intent.form_element %></code> to <code><%= @intent.model_name %></code></h2>
+
+<h2>Resulting attribute order</h2>
+<table class="schema_list">
+  <thead><tr><th>Attribute</th><th>Form element</th></tr></thead>
+  <tbody>
+    <% @attribute_list.each do |attribute, form_element| %>
+      <tr class="<%= "new_row" if attribute.to_sym == @intent.attribute %>">
+        <td><%= attribute %><%= " (new)" if attribute.to_sym == @intent.attribute %></td>
+        <td><%= form_element %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<h2>The new field</h2>
+<p class="muted">Rendered with the live <code><%= @intent.form_element %></code> widget (no data yet):</p>
+<div class="schema_field_preview">
+  <%= send("#{@intent.form_element}_edit", @preview, @intent.attribute) %>
+</div>
+
+<div class="actions">
+  <%= form_tag inline_forms_schema_path, method: :post do %>
+    <input type="hidden" name="model_name"   value="<%= @intent.model_name %>" />
+    <input type="hidden" name="attribute"    value="<%= @intent.attribute %>" />
+    <input type="hidden" name="form_element" value="<%= @intent.form_element %>" />
+    <input type="hidden" name="after"        value="<%= @intent.after %>" />
+    <%= submit_tag "Apply (generate migration, no db:migrate)" %>
+  <% end %>
+  <p><%= link_to "Back to edit", inline_forms_schema_new_path %></p>
+</div>
