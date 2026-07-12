@@ -1,15 +1,15 @@
 # -*- encoding : utf-8 -*-
 
-require "inline_forms_schema_gui/version"
-require "inline_forms_schema_gui/engine" if defined?(Rails::Engine)
-require "inline_forms_schema_gui/intent_validator"
-require "inline_forms_schema_gui/batch_export"
-require "inline_forms_schema_gui/batch_import"
+require "inline_forms_schema_edit/version"
+require "inline_forms_schema_edit/engine" if defined?(Rails::Engine)
+require "inline_forms_schema_edit/intent_validator"
+require "inline_forms_schema_edit/batch_export"
+require "inline_forms_schema_edit/batch_import"
 
-# InlineFormsSchemaGui packages the schema-change GUI (add a field to a model
+# InlineFormsSchemaEdit packages the schema-change GUI (add a field to a model
 # through the browser) as a mountable engine, separate from the inline_forms
 # runtime engine. Apps opt in at creation time (`inline_forms create
-# --schema-gui`, implied by `--example`); apps that never change their own
+# --schema-edit`, implied by `--example`); apps that never change their own
 # schema ship without this surface entirely.
 #
 # The GUI is the web layer plus the batch pipeline (persisted intents,
@@ -18,12 +18,12 @@ require "inline_forms_schema_gui/batch_import"
 # (cheap subclass + virtual-attribute preview), SchemaApply (runs the
 # inline_forms_addto generator; never db:migrate) and SchemaLabel (locale
 # label writing). See stuff/2026-07-11-schema-gui-gem-and-automated-pipeline-plan.md.
-module InlineFormsSchemaGui
+module InlineFormsSchemaEdit
   # Production posture. By default the whole GUI stays non-production (the
   # phase-0 behavior: authoring happens on a dev checkout). A SaaS tenant app
   # that drafts intents in production opts in explicitly:
   #
-  #   InlineFormsSchemaGui.production_drafting = true
+  #   InlineFormsSchemaEdit.production_drafting = true
   #
   # Even then, only DRAFTING (new/preview/draft/index/submit) is allowed in
   # production; direct apply (codegen into the running app's tree) is never
@@ -40,7 +40,7 @@ module InlineFormsSchemaGui
   end
   self.export_token = nil
 
-  # Optional command run by `rake schema_gui:apply_due` after migrating a due
+  # Optional command run by `rake schema_edit:apply_due` after migrating a due
   # batch (e.g. "touch tmp/restart.txt" for Passenger, or a systemd restart).
   # nil = no restart is attempted; the deploy tooling owns it.
   mattr_accessor :restart_command
@@ -50,7 +50,7 @@ module InlineFormsSchemaGui
   # routes without editing the app's routes.rb. The installer writes a single
   # line into generated apps:
   #
-  #   InlineFormsSchemaGui.draw_routes(self)
+  #   InlineFormsSchemaEdit.draw_routes(self)
   #
   # (Route names are kept identical to the phase-0 literal routes.)
   def self.draw_routes(router)

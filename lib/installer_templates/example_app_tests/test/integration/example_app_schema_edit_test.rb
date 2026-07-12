@@ -8,7 +8,7 @@ require_relative "../example_app/example_integration_test_case"
 # change. Apply (the actual generator run) is covered by the engine dummy suite
 # (recording executor) and inline_forms_addto_generator_test, so this test does
 # not mutate the generated app during the shared gate.
-class ExampleAppSchemaGuiTest < ExampleAppIntegrationTestCase
+class ExampleAppSchemaEditTest < ExampleAppIntegrationTestCase
   test "schema/new renders the add-a-field form" do
     get "/schema/new"
     assert_response :success
@@ -56,8 +56,8 @@ class ExampleAppSchemaGuiTest < ExampleAppIntegrationTestCase
     assert_match(/\Asha256:/, batch.content_digest)
     refute batch.intents.first.update(label: "changed"), "frozen after submit"
 
-    original_token = InlineFormsSchemaGui.export_token
-    InlineFormsSchemaGui.export_token = "gate-test-token"
+    original_token = InlineFormsSchemaEdit.export_token
+    InlineFormsSchemaEdit.export_token = "gate-test-token"
     begin
       get "/schema/batches/#{batch.id}/export.json"
       assert_response :unauthorized, "token configured but not provided"
@@ -69,7 +69,7 @@ class ExampleAppSchemaGuiTest < ExampleAppIntegrationTestCase
       assert_equal batch.content_digest, payload["digest"]
       assert_equal "staff_note", payload["intents"].first["attribute"]
     ensure
-      InlineFormsSchemaGui.export_token = original_token
+      InlineFormsSchemaEdit.export_token = original_token
     end
   end
 end

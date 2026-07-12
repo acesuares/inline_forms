@@ -27,5 +27,5 @@ Rails.application.routes.draw do
 
   # Schema-change GUI (opt-in in real installs; routed here for the engine's
   # fast test suite). One line, so gem upgrades can add routes freely.
-  InlineFormsSchemaGui.draw_routes(self)
+  InlineFormsSchemaEdit.draw_routes(self)
 end

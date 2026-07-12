@@ -3,7 +3,7 @@
 require "digest"
 require "json"
 
-module InlineFormsSchemaGui
+module InlineFormsSchemaEdit
   # The import/replay half of the pipeline (phase 2): takes an exported
   # batch payload and materializes it into the CURRENT checkout — validates
   # every intent against this checkout's models, then replays them in order

@@ -58,7 +58,7 @@ ActiveRecord::Schema.define do
     t.timestamps
   end
 
-  # Schema-GUI batch pipeline (inline_forms_schema_gui). Mirrors the gem's
+  # Schema-GUI batch pipeline (inline_forms_schema_edit). Mirrors the gem's
   # install-generator migration.
   create_table :inline_forms_schema_batches, force: true do |t|
     t.string   :status, null: false, default: "draft"

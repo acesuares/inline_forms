@@ -9,29 +9,29 @@ lockstep with inline_forms / inline_forms_installer / validation_hints.
 
 - **Batch pipeline (plan phases 1-3, and the tenant half of 4).**
   - Persisted intents: `InlineForms::SchemaBatch` + `InlineForms::SchemaIntentRecord`
-    (`rails g inline_forms_schema_gui:install` writes the migration; the
-    installer runs it for `--schema-gui` apps). Drafts accumulate in a
+    (`rails g inline_forms_schema_edit:install` writes the migration; the
+    installer runs it for `--schema-edit` apps). Drafts accumulate in a
     batch (the "cart"); **submit freezes it** — intents and batch become
     immutable (model-enforced) and a content digest seals the intent list.
   - GUI: `/schema` index (draft cart, submit with optional apply window,
     batch history), "Add to batch" on preview. Direct apply stays dev-only;
     drafting in production requires the explicit
-    `InlineFormsSchemaGui.production_drafting = true` opt-in (default off).
+    `InlineFormsSchemaEdit.production_drafting = true` opt-in (default off).
   - Machine endpoints for the CI loop, token-authenticated
-    (`InlineFormsSchemaGui.export_token` / `INLINE_FORMS_SCHEMA_EXPORT_TOKEN`;
+    (`InlineFormsSchemaEdit.export_token` / `INLINE_FORMS_SCHEMA_EXPORT_TOKEN`;
     404 when unconfigured): `GET /schema/batches/:id/export.json`,
     `POST /schema/batches/:id/status`.
-  - Export/import/replay: `rake schema_gui:export_batch[id]`,
-    `rake schema_gui:apply_batch[file]` (verifies the digest, re-validates
+  - Export/import/replay: `rake schema_edit:export_batch[id]`,
+    `rake schema_edit:apply_batch[file]` (verifies the digest, re-validates
     every intent against the current checkout, replays through
     `SchemaApply#generate!` — codegen only, never migrates or commits),
-    `rake schema_gui:mark_batch[id,status]`.
-  - Deploy window (phase 4, tenant side): `rake schema_gui:apply_due`
+    `rake schema_edit:mark_batch[id,status]`.
+  - Deploy window (phase 4, tenant side): `rake schema_edit:apply_due`
     migrates ready batches whose window arrived, marks them applied, runs
-    the optional `InlineFormsSchemaGui.restart_command`. A commented
+    the optional `InlineFormsSchemaEdit.restart_command`. A commented
     Forgejo Actions example ships in `doc/schema-apply-workflow.yml.example`
     (copied to the app's `doc/` by the install generator).
-  - Routes are now drawn by `InlineFormsSchemaGui.draw_routes(self)` (one
+  - Routes are now drawn by `InlineFormsSchemaEdit.draw_routes(self)` (one
     line in the app's routes.rb) so gem upgrades can add routes without
     editing the app.
 
@@ -41,4 +41,4 @@ lockstep with inline_forms / inline_forms_installer / validation_hints.
   `InlineForms::SchemaController`, its views and the `inline_forms_schema`
   layout. The staging services (`SchemaIntent`, `SchemaPreview`,
   `SchemaApply`, `SchemaLabel`) stay in inline_forms. Apps opt in via
-  `inline_forms create --schema-gui` (implied by `--example`).
+  `inline_forms create --schema-edit` (implied by `--example`).

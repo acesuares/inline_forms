@@ -3,13 +3,13 @@
 require "rails/generators"
 require "rails/generators/migration"
 
-module InlineFormsSchemaGui
+module InlineFormsSchemaEdit
   module Generators
-    # `rails g inline_forms_schema_gui:install`
+    # `rails g inline_forms_schema_edit:install`
     #
     # Writes the migration for the batch pipeline's two tables
     # (inline_forms_schema_batches + inline_forms_schema_intents). Run by
-    # the installer when an app is created with --schema-gui; existing apps
+    # the installer when an app is created with --schema-edit; existing apps
     # adding the gem later run it by hand.
     class InstallGenerator < Rails::Generators::Base
       include Rails::Generators::Migration
@@ -27,8 +27,8 @@ module InlineFormsSchemaGui
       end
 
       def create_migration_file
-        migration_template "create_schema_gui_tables.rb.erb",
-                           "db/migrate/create_inline_forms_schema_gui_tables.rb"
+        migration_template "create_schema_edit_tables.rb.erb",
+                           "db/migrate/create_inline_forms_schema_edit_tables.rb"
       end
 
       def copy_ci_workflow_example

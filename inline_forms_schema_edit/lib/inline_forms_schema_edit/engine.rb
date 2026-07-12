@@ -1,6 +1,6 @@
 # -*- encoding : utf-8 -*-
 
-module InlineFormsSchemaGui
+module InlineFormsSchemaEdit
   # Deliberately NOT `isolate_namespace`: the gem contributes
   # `InlineForms::SchemaController` (+ its views and layout) into the host
   # app, in the same namespace the inline_forms engine uses, so the routes

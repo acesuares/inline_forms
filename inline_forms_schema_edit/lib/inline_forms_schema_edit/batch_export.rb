@@ -3,7 +3,7 @@
 require "digest"
 require "json"
 
-module InlineFormsSchemaGui
+module InlineFormsSchemaEdit
   # Serializes a frozen SchemaBatch for transport to the CI/dev side, sealed
   # with a content digest. The digest is computed over the canonical JSON of
   # the ordered intent list only (not timestamps/ids), so the same logical

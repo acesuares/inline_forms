@@ -10,10 +10,10 @@ module InlineFormsGemFiles
   ].freeze
 
   # The schema-GUI gem lives in its own subdirectory with its own gemspec
-  # (inline_forms_schema_gui/inline_forms_schema_gui.gemspec) and packages
+  # (inline_forms_schema_edit/inline_forms_schema_edit.gemspec) and packages
   # its files itself; exclude the whole subtree from BOTH gems here.
   SCHEMA_GUI_FILE_PREFIXES = %w[
-    inline_forms_schema_gui/
+    inline_forms_schema_edit/
   ].freeze
 
   module_function

@@ -5,7 +5,7 @@ require_relative "../integration_test_helper"
 # The dev-only schema-change GUI (InlineForms::SchemaController): new -> preview
 # (no migration) -> apply (runs the addto generator, no db:migrate). Apply is
 # exercised with a RECORDING executor so the suite never mutates the dummy tree.
-class SchemaGuiTest < InlineFormsIntegrationTestCase
+class SchemaEditTest < InlineFormsIntegrationTestCase
   def teardown
     InlineForms::SchemaController.generator_executor = nil
     InlineForms::SchemaController.label_writer = nil

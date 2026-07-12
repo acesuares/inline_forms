@@ -1,4 +1,4 @@
-class CreateInlineFormsSchemaGuiTables < ActiveRecord::Migration[<%= ActiveRecord::Migration.current_version %>]
+class CreateInlineFormsSchemaEditTables < ActiveRecord::Migration[<%= ActiveRecord::Migration.current_version %>]
   def change
     create_table :inline_forms_schema_batches do |t|
       t.string   :status, null: false, default: "draft"

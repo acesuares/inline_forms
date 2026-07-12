@@ -1,11 +1,11 @@
 # -*- encoding: utf-8 -*-
 
 $:.push File.expand_path("../lib", __FILE__)
-require "inline_forms_schema_gui/version"
+require "inline_forms_schema_edit/version"
 
 Gem::Specification.new do |s|
-  s.name        = "inline_forms_schema_gui"
-  s.version     = InlineFormsSchemaGui::VERSION
+  s.name        = "inline_forms_schema_edit"
+  s.version     = InlineFormsSchemaEdit::VERSION
   s.platform    = Gem::Platform::RUBY
   s.authors     = [ "Ace Suares" ]
   s.email       = [ "ace@suares.com" ]

@@ -14,11 +14,11 @@ module InlineForms
   #
   # Production posture: direct apply is NEVER available in production
   # (production never writes code). Drafting is also non-production unless
-  # the app opts in (InlineFormsSchemaGui.production_drafting = true — the
+  # the app opts in (InlineFormsSchemaEdit.production_drafting = true — the
   # SaaS tenant case). The machine endpoints (export/batch_status) are
   # token-authenticated and environment-independent, for the CI side.
   class SchemaController < InlineFormsApplicationController
-    HEADER = InlineFormsSchemaGui::IntentValidator::HEADER
+    HEADER = InlineFormsSchemaEdit::IntentValidator::HEADER
 
     layout "inline_forms_schema"
 
@@ -46,7 +46,7 @@ module InlineForms
 
     def preview
       @intent_params = intent_params
-      @error = InlineFormsSchemaGui::IntentValidator.error_for(@intent_params)
+      @error = InlineFormsSchemaEdit::IntentValidator.error_for(@intent_params)
       return render(:new) if @error
 
       @intent    = build_intent(@intent_params)
@@ -62,7 +62,7 @@ module InlineForms
     # DIRECT APPLY (dev only): codegen into this checkout's tree.
     def create
       @intent_params = intent_params
-      @error = InlineFormsSchemaGui::IntentValidator.error_for(@intent_params)
+      @error = InlineFormsSchemaEdit::IntentValidator.error_for(@intent_params)
       return render(:new) if @error
 
       @intent    = build_intent(@intent_params)
@@ -83,7 +83,7 @@ module InlineForms
     # BATCH DRAFTING: persist the intent into the current draft batch.
     def draft
       @intent_params = intent_params
-      @error = InlineFormsSchemaGui::IntentValidator.error_for(@intent_params)
+      @error = InlineFormsSchemaEdit::IntentValidator.error_for(@intent_params)
       return render(:new) if @error
 
       batch = InlineForms::SchemaBatch.current_draft
@@ -122,7 +122,7 @@ module InlineForms
       batch = InlineForms::SchemaBatch.find(params[:id])
       return render(json: { error: "batch is still a draft" }, status: :conflict) if batch.draft?
 
-      render json: InlineFormsSchemaGui::BatchExport.payload(batch)
+      render json: InlineFormsSchemaEdit::BatchExport.payload(batch)
     end
 
     # MACHINE ENDPOINT (token): CI reports progress back.
@@ -144,12 +144,12 @@ module InlineForms
     def require_drafting_allowed
       return unless Rails.env.production?
 
-      head :not_found unless InlineFormsSchemaGui.production_drafting
+      head :not_found unless InlineFormsSchemaEdit.production_drafting
     end
 
     # 404 when unconfigured (don't advertise the endpoint), 401 on mismatch.
     def authenticate_pipeline_token!
-      configured = InlineFormsSchemaGui.export_token
+      configured = InlineFormsSchemaEdit.export_token
       return head(:not_found) if configured.blank?
 
       provided = request.headers["Authorization"].to_s[/\ABearer (.+)\z/, 1] || params[:token].to_s
@@ -167,7 +167,7 @@ module InlineForms
     def require_batch_tables
       return if batch_tables_present?
 
-      render plain: "Schema-GUI batch tables missing. Run: bin/rails g inline_forms_schema_gui:install && bin/rails db:migrate",
+      render plain: "Schema-GUI batch tables missing. Run: bin/rails g inline_forms_schema_edit:install && bin/rails db:migrate",
              status: :service_unavailable
     end
 
@@ -181,7 +181,7 @@ module InlineForms
 
     def load_form_options
       @form_elements = InlineForms::SchemaPreview.supported_form_elements
-      @models        = InlineFormsSchemaGui::IntentValidator.candidate_models
+      @models        = InlineFormsSchemaEdit::IntentValidator.candidate_models
       @locales       = I18n.available_locales.map(&:to_s)
       @default_locale = I18n.default_locale.to_s
     end

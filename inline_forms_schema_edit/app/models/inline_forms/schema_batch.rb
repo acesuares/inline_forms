@@ -73,7 +73,7 @@ module InlineForms
         self.submitted_at   = Time.current
         self.window_at      = window_at
         self.requested_by   = requested_by if requested_by
-        self.content_digest = InlineFormsSchemaGui::BatchExport.digest_for(self)
+        self.content_digest = InlineFormsSchemaEdit::BatchExport.digest_for(self)
         save!
       end
       self

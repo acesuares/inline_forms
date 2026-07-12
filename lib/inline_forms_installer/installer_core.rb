@@ -45,7 +45,7 @@ def install_prerelease_gems_from_roots!
   roots.uniq!
   return if roots.empty?
 
-  %w[validation_hints inline_forms inline_forms_installer inline_forms_schema_gui].each do |name|
+  %w[validation_hints inline_forms inline_forms_installer inline_forms_schema_edit].each do |name|
     # Pick the *highest version*, not the highest filename. String sort
     # placed `inline_forms-8.1.7.gem` above `inline_forms-8.1.10.gem`
     # because "7" > "1" lexicographically — silently picking up a stale
@@ -62,7 +62,7 @@ def install_prerelease_gems_from_roots!
     # the exact shape that bit us between 8.1.6 (default gemset's
     # highest installer) and 8.1.10.
     candidates = roots.flat_map { |root|
-      # inline_forms_schema_gui lives in a subdirectory of the inline_forms
+      # inline_forms_schema_edit lives in a subdirectory of the inline_forms
       # checkout with its own pkg/; glob both layouts for every name (the
       # extra patterns simply match nothing for the root-level gems).
       Dir[File.join(root, "#{name}-*.gem"),
@@ -126,15 +126,15 @@ else
   gem "inline_forms", "~> 8"
 end
 # Schema-change GUI (separate mountable engine gem): only when requested via
-# `--schema-gui` (implied by `--example`). Apps that never change their own
+# `--schema-edit` (implied by `--example`). Apps that never change their own
 # schema ship without this surface entirely.
-if ENV["install_schema_gui"] == "true"
-  schema_gui_path = ENV["INLINE_FORMS_GEMFILE_PATH"] &&
-                    File.join(ENV["INLINE_FORMS_GEMFILE_PATH"], "inline_forms_schema_gui")
-  if schema_gui_path && File.directory?(schema_gui_path)
-    gem "inline_forms_schema_gui", path: schema_gui_path
+if ENV["install_schema_edit"] == "true"
+  schema_edit_path = ENV["INLINE_FORMS_GEMFILE_PATH"] &&
+                    File.join(ENV["INLINE_FORMS_GEMFILE_PATH"], "inline_forms_schema_edit")
+  if schema_edit_path && File.directory?(schema_edit_path)
+    gem "inline_forms_schema_edit", path: schema_edit_path
   else
-    gem "inline_forms_schema_gui", "~> 8"
+    gem "inline_forms_schema_edit", "~> 8"
   end
 end
 # jQuery is required by Foundation 6's JS only. jQuery UI is fully gone since
@@ -850,20 +850,20 @@ say "- Unicorn Config..."
 copy_file File.join(INSTALLER_ROOT,'lib/installer_templates/unicorn/production.rb'), "config/unicorn/production.rb"
 
 # Schema-change GUI (dev-only authoring; InlineForms::SchemaController from
-# the inline_forms_schema_gui gem). Wired only when requested via
-# `--schema-gui` (implied by `--example`): routes + a "+ field" nav link.
+# the inline_forms_schema_edit gem). Wired only when requested via
+# `--schema-edit` (implied by `--example`): routes + a "+ field" nav link.
 # Applies inline_forms_addto through the browser; does NOT run db:migrate.
 # Must precede the example section: its test gate exercises these routes.
-if ENV['install_schema_gui'] == 'true'
+if ENV['install_schema_edit'] == 'true'
   say "- Schema GUI: routes + nav link + batch tables..."
   # One line: the gem owns its route set, so gem upgrades can add routes
   # without editing the app's routes.rb.
-  route 'InlineFormsSchemaGui.draw_routes(self)'
+  route 'InlineFormsSchemaEdit.draw_routes(self)'
 
   # Batch-pipeline tables (drafted intents + batches). The generator writes
   # the migration; migrate here for sqlite (mysql apps migrate by hand, same
   # policy as the main install).
-  run "bundle exec rails g inline_forms_schema_gui:install"
+  run "bundle exec rails g inline_forms_schema_edit:install"
   run "bundle exec rake db:migrate" if ENV['using_sqlite'] == 'true'
 
   if File.exist?("app/views/_inline_forms_tabs.html.erb")

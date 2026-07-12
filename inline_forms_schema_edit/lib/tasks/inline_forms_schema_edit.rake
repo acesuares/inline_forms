@@ -7,13 +7,13 @@ require "shellwords"
 #
 # Tenant side:   export_batch, mark_batch, apply_due
 # Checkout side: apply_batch (replay into this checkout; no migrate, no commit)
-namespace :schema_gui do
-  desc "Export a frozen batch as JSON (stdout, or FILE=path). Usage: schema_gui:export_batch[batch_id]"
+namespace :schema_edit do
+  desc "Export a frozen batch as JSON (stdout, or FILE=path). Usage: schema_edit:export_batch[batch_id]"
   task :export_batch, [ :batch_id ] => :environment do |_t, args|
     batch = InlineForms::SchemaBatch.find(args.fetch(:batch_id))
     abort "Batch #{batch.id} is still a draft — submit it first." if batch.draft?
 
-    json = InlineFormsSchemaGui::BatchExport.to_json(batch)
+    json = InlineFormsSchemaEdit::BatchExport.to_json(batch)
     if ENV["FILE"].to_s.empty?
       puts json
     else
@@ -22,7 +22,7 @@ namespace :schema_gui do
     end
   end
 
-  desc "Replay an exported batch into THIS checkout (codegen only; no db:migrate, no commit). Usage: schema_gui:apply_batch[export.json]"
+  desc "Replay an exported batch into THIS checkout (codegen only; no db:migrate, no commit). Usage: schema_edit:apply_batch[export.json]"
   task :apply_batch, [ :file ] => :environment do |_t, args|
     file = args.fetch(:file)
     abort "No such file: #{file}" unless File.file?(file)
@@ -34,7 +34,7 @@ namespace :schema_gui do
       abort "Working tree is not clean; commit or stash first:\n#{dirty}" unless dirty.empty?
     end
 
-    import = InlineFormsSchemaGui::BatchImport.from_file(file)
+    import = InlineFormsSchemaEdit::BatchImport.from_file(file)
     result = import.apply!(destination_root: Rails.root)
 
     puts "Replayed #{result.applied} intent(s)."
@@ -42,11 +42,11 @@ namespace :schema_gui do
     result.migrations.each { |m| puts "  migration: #{m}" }
     result.labels.each { |l| puts "  label: #{l}" }
     puts "NOT migrated, NOT committed — run the test gate, then commit."
-  rescue InlineFormsSchemaGui::BatchImport::ImportError => e
+  rescue InlineFormsSchemaEdit::BatchImport::ImportError => e
     abort "Import failed: #{e.message}"
   end
 
-  desc "Report pipeline progress on a batch (CI-side helper against the tenant DB). Usage: schema_gui:mark_batch[batch_id,status] GIT_SHA=... ERROR=..."
+  desc "Report pipeline progress on a batch (CI-side helper against the tenant DB). Usage: schema_edit:mark_batch[batch_id,status] GIT_SHA=... ERROR=..."
   task :mark_batch, [ :batch_id, :status ] => :environment do |_t, args|
     batch = InlineForms::SchemaBatch.find(args.fetch(:batch_id))
     batch.transition!(args.fetch(:status), git_sha: ENV["GIT_SHA"].presence, error: ENV["ERROR"].presence)
@@ -70,7 +70,7 @@ namespace :schema_gui do
         batch.transition!(:applied)
         puts "  migrated + marked applied."
 
-        if (cmd = InlineFormsSchemaGui.restart_command).present?
+        if (cmd = InlineFormsSchemaEdit.restart_command).present?
           puts "  restart: #{cmd}"
           system(cmd) || puts("  WARNING: restart command exited non-zero")
         end

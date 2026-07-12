@@ -20,7 +20,7 @@ module InlineFormsInstaller
     DATABASE_OPTIONS = %w[sqlite mysql]
     method_option :database, aliases: "-d", banner: DATABASE_OPTIONS.join("|"), desc: "specify development database"
     method_option :example, type: :boolean, desc: "install the example app. uses sqlite as development database"
-    method_option :schema_gui, type: :boolean, default: false, desc: "mount the schema-change GUI (inline_forms_schema_gui gem); implied by --example"
+    method_option :schema_edit, type: :boolean, default: false, desc: "mount the schema-change GUI (inline_forms_schema_edit gem); implied by --example"
     method_option :email, aliases: "-e", default: "admin@example.com", desc: "specify admin email"
     method_option :password, aliases: "-p", default: "admin999", desc: "specify admin password"
     method_option :skiprvm, aliases: "--no-rvm", type: :boolean, default: false, desc: "install inline_forms without RVM"
@@ -127,7 +127,7 @@ module InlineFormsInstaller
       ENV["database"] = database
       ENV["install_example"] = install_example?.to_s
       # The example app always mounts the schema GUI (it demos + tests it).
-      ENV["install_schema_gui"] = (options[:schema_gui] || install_example?).to_s
+      ENV["install_schema_edit"] = (options[:schema_edit] || install_example?).to_s
       # Match the generated `.ruby-version` to the version manager actually in
       # use. RVM's `.ruby-version` reader needs the `ruby-X.Y.Z` form — a bare
       # `X.Y.Z` makes `rvm use .` bail with "do not know how to handle" and skip

@@ -7,17 +7,17 @@ namespace :installer do
   Bundler::GemHelper.install_tasks name: "inline_forms_installer"
 end
 
-namespace :schema_gui do
+namespace :schema_edit do
   # The schema-GUI gem lives in its own subdirectory (own gemspec, own pkg/).
-  Bundler::GemHelper.install_tasks dir: File.expand_path("inline_forms_schema_gui", __dir__),
-                                   name: "inline_forms_schema_gui"
+  Bundler::GemHelper.install_tasks dir: File.expand_path("inline_forms_schema_edit", __dir__),
+                                   name: "inline_forms_schema_edit"
 end
 
 def inline_forms_pkg_gems
   version = InlineForms::VERSION
   { "inline_forms" => "pkg",
     "inline_forms_installer" => "pkg",
-    "inline_forms_schema_gui" => "inline_forms_schema_gui/pkg" }.map do |name, pkg|
+    "inline_forms_schema_edit" => "inline_forms_schema_edit/pkg" }.map do |name, pkg|
     path = File.expand_path(File.join(pkg, "#{name}-#{version}.gem"), __dir__)
     raise "Missing #{path}. Run rake build:all first." unless File.file?(path)
     path
@@ -32,8 +32,8 @@ def validation_hints_pkg_gem
   ].find { |path| File.file?(path) }
 end
 
-desc "Build inline_forms, inline_forms_installer and inline_forms_schema_gui"
-task "build:all" => [ "build", "installer:build", "schema_gui:build" ]
+desc "Build inline_forms, inline_forms_installer and inline_forms_schema_edit"
+task "build:all" => [ "build", "installer:build", "schema_edit:build" ]
 
 desc "Install freshly built gems from pkg/ into the current gemset (required before inline_forms create)"
 task "install:local" => [ "build:all" ] do
@@ -45,18 +45,18 @@ task "install:local" => [ "build:all" ] do
   puts "Verify: inline_forms --version 2>/dev/null || gem which inline_forms_installer"
 end
 
-# Release inline_forms + inline_forms_installer + inline_forms_schema_gui
+# Release inline_forms + inline_forms_installer + inline_forms_schema_edit
 # (build, git tag/push, RubyGems push). Does not run inline_forms create,
 # MyApp, or tests. validation_hints is a separate repo:
 # cd ../validation_hints && rake release (same version number).
-desc "Release inline_forms, inline_forms_installer and inline_forms_schema_gui to RubyGems (no app generation)"
+desc "Release inline_forms, inline_forms_installer and inline_forms_schema_edit to RubyGems (no app generation)"
 task "release:all" => [
   "build:all",
   "release:guard_clean",
   "release:source_control_push",
   "release:rubygem_push",
   "installer:release:rubygem_push",
-  "schema_gui:release:rubygem_push"
+  "schema_edit:release:rubygem_push"
 ]
 
 require "rake/testtask"

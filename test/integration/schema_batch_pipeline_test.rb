@@ -7,7 +7,7 @@ require_relative "../integration_test_helper"
 # via a recording executor (never mutates the dummy tree).
 class SchemaBatchPipelineTest < InlineFormsIntegrationTestCase
   def teardown
-    InlineFormsSchemaGui.export_token = nil
+    InlineFormsSchemaEdit.export_token = nil
     super
   end
 
@@ -99,13 +99,13 @@ class SchemaBatchPipelineTest < InlineFormsIntegrationTestCase
     get inline_forms_schema_export_path(batch)
     assert_response :not_found
 
-    InlineFormsSchemaGui.export_token = "sekret"
+    InlineFormsSchemaEdit.export_token = "sekret"
     get inline_forms_schema_export_path(batch), headers: { "Authorization" => "Bearer wrong" }
     assert_response :unauthorized
   end
 
   test "export returns the sealed payload; draft batches are refused" do
-    InlineFormsSchemaGui.export_token = "sekret"
+    InlineFormsSchemaEdit.export_token = "sekret"
     draft_widget_field!
     batch = InlineForms::SchemaBatch.last
 
@@ -122,7 +122,7 @@ class SchemaBatchPipelineTest < InlineFormsIntegrationTestCase
   end
 
   test "status callback drives the batch through the pipeline" do
-    InlineFormsSchemaGui.export_token = "sekret"
+    InlineFormsSchemaEdit.export_token = "sekret"
     draft_widget_field!
     batch = InlineForms::SchemaBatch.last.submit!
 
@@ -148,11 +148,11 @@ class SchemaBatchPipelineTest < InlineFormsIntegrationTestCase
     draft_widget_field!
     batch = InlineForms::SchemaBatch.last.submit!
 
-    payload = InlineFormsSchemaGui::BatchExport.payload(batch)
+    payload = InlineFormsSchemaEdit::BatchExport.payload(batch)
 
     recorded = []
     labels = []
-    import = InlineFormsSchemaGui::BatchImport.new(
+    import = InlineFormsSchemaEdit::BatchImport.new(
       payload,
       executor: ->(args, _root) { recorded << args },
       label_writer: ->(**kwargs) { labels << kwargs; "/dev/null/labels.yml" }
@@ -168,21 +168,21 @@ class SchemaBatchPipelineTest < InlineFormsIntegrationTestCase
   test "import rejects a tampered payload (digest mismatch) and stale intents" do
     draft_widget_field!
     batch = InlineForms::SchemaBatch.last.submit!
-    payload = InlineFormsSchemaGui::BatchExport.payload(batch)
+    payload = InlineFormsSchemaEdit::BatchExport.payload(batch)
 
     tampered = payload.deep_dup
     tampered["intents"].first["attribute"] = "evil_column"
-    error = assert_raises(InlineFormsSchemaGui::BatchImport::ImportError) do
-      InlineFormsSchemaGui::BatchImport.new(tampered).verify!
+    error = assert_raises(InlineFormsSchemaEdit::BatchImport::ImportError) do
+      InlineFormsSchemaEdit::BatchImport.new(tampered).verify!
     end
     assert_match(/digest mismatch/, error.message)
 
     # A column that already exists in THIS checkout fails per-intent validation.
-    stale = InlineFormsSchemaGui::BatchExport.payload(batch)
+    stale = InlineFormsSchemaEdit::BatchExport.payload(batch)
     stale["intents"].first["attribute"] = "name"
     stale["digest"] = "sha256:#{Digest::SHA256.hexdigest(JSON.generate(stale['intents']))}"
-    error = assert_raises(InlineFormsSchemaGui::BatchImport::ImportError) do
-      InlineFormsSchemaGui::BatchImport.new(stale).verify!
+    error = assert_raises(InlineFormsSchemaEdit::BatchImport::ImportError) do
+      InlineFormsSchemaEdit::BatchImport.new(stale).verify!
     end
     assert_match(/already has a name column/, error.message)
   end

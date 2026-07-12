@@ -1,8 +1,8 @@
 # -*- encoding : utf-8 -*-
 
-module InlineFormsSchemaGui
+module InlineFormsSchemaEdit
   # Validation shared by the GUI (SchemaController) and the import/replay
-  # side (BatchImport / rake schema_gui:apply_batch). Validates a plain
+  # side (BatchImport / rake schema_edit:apply_batch). Validates a plain
   # params-shaped hash against the CURRENT app's models — deliberately
   # re-run at import time, because the checkout that replays a batch may be
   # newer than the tenant that drafted it.
