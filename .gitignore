@@ -23,8 +23,6 @@ pkg
 
 Gemfile.lock
 
-# Local notes / analysis (not tracked)
-stuff/
 
 
 # test/dummy runtime artifacts (in-memory DB; only logs/tmp may appear)
