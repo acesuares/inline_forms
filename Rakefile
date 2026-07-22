@@ -49,11 +49,34 @@ end
 # (build, git tag/push, RubyGems push). Does not run inline_forms create,
 # MyApp, or tests. validation_hints is a separate repo:
 # cd ../validation_hints && rake release (same version number).
+# Release git-push ALWAYS targets `origin` (GitHub) only.
+#
+# Do NOT use Bundler's stock `release:source_control_push`: it pushes to the
+# CURRENT BRANCH's tracking remote (`git config branch.<branch>.remote`).
+# Feature branches in this repo track `forgejo` (dev02) because that's where
+# CI runs, so a release cut from a feature branch would push the release commit
+# and version tag to forgejo instead of GitHub. `origin` is the only place
+# release commits/tags belong; `forgejo` is CI-only. This task is also
+# idempotent on the tag, so a re-run after a failed push still lands the tag on
+# origin (Bundler's version skips entirely once the tag exists locally).
+desc "Tag the release and push the commit + tag to origin (GitHub) only"
+task "release:push_to_origin" do
+  version = InlineForms::VERSION
+  tag     = "v#{version}"
+  branch  = `git rev-parse --abbrev-ref HEAD`.strip
+  unless system("git", "rev-parse", "-q", "--verify", "refs/tags/#{tag}",
+                out: File::NULL, err: File::NULL)
+    sh "git", "tag", tag
+  end
+  sh "git", "push", "origin", "refs/heads/#{branch}"
+  sh "git", "push", "origin", "refs/tags/#{tag}"
+end
+
 desc "Release inline_forms, inline_forms_installer and inline_forms_schema_edit to RubyGems (no app generation)"
 task "release:all" => [
   "build:all",
   "release:guard_clean",
-  "release:source_control_push",
+  "release:push_to_origin",
   "release:rubygem_push",
   "installer:release:rubygem_push",
   "schema_edit:release:rubygem_push"
