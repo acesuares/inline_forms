@@ -59,6 +59,15 @@ end
 # release commits/tags belong; `forgejo` is CI-only. This task is also
 # idempotent on the tag, so a re-run after a failed push still lands the tag on
 # origin (Bundler's version skips entirely once the tag exists locally).
+# Also override the bare `release` task (from install_tasks above) so a stray
+# `rake release` can't push to a feature branch's forgejo tracking remote
+# either. The intended entry point is `release:all`, but this closes the
+# footgun on both.
+Rake::Task["release"].clear if Rake::Task.task_defined?("release")
+desc "Build inline_forms, tag, push to origin (GitHub) and push the gem to RubyGems"
+task "release" => [ "build", "release:guard_clean",
+                    "release:push_to_origin", "release:rubygem_push" ]
+
 desc "Tag the release and push the commit + tag to origin (GitHub) only"
 task "release:push_to_origin" do
   version = InlineForms::VERSION
