@@ -5,6 +5,15 @@ lockstep with inline_forms / inline_forms_installer / validation_hints.
 
 ## [Unreleased]
 
+## [8.1.42] - 2026-07-22
+
+### Changed
+
+- Version bump to stay in lockstep with `inline_forms` /
+  `inline_forms_installer` / `validation_hints` 8.1.42. This gem packages its
+  own files (`{app,doc,lib}` glob) and was unaffected by the `stuff/`
+  gem-build leak fixed in the main gem.
+
 ### Added
 
 - **Batch pipeline (plan phases 1-3, and the tenant half of 4).**

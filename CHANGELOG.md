@@ -4,6 +4,18 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [8.1.42] - 2026-07-22
+
+### Fixed
+
+- **`gem build` no longer packages the `stuff/` scratch dir (and its secrets).**
+  `InlineFormsGemFiles.gem_files` sweeps untracked files, so it depended on
+  `stuff/` being git-ignored. That ignore lived only in the per-machine global
+  excludes file, which is absent on the release box — so `stuff/forgejo-token`
+  (mode 0600) leaked into the file list and `gem build` died with `Errno::EACCES`.
+  `stuff/` is now excluded in `gem_files` itself, independent of any ignore
+  config, and re-added to the repo `.gitignore` as a second line of defense.
+
 ### Changed
 
 - **Schema-change GUI extracted into its own gem** (`inline_forms_schema_edit`,

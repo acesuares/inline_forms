@@ -16,6 +16,17 @@ module InlineFormsGemFiles
     inline_forms_schema_edit/
   ].freeze
 
+  # Scratch / local-notes dir. It holds working notes and, crucially, secrets
+  # such as stuff/forgejo-token (mode 0600, only used by CI pushes to forgejo).
+  # It must NEVER be packaged into a gem. Do not rely on git ignore for this:
+  # gem_files sweeps untracked files too, and the global excludes file that
+  # ignores stuff/ is per-machine (present here, absent on the release box), so
+  # the token leaked into `gem build` on the release machine. Exclude it hard,
+  # independent of any ignore configuration.
+  EXCLUDED_FILE_PREFIXES = %w[
+    stuff/
+  ].freeze
+
   module_function
 
   REPO_ROOT = File.expand_path("../..", __dir__)
@@ -38,6 +49,10 @@ module InlineFormsGemFiles
       end
 
     files.select! { |f| File.file?(File.join(REPO_ROOT, f)) }
+
+    files.reject! do |f|
+      EXCLUDED_FILE_PREFIXES.any? { |prefix| f == prefix || f.start_with?(prefix) }
+    end
 
     files.reject! do |f|
       SCHEMA_GUI_FILE_PREFIXES.any? { |prefix| f == prefix || f.start_with?(prefix) }
