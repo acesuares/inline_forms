@@ -23,7 +23,10 @@
     <% attributes.each do | attribute, form_element | -%>
       <% if cancan_disabled? || can?(:read, @object, attribute) %>
         <% css_class_id = "#{@object.class.name.underscore}_#{@object.id}_#{attribute}" -%>
-        <% if form_element == :header %>
+        <% if InlineForms.attribute_pending_migration?(@object, attribute, form_element) %>
+          <%= render partial: "inline_forms/pending_migration_row",
+                locals: { object: @object, attribute: attribute } %>
+        <% elsif form_element == :header %>
           <div class="row form_element_header">
             <div class='large-12 column' >
               <%= @object.class.human_attribute_name(attribute) -%>

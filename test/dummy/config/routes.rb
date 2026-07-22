@@ -19,4 +19,13 @@ Rails.application.routes.draw do
     post "revert", on: :member
     get "list_versions", on: :member
   end
+
+  resources :gizmos do
+    post "revert", on: :member
+    get "list_versions", on: :member
+  end
+
+  # Schema-change GUI (opt-in in real installs; routed here for the engine's
+  # fast test suite). One line, so gem upgrades can add routes freely.
+  InlineFormsSchemaEdit.draw_routes(self)
 end

@@ -1,0 +1,73 @@
+<h2>Preview: add <code><%= @intent.attribute %>:<%= @intent.form_element %></code> to <code><%= @intent.model_name %></code></h2>
+
+<% if @is_header %>
+  <p class="notice">Section <strong>header</strong> &mdash; no column, no migration. It appears after a reload.</p>
+<% end %>
+
+<h2>Resulting attribute order</h2>
+<table class="schema_list">
+  <thead><tr><th>Attribute</th><th>Form element</th></tr></thead>
+  <tbody>
+    <% @attribute_list.each do |attribute, form_element| %>
+      <tr class="<%= "new_row" if attribute.to_sym == @intent.attribute %>">
+        <td><%= attribute %><%= " (new)" if attribute.to_sym == @intent.attribute %></td>
+        <td><%= form_element %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<h2>The new <%= @is_header ? "header" : "field" %></h2>
+<% if @is_header %>
+  <div class="row form_element_header">
+    <div class="large-12 column">
+      <%= @intent_params[:label].presence || @intent.model_class.human_attribute_name(@intent.attribute) %>
+    </div>
+  </div>
+<% else %>
+  <p class="muted">Rendered with the live <code><%= @intent.form_element %></code> widget (no data yet):</p>
+  <div class="schema_field_preview">
+    <%= send("#{@intent.form_element}_edit", @preview, @intent.attribute) %>
+  </div>
+  <% if InlineForms::VALUE_BEARING_FORM_ELEMENTS.include?(@intent.form_element) %>
+    <p class="notice">
+      This is a choice element: a placeholder values hash
+      <code>{ 1 =&gt; 'one', 2 =&gt; 'two' }</code> is used. After applying, edit
+      the row in the model to your real values.
+    </p>
+  <% end %>
+<% end %>
+
+<% if @intent_params[:label].present? %>
+  <p class="muted">Label <code><%= @intent_params[:label] %></code> will be written for locale
+    <code><%= @intent_params[:locale] %></code>.</p>
+<% end %>
+
+<div class="actions">
+  <% unless Rails.env.production? %>
+    <%= form_tag inline_forms_schema_path, method: :post, data: { turbo: false } do %>
+      <input type="hidden" name="model_name"   value="<%= @intent.model_name %>" />
+      <input type="hidden" name="attribute"    value="<%= @intent.attribute %>" />
+      <input type="hidden" name="form_element" value="<%= @intent.form_element %>" />
+      <input type="hidden" name="after"        value="<%= @intent.after %>" />
+      <input type="hidden" name="label"        value="<%= @intent_params[:label] %>" />
+      <input type="hidden" name="locale"       value="<%= @intent_params[:locale] %>" />
+      <%= submit_tag(@is_header ? "Apply (add header, no migration)" : "Apply (generate migration, no db:migrate)") %>
+    <% end %>
+  <% end %>
+
+  <% if @batching_available %>
+    <%= form_tag inline_forms_schema_draft_path, method: :post, data: { turbo: false } do %>
+      <input type="hidden" name="model_name"   value="<%= @intent.model_name %>" />
+      <input type="hidden" name="attribute"    value="<%= @intent.attribute %>" />
+      <input type="hidden" name="form_element" value="<%= @intent.form_element %>" />
+      <input type="hidden" name="after"        value="<%= @intent.after %>" />
+      <input type="hidden" name="label"        value="<%= @intent_params[:label] %>" />
+      <input type="hidden" name="locale"       value="<%= @intent_params[:locale] %>" />
+      <%= submit_tag "Add to batch (draft — applies via the pipeline)" %>
+    <% end %>
+  <% end %>
+
+  <p><%= link_to "Back to edit", inline_forms_schema_new_path %>
+     &middot; <%= link_to "Batches", inline_forms_schema_index_path %></p>
+</div>

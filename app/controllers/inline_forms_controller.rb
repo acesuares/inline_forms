@@ -137,6 +137,11 @@ class InlineFormsController < ApplicationController
     @update_span = params[:update]
     attributes = @inline_forms_attribute_list || @object.inline_forms_attribute_list
     attributes.each do | attribute, form_element |
+      # Skip a row whose column is not migrated yet (model edited, migration
+      # not run). Writing it would raise; the new form shows it as a pending
+      # placeholder and does not submit a value for it.
+      next if InlineForms.attribute_pending_migration?(@object, attribute, form_element)
+
       InlineForms.assert_plain_text_column!(object: @object, attribute: attribute, form_element: form_element)
       send("#{form_element}_update", @object, attribute) unless form_element == :associated || (cancan_enabled? && cannot?(:read, @object, attribute))
     end
@@ -186,6 +191,16 @@ class InlineFormsController < ApplicationController
     @form_element = params[:form_element]
     @sub_id = params[:sub_id]
     @update_span = params[:update]
+    # Defense-in-depth: the UI renders a pending field as a read-only
+    # placeholder (never links to edit/update), but a hand-crafted request
+    # could still target a column that is not migrated yet. Refuse cleanly
+    # instead of 500ing on the missing column.
+    if InlineForms.attribute_pending_migration?(@object, @attribute, @form_element)
+      respond_to do |format|
+        format.html { render "inline_forms/field_pending", layout: "turbo_rails/frame", status: :unprocessable_entity }
+      end
+      return
+    end
     InlineForms.assert_plain_text_column!(object: @object, attribute: @attribute, form_element: @form_element)
     send("#{@form_element}_update", @object, @attribute)
     # Branch on the actual save result. Previously the return value of

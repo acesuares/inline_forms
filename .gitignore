@@ -21,10 +21,14 @@ pkg
 # Builds
 *.gem
 
+# Scratch / local notes and secrets (e.g. stuff/forgejo-token). Kept in-repo
+# .gitignore on purpose: the global excludes file that also ignores this is
+# per-machine and is absent on the release box, which let stuff/ leak into
+# `gem build`. Do not rely on the global ignore alone.
+stuff/
+
 Gemfile.lock
 
-# Local notes / analysis (not tracked)
-stuff/
 
 
 # test/dummy runtime artifacts (in-memory DB; only logs/tmp may appear)

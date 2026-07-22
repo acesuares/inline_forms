@@ -1,6 +1,11 @@
 # -*- encoding : utf-8 -*-
 
 require "inline_forms/version"
+require "inline_forms/attribute_list"
+require "inline_forms/schema_intent"
+require "inline_forms/schema_preview"
+require "inline_forms/schema_apply"
+require "inline_forms/schema_label"
 require "inline_forms/form_element_from_callee"
 require "inline_forms/archived_form_elements"
 require "inline_forms/form_element_registry"
@@ -106,6 +111,25 @@ module InlineForms
     plain_text_area
   ].freeze
 
+  # Form elements that render a set of choices and therefore REQUIRE a values
+  # hash as the 3rd element of their attribute_list row (their _show/_edit
+  # helpers call `attribute_values`, which raises when it is missing). Shared by
+  # the addto generator and the schema GUI/preview so both insert a placeholder.
+  VALUE_BEARING_FORM_ELEMENTS = %i[
+    dropdown_with_values
+    dropdown_with_integers
+    dropdown_with_values_with_stars
+    radio_button
+    check_box
+    scale_with_integers
+    scale_with_values
+    slider_with_values
+  ].freeze
+
+  # Placeholder values hash inserted when a value-bearing element is added
+  # programmatically (generator / GUI); the user edits it to real values after.
+  PLACEHOLDER_VALUES = { 1 => "one", 2 => "two" }.freeze
+
   def self.plain_text_form_element?(form_element)
     PLAIN_TEXT_FORM_ELEMENTS.include?(form_element.to_sym)
   rescue NoMethodError
@@ -119,6 +143,68 @@ module InlineForms
     raise PlainTextColumnMissingError,
       "#{object.class.name}##{attribute} uses #{form_element} but has no DB column `#{attribute}`. " \
       "Use :rich_text for ActionText-backed attributes, or add a text column for :plain_text."
+  end
+
+  # Form elements exempt from the pending-migration gate. They either render a
+  # label only (:header), or read a *virtual* attribute whose name is not its
+  # backing column — :devise_password_field (backed by encrypted_password),
+  # :money_field (backed by a *_cents column via money-rails), :info
+  # (conventionally bound to pre-existing columns like created_at). None of
+  # these are produced by `inline_forms_addto` in the transient pre-migrate
+  # window, so gating them would only ever mis-fire.
+  PENDING_GATE_EXEMPT_FORM_ELEMENTS = %i[
+    header
+    info
+    devise_password_field
+    money_field
+  ].freeze
+
+  # True when an attribute_list row references a column that its model's table
+  # does not have yet — i.e. the model file was edited (row added) but the
+  # migration adding the column has not run. Rendering or writing such a row
+  # raises (e.g. `object[:foo]` / `foo_show` on a missing column), so callers
+  # gate on this to show a "pending migration" placeholder and skip writes
+  # instead of 500ing during the window between `rails g inline_forms_addto`
+  # and `rails db:migrate`.
+  #
+  # Detection is column-presence based (robust): the expected column is derived
+  # from the form element via the same type maps the generator uses. `nil`
+  # (associations, rich_text, pdf_link, unknown elements) and virtual-backed
+  # elements (see PENDING_GATE_EXEMPT_FORM_ELEMENTS) are never gated. The gate
+  # self-heals: once the migration runs and the schema cache reflects the new
+  # column, the column is present and the row renders normally — no flag to
+  # clear, nothing to maintain.
+  def self.attribute_pending_migration?(object, attribute, form_element)
+    fe = form_element.to_sym
+    return false if PENDING_GATE_EXEMPT_FORM_ELEMENTS.include?(fe)
+
+    klass = object.class
+    return false unless klass.respond_to?(:table_exists?) && klass.respond_to?(:column_names)
+    return false unless klass.table_exists?
+
+    column = pending_gate_expected_column(attribute, fe)
+    return false if column.nil?
+
+    !klass.column_names.include?(column)
+  rescue StandardError
+    # The gate must never itself break rendering; fail open (render as before).
+    false
+  end
+
+  # The column an attribute_list row expects on the model's own table, or nil
+  # when the form element needs no such column (has_many/habtm/has_one/
+  # rich_text -> :no_migration; pdf_link/info_list/unknown -> nil). Relation
+  # dropdowns are backed by a foreign key (`<attribute>_id`); every other
+  # column-backed element uses a column named after the attribute.
+  def self.pending_gate_expected_column(attribute, form_element)
+    column_type =
+      SPECIAL_COLUMN_TYPES[form_element] ||
+      (DEFAULT_FORM_ELEMENTS.value?(form_element) ? :__scalar__ : nil)
+
+    return nil if column_type.nil? || column_type == :no_migration
+    return "#{attribute}_id" if column_type == :belongs_to
+
+    attribute.to_s
   end
 
   def self.validate_plain_text_configuration_for!(klass)

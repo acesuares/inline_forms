@@ -1,0 +1,10 @@
+<%# Turbo-frame response for a forced field request (show/edit/update) against
+    an attribute whose column does not exist yet. The UI never links here (the
+    row renders as a pending placeholder in _show), so this is defense-in-depth
+    for a hand-crafted request during the pre-migrate window. %>
+<turbo-frame id="<%= @update_span %>">
+  <span class="pending_migration_notice">
+    <%= t("inline_forms.pending_migration.notice",
+          default: "pending migration \u2014 run rails db:migrate") -%>
+  </span>
+</turbo-frame>

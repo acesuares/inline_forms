@@ -1,0 +1,30 @@
+class CreateInlineFormsSchemaEditTables < ActiveRecord::Migration[<%= ActiveRecord::Migration.current_version %>]
+  def change
+    create_table :inline_forms_schema_batches do |t|
+      t.string   :status, null: false, default: "draft"
+      t.string   :requested_by
+      t.datetime :submitted_at
+      t.datetime :window_at
+      t.datetime :applied_at
+      t.string   :git_sha
+      t.string   :content_digest
+      t.text     :error
+      t.timestamps
+    end
+    add_index :inline_forms_schema_batches, :status
+
+    create_table :inline_forms_schema_intents do |t|
+      t.references :batch, null: false, index: true
+      t.string  :target_model, null: false
+      t.string  :attr_name, null: false
+      t.string  :form_element, null: false
+      t.string  :after_attr
+      t.string  :before_attr
+      t.string  :label
+      t.string  :locale
+      t.integer :position
+      t.string  :migration_version
+      t.timestamps
+    end
+  end
+end

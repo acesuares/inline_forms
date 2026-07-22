@@ -42,7 +42,10 @@
     <% attributes.each do | attribute, form_element | -%>
       <% unless form_element.to_sym == :associated || (cancan_enabled? && cannot?(:read, @object, attribute)) -%>
         <% css_class_id = "attribute_#{attribute}_#{@object.id}" -%>
-        <% if form_element && form_element.to_sym == :header %>
+        <% if InlineForms.attribute_pending_migration?(@object, attribute, form_element) %>
+          <%= render partial: "inline_forms/pending_migration_row",
+                locals: { object: @object, attribute: attribute } %>
+        <% elsif form_element && form_element.to_sym == :header %>
           <div class="row form_element_header" >
             <div class='large-12 column<%= " attribute_name attribute_#{attribute} form_element_#{form_element}" -%>' >
               <%= @object.human_attribute_name(attribute) -%>

@@ -9,6 +9,24 @@ module InlineFormsGemFiles
     inline_forms_installer.gemspec
   ].freeze
 
+  # The schema-GUI gem lives in its own subdirectory with its own gemspec
+  # (inline_forms_schema_edit/inline_forms_schema_edit.gemspec) and packages
+  # its files itself; exclude the whole subtree from BOTH gems here.
+  SCHEMA_GUI_FILE_PREFIXES = %w[
+    inline_forms_schema_edit/
+  ].freeze
+
+  # Scratch / local-notes dir. It holds working notes and, crucially, secrets
+  # such as stuff/forgejo-token (mode 0600, only used by CI pushes to forgejo).
+  # It must NEVER be packaged into a gem. Do not rely on git ignore for this:
+  # gem_files sweeps untracked files too, and the global excludes file that
+  # ignores stuff/ is per-machine (present here, absent on the release box), so
+  # the token leaked into `gem build` on the release machine. Exclude it hard,
+  # independent of any ignore configuration.
+  EXCLUDED_FILE_PREFIXES = %w[
+    stuff/
+  ].freeze
+
   module_function
 
   REPO_ROOT = File.expand_path("../..", __dir__)
@@ -31,6 +49,14 @@ module InlineFormsGemFiles
       end
 
     files.select! { |f| File.file?(File.join(REPO_ROOT, f)) }
+
+    files.reject! do |f|
+      EXCLUDED_FILE_PREFIXES.any? { |prefix| f == prefix || f.start_with?(prefix) }
+    end
+
+    files.reject! do |f|
+      SCHEMA_GUI_FILE_PREFIXES.any? { |prefix| f == prefix || f.start_with?(prefix) }
+    end
 
     files.reject do |f|
       installer_file = INSTALLER_FILE_PREFIXES.any? { |prefix| f == prefix || f.start_with?(prefix) }

@@ -28,6 +28,8 @@ nl:
       add_new: Maak een nieuw %{model}
       undo: terughalen
       trash: weggooien
+    pending_migration:
+      notice: "migratie in afwachting \u2014 draai rails db:migrate"
   succes: het ding is aangemaakt.
   activerecord:
     models:

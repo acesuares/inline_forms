@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="<%= I18n.locale %>">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>inline_forms schema &mdash; add a field</title>
+    <%= csrf_meta_tags %>
+    <style>
+      body { font-family: system-ui, sans-serif; margin: 2rem auto; max-width: 48rem; padding: 0 1rem; color: #222; }
+      h1 { font-size: 1.4rem; } h2 { font-size: 1.1rem; margin-top: 1.5rem; }
+      label { display: block; margin: 0.75rem 0 0.25rem; font-weight: 600; }
+      input[type=text], select { width: 100%; padding: 0.4rem; box-sizing: border-box; }
+      .actions { margin-top: 1.25rem; }
+      button, input[type=submit] { padding: 0.5rem 1rem; cursor: pointer; }
+      .error { background: #fdecec; border: 1px solid #e0aaaa; color: #a00; padding: 0.5rem 0.75rem; border-radius: 4px; }
+      .notice { background: #fff8e1; border: 1px solid #e0c060; padding: 0.5rem 0.75rem; border-radius: 4px; }
+      .schema_list { border-collapse: collapse; width: 100%; margin-top: 0.5rem; }
+      .schema_list th, .schema_list td { text-align: left; padding: 0.3rem 0.6rem; border-bottom: 1px solid #eee; }
+      .schema_list tr.new_row { background: #eaf7ea; font-weight: 600; }
+      code { background: #f4f4f4; padding: 0.1rem 0.3rem; border-radius: 3px; }
+      .muted { color: #777; }
+    </style>
+  </head>
+  <%# Standalone dev utility: opt out of Turbo Drive so links + form POSTs do
+      plain full-page navigations. Without this, the "+ field" link keeps the
+      page in the host app's Turbo session and a POST that renders 200 HTML
+      (not a turbo_stream/redirect) is silently ignored by Turbo. %>
+  <body data-turbo="false">
+    <h1>inline_forms &mdash; add a field to a model</h1>
+    <p class="muted">Dev utility. Applies the <code>inline_forms_addto</code> generator (model edit + migration file); it does <strong>not</strong> run <code>db:migrate</code>.</p>
+    <%= yield %>
+  </body>
+</html>

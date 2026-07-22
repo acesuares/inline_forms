@@ -36,16 +36,9 @@ class InlineFormsAddtoGenerator < Rails::Generators::NamedBase
     # Form elements that render a set of choices and therefore need a values
     # hash as the 3rd element of their attribute_list row. Emitting the bare
     # 2-element row for these raises at show time, so we insert a placeholder
-    # hash and warn the user to fill it in.
-    VALUE_BEARING_ELEMENTS = %i[
-      dropdown_with_values
-      dropdown_with_integers
-      dropdown_with_values_with_stars
-      radio_button
-      check_box
-      scale_with_integers
-      scale_with_values
-    ].freeze
+    # hash and warn the user to fill it in. Canonical list lives in InlineForms
+    # (shared with the schema GUI/preview).
+    VALUE_BEARING_ELEMENTS = InlineForms::VALUE_BEARING_FORM_ELEMENTS
 
     # attribute_list rows whose form element (or name) marks the start of the
     # trailing "metadata" block. The smart-default placement inserts new rows
@@ -117,6 +110,10 @@ class InlineFormsAddtoGenerator < Rails::Generators::NamedBase
         next if INSTALL_TIME_ONLY_NAMES.include?(attribute.name)
         next if REPLACE_ONLY_NAMES.include?(attribute.name)
         next unless attribute.migration?
+        # A :header is a display-only separator in the attribute list; it has
+        # no backing column, so it must not emit a migration line (otherwise
+        # `foo:header` created a pointless `foo` string column).
+        next if attribute.attribute_type == :header
 
         if attribute.column_type == :belongs_to
           @migration_lines << "    add_reference :#{table_name}, :#{attribute.name}, foreign_key: true\n"

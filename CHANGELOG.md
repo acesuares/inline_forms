@@ -4,15 +4,45 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
-## [8.1.42] - 2026-07-11
+## [8.1.43] - 2026-07-22
 
 ### Fixed
 
 - **Native date/time/month/week/colour pickers show their picker control again.** Foundation's form reset (`_forms.scss`) applies `appearance: none` to a shared list of input types that includes `date`, `datetime-local`, `month`, `week`, `time`, and `color`. For plain text inputs that is harmless, but for the native `<input type="…">` pickers introduced in 8.1.25/8.1.26 (which replaced the jQuery UI date/time/month widgets) it stripped the browser's calendar/clock/month/colour indicator, leaving a bare text box with no way to open the picker. `inline_forms.scss` now restores `appearance: auto` for these input types (the `input[type=…]` selector outranks Foundation's `[type=…]`, so it wins regardless of source order).
 
+### Merged
+
+- Merges the `feature/schema-gui-pipeline` line (schema-GUI extraction, batch
+  pipeline, and the 8.1.42 `gem build` / release fixes) into `master` alongside
+  the picker fix above, so both lines ship together going forward.
+
 ### Lockstep
 
-- validation_hints 8.1.42, inline_forms_installer 8.1.42.
+- validation_hints 8.1.43, inline_forms_installer 8.1.43, inline_forms_schema_edit 8.1.43.
+
+## [8.1.42] - 2026-07-22
+
+### Fixed
+
+- **`gem build` no longer packages the `stuff/` scratch dir (and its secrets).**
+  `InlineFormsGemFiles.gem_files` sweeps untracked files, so it depended on
+  `stuff/` being git-ignored. That ignore lived only in the per-machine global
+  excludes file, which is absent on the release box — so `stuff/forgejo-token`
+  (mode 0600) leaked into the file list and `gem build` died with `Errno::EACCES`.
+  `stuff/` is now excluded in `gem_files` itself, independent of any ignore
+  config, and re-added to the repo `.gitignore` as a second line of defense.
+
+### Changed
+
+- **Schema-change GUI extracted into its own gem** (`inline_forms_schema_edit`,
+  same repo, own gemspec; phase 0 of
+  `stuff/2026-07-11-schema-gui-gem-and-automated-pipeline-plan.md`).
+  `InlineForms::SchemaController`, its views and the `inline_forms_schema`
+  layout move out of the engine; the staging services (`SchemaIntent`,
+  `SchemaPreview`, `SchemaApply`, `SchemaLabel`) stay. The installer gains a
+  `--schema-edit` flag (default off, implied by `--example`) that adds the gem
+  to the generated Gemfile and wires the schema routes + "+ field" nav link;
+  apps created without it ship no schema-GUI surface at all.
 
 ## [8.1.41] - 2026-07-11
 
