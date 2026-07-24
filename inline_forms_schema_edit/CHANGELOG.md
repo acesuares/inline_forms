@@ -5,6 +5,14 @@ lockstep with inline_forms / inline_forms_installer / validation_hints.
 
 ## [Unreleased]
 
+## [8.1.44] - 2026-07-24
+
+### Changed
+
+- Version bump to stay in lockstep with `inline_forms` /
+  `inline_forms_installer` / `validation_hints` 8.1.44 (`simple_file_field`
+  download-link fix). No changes to this gem's own code.
+
 ## [8.1.43] - 2026-07-22
 
 ### Changed

@@ -4,6 +4,16 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [8.1.44] - 2026-07-24
+
+### Fixed
+
+- **`simple_file_field` download link bypasses Turbo and uses the correct route segment.** When a file is present, the show link now carries `data-turbo="false"` so the browser handles the host controller's `send_data` response natively instead of Turbo loading binary content into the frame. The href route method is read from the raw values hash entry (e.g. `{ 0 => "download" }`) instead of through `attribute_values`, which translated the segment via `t()` and produced broken URLs. Integration test in `legacy_elements_test.rb`.
+
+### Lockstep
+
+- validation_hints 8.1.44, inline_forms_installer 8.1.44, inline_forms_schema_edit 8.1.44.
+
 ## [8.1.43] - 2026-07-22
 
 ### Fixed

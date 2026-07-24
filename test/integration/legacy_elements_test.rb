@@ -20,6 +20,18 @@ class LegacyElementsTest < InlineFormsIntegrationTestCase
     assert_includes response.body, "fi-plus"
   end
 
+  test "simple_file_field present state download link bypasses Turbo" do
+    @widget.update!(manual: "Lida.png")
+    frame = "widget_#{@widget.id}"
+    get widget_path(@widget, update: frame), headers: frame_headers(frame)
+
+    assert_response :success
+    # The download link must carry data-turbo="false" so the browser handles
+    # the send_data response natively instead of Turbo loading the binary into
+    # the frame (a no-op). The route method comes from the values entry.
+    assert_match %r{<a[^>]*data-turbo="false"[^>]*href="/widgets/download/#{@widget.id}"}, response.body
+  end
+
   test "simple_file_field edit renders a file input" do
     frame = "widget_#{@widget.id}_manual"
     get edit_widget_path(@widget, attribute: "manual",

@@ -7,11 +7,14 @@ module InlineForms
     
     def simple_file_field_show(object, attribute)
       o = object.send(attribute)
-      method = attribute_values(object, attribute)[0][1]
+      attributes = @inline_forms_attribute_list || object.inline_forms_attribute_list
+      values = attributes.assoc(attribute.to_sym)[2]
+      raise "inline_forms: no values defined in #{object.class} for #{attribute} (add a values hash to the inline_forms_attribute_list row)" if values.nil?
+      method = values.is_a?(Hash) ? values.sort_by { |k, _| k }.first[1] : values.first
       if o.send(:present?)
         filename = o.to_s
         model = object.class.to_s.pluralize.underscore
-        link_to filename, "/#{model}/#{method}/#{object.id}" # route must exist!!
+        link_to filename, "/#{model}/#{method}/#{object.id}", data: { turbo: false } # route must exist!! turbo:false so the browser downloads send_data natively instead of Turbo loading it into the frame
       else
         link_to_inline_edit object, attribute, "<i class='fi-plus'></i>".html_safe, from_callee: __callee__
       end
