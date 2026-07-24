@@ -4,6 +4,24 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [8.1.45] - 2026-07-24
+
+### Added
+
+- **Engine-owned model top bar** (`app/views/inline_forms/_model_top_bar.html.erb`): title, new-record button, and optional search region ship from the gem instead of a per-app `_inline_forms_tabs.html.erb` copy. The layout now renders `inline_forms/model_top_bar`; apps can still override via `app/views/inline_forms/_model_top_bar.html.erb`.
+- **`inline_forms_search_on :col, …` macro** (`InlineForms::Searchable`): declarative opt-in for list search — defines `scope :inline_forms_search` and `inline_forms_searchable?`. Only searchable models get the engine's generic single-field search box (`_generic_search.html.erb`); apps can supply a bespoke `app/views/_<model>_search.html.erb` partial instead (bespoke wins).
+- **`+ field` schema link** in the engine top bar when `inline_forms_schema_new_path` is available (replaces installer injection into the retired `_inline_forms_tabs` partial).
+
+### Changed
+
+- **Retired per-app `_inline_forms_tabs.html.erb` scaffolding.** The generator no longer copies `lib/generators/templates/_inline_forms_tabs.html.erb` into new apps. Existing apps must delete their copy and move any bespoke search markup to `_<model>_search.html.erb` (see `stuff/2026-07-24-default-model-top-bar-and-search.md`).
+- **`ApplicationRecord` template:** removed the no-op `scope :inline_forms_search, ->(_q) { all }`; models opt in via `inline_forms_search_on`. `_list_search:<col>` in `rails g inline_forms` / `inline_forms_addto` now emits `inline_forms_search_on :col`.
+- **Installer user model** uses `inline_forms_search_on :name, :email` instead of a hand-written search scope.
+
+### Lockstep
+
+- validation_hints 8.1.45, inline_forms_installer 8.1.45, inline_forms_schema_edit 8.1.45.
+
 ## [8.1.44] - 2026-07-24
 
 ### Fixed

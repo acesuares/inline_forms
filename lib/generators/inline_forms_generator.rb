@@ -116,7 +116,7 @@ module InlineForms
             @list_scopes << "  scope :inline_forms_list, -> { order(:#{attribute.type}, :id) }\n"
           end
           if attribute.name == '_list_search'
-            @list_scopes << "  scope :inline_forms_search, ->(q) { where(\"#{attribute.type} LIKE ?\", \"%\#{q}%\") }\n"
+            @list_scopes << "  inline_forms_search_on :#{attribute.type}\n"
           end
           if attribute.attribute?
             attribute.attribute_type == :unknown ? commenter = '#' : commenter = ' '
@@ -194,10 +194,6 @@ module InlineForms
         @primary_key_option = @create_id ? '' : ', id: false'
         template "migration.erb", "db/migrate/#{time_stamp}_inline_forms_create_#{table_name}.rb"
       end
-    end
-
-    def add_second_top_bar
-      copy_file "_inline_forms_tabs.html.erb", "app/views/_inline_forms_tabs.html.erb" unless File.exist?('app/views/_inline_forms_tabs.html.erb')
     end
 
     def add_tab

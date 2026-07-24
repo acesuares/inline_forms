@@ -7,6 +7,8 @@
 class ApplicationRecord < ActiveRecord::Base
   self.abstract_class = true
 
+  include InlineForms::Searchable
+
   has_paper_trail on: [ :create, :update, :destroy ]
 
   attr_writer :inline_forms_attribute_list
@@ -14,7 +16,6 @@ class ApplicationRecord < ActiveRecord::Base
   self.per_page = 7
 
   scope :inline_forms_list, -> { all }
-  scope :inline_forms_search, ->(_q) { all }
 
   def human_attribute_name(*args)
     self.class.human_attribute_name(*args)

@@ -155,7 +155,7 @@ class InlineFormsGeneratorTest < Minitest::Test
 
     model = read("app/models/apartment.rb")
     assert_includes(model, "scope :inline_forms_list, -> { order(:name, :id) }")
-    assert_includes(model, "scope :inline_forms_search, ->(q) { where(\"name LIKE ?\", \"%\#{q}%\") }")
+    assert_includes(model, "inline_forms_search_on :name")
     migration = read_single_migration_for("apartments")
     refute_includes(migration, "_list_order")
     refute_includes(migration, "_list_search")

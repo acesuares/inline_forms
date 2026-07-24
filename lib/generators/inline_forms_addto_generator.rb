@@ -444,11 +444,15 @@ class InlineFormsAddtoGenerator < Rails::Generators::NamedBase
         end
       when "_list_search"
         col = attribute.type
-        new_scope = "  scope :inline_forms_search, ->(q) { where(\"#{col} LIKE ?\", \"%\#{q}%\") }\n"
-        if File.read(File.join(destination_root, model_file_path)).match?(/scope :inline_forms_search\b/)
-          gsub_file model_file_path, /  scope :inline_forms_search, ->.*\n/, new_scope
+        new_line = "  inline_forms_search_on :#{col}\n"
+        path = File.join(destination_root, model_file_path)
+        content = File.read(path)
+        if content.match?(/inline_forms_search_on\b/)
+          gsub_file model_file_path, /  inline_forms_search_on[^\n]*\n/, new_line
+        elsif content.match?(/scope :inline_forms_search\b/)
+          gsub_file model_file_path, /  scope :inline_forms_search, ->.*\n/, new_line
         else
-          inject_into_class model_file_path, model_class_name, new_scope
+          inject_into_class model_file_path, model_class_name, new_line
         end
       end
     end

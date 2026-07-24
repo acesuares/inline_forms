@@ -1,0 +1,37 @@
+<div class="contain-to-grid fixed" id="inline_forms_model_top_bar_container">
+  <nav id="inline_forms_model_top_bar" class="top-bar">
+    <div class="top-bar-left">
+      <ul class="menu">
+        <li class="menu-text" id="inline_forms_menu">
+          <h1 style="margin: 0; font-size: inherit;">
+            <a>
+              <%= t(controller_name) %>
+            </a>
+          </h1>
+        </li>
+        <% if respond_to?(:inline_forms_schema_new_path) %>
+          <li class="menu-text">
+            <%= link_to "+ field", inline_forms_schema_new_path, data: { turbo: false }, title: "Add a field to a model (dev only)" %>
+          </li>
+        <% end %>
+      </ul>
+    </div>
+    <div class="top-bar-right">
+      <ul class="menu">
+        <% search_partial = "#{controller_name}_search" %>
+        <% if lookup_context.exists?(search_partial, [], true) %>
+          <li>
+            <%= render partial: "/#{search_partial}" %>
+          </li>
+        <% elsif @Klass.respond_to?(:inline_forms_searchable?) && @Klass.inline_forms_searchable? %>
+          <li>
+            <%= render "inline_forms/generic_search" %>
+          </li>
+        <% end %>
+        <li>
+          <%= link_to_new_record(@Klass, "new_#{@Klass.to_s.singularize.underscore}_path", @Klass.to_s.pluralize.downcase + "_list") %>
+        </li>
+      </ul>
+    </div>
+  </nav>
+</div>

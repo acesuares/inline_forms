@@ -24,7 +24,7 @@
         <% if flash_alert.present? %><div class="flash alert"><%= flash_alert %></div><% end %>
       </div>
     <% end %>
-    <%= render "/inline_forms_tabs" %>
+    <%= render "inline_forms/model_top_bar" %>
     <div id="outer_container">
       <%= yield %>
     </div>

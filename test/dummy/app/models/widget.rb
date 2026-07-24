@@ -8,7 +8,7 @@ class Widget < ApplicationRecord
   validates :name, presence: true
 
   scope :inline_forms_list, -> { order(:name, :id) }
-  scope :inline_forms_search, ->(q) { where("name LIKE ?", "%#{q}%") }
+  inline_forms_search_on :name
 
   def _presentation
     "#{name}"

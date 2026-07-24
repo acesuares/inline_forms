@@ -429,11 +429,7 @@ create_file user_cfg.model_path, <<-USER_MODEL.strip_heredoc
     # via `#{user_cfg.class_name}.inline_forms_list`). Avoids `default_scope`
     # so callers can `unscope`/`reorder` cleanly when needed.
     scope :inline_forms_list, -> { order(:name, :id) }
-    # Search box on /#{user_cfg.plural_route} filters by name OR email. Without this
-    # the controller would `merge(ApplicationRecord.inline_forms_search(q))`,
-    # which is the no-op `all` fallback, and the query string would be silently
-    # ignored.
-    scope :inline_forms_search, ->(q) { where("name LIKE :q OR email LIKE :q", q: "%\#{q}%") }
+    inline_forms_search_on :name, :email
 
     def _presentation
       "\#{name}"
@@ -865,14 +861,6 @@ if ENV['install_schema_edit'] == 'true'
   # policy as the main install).
   run "bundle exec rails g inline_forms_schema_edit:install"
   run "bundle exec rake db:migrate" if ENV['using_sqlite'] == 'true'
-
-  if File.exist?("app/views/_inline_forms_tabs.html.erb")
-    inject_into_file "app/views/_inline_forms_tabs.html.erb",
-                     "        <li class=\"menu-text\">\n" \
-                     "          <a href=\"/schema/new\" data-turbo=\"false\" title=\"Add a field to a model (dev only)\">+ field</a>\n" \
-                     "        </li>\n",
-                     before: "      </ul>\n    </div>\n    <div class=\"top-bar-right\">"
-  end
 end
 
 # Git

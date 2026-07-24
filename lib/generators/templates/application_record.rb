@@ -1,6 +1,8 @@
 class ApplicationRecord < ActiveRecord::Base
   self.abstract_class = true
 
+  include InlineForms::Searchable
+
   # PaperTrail 16 defaults to `on: [:create, :update, :destroy, :touch]`.
   # ActionText's `belongs_to :record, polymorphic: true, touch: true` (set by
   # `has_rich_text`) calls `parent.touch` on every rich-text save, which
@@ -23,12 +25,6 @@ class ApplicationRecord < ActiveRecord::Base
   # explicit named scopes rather than `default_scope` so callers can
   # `unscope`/`reorder` cleanly.
   scope :inline_forms_list, -> { all }
-
-  # Default list search; no-op so the gem's search box is inert until a model
-  # opts in via
-  #   scope :inline_forms_search, ->(q) { where("col LIKE ?", "%#{q}%") }
-  # (emitted by `_list_search:<col>` in the generator).
-  scope :inline_forms_search, ->(_q) { all }
 
   # Wrapper for @model.human_attribute_name -> Model.human_attribute_name
   def human_attribute_name(*args)
