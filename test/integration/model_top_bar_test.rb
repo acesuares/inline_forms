@@ -43,4 +43,14 @@ class ModelTopBarTest < InlineFormsIntegrationTestCase
     assert_includes response.body, "Alpha"
     refute_includes response.body, "Beta"
   end
+
+  test "non-model page with no @Klass renders title only, no new-record link" do
+    get stats_path
+
+    assert_response :success
+    assert_includes response.body, %(id="inline_forms_model_top_bar")
+    assert_includes response.body, %(id="stats_report")
+    refute_includes response.body, "new_button"
+    refute_includes response.body, %(id="input_search")
+  end
 end

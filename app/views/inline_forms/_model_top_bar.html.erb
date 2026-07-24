@@ -28,9 +28,11 @@
             <%= render "inline_forms/generic_search" %>
           </li>
         <% end %>
-        <li>
-          <%= link_to_new_record(@Klass, "new_#{@Klass.to_s.singularize.underscore}_path", @Klass.to_s.pluralize.downcase + "_list") %>
-        </li>
+        <% if @Klass %>
+          <li>
+            <%= link_to_new_record(@Klass, "new_#{@Klass.to_s.singularize.underscore}_path", @Klass.to_s.pluralize.downcase + "_list") %>
+          </li>
+        <% end %>
       </ul>
     </div>
   </nav>

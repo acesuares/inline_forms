@@ -4,6 +4,16 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [8.1.46] - 2026-07-24
+
+### Fixed
+
+- **Model top bar no longer crashes when `@Klass` is nil.** Bespoke admin pages that render `layouts/inline_forms` from a non-`InlineFormsController` (e.g. a Stats/report controller) now show title-only chrome instead of raising on `new__path` / `link_to_new_record`. The new-record link is guarded with `<% if @Klass %>` as the per-app header did before 8.1.45.
+
+### Lockstep
+
+- validation_hints 8.1.46, inline_forms_installer 8.1.46, inline_forms_schema_edit 8.1.46.
+
 ## [8.1.45] - 2026-07-24
 
 ### Added
