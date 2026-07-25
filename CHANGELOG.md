@@ -4,6 +4,16 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [8.1.47] - 2026-07-25
+
+### Fixed
+
+- **Inline-edit save failures now show validation errors in the editor.** `InlineFormsController#update` already set `flash.now[:error]` on a failed save, but `field_edit` never rendered it (and `_edit` deliberately skips flash to avoid session notices leaking into the field). `field_edit` now displays `:error` only, inside the turbo-frame, with compact `.inline_forms_field_error` styling.
+
+### Lockstep
+
+- validation_hints 8.1.47, inline_forms_installer 8.1.47, inline_forms_schema_edit 8.1.47.
+
 ## [8.1.46] - 2026-07-24
 
 ### Fixed

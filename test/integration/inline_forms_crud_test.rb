@@ -71,6 +71,30 @@ class InlineFormsCrudTest < InlineFormsIntegrationTestCase
     assert_equal "Alpha", @widget.reload.name, "blank name must not persist"
     assert_includes response.body, %(name="name"),
       "expected the edit input to be re-rendered after a failed save"
+    assert_includes response.body, "inline_forms_field_error"
+    assert_includes response.body, "can&#39;t be blank"
+  end
+
+  test "failed save with invalid value shows validation errors in the editor" do
+    frame = "widget_#{@widget.id}_notes"
+    put widget_path(@widget, attribute: "notes", form_element: "plain_text_area",
+                    update: frame),
+        params: { notes: "short" }, headers: frame_headers(frame)
+
+    assert_response :success
+    assert_nil @widget.reload.notes
+    assert_includes response.body, "inline_forms_field_error"
+    assert_includes response.body, "is too short"
+  end
+
+  test "edit render shows no field error when flash is empty" do
+    frame = "widget_#{@widget.id}_name"
+    get edit_widget_path(@widget, attribute: "name", form_element: "text_field",
+                         update: frame),
+        headers: frame_headers(frame)
+
+    assert_response :success
+    refute_includes response.body, "inline_forms_field_error"
   end
 
   test "destroy responds with the destroyed-row state and an undo pointing at the destroy version" do

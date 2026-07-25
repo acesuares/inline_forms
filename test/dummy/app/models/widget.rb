@@ -6,6 +6,7 @@ class Widget < ApplicationRecord
   belongs_to :kind, optional: true
 
   validates :name, presence: true
+  validates :notes, length: { minimum: 10 }, allow_blank: true
 
   scope :inline_forms_list, -> { order(:name, :id) }
   inline_forms_search_on :name
