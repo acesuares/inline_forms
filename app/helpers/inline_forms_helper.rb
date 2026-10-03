@@ -397,7 +397,11 @@ module InlineFormsHelper
   def version_modified_by(id)
     return "Unknown" if id.blank?
 
-    user_class = Devise.mappings[:users]&.to
+    # Devise keys mappings by the singular scope (`devise_for :users` ->
+    # :user); the old `[:users]` lookup never matched, so every name was
+    # "Unknown".
+    mapping = Devise.mappings[:user] || Devise.mappings[:users] || Devise.mappings.values.first
+    user_class = mapping&.to
     return "Unknown" unless user_class
 
     user = user_class.find_by(id: id)

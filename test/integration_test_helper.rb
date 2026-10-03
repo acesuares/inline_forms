@@ -67,6 +67,50 @@ ActiveRecord::Schema.define do
     t.timestamps
   end
 
+  # Document: declared file slots (InlineForms::StoredFiles); see
+  # file_slots_test.rb. The trash tables mirror the inline_forms:file_trash
+  # generator's migration.
+  create_table :documents, force: true do |t|
+    t.string :title
+    t.string :filename
+    t.binary :data
+    t.string :content_type
+    t.string :plan_filename
+    t.binary :plan_data
+    t.string :plan_content_type
+    t.timestamps
+  end
+
+  create_table :inline_forms_trashed_files, force: true do |t|
+    t.string   :record_type, null: false
+    t.bigint   :record_id, null: false
+    t.string   :attribute_name, null: false
+    t.string   :filename
+    t.string   :content_type
+    t.bigint   :byte_size
+    t.string   :checksum, limit: 64
+    t.binary   :data
+    t.string   :reason, null: false
+    t.boolean  :redacted, null: false, default: false
+    t.bigint   :trashed_by_id
+    t.datetime :trashed_at, null: false
+    t.bigint   :restored_by_id
+    t.datetime :restored_at
+    t.bigint   :purged_by_id
+    t.datetime :purged_at
+    t.datetime :purge_after
+    t.timestamps
+  end
+  add_index :inline_forms_trashed_files, [ :record_type, :record_id, :attribute_name ]
+  add_index :inline_forms_trashed_files, [ :purged_at, :restored_at, :purge_after ]
+
+  create_table :inline_forms_file_trash_sweeps, force: true do |t|
+    t.datetime :ran_at, null: false
+    t.integer  :purged_count, null: false, default: 0
+    t.text     :error
+    t.timestamps
+  end
+
   # Schema-GUI batch pipeline (inline_forms_schema_edit). Mirrors the gem's
   # install-generator migration.
   create_table :inline_forms_schema_batches, force: true do |t|
@@ -125,6 +169,13 @@ class InlineFormsIntegrationTestCase < ActionDispatch::IntegrationTest
     Machine.delete_all
     Gizmo.delete_all
     Dossier.delete_all
+    Document.delete_all
+    Document.require_filename = false
+    InlineForms::TrashedFile.delete_all
+    InlineForms::FileTrashSweep.delete_all
+    InlineForms.file_trash_retention = 30.days
+    InlineForms.file_trash_redact_on_purge = false
+    InlineForms.max_file_size = nil
     PaperTrail::Version.delete_all
     InlineForms::SchemaIntentRecord.delete_all
     InlineForms::SchemaBatch.delete_all

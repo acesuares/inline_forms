@@ -36,6 +36,7 @@ class ExampleAppFormElementShowcaseTest < ActiveSupport::TestCase
     attachment
     jingle
     cover
+    manual
     header_rich
     description
     locales

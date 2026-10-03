@@ -571,6 +571,15 @@ generate "paper_trail:install --with-changes"
 # paper_trail emits two migrations in one second; the next generator would reuse that timestamp.
 sleep 1
 
+say "- File trash for declared file slots (simple_file_field)..."
+# Tables for InlineForms::StoredFiles: removed/replaced files stay restorable
+# for InlineForms.file_trash_retention (30 days) before the nightly sweep
+# (`rails inline_forms:file_trash:purge_expired`, from cron) purges them.
+# Plus the superadmin page listing every trashed file.
+generate "inline_forms:file_trash"
+sleep 1
+route "InlineForms.draw_file_trash_routes(self)"
+
 say "- Track ActionText (rich_text) edits with PaperTrail..."
 # `has_rich_text :foo` stores the body in the separate `action_text_rich_texts`
 # table, not on the parent model, so `has_paper_trail` on the parent never
@@ -1226,7 +1235,7 @@ if ENV['install_example'] == 'true'
   # ---------------------------------------------------------------------
   say "- Generating FormElementShowcase (one resource per kept Tier 1 form_element)..."
   sleep 1
-  run %q{bundle exec rails g inline_forms FormElementShowcase title:string body_plain_area:plain_text_area count:integer_field price:decimal_field amount:money_field latitude:decimal_field{9,6} longitude:decimal_field{10,6} meeting_date:date_select meeting_time:time_select birth_month:month_select start_month:month_year_picker is_active:check_box gender:radio_button rating_int:dropdown_with_integers priority:dropdown_with_values priority2:dropdown_with_values stars:dropdown_with_values_with_stars scale_int:scale_with_integers scale_val:scale_with_values attachment:file_field jingle:audio_field cover:image_field gallery:multi_image_field description:rich_text locales:has_and_belongs_to_many _enabled:yes _list_order:title _list_search:title _presentation:'#{title}'}
+  run %q{bundle exec rails g inline_forms FormElementShowcase title:string body_plain_area:plain_text_area count:integer_field price:decimal_field amount:money_field latitude:decimal_field{9,6} longitude:decimal_field{10,6} meeting_date:date_select meeting_time:time_select birth_month:month_select start_month:month_year_picker is_active:check_box gender:radio_button rating_int:dropdown_with_integers priority:dropdown_with_values priority2:dropdown_with_values stars:dropdown_with_values_with_stars scale_int:scale_with_integers scale_val:scale_with_values attachment:file_field jingle:audio_field cover:image_field gallery:multi_image_field manual:simple_file_field description:rich_text locales:has_and_belongs_to_many _enabled:yes _list_order:title _list_search:title _presentation:'#{title}'}
 
   say "- Generating Attachment + Jingle uploaders (Cover reuses ImageUploader)..."
   run "bundle exec rails generate uploader Attachment"
@@ -1385,6 +1394,7 @@ if ENV['install_example'] == 'true'
           jingle: Jingle
           cover: Cover
           gallery: Gallery (multiple images)
+          manual: Manual (file slot with trash)
           description: Description
           locales: Locales (editable)
           locales_display: Locales (read-only)

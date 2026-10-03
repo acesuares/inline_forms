@@ -66,6 +66,7 @@ module InlineForms
         @order                    = "\n"
         @list_scopes              = ""
         @carrierwave_mounters     = "\n"
+        @stored_files             = String.new
         @inline_forms_attribute_list  = String.new
 
         for attribute in attributes
@@ -93,6 +94,12 @@ module InlineForms
           end
           if attribute.type == :rich_text
             @has_rich_text << '  has_rich_text :' + attribute.name + "\n"
+          end
+          # Declared file slot: bytes + content type in the model's own table,
+          # replace/remove/undo through the file trash (InlineForms::StoredFiles).
+          if attribute.type == :simple_file_field
+            @stored_files << "  include InlineForms::StoredFiles\n" if @stored_files.empty?
+            @stored_files << '  inline_forms_file :' + attribute.name + "\n"
           end
           if attribute.name == '_presentation'
             @presentation <<  "  def _presentation\n" +
@@ -142,10 +149,11 @@ module InlineForms
 
     def generate_resource_route
       if @flag_create_resource_route
+        file_routes = file_slot_attributes.any? ? "\n            InlineForms.file_routes(self)" : ""
         route <<-ROUTE.strip_heredoc
           resources :#{resource_name} do
             post 'revert', :on => :member
-            get 'list_versions', :on => :member
+            get 'list_versions', :on => :member#{file_routes}
           end
         ROUTE
       end
@@ -156,7 +164,12 @@ module InlineForms
         @columns = String.new
 
         for attribute in attributes
-          if attribute.column_type == :image
+          if attribute.type == :simple_file_field
+            columns = InlineForms.file_slot_columns(attribute.name)
+            @columns << '      t.string :' + columns[:filename] + "\n"
+            @columns << '      t.binary :' + columns[:data] + ", **(connection.adapter_name.match?(/mysql|trilogy/i) ? { size: :long } : {})\n"
+            @columns << '      t.string :' + columns[:content_type] + "\n"
+          elsif attribute.column_type == :image
             @columns << '      t.string    :' + attribute.name + "_file_name\n"
             @columns << '        t.string    :' + attribute.name + "_content_type\n"
             @columns << '        t.integer   :' + attribute.name + "_file_size\n"
@@ -230,6 +243,10 @@ module InlineForms
 
 
     private
+    def file_slot_attributes
+      attributes.select { |attribute| attribute.type == :simple_file_field }
+    end
+
     def model_file_name
       name.underscore
     end

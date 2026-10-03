@@ -89,6 +89,12 @@
         <% end %>
       <% end %>
     <% end %>
+    <% file_trash_slots = inline_forms_file_trash_slots(@object, attributes) -%>
+    <% if file_trash_slots.any? && inline_forms_file_can?(:read_file_trash, @object) %>
+      <%= render template: "inline_forms/file_trash_panel",
+            locals: { object: @object, update_span: inline_forms_file_trash_turbo_frame_id(@object),
+                      slots: file_trash_slots, open: false } %>
+    <% end %>
     <% if cancan_disabled? || can?(:list_versions, @object) %>
       <% css_class_id = inline_forms_versions_turbo_frame_id(@object) -%>
       <turbo-frame id="<%= css_class_id -%>">

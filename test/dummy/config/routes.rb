@@ -30,6 +30,14 @@ Rails.application.routes.draw do
     get "list_versions", on: :member
   end
 
+  resources :documents do
+    post "revert", on: :member
+    get "list_versions", on: :member
+    InlineForms.file_routes(self)
+  end
+
+  InlineForms.draw_file_trash_routes(self)
+
   get "stats", to: "stats#show"
 
   # Schema-change GUI (opt-in in real installs; routed here for the engine's

@@ -171,6 +171,30 @@ class InlineFormsGeneratorTest < Minitest::Test
     assert_includes(migration, "t.text :description")
   end
 
+  def test_simple_file_field_declares_a_file_slot_with_its_columns_and_routes
+    run_generator("Folder", "title:string", "plan_filename:simple_file_field", "_enabled:yes")
+
+    model = read("app/models/folder.rb")
+    routes = read("config/routes.rb")
+    migration = read_single_migration_for("folders")
+
+    assert_includes(model, "include InlineForms::StoredFiles")
+    assert_includes(model, "inline_forms_file :plan_filename")
+    assert_operator(model.index("include InlineForms::StoredFiles"), :<, model.index("inline_forms_file :plan_filename"))
+    assert_includes(model, "[ :plan_filename, :simple_file_field ]")
+    assert_includes(migration, "t.string :plan_filename")
+    assert_includes(migration, "t.binary :plan_data")
+    assert_includes(migration, "t.string :plan_content_type")
+    assert_includes(routes, "InlineForms.file_routes(self)")
+  end
+
+  def test_no_file_routes_without_a_file_field
+    run_generator("Thing", "name:string", "_enabled:yes")
+
+    refute_includes(read("config/routes.rb"), "file_routes")
+    refute_includes(read("app/models/thing.rb"), "StoredFiles")
+  end
+
   private
 
   def build_destination_skeleton!

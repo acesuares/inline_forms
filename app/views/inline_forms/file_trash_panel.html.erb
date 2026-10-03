@@ -1,0 +1,90 @@
+<%# Per-record trash panel ("Removed files (n)"), beside Versions. Lists the
+    trash rows of the slots shown on this page (a Client tab only its own),
+    newest first; restored and purged rows stay as greyed history. The frame
+    is always rendered, empty or not, so a file action can stream into it.
+    Never loads file bytes (without_data). -%>
+<% object = local_assigns[:object] || @object -%>
+<% update_span = local_assigns[:update_span] || @update_span -%>
+<% slots = local_assigns.key?(:slots) ? local_assigns[:slots] : @file_trash_slots -%>
+<% open = local_assigns.key?(:open) ? local_assigns[:open] : @file_trash_open -%>
+<% slots = Array(slots) -%>
+<% entries = slots.empty? ? [] : InlineForms::TrashedFile.without_data.trash_entries.for_record(object).where(attribute_name: slots).newest_first.to_a -%>
+<% slots_param = slots.join(",") -%>
+<turbo-frame id="<%= update_span %>">
+<% if entries.any? %>
+  <% in_trash = entries.count(&:trashed?) -%>
+  <% toggle_path = polymorphic_path(object, action: :file_trash, update: update_span, slots: slots_param, close: (open ? true : nil)) -%>
+  <div class="row form_element_header associated_auto_header callout inline_forms-file-trash">
+    <div class='medium-11 large-11 column' >
+      <%= t("inline_forms.files.trash_header", count: in_trash) %>
+    </div>
+    <div class='medium-1 large-1 column'>
+      <%= inline_forms_file_icon_link (open ? "fi-x" : "fi-list"),
+            (open ? t("inline_forms.files.close_trash") : t("inline_forms.files.open_trash")),
+            toggle_path,
+            { class: "button #{open ? 'close_button' : 'new_button'}", data: { turbo: true, turbo_frame: update_span } } %>
+    </div>
+  </div>
+  <% if open %>
+    <% if (stale = entries.select(&:expired?).reject { |e| e.purged? || e.restored? }).any? %>
+      <div class="row"><div class="small-12 column inline_forms-file-meta"><%= t("inline_forms.files.expired_pending", count: stale.size) %></div></div>
+    <% end %>
+    <% entries.each do |entry| %>
+      <% attribute = entry.attribute_name -%>
+      <% field_frame = inline_forms_file_field_frame_id(object, attribute) -%>
+      <div class="row <%= cycle('odd', 'even') %> inline_forms-file-trash-row<%= ' inline_forms-file-trash-history' unless entry.trashed? %>">
+        <div class="small-12 medium-3 column">
+          <strong><%= object.class.human_attribute_name(attribute) %></strong>
+        </div>
+        <div class="small-12 medium-5 column">
+          <span class="inline_forms-file-name"><%= inline_forms_file_entry_name(entry) %></span>
+          <span class="inline_forms-file-meta">
+            <%= inline_forms_file_size(entry.byte_size) %> &middot;
+            <%= t("inline_forms.files.reason.#{entry.reason}") %>
+            <%= t("inline_forms.files.by_on", user: inline_forms_file_user_name(entry.trashed_by_id), at: l(entry.trashed_at, format: :short)) %>
+          </span>
+          <span class="inline_forms-file-meta">
+            <% if entry.state == :restored %>
+              <%= t("inline_forms.files.state_restored", user: inline_forms_file_user_name(entry.restored_by_id), at: l(entry.restored_at, format: :short)) %>
+            <% elsif entry.state == :purged %>
+              <%= t("inline_forms.files.state_purged", user: inline_forms_file_user_name(entry.purged_by_id), at: l(entry.purged_at, format: :short)) %>
+            <% elsif entry.state == :expired %>
+              <%= t("inline_forms.files.state_expired") %>
+            <% else %>
+              <% if entry.purge_after %>
+                <% days_left = ((entry.purge_after - Time.current) / 1.day).ceil -%>
+                <span class="<%= 'inline_forms-file-expiring' if days_left <= 7 %>"><%= t("inline_forms.files.expires_in", count: days_left, date: l(entry.purge_after.to_date)) %></span>
+              <% end %>
+            <% end %>
+          </span>
+        </div>
+        <div class="small-12 medium-4 column inline_forms-file-actions">
+          <% if entry.trashed? %>
+            <% if inline_forms_file_can?(:download_trashed_file, object, attribute) %>
+              <%= link_to t("inline_forms.files.download"),
+                    polymorphic_path(object, action: :trashed_file, attribute: attribute, trash_id: entry.id),
+                    data: { turbo: false } %>
+            <% end %>
+            <% if inline_forms_file_can?(:restore_file, object, attribute) %>
+              <% occupied = object.inline_forms_file_present?(attribute) -%>
+              <% if inline_forms_file_can?(occupied ? :replace_file : :update, object, attribute) %>
+                <% confirm = occupied ? t("inline_forms.files.confirm_restore_swap", current: object[attribute], filename: inline_forms_file_entry_name(entry)) : nil -%>
+                <%= link_to t("inline_forms.files.restore"),
+                      polymorphic_path(object, action: :restore_file, attribute: attribute, trash_id: entry.id,
+                                       update: field_frame, slots: slots_param, panel: "open"),
+                      inline_forms_file_post_data(update_span, confirm: confirm) %>
+              <% end %>
+            <% end %>
+            <% if inline_forms_file_can?(:purge_file, object, attribute) %>
+              <%= link_to t("inline_forms.files.purge"),
+                    polymorphic_path(object, action: :purge_file, attribute: attribute, trash_id: entry.id,
+                                     update: field_frame, slots: slots_param, panel: "open"),
+                    inline_forms_file_post_data(update_span, confirm: t("inline_forms.files.confirm_purge", filename: inline_forms_file_entry_name(entry))).deep_merge(class: "alert") %>
+            <% end %>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+  <% end %>
+<% end %>
+</turbo-frame>

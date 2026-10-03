@@ -6,6 +6,10 @@ class <%= name %> < ApplicationRecord
 <%= @habtm if @habtm.length > 1 -%>
 <%= @has_rich_text if @has_rich_text.length > 1 -%>
 <%= @has_attached_files if @has_attached_files.length > 1 -%>
+<% unless @stored_files.empty? -%>
+
+<%= @stored_files -%>
+<% end -%>
 <% if @list_scopes && !@list_scopes.empty? -%>
 
 <%= @list_scopes -%>

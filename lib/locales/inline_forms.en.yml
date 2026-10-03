@@ -31,6 +31,89 @@ en:
       trash: trash
       list_versions: List versions
       close_versions_list: Close versions list
+    files:
+      download: download
+      replace: replace file
+      remove: remove file
+      restore: restore
+      restore_file: restore file
+      purge: delete permanently
+      undo: undo
+      restore_previous: "restore removed file %{filename}"
+      replace_hint: "The current file %{filename} goes to the trash."
+      confirm_remove:
+        one: "Remove %{filename}? It goes to the trash and can be restored for 1 day."
+        other: "Remove %{filename}? It goes to the trash and can be restored for %{count} days."
+      confirm_remove_no_expiry: "Remove %{filename}? It goes to the trash and can be restored."
+      confirm_restore_swap: "The current file %{current} goes to the trash and %{filename} is put back. Continue?"
+      confirm_purge: "Delete %{filename} permanently? This cannot be undone."
+      notice_removed: "%{filename} removed"
+      notice_restored: File restored.
+      notice_purged: File deleted permanently.
+      notice_already_empty: There was no file to remove.
+      notice_not_restorable: This file can no longer be restored.
+      notice_not_purgeable: This file was already restored or deleted.
+      missing: This file has been removed.
+      trash_header:
+        zero: Removed files
+        one: Removed files (1)
+        other: Removed files (%{count})
+      open_trash: Show removed files
+      close_trash: Hide removed files
+      by_on: "by %{user} on %{at}"
+      by_system: the system
+      redacted_name: "[removed file]"
+      state_restored: "restored by %{user} on %{at}"
+      state_purged: "deleted permanently by %{user} on %{at}"
+      state_expired: expired, will be deleted
+      expired_pending:
+        one: 1 expired file waits for the nightly clean-up.
+        other: "%{count} expired files wait for the nightly clean-up."
+      expires_in:
+        one: "restorable until %{date} (1 day)"
+        other: "restorable until %{date} (%{count} days)"
+      reason:
+        removed: removed
+        replaced: replaced
+        record_destroyed: record deleted
+        orphaned: orphaned bytes
+        uploaded: uploaded
+      event:
+        uploaded: file uploaded
+        removed: file removed
+        replaced: file replaced
+        record_destroyed: file trashed (record deleted)
+        orphaned: orphaned file trashed
+        restored: file restored
+        purged: file deleted
+      global:
+        title: Removed files
+        model: Model
+        state: State
+        all: all
+        filter: filter
+        record: Record
+        record_gone: "%{model} #%{id} (deleted)"
+        slot: Field
+        file: File
+        trashed: Removed
+        actions: Actions
+        purge_selected: Delete selected permanently
+        confirm_purge_selected: Delete the selected files permanently? This cannot be undone.
+        purged_count:
+          one: 1 file deleted permanently.
+          other: "%{count} files deleted permanently."
+        nothing_selected: No files selected.
+        empty: No removed files.
+        sweep_last: "Last clean-up: %{at} (%{count} deleted)"
+        sweep_never: The nightly clean-up has never run.
+        sweep_overdue: The nightly clean-up has not run for more than 48 hours. Check the cron job.
+        sweep_failed: "Last clean-up failed: %{error}"
+        states:
+          trashed: in trash
+          restored: restored
+          purged: deleted
+          expired: expired
     pending_migration:
       notice: "pending migration \u2014 run rails db:migrate"
   succes: success.
@@ -41,3 +124,7 @@ en:
       client:
         first_name: first name
         last_name: last name
+  errors:
+    messages:
+      inline_forms_file_too_large: "is too large (maximum %{count} MB)"
+      inline_forms_file_missing: "no file chosen"

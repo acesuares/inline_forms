@@ -1,0 +1,39 @@
+<%# A declared file slot (InlineForms::StoredFiles) inside its field frame.
+    Present: download link + replace (pencil) / remove (trash) by permission.
+    Empty: the usual plus link to upload, and, when the slot's last file is
+    still in the trash, an undo link to put it back. -%>
+<% frame_id = inline_forms_file_field_frame_id(object, attribute) -%>
+<% filename = object[attribute.to_s] -%>
+<% slots_param = inline_forms_file_trash_slots(object).join(",") -%>
+<span class="inline_forms-file">
+<% if object.inline_forms_file_present?(attribute) %>
+  <%= link_to filename,
+        polymorphic_path(object, action: :download_file, attribute: attribute),
+        class: "inline_forms-file-name", data: { turbo: false } -%>
+  <span class="inline_forms-file-actions">
+    <% if inline_forms_file_can?(:update, object, attribute) && inline_forms_file_can?(:replace_file, object, attribute) %>
+      <%= inline_forms_file_icon_link "fi-pencil", t("inline_forms.files.replace"),
+            edit_polymorphic_path(object, attribute: attribute.to_s, form_element: "simple_file_field", update: frame_id),
+            data: { turbo: true, turbo_frame: (@inline_forms_turbo_field ? "_self" : frame_id) } -%>
+    <% end %>
+    <% if inline_forms_file_can?(:remove_file, object, attribute) %>
+      <% days = inline_forms_file_retention_days -%>
+      <% confirm = days ? t("inline_forms.files.confirm_remove", filename: filename, count: days) : t("inline_forms.files.confirm_remove_no_expiry", filename: filename) -%>
+      <%= inline_forms_file_icon_link "fi-trash", t("inline_forms.files.remove"),
+            polymorphic_path(object, action: :remove_file, attribute: attribute, update: frame_id, slots: slots_param),
+            inline_forms_file_post_data(frame_id, confirm: confirm) -%>
+    <% end %>
+  </span>
+<% else %>
+  <%= link_to_inline_edit object, attribute, "<i class='fi-plus'></i>".html_safe, from_callee: :simple_file_field_show -%>
+  <%# Right after a remove the notice below carries the undo; don't offer it twice. -%>
+  <% if @file_notice != :removed && inline_forms_file_can?(:restore_file, object, attribute) && inline_forms_file_can?(:update, object, attribute) %>
+    <% entry = inline_forms_restorable_file_entries(object, [ attribute.to_s ])[attribute.to_s] -%>
+    <% if entry %>
+      <%= link_to t("inline_forms.files.restore_previous", filename: inline_forms_file_entry_name(entry)),
+            polymorphic_path(object, action: :restore_file, attribute: attribute, trash_id: entry.id, update: frame_id, slots: slots_param),
+            inline_forms_file_post_data(frame_id).deep_merge(class: "inline_forms-file-undo") -%>
+    <% end %>
+  <% end %>
+<% end %>
+</span>
