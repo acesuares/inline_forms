@@ -6,6 +6,9 @@ rdoc
 
 # yard generated
 doc
+# ...but not the schema-edit gem's shipped docs: its install generator copies
+# doc/schema-apply-workflow.yml.example into the host app.
+!inline_forms_schema_edit/doc/
 .yardoc
 
 # bundler

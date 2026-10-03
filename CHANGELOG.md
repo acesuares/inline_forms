@@ -4,6 +4,18 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [8.1.48] - 2026-10-03
+
+### Fixed
+
+- **Revert no longer wipes columns excluded from PaperTrail.** `InlineFormsController#revert` reified versions with PaperTrail's default `unversioned_attributes: :nil`, which sets every `has_paper_trail skip:` column to nil on the live record; the following `save!` persisted it. Hosts that keep file bytes in a skipped column (e.g. `skip: [:data]` with a versioned `filename`) lost the bytes on every revert of an unrelated edit while the filename stayed, so downloads returned empty files. All revert-path reifies (including `revert_authorization_subject`, which reifies the same cached `version.item` first, and the ActionText restore) now pass `unversioned_attributes: :preserve`. Replaying a `destroy` revert onto a row that already exists now copies only the columns stored in the version, instead of overwriting skipped columns with nil from the fresh reified record.
+- Regression tests: `test/integration/revert_skipped_columns_test.rb` (dummy `Dossier` model with `skip: [:data]`).
+- Note: bytes in a skipped column are never in a version, so undoing a `destroy` still cannot bring them back; and rows already damaged by earlier reverts are not repaired by this fix.
+
+### Lockstep
+
+- validation_hints 8.1.48, inline_forms_installer 8.1.48, inline_forms_schema_edit 8.1.48.
+
 ## [8.1.47] - 2026-07-25
 
 ### Fixed

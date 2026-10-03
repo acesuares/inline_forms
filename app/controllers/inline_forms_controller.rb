@@ -318,11 +318,7 @@ class InlineFormsController < ApplicationController
     return head :forbidden unless destroy_permitted?
     return head :not_found unless @parent
 
-    @object = @version.reify(
-      has_many: true,
-      has_and_belongs_to_many: true,
-      belongs_to: true
-    )
+    @object = reify_for_revert(@version)
     # PaperTrail::Version#reify returns nil for `create` events because
     # there is no prior state to roll back to. The versions list view
     # hides the Restore link for `create` rows, but guard here too in
@@ -358,7 +354,7 @@ class InlineFormsController < ApplicationController
       @rich_text_record.save!
       @parent.touch if @parent.respond_to?(:touch)
     else
-      @parent = persist_reverted_primary!(@object)
+      @parent = persist_reverted_primary!(@object, @version)
       restore_rich_texts_for_reverted_parent!(@parent)
       @parent.reload
     end
@@ -380,6 +376,23 @@ class InlineFormsController < ApplicationController
     user.role?(:superadmin)
   end
 
+  # Every reify on the revert path goes through here. +unversioned_attributes:
+  # :preserve+ is essential: PaperTrail's default (+:nil+) sets every column
+  # missing from the version's +object+ -- i.e. each +has_paper_trail skip:+
+  # column, typically file bytes like +data+ -- to nil on the live record, and
+  # the following +save!+ would persist that (filename kept, bytes gone).
+  # +revert_authorization_subject+ reifies the same version first and
+  # +version.item+ is cached, so it must use these options too or it nils the
+  # in-memory record before the real reify runs.
+  def reify_for_revert(version)
+    version.reify(
+      has_many: true,
+      has_and_belongs_to_many: true,
+      belongs_to: true,
+      unversioned_attributes: :preserve
+    )
+  end
+
   # Persist a reified *primary* record (Apartment, Photo, ...) for +revert+.
   #
   # +reify+ on a +destroy+ version returns a record with +new_record? == true+
@@ -392,13 +405,18 @@ class InlineFormsController < ApplicationController
   # photos.id+). Mirror the rich-text upsert (8.1.16): when a row with that PK
   # already exists, copy the reified column values onto it and +save!+ that
   # instead, so reverting is idempotent across repeated delete/undo cycles.
-  def persist_reverted_primary!(object)
+  #
+  # Copy only the columns the version actually stored: a +destroy+ reify is a
+  # fresh +klass.new+, so columns in +has_paper_trail skip:+ (file bytes such
+  # as +data+) are nil on it and must not overwrite the live row's values.
+  def persist_reverted_primary!(object, version)
     klass = object.class
     primary_key = klass.primary_key
 
     if object.new_record? && object.id.present? && klass.exists?(object.id)
       existing = klass.find(object.id)
-      existing.assign_attributes(object.attributes.except(primary_key))
+      versioned = (version.object_deserialized || {}).keys
+      existing.assign_attributes(object.attributes.slice(*versioned).except(primary_key))
       existing.save!
       existing
     else
@@ -442,7 +460,7 @@ class InlineFormsController < ApplicationController
       end
 
     versions_by_name.each_value do |version|
-      reified = version.reify
+      reified = version.reify(unversioned_attributes: :preserve)
       next unless reified
 
       name = reified.name.to_s
@@ -459,11 +477,7 @@ class InlineFormsController < ApplicationController
   # +revert+ is excluded from +load_and_authorize_resource+; +authorize!+ runs in the
   # action. +check_authorization+ on ApplicationController still requires that flag.
   def revert_authorization_subject(version)
-    reified = version.reify(
-      has_many: true,
-      has_and_belongs_to_many: true,
-      belongs_to: true
-    )
+    reified = reify_for_revert(version)
     if defined?(ActionText::RichText) && reified.is_a?(ActionText::RichText)
       return reified.record
     end

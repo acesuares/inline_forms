@@ -5,6 +5,21 @@ lockstep with inline_forms / inline_forms_installer / validation_hints.
 
 ## [Unreleased]
 
+## [8.1.48] - 2026-10-03
+
+### Changed
+
+- Version bump to stay in lockstep with `inline_forms` /
+  `inline_forms_installer` / `validation_hints` 8.1.48 (revert no longer NULLs
+  `has_paper_trail skip:` columns).
+
+### Fixed
+
+- `doc/schema-apply-workflow.yml.example` is now tracked in git (it was
+  swallowed by the repo's `doc` ignore rule), so gems built from a fresh
+  checkout ship it and `rails g inline_forms_schema_edit:install` no longer
+  aborts with `Errno::ENOENT` in `copy_ci_workflow_example`.
+
 ## [8.1.47] - 2026-07-25
 
 ### Changed

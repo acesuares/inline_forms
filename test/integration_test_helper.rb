@@ -58,6 +58,15 @@ ActiveRecord::Schema.define do
     t.timestamps
   end
 
+  # Dossier: `data` is in `has_paper_trail skip:` (file bytes, as in
+  # StProject's Client/Attachment); see revert_skipped_columns_test.rb.
+  create_table :dossiers, force: true do |t|
+    t.string :name
+    t.string :data_filename
+    t.binary :data
+    t.timestamps
+  end
+
   # Schema-GUI batch pipeline (inline_forms_schema_edit). Mirrors the gem's
   # install-generator migration.
   create_table :inline_forms_schema_batches, force: true do |t|
@@ -114,6 +123,7 @@ class InlineFormsIntegrationTestCase < ActionDispatch::IntegrationTest
     Part.delete_all
     Machine.delete_all
     Gizmo.delete_all
+    Dossier.delete_all
     PaperTrail::Version.delete_all
     InlineForms::SchemaIntentRecord.delete_all
     InlineForms::SchemaBatch.delete_all

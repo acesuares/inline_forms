@@ -1,0 +1,89 @@
+# EXAMPLE Forgejo Actions workflow for the automated schema pipeline
+# (phase 3 of stuff/2026-07-11-schema-gui-gem-and-automated-pipeline-plan.md).
+#
+# Copy into your TENANT APP repo as .forgejo/workflows/schema-apply.yml and
+# adapt the container image / secrets. Trigger it from the tenant app when a
+# batch is submitted (webhook -> workflow_dispatch with batch_id), or run it
+# on a schedule and let it pick up the oldest submitted batch.
+#
+# Loop (no human in it):
+#   fetch frozen batch (token)  ->  mark processing  ->  replay codegen
+#   ->  test gate  ->  commit  ->  mark ready (git sha)
+# Failure at any step marks the batch failed with the captured error;
+# the tenant keeps running the old code.
+#
+# Secrets:
+#   SCHEMA_EXPORT_TOKEN  — matches InlineFormsSchemaEdit.export_token on the tenant
+#   TENANT_URL           — e.g. https://tenant.example.com
+
+name: Schema apply
+
+on:
+  workflow_dispatch:
+    inputs:
+      batch_id:
+        description: "SchemaBatch id to apply"
+        required: true
+
+jobs:
+  schema-apply:
+    runs-on: docker
+    container:
+      image: papiamentu-ci:ruby-4.0.4-node20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch the frozen batch
+        run: |
+          curl --fail -sS \
+            -H "Authorization: Bearer ${{ secrets.SCHEMA_EXPORT_TOKEN }}" \
+            "${{ secrets.TENANT_URL }}/schema/batches/${{ inputs.batch_id }}/export.json" \
+            > /tmp/batch.json
+
+      - name: Mark processing
+        run: |
+          curl --fail -sS -X POST \
+            -H "Authorization: Bearer ${{ secrets.SCHEMA_EXPORT_TOKEN }}" \
+            -d "status=processing" \
+            "${{ secrets.TENANT_URL }}/schema/batches/${{ inputs.batch_id }}/status"
+
+      - name: Bundle
+        run: |
+          bundle config set --local path vendor/bundle
+          bundle install --jobs 4
+
+      - name: Replay the batch (codegen only)
+        run: bundle exec rake "schema_edit:apply_batch[/tmp/batch.json]"
+
+      - name: Test gate
+        run: bundle exec rails test
+
+      - name: Commit
+        run: |
+          git config user.email "schema-pipeline@invalid"
+          git config user.name "Schema pipeline"
+          git add -A
+          git commit -m "Schema batch ${{ inputs.batch_id }}: $(date -u +%FT%TZ)"
+          git push origin HEAD
+
+      - name: Mark ready
+        run: |
+          curl --fail -sS -X POST \
+            -H "Authorization: Bearer ${{ secrets.SCHEMA_EXPORT_TOKEN }}" \
+            -d "status=ready" -d "git_sha=$(git rev-parse HEAD)" \
+            "${{ secrets.TENANT_URL }}/schema/batches/${{ inputs.batch_id }}/status"
+
+      - name: Mark failed
+        if: failure()
+        run: |
+          curl -sS -X POST \
+            -H "Authorization: Bearer ${{ secrets.SCHEMA_EXPORT_TOKEN }}" \
+            -d "status=failed" -d "error=CI job failed; see the run log" \
+            "${{ secrets.TENANT_URL }}/schema/batches/${{ inputs.batch_id }}/status" || true
+
+# After "ready": the tenant's scheduler runs `rake schema_edit:apply_due`
+# (cron/whenever) which migrates due batches in their window, marks them
+# applied, and runs InlineFormsSchemaEdit.restart_command. Deploying the
+# committed code is your normal deploy (phase 4's rolling-restart ordering:
+# migrate first — additive-only makes that safe — then restart onto the new
+# code).
