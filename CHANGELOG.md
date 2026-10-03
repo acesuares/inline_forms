@@ -4,6 +4,21 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [8.1.49] - 2026-10-03
+
+### Security
+
+- **Attribute-level authorization is now enforced on single-field requests.** `edit`, `update` and the single-attribute `show` were guarded only by `load_and_authorize_resource`, which authorizes the record; CanCanCan passes attribute-scoped rules when no attribute is given, so `cannot :update, Client, [:secret]` only hid the edit link and a hand-made PATCH still overwrote the field (and an attribute-scoped `can :update, Client, [:a, :b]` allowed every attribute). These actions now call `authorize!(:update, object, attribute)` (`:read` for `show`) when CanCanCan is loaded. Denials raise `CanCan::AccessDenied` like the record-level check.
+- **`attribute` / `form_element` params are whitelisted** against the attribute list (`@inline_forms_attribute_list || object.inline_forms_attribute_list`) before use; anything else gets `400 Bad Request`. Previously `form_element` went straight into `send("#{form_element}_update")`, and `show` with `form_element=has_one` sent the `attribute` param to the record (`attribute=destroy` destroyed it on a GET). The edit links of the delegating elements (`plain_text_area` → `plain_text`, `text_area` → `rich_text`) are accepted via `InlineForms::FORM_ELEMENT_DELEGATES`; see `InlineForms.attribute_list_row_for`.
+
+### Tests
+
+- The dummy app now loads CanCanCan (`Ability` grants everything; tests narrow it with `Ability.restrictions`). New `test/integration/field_authorization_test.rb`: crafted PATCH on a `cannot :update` attribute, attribute-scoped `can`, edit/show denials, mismatched/unknown `form_element`, unlisted attribute, the `show` method-send.
+
+### Lockstep
+
+- validation_hints 8.1.49, inline_forms_installer 8.1.49, inline_forms_schema_edit 8.1.49.
+
 ## [8.1.48] - 2026-10-03
 
 ### Fixed

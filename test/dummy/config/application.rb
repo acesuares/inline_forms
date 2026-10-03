@@ -2,9 +2,10 @@
 
 # Minimal host app for the engine's integration tests (test/integration/).
 # Boots the inline_forms engine against an in-memory SQLite database with the
-# host-side gems the engine expects (will_paginate, paper_trail, turbo-rails)
-# but without Devise, CanCanCan, Sprockets or ActionText: authorization is
-# optional in the engine (cancan_enabled? rescues NameError), tests drive the
+# host-side gems the engine expects (will_paginate, paper_trail, turbo-rails,
+# cancancan) but without Devise, Sprockets or ActionText. CanCanCan is on so
+# load_and_authorize_resource and the attribute-level checks run; the dummy
+# Ability grants everything unless a test narrows it. Tests drive the
 # UI through Turbo-Frame requests (the frame layout never renders the
 # current_user header), and the asset-precompile initializer skips hosts
 # without a pipeline.

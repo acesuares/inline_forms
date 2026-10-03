@@ -14,6 +14,11 @@ class ApplicationController < ActionController::Base
 
   helper_method :current_user
 
+  # Generated apps redirect HTML with a notice; a bare 403 is easier to assert.
+  rescue_from CanCan::AccessDenied do
+    head :forbidden
+  end
+
   def current_user
     @current_user ||= DummyUser.new(1, "Dummy User")
   end

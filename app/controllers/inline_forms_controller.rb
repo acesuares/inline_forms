@@ -125,6 +125,7 @@ class InlineFormsController < ApplicationController
     @form_element = params[:form_element]
     @sub_id = params[:sub_id]
     @update_span = params[:update]
+    return unless field_request_permitted?(:update)
     respond_to do |format|
       format.html { render_turbo_field(:field_edit) }
     end
@@ -191,6 +192,7 @@ class InlineFormsController < ApplicationController
     @form_element = params[:form_element]
     @sub_id = params[:sub_id]
     @update_span = params[:update]
+    return unless field_request_permitted?(:update)
     # Defense-in-depth: the UI renders a pending field as a read-only
     # placeholder (never links to edit/update), but a hand-crafted request
     # could still target a column that is not migrated yet. Refuse cleanly
@@ -232,6 +234,10 @@ class InlineFormsController < ApplicationController
     @attribute = params[:attribute]
     @form_element = params[:form_element]
     close = params[:close] || false
+    # Single-field show (cancel link, post-update render): same whitelist as
+    # edit/update -- the associated/has_one branches below `send` the
+    # attribute name to the record.
+    return if @attribute && !field_request_permitted?(:read)
     if @form_element == "associated"
       @sub_id = params[:sub_id]
       if @sub_id.to_i > 0
@@ -362,6 +368,27 @@ class InlineFormsController < ApplicationController
   end
 
   private
+
+  # Single-field requests (edit, update, show with an attribute) name the
+  # field and its form element in params, and both are client-controlled.
+  # +load_and_authorize_resource+ only authorizes the record: CanCanCan's
+  # Rule#matches_attributes? passes any attribute-scoped rule when no
+  # attribute is given, so `cannot :update, Client, [:secret]` was never
+  # applied server-side (only the edit link was hidden), and the form
+  # element went straight into `send("#{form_element}_update")`.
+  #
+  # Refuse (400) unless attribute + form_element name a row of the model's
+  # attribute list (as the UI's links do), then authorize the attribute
+  # itself. Renders and returns false when the request is refused.
+  def field_request_permitted?(action)
+    attributes = @inline_forms_attribute_list || @object.inline_forms_attribute_list
+    unless InlineForms.attribute_list_row_for(attributes, @attribute, @form_element)
+      head :bad_request
+      return false
+    end
+    authorize!(action, @object, @attribute.to_sym) if cancan_enabled?
+    true
+  end
 
   # Hard-destroy gate. Generated apps restrict destroy to a Devise user with
   # `role?(:superadmin)` (Role model + roles HABTM). Hosts without that role

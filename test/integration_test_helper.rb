@@ -118,6 +118,7 @@ class InlineFormsIntegrationTestCase < ActionDispatch::IntegrationTest
   end
 
   setup do
+    Ability.restrictions = nil
     Widget.delete_all
     Kind.delete_all
     Part.delete_all
