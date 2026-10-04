@@ -27,8 +27,9 @@ module InlineFormsGemFiles
   # the token leaked into `gem build` on the release machine. Exclude it hard,
   # independent of any ignore configuration.
   #
-  # Same for local Claude Code files (untracked, per checkout): .claude/
-  # (launch.json, settings.local.json) and CLAUDE.md.
+  # Same for Claude Code files: .claude/ (untracked, per checkout:
+  # launch.json, settings.local.json, worktrees) and CLAUDE.md (committed so
+  # worktrees see it, but repo instructions, not gem content).
   EXCLUDED_FILE_PREFIXES = %w[
     stuff/
     .claude/
