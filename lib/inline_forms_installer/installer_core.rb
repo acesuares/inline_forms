@@ -658,6 +658,9 @@ PT_YAML
 say "- Creating application title via locales..."
 create_file "config/locales/inline_forms_local.en.yml", <<-END_LOCALE.strip_heredoc
   en:
+    # <title> of every page in the inline_forms layout (falls back to
+    # ApplicationHelper#application_name in locales that do not define it).
+    application_name: #{app_name}
     inline_forms:
       general:
         application_title: #{app_name}

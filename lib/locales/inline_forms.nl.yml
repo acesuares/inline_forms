@@ -121,7 +121,6 @@ nl:
       client:
         first_name: voornaam
         last_name: achternaam
-  application_name: naam van de applicatie
   errors:
     messages:
       inline_forms_file_too_large: "is te groot (maximaal %{count} MB)"

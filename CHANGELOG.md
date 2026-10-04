@@ -4,6 +4,23 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [8.1.53] - 2026-10-04
+
+### Fixed
+
+- **Page title in the `inline_forms` layout.** `layouts/inline_forms` rendered `t('application_name')` into `<title>`, and no en translation existed (not in the gem, not in the generated app), so every page of a fresh example app (`/apartments`, `/file_trash`, …) got the title `<span class="translation_missing" …>Application Name</span> v8.1.51`: a bare `t()` returns that html_safe span, which `<title>` shows as text. The layout now calls `t('application_name', default: application_name)`, falling back to the host's `ApplicationHelper#application_name` (which the header partial already needs). With a default, `t()` returns plain text that ERB escapes, so a missing translation can never put markup into `<title>`.
+- **Installer:** `config/locales/inline_forms_local.en.yml` now also defines `application_name: <app name>`, next to `inline_forms.general.application_title`.
+- **nl locale:** removed the placeholder `application_name: naam van de applicatie` from `inline_forms.nl.yml`. It was the only definition of the key, so nl users saw "naam van de applicatie v…" as the page title; they now get the app name.
+
+### Tests
+
+- Gem: `test/integration/layout_title_test.rb`: the title falls back to the helper, uses a host translation when present, ignores the old nl placeholder, and escapes markup in the translation.
+- Example app: `example_app_layout_title_test.rb`: the installer defines the en `application_name`; `/apartments` and `/file_trash` are titled "<app name> v<version>", in en and for an nl user.
+
+### Lockstep
+
+- validation_hints 8.1.53, inline_forms_installer 8.1.53, inline_forms_schema_edit 8.1.53.
+
 ## [8.1.52] - 2026-10-04
 
 ### Removed

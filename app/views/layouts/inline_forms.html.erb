@@ -3,7 +3,11 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title><%= t('application_name') + " v" + InlineForms::VERSION -%></title>
+    <%# A missing translation must not reach <title>: a bare t() returns an %>
+    <%# html_safe <span class="translation_missing"> that shows up as markup. %>
+    <%# The `default:` (the host's ApplicationHelper#application_name, which %>
+    <%# the header partial needs anyway) makes t() return plain, escaped text. %>
+    <title><%= t('application_name', default: application_name) %> v<%= InlineForms::VERSION %></title>
     <%= stylesheet_link_tag "application" %>
     <%= stylesheet_link_tag "inline_forms_fonts" %>
     <%= stylesheet_link_tag "inline_forms/inline_forms" %>
