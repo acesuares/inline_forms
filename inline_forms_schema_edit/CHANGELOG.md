@@ -5,6 +5,17 @@ lockstep with inline_forms / inline_forms_installer / validation_hints.
 
 ## [Unreleased]
 
+## [8.1.55] - 2026-10-04
+
+### Fixed
+
+- The published gem is world-readable again. The gemspec now loads
+  `InlineFormsGemFiles` from inline_forms, so files are packaged `0644`
+  (`0755` if executable) instead of the checkout's group-only `0660`; 8.1.53
+  installed unreadable for anyone but the installing user and group.
+  Lockstep with `inline_forms` / `inline_forms_installer` /
+  `validation_hints` 8.1.55.
+
 ## [8.1.54] - 2026-10-04
 
 ### Changed

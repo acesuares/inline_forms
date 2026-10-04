@@ -4,6 +4,20 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [8.1.55] - 2026-10-04
+
+### Fixed
+
+- **Published gems were unreadable for other users.** RubyGems packages each file with its on-disk mode, and `gem install` restores it. The release checkout is group-only (`rw-rw----`), so every file in the published 8.1.53 gems was `0660`. After `gem install` only the installing user and group could read them: for anyone else `require "inline_forms"` failed silently (Bundler swallows that LoadError), so the app died at boot with `uninitialized constant InlineForms`. A Docker image that installs gems as root and runs as another user could not boot at all. Gem builds now package every file as `0644`, or `0755` when the owner may execute it, whatever the checkout's modes: `InlineFormsGemFiles` wraps `Gem::Package#add_files`, and all three gemspecs in this repo load it, so `gem build`, `rake build` and the CI full gate are all covered. validation_hints 8.1.55 has the same fix. 8.1.53 cannot be republished (RubyGems never accepts a version twice), so apps on 8.1.53 should move to 8.1.55.
+
+### Tests
+
+- Gem: `test/gem_package_modes_test.rb`: group-only files on disk are packaged `0644`/`0755`, and the inline_forms, inline_forms_installer and inline_forms_schema_edit gemspecs build with every file world-readable.
+
+### Lockstep
+
+- validation_hints 8.1.55, inline_forms_installer 8.1.55, inline_forms_schema_edit 8.1.55.
+
 ## [8.1.54] - 2026-10-04
 
 ### Fixed

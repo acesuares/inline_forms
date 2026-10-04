@@ -2,6 +2,9 @@
 
 $:.push File.expand_path("../lib", __FILE__)
 require "inline_forms_schema_edit/version"
+# Same repo as inline_forms: package world-readable file modes (see
+# InlineFormsGemFiles.packaged_mode).
+require_relative "../lib/inline_forms/gem_files"
 
 Gem::Specification.new do |s|
   s.name        = "inline_forms_schema_edit"
