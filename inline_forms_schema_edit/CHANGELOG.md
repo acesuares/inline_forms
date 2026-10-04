@@ -5,6 +5,15 @@ lockstep with inline_forms / inline_forms_installer / validation_hints.
 
 ## [Unreleased]
 
+## [8.1.54] - 2026-10-04
+
+### Changed
+
+- Version bump to stay in lockstep with `inline_forms` /
+  `inline_forms_installer` / `validation_hints` 8.1.54 (Devise password
+  views no longer call the removed `devise_error_messages!`).
+  No changes to this gem's own code.
+
 ## [8.1.53] - 2026-10-04
 
 ### Changed

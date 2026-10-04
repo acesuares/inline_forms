@@ -4,6 +4,21 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [8.1.54] - 2026-10-04
+
+### Fixed
+
+- **"Forgot your password?" and the password reset page raised.** Devise 5 removed `devise_error_messages!`, and the gem's `devise/passwords/new` and `devise/passwords/edit` still called it, so both pages failed with `undefined method 'devise_error_messages!'` in every generated app. They now render Devise's own `devise/shared/error_messages` partial (`render "devise/shared/error_messages", resource: resource`).
+- **`devise/shared/_header_and_errors`** (not rendered by the gem's own views; kept for host apps that render it). It looked up a translation named after the app (`t application_name`, which renders a translation_missing span), called the removed `devise_error_messages!`, and looked up `inline_forms.devise.` when `@default_message` was unset. It now shows `t('application_name', default: application_name)` like the `inline_forms` layout's title, Devise's error list when the resource has errors, and the `inline_forms.devise.<@default_message>` text only when `@default_message` is set.
+
+### Tests
+
+- Example app: `example_app_devise_passwords_test.rb`: the forgot-password and reset-password pages render, an unknown email re-renders the form with Devise's error list, and `_header_and_errors` shows the app name and the resource errors. The engine's dummy app has no Devise, so these tests live in the example app only.
+
+### Lockstep
+
+- validation_hints 8.1.54, inline_forms_installer 8.1.54, inline_forms_schema_edit 8.1.54.
+
 ## [8.1.53] - 2026-10-04
 
 ### Fixed

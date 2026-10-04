@@ -18,7 +18,7 @@
                                   }
                 ) do |f| %>
 
-      <%= devise_error_messages! %>
+      <%= render "devise/shared/error_messages", resource: resource %>
 
       <div class="row">
         <div class="columns">
