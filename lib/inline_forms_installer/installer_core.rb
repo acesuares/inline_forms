@@ -856,11 +856,13 @@ copy_file File.join(INSTALLER_ROOT,'lib/installer_templates/unicorn/production.r
 
 # Schema-change GUI (dev-only authoring; InlineForms::SchemaController from
 # the inline_forms_schema_edit gem). Wired only when requested via
-# `--schema-edit` (implied by `--example`): routes + a "+ field" nav link.
+# `--schema-edit` (implied by `--example`): routes + batch tables. The
+# "+ field" nav link is example-app only (example_app_views/inline_forms/
+# _model_top_bar_left.html.erb), never in the engine's top bar.
 # Applies inline_forms_addto through the browser; does NOT run db:migrate.
 # Must precede the example section: its test gate exercises these routes.
 if ENV['install_schema_edit'] == 'true'
-  say "- Schema GUI: routes + nav link + batch tables..."
+  say "- Schema GUI: routes + batch tables..."
   # One line: the gem owns its route set, so gem upgrades can add routes
   # without editing the app's routes.rb.
   route 'InlineFormsSchemaEdit.draw_routes(self)'

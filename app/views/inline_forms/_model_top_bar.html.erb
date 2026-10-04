@@ -9,10 +9,9 @@
             </a>
           </h1>
         </li>
-        <% if respond_to?(:inline_forms_schema_new_path) %>
-          <li class="menu-text">
-            <%= link_to "+ field", inline_forms_schema_new_path, data: { turbo: false }, title: "Add a field to a model (dev only)" %>
-          </li>
+        <%# Hook for app-specific items next to the title (none by default). %>
+        <% if lookup_context.exists?("inline_forms/model_top_bar_left", [], true) %>
+          <%= render "inline_forms/model_top_bar_left" %>
         <% end %>
       </ul>
     </div>

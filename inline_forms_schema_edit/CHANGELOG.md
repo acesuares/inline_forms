@@ -5,6 +5,15 @@ lockstep with inline_forms / inline_forms_installer / validation_hints.
 
 ## [Unreleased]
 
+## [8.1.52] - 2026-10-04
+
+### Changed
+
+- Version bump to stay in lockstep with `inline_forms` /
+  `inline_forms_installer` / `validation_hints` 8.1.52. The "+ field" link
+  to this gem's GUI is no longer in the inline_forms engine top bar; only
+  the example app shows it. No changes to this gem's own code.
+
 ## [8.1.51] - 2026-10-04
 
 ### Changed

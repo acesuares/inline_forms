@@ -4,6 +4,29 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [8.1.52] - 2026-10-04
+
+### Removed
+
+- **"+ field" link removed from the engine's model top bar.** Since 8.1.45 (`cfd0977`) every app with the `inline_forms_schema_edit` routes showed the dev-only schema GUI link on every page, production included. It was meant for the example app only. It now ships only in the example app, as `app/views/inline_forms/_model_top_bar_left.html.erb`. An app installed with `--schema-edit` alone gets the routes and tables, but no nav link.
+
+### Added
+
+- Model top bar hook: if the app has an `inline_forms/_model_top_bar_left` partial, it is rendered after the title, for app-specific `<li>` items. Nothing is rendered when the partial is absent.
+
+### Fixed
+
+- **Gem packaging:** `InlineFormsGemFiles` sweeps untracked files too, so a local build also packaged `.claude/launch.json`, `.claude/settings.local.json` and `CLAUDE.md`. They are now excluded hard, like `stuff/`.
+
+### Tests
+
+- Gem: the engine top bar has no schema GUI link even when the schema routes are drawn.
+- Example app: the top bar links the schema GUI.
+
+### Lockstep
+
+- validation_hints 8.1.52, inline_forms_installer 8.1.52, inline_forms_schema_edit 8.1.52.
+
 ## [8.1.51] - 2026-10-04
 
 ### Changed

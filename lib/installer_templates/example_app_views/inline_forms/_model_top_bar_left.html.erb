@@ -1,0 +1,6 @@
+<%# Example app only: link to the dev-only schema GUI (inline_forms_schema_edit). %>
+<% if respond_to?(:inline_forms_schema_new_path) %>
+  <li class="menu-text">
+    <%= link_to "+ field", inline_forms_schema_new_path, data: { turbo: false }, title: "Add a field to a model (dev only)" %>
+  </li>
+<% end %>
