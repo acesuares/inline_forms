@@ -16,6 +16,13 @@ class ExampleAppSchemaEditTest < ExampleAppIntegrationTestCase
     assert_includes @response.body, "text_field"
   end
 
+  test "the example app's top bar links the schema GUI" do
+    get apartments_path
+    assert_response :success
+    assert_includes @response.body, %(href="/schema/new")
+    assert_includes @response.body, "+ field"
+  end
+
   test "schema/preview shows a new scalar field on Apartment without changing the schema" do
     refute_includes Apartment.column_names, "staff_note",
       "precondition: staff_note must not already exist"

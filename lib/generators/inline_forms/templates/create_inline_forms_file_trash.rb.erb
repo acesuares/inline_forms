@@ -1,0 +1,41 @@
+# File trash for declared file slots (inline_forms, InlineForms::StoredFiles).
+class CreateInlineFormsFileTrash < ActiveRecord::Migration[8.1]
+  def change
+    # Trashed bytes can be as large as the slot's own column: LONGBLOB on
+    # MySQL (a plain BLOB stops at 64 KB); a plain binary elsewhere (SQLite
+    # and PostgreSQL have no size variants).
+    long_blob = connection.adapter_name.match?(/mysql|trilogy/i) ? { size: :long } : {}
+
+    create_table :inline_forms_trashed_files do |t|
+      t.string   :record_type, null: false
+      t.bigint   :record_id, null: false
+      t.string   :attribute_name, null: false
+      t.string   :filename
+      t.string   :content_type
+      t.bigint   :byte_size
+      t.string   :checksum, limit: 64
+      t.binary   :data, **long_blob
+      t.string   :reason, null: false
+      t.boolean  :redacted, null: false, default: false
+      t.bigint   :trashed_by_id
+      t.datetime :trashed_at, null: false
+      t.bigint   :restored_by_id
+      t.datetime :restored_at
+      t.bigint   :purged_by_id
+      t.datetime :purged_at
+      t.datetime :purge_after
+      t.timestamps
+    end
+    add_index :inline_forms_trashed_files, [ :record_type, :record_id, :attribute_name ],
+              name: "index_inline_forms_trashed_files_on_slot"
+    add_index :inline_forms_trashed_files, [ :purged_at, :restored_at, :purge_after ],
+              name: "index_inline_forms_trashed_files_on_state"
+
+    create_table :inline_forms_file_trash_sweeps do |t|
+      t.datetime :ran_at, null: false
+      t.integer  :purged_count, null: false, default: 0
+      t.text     :error
+      t.timestamps
+    end
+  end
+end

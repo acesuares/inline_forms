@@ -1,0 +1,36 @@
+<%# One file event in the versions list (kind :file, from the trash table):
+    uploaded / removed / replaced / record_destroyed / restored / purged.
+    Its restore link is "restore file" (restore_file, not revert), offered
+    only on the slot's newest still-restorable trash entry. -%>
+<% row = entry[:entry] -%>
+<% attribute = row.attribute_name -%>
+<% field_frame = inline_forms_file_field_frame_id(object, attribute) -%>
+<div class="row <%= cycle('odd', 'even') %> inline_forms-versions-file">
+  <div class="small-1 column">
+    <% if restorable[attribute]&.id == row.id && entry[:file_event] == row.reason.to_sym &&
+          inline_forms_file_can?(:restore_file, object, attribute) &&
+          inline_forms_file_can?(object.inline_forms_file_present?(attribute) ? :replace_file : :update, object, attribute) %>
+      <%= link_to t("inline_forms.files.restore_file"),
+            polymorphic_path(object, action: :restore_file, attribute: attribute, trash_id: row.id,
+                             update: field_frame, slots: inline_forms_file_trash_slots(object).join(",")),
+            inline_forms_file_post_data(field_frame,
+              confirm: (object.inline_forms_file_present?(attribute) ? t("inline_forms.files.confirm_restore_swap", current: object[attribute], filename: inline_forms_file_entry_name(row)) : nil)) %>
+    <% else %>
+      &nbsp;
+    <% end %>
+  </div>
+  <div class="small-1 column">
+    <%= t("inline_forms.files.event.#{entry[:file_event]}") %>
+  </div>
+  <div class="small-2 column">
+    <%= entry[:at] %>
+  </div>
+  <div class="small-2 column">
+    <%= inline_forms_file_user_name(entry[:by]) %>
+  </div>
+  <div class="small-6 column">
+    <strong><%= object.class.human_attribute_name(attribute) %></strong>:
+    <%= inline_forms_file_entry_name(row) %>
+    <span class="inline_forms-file-meta"><%= inline_forms_file_size(row.byte_size) %></span>
+  </div>
+</div>

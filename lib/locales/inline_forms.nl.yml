@@ -28,6 +28,89 @@ nl:
       add_new: Maak een nieuw %{model}
       undo: terughalen
       trash: weggooien
+    files:
+      download: downloaden
+      replace: bestand vervangen
+      remove: bestand verwijderen
+      restore: terugzetten
+      restore_file: bestand terugzetten
+      purge: definitief verwijderen
+      undo: ongedaan maken
+      restore_previous: "verwijderd bestand %{filename} terugzetten"
+      replace_hint: "Het huidige bestand %{filename} gaat naar de prullenbak."
+      confirm_remove:
+        one: "%{filename} verwijderen? Het gaat naar de prullenbak en kan 1 dag worden teruggezet."
+        other: "%{filename} verwijderen? Het gaat naar de prullenbak en kan %{count} dagen worden teruggezet."
+      confirm_remove_no_expiry: "%{filename} verwijderen? Het gaat naar de prullenbak en kan worden teruggezet."
+      confirm_restore_swap: "Het huidige bestand %{current} gaat naar de prullenbak en %{filename} wordt teruggezet. Doorgaan?"
+      confirm_purge: "%{filename} definitief verwijderen? Dit kan niet ongedaan worden gemaakt."
+      notice_removed: "%{filename} verwijderd"
+      notice_restored: Bestand teruggezet.
+      notice_purged: Bestand definitief verwijderd.
+      notice_already_empty: Er was geen bestand om te verwijderen.
+      notice_not_restorable: Dit bestand kan niet meer worden teruggezet.
+      notice_not_purgeable: Dit bestand is al teruggezet of verwijderd.
+      missing: Dit bestand is verwijderd.
+      trash_header:
+        zero: Verwijderde bestanden
+        one: Verwijderde bestanden (1)
+        other: Verwijderde bestanden (%{count})
+      open_trash: Verwijderde bestanden tonen
+      close_trash: Verwijderde bestanden verbergen
+      by_on: "door %{user} op %{at}"
+      by_system: het systeem
+      redacted_name: "[verwijderd bestand]"
+      state_restored: "teruggezet door %{user} op %{at}"
+      state_purged: "definitief verwijderd door %{user} op %{at}"
+      state_expired: verlopen, wordt verwijderd
+      expired_pending:
+        one: 1 verlopen bestand wacht op de nachtelijke opruiming.
+        other: "%{count} verlopen bestanden wachten op de nachtelijke opruiming."
+      expires_in:
+        one: "terug te zetten tot %{date} (1 dag)"
+        other: "terug te zetten tot %{date} (%{count} dagen)"
+      reason:
+        removed: verwijderd
+        replaced: vervangen
+        record_destroyed: record verwijderd
+        orphaned: verweesde bytes
+        uploaded: geüpload
+      event:
+        uploaded: bestand geüpload
+        removed: bestand verwijderd
+        replaced: bestand vervangen
+        record_destroyed: bestand in prullenbak (record verwijderd)
+        orphaned: verweesd bestand in prullenbak
+        restored: bestand teruggezet
+        purged: bestand definitief verwijderd
+      global:
+        title: Verwijderde bestanden
+        model: Model
+        state: Status
+        all: alle
+        filter: filteren
+        record: Record
+        record_gone: "%{model} #%{id} (verwijderd)"
+        slot: Veld
+        file: Bestand
+        trashed: Verwijderd
+        actions: Acties
+        purge_selected: Selectie definitief verwijderen
+        confirm_purge_selected: De geselecteerde bestanden definitief verwijderen? Dit kan niet ongedaan worden gemaakt.
+        purged_count:
+          one: 1 bestand definitief verwijderd.
+          other: "%{count} bestanden definitief verwijderd."
+        nothing_selected: Geen bestanden geselecteerd.
+        empty: Geen verwijderde bestanden.
+        sweep_last: "Laatste opruiming: %{at} (%{count} verwijderd)"
+        sweep_never: De nachtelijke opruiming heeft nog nooit gedraaid.
+        sweep_overdue: De nachtelijke opruiming heeft al meer dan 48 uur niet gedraaid. Controleer de cron-taak.
+        sweep_failed: "Laatste opruiming mislukt: %{error}"
+        states:
+          trashed: in prullenbak
+          restored: teruggezet
+          purged: verwijderd
+          expired: verlopen
     pending_migration:
       notice: "migratie in afwachting \u2014 draai rails db:migrate"
   succes: het ding is aangemaakt.
@@ -38,6 +121,7 @@ nl:
       client:
         first_name: voornaam
         last_name: achternaam
-  application_name: naam van de applicatie
-
-
+  errors:
+    messages:
+      inline_forms_file_too_large: "is te groot (maximaal %{count} MB)"
+      inline_forms_file_missing: "geen bestand gekozen"

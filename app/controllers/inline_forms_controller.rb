@@ -26,10 +26,12 @@ class InlineFormsController < ApplicationController
   include InlineForms::FormElements::HelperIncludes
   include CancanConcern
   include VersionsConcern
+  include FileSlotsConcern
 
   before_action :getKlass
 
-  load_and_authorize_resource except: :revert, no_params: true if cancan_enabled?
+  # +revert+ and the file-slot actions authorize themselves (attribute-level).
+  load_and_authorize_resource except: [ :revert, *FileSlotsConcern::FILE_SLOT_ACTIONS ], no_params: true if cancan_enabled?
   # :index shows a list of all objects from class @Klass, using will_paginate,
   # including a link to 'new', that allows you to create a new record.
   def index
@@ -126,6 +128,7 @@ class InlineFormsController < ApplicationController
     @sub_id = params[:sub_id]
     @update_span = params[:update]
     return unless field_request_permitted?(:update)
+    return unless file_replace_permitted?
     respond_to do |format|
       format.html { render_turbo_field(:field_edit) }
     end
@@ -193,6 +196,7 @@ class InlineFormsController < ApplicationController
     @sub_id = params[:sub_id]
     @update_span = params[:update]
     return unless field_request_permitted?(:update)
+    return unless file_replace_permitted?
     # Defense-in-depth: the UI renders a pending field as a read-only
     # placeholder (never links to edit/update), but a hand-crafted request
     # could still target a column that is not migrated yet. Refuse cleanly
@@ -360,8 +364,14 @@ class InlineFormsController < ApplicationController
       @rich_text_record.save!
       @parent.touch if @parent.respond_to?(:touch)
     else
-      @parent = persist_reverted_primary!(@object, @version)
-      restore_rich_texts_for_reverted_parent!(@parent)
+      # One transaction: the record, its files coming back out of the trash
+      # (undo of a destroy) and its rich texts are restored together or not.
+      @object.class.transaction do
+        file_entries = InlineForms::StoredFiles.prepare_revert!(@object)
+        @parent = persist_reverted_primary!(@object, @version)
+        InlineForms::StoredFiles.finish_revert!(file_entries, by: inline_forms_current_user_id)
+        restore_rich_texts_for_reverted_parent!(@parent)
+      end
       @parent.reload
     end
     render_revert_response if row_html_turbo_allowed?
@@ -387,6 +397,18 @@ class InlineFormsController < ApplicationController
       return false
     end
     authorize!(action, @object, @attribute.to_sym) if cancan_enabled?
+    true
+  end
+
+  # Uploading over a file that is already in a declared slot is a replace:
+  # the old file goes to the trash, i.e. it is removed. That needs
+  # :replace_file on top of :update (an empty slot only needs :update).
+  def file_replace_permitted?
+    return true unless @form_element.to_s == "simple_file_field"
+    return true unless @object.class.respond_to?(:inline_forms_file_slot?) && @object.class.inline_forms_file_slot?(@attribute)
+    return true unless @object.inline_forms_file_present?(@attribute)
+
+    authorize!(:replace_file, @object, @attribute.to_sym) if cancan_enabled?
     true
   end
 
@@ -443,6 +465,9 @@ class InlineFormsController < ApplicationController
     if object.new_record? && object.id.present? && klass.exists?(object.id)
       existing = klass.find(object.id)
       versioned = (version.object_deserialized || {}).keys
+      # Declared file slots are never reverted through versions (old version
+      # rows may still carry a filename): the live row keeps its file.
+      versioned -= klass.inline_forms_file_columns if klass.respond_to?(:inline_forms_file_columns)
       existing.assign_attributes(object.attributes.slice(*versioned).except(primary_key))
       existing.save!
       existing

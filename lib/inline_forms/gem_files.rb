@@ -23,8 +23,13 @@ module InlineFormsGemFiles
   # ignores stuff/ is per-machine (present here, absent on the release box), so
   # the token leaked into `gem build` on the release machine. Exclude it hard,
   # independent of any ignore configuration.
+  #
+  # Same for local Claude Code files (untracked, per checkout): .claude/
+  # (launch.json, settings.local.json) and CLAUDE.md.
   EXCLUDED_FILE_PREFIXES = %w[
     stuff/
+    .claude/
+    CLAUDE.md
   ].freeze
 
   module_function

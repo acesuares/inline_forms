@@ -1,6 +1,7 @@
 <% path_to_object = @object.class.to_s.underscore + '_path' %>
 <% css_class_id = inline_forms_versions_turbo_frame_id(@object) -%>
-<% entries = inline_forms_versions_for(@object) -%>
+<% entries = inline_forms_history_for(@object) -%>
+<% restorable_files = inline_forms_restorable_file_entries(@object, entries.filter_map { |e| e[:entry]&.attribute_name }.uniq) -%>
 <div class="row form_element_header associated_auto_header callout">
   <div class='medium-11 large-11 column' >
     <%= "Versions (#{entries.length})" %>
@@ -34,13 +35,21 @@
     <strong>Event</strong>
   </div>
   <div class="small-2 column">
+    <strong>When</strong>
+  </div>
+  <div class="small-2 column">
     <strong>Done by</strong>
   </div>
-  <div class="small-8 column">
+  <div class="small-6 column">
     <strong>Changeset</strong>
   </div>
 </div>
 <% entries.reverse.each do |entry| %>
+  <% if entry[:kind] == :file %>
+    <%= render partial: "inline_forms/versions_file_entry",
+          locals: { entry: entry, object: @object, restorable: restorable_files } %>
+    <% next %>
+  <% end %>
   <% version = entry[:version] -%>
   <% rich_text_name = entry[:rich_text_name] -%>
   <div class="row <%= cycle('odd', 'even') %>">

@@ -1,5 +1,7 @@
 # -*- encoding : utf-8 -*-
 
+require "active_support/core_ext/module/attribute_accessors"
+require "active_support/core_ext/numeric/time"
 require "inline_forms/version"
 require "inline_forms/attribute_list"
 require "inline_forms/schema_intent"
@@ -17,6 +19,59 @@ require "inline_forms/turbo_tabs_builder"
 # easy. Please install it as a gem or include it in your Gemfile.
 module InlineForms
   class PlainTextColumnMissingError < StandardError; end
+
+  # ---- File slots and the file trash (InlineForms::StoredFiles) ------------
+  #
+  # How long a removed/replaced file stays restorable in the trash before the
+  # sweep (`rake inline_forms:file_trash:purge_expired`) deletes its bytes.
+  # nil = never expire (purge by hand only).
+  mattr_accessor :file_trash_retention, default: 30.days
+
+  # Purging also blanks the stored filename (rendered as "removed file").
+  # Off by default: the filename is kept as part of the history.
+  mattr_accessor :file_trash_redact_on_purge, default: false
+
+  # Largest accepted upload for a declared file slot, in bytes; nil = no
+  # limit beyond the web server's. Enforced as a validation error.
+  mattr_accessor :max_file_size, default: nil
+
+  # Column names of a :simple_file_field slot, from its attribute: `filename`
+  # -> data / content_type; `<base>_filename` and any other `<base>` ->
+  # `<base>_data` / `<base>_content_type`. Shared by InlineForms::StoredFiles
+  # (its defaults) and the generators (the columns they create).
+  def self.file_slot_columns(attribute)
+    attribute = attribute.to_s
+    base = attribute == "filename" ? nil : attribute.delete_suffix("_filename")
+    { filename: attribute, data: base ? "#{base}_data" : "data", content_type: base ? "#{base}_content_type" : "content_type" }
+  end
+
+  # Member routes for a resource whose model declares file slots. Call it
+  # inside the resource block (order-independent, unlike a routing concern):
+  #
+  #   resources :clients do
+  #     post 'revert', on: :member
+  #     get 'list_versions', on: :member
+  #     InlineForms.file_routes(self)
+  #   end
+  def self.file_routes(router)
+    router.member do
+      router.get  "download_file"
+      router.post "remove_file"
+      router.post "restore_file"
+      router.post "purge_file"
+      router.get  "trashed_file"
+      router.get  "file_trash"
+    end
+  end
+
+  # The cross-record trash page (superadmin). One line in routes.rb:
+  #   InlineForms.draw_file_trash_routes(self)
+  def self.draw_file_trash_routes(router)
+    router.get  "file_trash",              to: "inline_forms/file_trash#index",    as: :inline_forms_file_trash
+    router.post "file_trash/purge",        to: "inline_forms/file_trash#purge",    as: :inline_forms_file_trash_purge
+    router.post "file_trash/:id/restore",  to: "inline_forms/file_trash#restore",  as: :inline_forms_file_trash_restore
+    router.get  "file_trash/:id/download", to: "inline_forms/file_trash#download", as: :inline_forms_file_trash_download
+  end
 
   # DEFAULT_COLUMN_TYPES holds the standard ActiveRecord::Migration column types.
   # This list provides compatability with the standard types, but we add our own

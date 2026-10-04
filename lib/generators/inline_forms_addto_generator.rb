@@ -117,6 +117,12 @@ class InlineFormsAddtoGenerator < Rails::Generators::NamedBase
 
         if attribute.column_type == :belongs_to
           @migration_lines << "    add_reference :#{table_name}, :#{attribute.name}, foreign_key: true\n"
+        elsif attribute.type == :simple_file_field
+          # Declared file slot: filename + bytes (LONGBLOB on MySQL) + content type.
+          columns = InlineForms.file_slot_columns(attribute.name)
+          @migration_lines << "    add_column :#{table_name}, :#{columns[:filename]}, :string\n"
+          @migration_lines << "    add_column :#{table_name}, :#{columns[:data]}, :binary, **(connection.adapter_name.match?(/mysql|trilogy/i) ? { size: :long } : {})\n"
+          @migration_lines << "    add_column :#{table_name}, :#{columns[:content_type]}, :string\n"
         else
           commenter = attribute.attribute_type == :unknown ? "#" : " "
           @migration_lines << "#{commenter}    add_column :#{table_name}, :#{attribute.name}, :#{attribute.column_type}\n"
@@ -158,6 +164,8 @@ class InlineFormsAddtoGenerator < Rails::Generators::NamedBase
           inject_class_line!("  has_and_belongs_to_many :#{attribute.name}\n")
         when :rich_text
           inject_class_line!("  has_rich_text :#{attribute.name}\n")
+        when :simple_file_field
+          add_file_slot!(attribute)
         end
 
         next unless attribute.attribute?
@@ -181,6 +189,45 @@ class InlineFormsAddtoGenerator < Rails::Generators::NamedBase
     end
 
     private
+
+    # A :simple_file_field is a declared file slot: the model gets
+    # InlineForms::StoredFiles + `inline_forms_file :attr`, and the resource
+    # block in routes.rb gets InlineForms.file_routes(self) (when it can be
+    # found; otherwise a reminder).
+    def add_file_slot!(attribute)
+      content = File.read(File.join(destination_root, model_file_path))
+      include_line = "  include InlineForms::StoredFiles\n"
+      macro = "  inline_forms_file :#{attribute.name}\n"
+      return if content.include?(macro)
+
+      if content.include?(include_line)
+        inject_into_file model_file_path, macro, after: include_line
+      else
+        # One injection: inject_into_class puts each line right under the
+        # class line, so two calls would land the macro above the include.
+        inject_class_line!(include_line + macro)
+      end
+      add_file_routes!
+    end
+
+    def add_file_routes!
+      routes = "config/routes.rb"
+      path = File.join(destination_root, routes)
+      return unless File.exist?(path)
+
+      content = File.read(path)
+      opener = content[/^(\s*)resources :#{table_name} do\n/]
+      if opener.nil?
+        say_status :reminder, "add InlineForms.file_routes(self) inside `resources :#{table_name} do ... end` in #{routes}", :yellow
+        return
+      end
+      block = content[content.index(opener)..][/\A.*?^\s*end$/m]
+      return if block&.include?("InlineForms.file_routes")
+
+      indent = opener[/\A\s*/]
+      inject_into_file routes, "#{indent}  InlineForms.file_routes(self)\n", after: opener
+    end
+
 
     def model_file_name
       name.underscore

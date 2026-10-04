@@ -4,6 +4,128 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [8.1.53] - 2026-10-04
+
+### Fixed
+
+- **Page title in the `inline_forms` layout.** `layouts/inline_forms` rendered `t('application_name')` into `<title>`, and no en translation existed (not in the gem, not in the generated app), so every page of a fresh example app (`/apartments`, `/file_trash`, …) got the title `<span class="translation_missing" …>Application Name</span> v8.1.51`: a bare `t()` returns that html_safe span, which `<title>` shows as text. The layout now calls `t('application_name', default: application_name)`, falling back to the host's `ApplicationHelper#application_name` (which the header partial already needs). With a default, `t()` returns plain text that ERB escapes, so a missing translation can never put markup into `<title>`.
+- **Installer:** `config/locales/inline_forms_local.en.yml` now also defines `application_name: <app name>`, next to `inline_forms.general.application_title`.
+- **nl locale:** removed the placeholder `application_name: naam van de applicatie` from `inline_forms.nl.yml`. It was the only definition of the key, so nl users saw "naam van de applicatie v…" as the page title; they now get the app name.
+
+### Tests
+
+- Gem: `test/integration/layout_title_test.rb`: the title falls back to the helper, uses a host translation when present, ignores the old nl placeholder, and escapes markup in the translation.
+- Example app: `example_app_layout_title_test.rb`: the installer defines the en `application_name`; `/apartments` and `/file_trash` are titled "<app name> v<version>", in en and for an nl user.
+
+### Lockstep
+
+- validation_hints 8.1.53, inline_forms_installer 8.1.53, inline_forms_schema_edit 8.1.53.
+
+## [8.1.52] - 2026-10-04
+
+### Removed
+
+- **"+ field" link removed from the engine's model top bar.** Since 8.1.45 (`cfd0977`) every app with the `inline_forms_schema_edit` routes showed the dev-only schema GUI link on every page, production included. It was meant for the example app only. It now ships only in the example app, as `app/views/inline_forms/_model_top_bar_left.html.erb`. An app installed with `--schema-edit` alone gets the routes and tables, but no nav link.
+
+### Added
+
+- Model top bar hook: if the app has an `inline_forms/_model_top_bar_left` partial, it is rendered after the title, for app-specific `<li>` items. Nothing is rendered when the partial is absent.
+
+### Fixed
+
+- **Gem packaging:** `InlineFormsGemFiles` sweeps untracked files too, so a local build also packaged `.claude/launch.json`, `.claude/settings.local.json` and `CLAUDE.md`. They are now excluded hard, like `stuff/`.
+
+### Tests
+
+- Gem: the engine top bar has no schema GUI link even when the schema routes are drawn.
+- Example app: the top bar links the schema GUI.
+
+### Lockstep
+
+- validation_hints 8.1.52, inline_forms_installer 8.1.52, inline_forms_schema_edit 8.1.52.
+
+## [8.1.51] - 2026-10-04
+
+### Changed
+
+- **File trash link moved to the user menu.** `link_to_inline_forms_file_trash` now sits in the user (logout) menu of the top bar, in the gem's `_header` and the example app's. It is still shown only to users who may `:read_file_trash` on `:all`, and it no longer depends on the admin-only "More" menu.
+
+### Fixed
+
+- **Global trash page:** the "Delete selected permanently" button and the checkbox column are shown only when a row on the page can still be purged. Before, the Restored and Purged states showed the button with nothing to select. New `InlineForms::TrashedFile#purgeable?` (trashed, or expired and not yet swept).
+
+### Notes
+
+- Known issues, parked (local note `stuff/2026-10-04-carrierwave-file-elements-oddities.md`) with the CarrierWave file elements (`file_field`, `audio_field`, `image_field`, `multi_image_field`): submitting without a file erases the file, no empty-state icon on file_field, no type allowlist, the gallery replaces instead of appending. Parked; not changed in this release.
+
+### Tests
+
+- Gem: the global page offers bulk purge only when a listed row is purgeable.
+- Example app: the user menu links the trash next to logout.
+
+### Lockstep
+
+- validation_hints 8.1.51, inline_forms_installer 8.1.51, inline_forms_schema_edit 8.1.51.
+
+## [8.1.50] - 2026-10-03
+
+### Added
+
+- **Declared file slots with a file trash (`InlineForms::StoredFiles`).** A `:simple_file_field` whose bytes live in the record's own table can now be replaced, removed, restored (undo) and permanently deleted, with history. Opt-in per model:
+
+  ```ruby
+  class Client < ApplicationRecord
+    include InlineForms::StoredFiles
+    inline_forms_file :filename                   # data / content_type
+    inline_forms_file :begeleidingsplan_filename  # begeleidingsplan_data / _content_type
+  end
+  ```
+
+  The macro defines the upload setter (in a prepended module; a hand-written `<attr>=` for a declared slot raises outside production), adds the slot's three columns to PaperTrail's `skip:` on that model only (in either order with `has_paper_trail`), and trashes files on `destroy`. Removing or replacing never deletes bytes: they move to `inline_forms_trashed_files` and stay restorable for `InlineForms.file_trash_retention` (default 30 days; `nil` = never expire). Purge deletes the bytes and keeps a tombstone (filename, size, SHA-256, who/when); `InlineForms.file_trash_redact_on_purge` (default off) also blanks the filename. `InlineForms.max_file_size` (default nil) adds a size validation.
+- **Field UI for declared slots.** Download link (served by the gem: `disposition: attachment`, `Cache-Control: no-store`, 404 on an empty slot), a replace icon, a remove icon with a confirm dialog, an inline "removed · undo" notice, and on an empty slot a "restore removed file" link. Each control is shown only when the matching CanCan action is granted.
+- **Per-record trash panel** ("Removed files (n)") beside Versions, limited to the slots of the attribute list being shown (tabs): download, restore, delete permanently; restored and purged rows stay as greyed history with who/when and the expiry date.
+- **File events in the Versions panel** (uploaded / removed / replaced / restored / purged) via `inline_forms_history_for`, merged on top of `inline_forms_versions_for` (which hosts may still override). The restore link on a file event uses `restore_file`, not `revert`.
+- **Global trash page** (`/file_trash`, `InlineForms::FileTrashController`) for users who may `:read_file_trash` on `:all` (superadmin): filter by model and state, download / restore per row, bulk "delete permanently" (one transaction, every row authorized), files of deleted records, and the retention sweep's heartbeat with a warning when it is overdue (48 h). Header link via `link_to_inline_forms_file_trash`.
+- **CanCan actions**, all checked attribute-level on the server: `:replace_file` (upload over an occupied slot, on top of `:update`), `:remove_file`, `:restore_file` (+ `:replace_file` when the slot is occupied, `:update` when empty), `:purge_file`, `:download_trashed_file`, `:read_file_trash`. Nothing is granted by default when CanCanCan is loaded; `can :read, :all` does not grant any of them.
+- **Routes:** `InlineForms.file_routes(self)` inside a resource block (member routes `download_file`, `remove_file`, `restore_file`, `purge_file`, `trashed_file`, `file_trash`; order-independent), and `InlineForms.draw_file_trash_routes(self)` for the global page.
+- **Generator** `rails g inline_forms:file_trash`: migration for `inline_forms_trashed_files` (LONGBLOB on MySQL) and `inline_forms_file_trash_sweeps`.
+- **Rake tasks:** `inline_forms:file_trash:purge_expired` (daily from cron; records a heartbeat, exits non-zero on failure), `inline_forms:files:audit` (read-only: bytes without a filename, filenames without bytes), `inline_forms:files:trash_orphans CONFIRM=yes` (moves orphaned bytes into the trash).
+- `rails g inline_forms Model x:simple_file_field` and `rails g inline_forms_addto Model x:simple_file_field` now generate a declared slot: the three columns, `include InlineForms::StoredFiles` + `inline_forms_file :x`, and `InlineForms.file_routes(self)` in the resource block (addto: when the block can be found, otherwise a reminder). No values hash is needed for a declared slot.
+- en/nl translations under `inline_forms.files.*`; `errors.messages.inline_forms_file_too_large` / `inline_forms_file_missing`.
+
+### Changed
+
+- `InlineFormsController#revert` runs in one transaction. Undoing a `destroy` puts the record's `record_destroyed` files back onto it *before* `save!` (so presence validations on the filename pass) and marks those trash rows restored; a slot whose file was purged in the meantime comes back empty. Reverting an update restores the slot columns to their DB values, so pre-adoption version rows that still carry a filename can no longer put an old name on the current bytes.
+- Submitting the edit form of a declared slot without a file is a validation error ("no file chosen") instead of a silent success; a string param for a declared slot is never written.
+
+### Fixed
+
+- `version_modified_by` looked up `Devise.mappings[:users]`, but Devise keys mappings by the singular scope (`:user`), so every "Done by" in the Versions panel showed "Unknown".
+- Versions list header columns now line up with the rows (an "When" column was missing).
+
+### Upgrade notes (existing hosts)
+
+1. `rails g inline_forms:file_trash` + `db:migrate`.
+2. `rake inline_forms:files:audit` (and `trash_orphans CONFIRM=yes` if it reports orphaned bytes).
+3. Per model with raw-byte file columns: `include InlineForms::StoredFiles` + `inline_forms_file :attr`; delete the hand-written `attr=` setters and `sanitize_filename`.
+4. Routes: `InlineForms.file_routes(self)` in each such resource block, `InlineForms.draw_file_trash_routes(self)` once.
+5. Ability: grant the file actions per role (`:purge_file` typically superadmin only).
+6. Host download actions: `send_inline_forms_file(record.inline_forms_file_download(:attr))` after `authorize! :read, record, :attr` (or link to `download_file`).
+7. Initializer: `InlineForms.file_trash_retention = 30.days` (default) etc.
+8. Cron: `bin/rails inline_forms:file_trash:purge_expired` daily (inside the running container on Kamal hosts).
+9. Add the slot attribute names to `config.filter_parameters` (uploaded filenames are otherwise logged).
+
+Rolling back to 8.1.49 leaves the trash table in place (bytes nobody can see): purge or restore the trash first, and disable the cron job.
+
+### Tests
+
+- `test/integration/file_slots_test.rb` (dummy `Document` with two slots): upload/replace/identical re-upload, permissions per action, crafted string, size limit, failed save leaves no trash row, remove/restore/swap/purge/redact, IDOR, downloads, panel, destroy + undo (with a presence validation), update revert with an old filename in the version, retention sweep, global page incl. all-or-nothing bulk purge. Generator tests for both generators.
+- Example app: `FormElementShowcase#manual` is a declared slot; `example_app_showcase_file_slot_test.rb` covers the generated wiring end to end.
+
+### Lockstep
+
+- validation_hints 8.1.50, inline_forms_installer 8.1.50, inline_forms_schema_edit 8.1.50.
+
 ## [8.1.49] - 2026-10-03
 
 ### Security

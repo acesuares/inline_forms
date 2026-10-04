@@ -386,6 +386,53 @@ class InlineFormsAddtoGeneratorTest < Minitest::Test
     teardown_sqlite
   end
 
+  def test_simple_file_field_adds_a_declared_slot_columns_and_routes
+    write_model("widget.rb", GENERATOR_SHAPED_MODEL)
+    mkdir_p("config")
+    File.write(File.join(@destination_root, "config/routes.rb"), <<~RUBY)
+      Rails.application.routes.draw do
+        resources :widgets do
+          post 'revert', :on => :member
+          get 'list_versions', :on => :member
+        end
+      end
+    RUBY
+
+    capture_io { run_generator("Widget", "manual:simple_file_field") }
+    capture_io { run_generator("Widget", "plan_filename:simple_file_field") }
+
+    model = read("app/models/widget.rb")
+    assert_equal(1, model.scan("include InlineForms::StoredFiles").size)
+    assert_includes(model, "inline_forms_file :manual")
+    assert_includes(model, "inline_forms_file :plan_filename")
+    assert_operator(model.index("include InlineForms::StoredFiles"), :<, model.index("inline_forms_file :manual"))
+    assert_operator(model.index("include InlineForms::StoredFiles"), :<, model.index("inline_forms_file :plan_filename"))
+    assert_includes(model, "[ :manual, :simple_file_field ]")
+    routes = read("config/routes.rb")
+    assert_equal(1, routes.scan("InlineForms.file_routes(self)").size)
+    assert_match(/resources :widgets do\n\s+InlineForms\.file_routes\(self\)/, routes)
+
+    migration_file = Dir.glob(File.join(@destination_root, "db/migrate/*_inline_forms_add_to_widgets_*.rb")).min
+    conn = apply_migration_to_memory_sqlite(migration_file, tables: %i[widgets])
+    %i[manual manual_data manual_content_type].each do |column|
+      assert(conn.column_exists?(:widgets, column), "#{column} should exist after migrate")
+    end
+  ensure
+    teardown_sqlite
+  end
+
+  def test_simple_file_field_without_a_resource_block_reminds_about_routes
+    write_model("widget.rb", GENERATOR_SHAPED_MODEL)
+    mkdir_p("config")
+    File.write(File.join(@destination_root, "config/routes.rb"), "Rails.application.routes.draw do\n  MODELS.each { |m| resources m }\nend\n")
+
+    stdout, = capture_io { run_generator("Widget", "manual:simple_file_field") }
+
+    assert_includes(read("app/models/widget.rb"), "inline_forms_file :manual")
+    refute_includes(read("config/routes.rb"), "file_routes")
+    assert_includes(stdout, "InlineForms.file_routes(self)")
+  end
+
   private
 
   def run_generator(*args)

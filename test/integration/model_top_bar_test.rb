@@ -44,6 +44,15 @@ class ModelTopBarTest < InlineFormsIntegrationTestCase
     refute_includes response.body, "Beta"
   end
 
+  test "no schema GUI link in the engine top bar, even with the schema routes drawn" do
+    assert respond_to?(:inline_forms_schema_new_path), "precondition: the dummy draws the schema routes"
+    get widgets_path
+
+    assert_response :success
+    refute_includes response.body, "+ field"
+    refute_includes response.body, %(href="#{inline_forms_schema_new_path}")
+  end
+
   test "non-model page with no @Klass renders title only, no new-record link" do
     get stats_path
 

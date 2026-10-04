@@ -5,6 +5,41 @@ lockstep with inline_forms / inline_forms_installer / validation_hints.
 
 ## [Unreleased]
 
+## [8.1.53] - 2026-10-04
+
+### Changed
+
+- Version bump to stay in lockstep with `inline_forms` /
+  `inline_forms_installer` / `validation_hints` 8.1.53 (page title of the
+  `inline_forms` layout no longer shows a translation_missing span).
+  No changes to this gem's own code.
+
+## [8.1.52] - 2026-10-04
+
+### Changed
+
+- Version bump to stay in lockstep with `inline_forms` /
+  `inline_forms_installer` / `validation_hints` 8.1.52. The "+ field" link
+  to this gem's GUI is no longer in the inline_forms engine top bar; only
+  the example app shows it. No changes to this gem's own code.
+
+## [8.1.51] - 2026-10-04
+
+### Changed
+
+- Version bump to stay in lockstep with `inline_forms` /
+  `inline_forms_installer` / `validation_hints` 8.1.51 (file trash link in
+  the user menu; trash page purge button only when something is purgeable).
+  No changes to this gem's own code.
+
+## [8.1.50] - 2026-10-03
+
+### Changed
+
+- Version bump to stay in lockstep with `inline_forms` /
+  `inline_forms_installer` / `validation_hints` 8.1.50 (declared file slots
+  with a file trash). No changes to this gem's own code.
+
 ## [8.1.49] - 2026-10-03
 
 ### Changed

@@ -514,3 +514,37 @@ turbo-frame {
 #input_search {
   border: none !important;
 }
+
+/* Declared file slots (InlineForms::StoredFiles): the filename may break
+   anywhere; the action icons never wrap apart. */
+.inline_forms-file-name {
+  overflow-wrap: anywhere;
+}
+.inline_forms-file-actions {
+  white-space: nowrap;
+  margin-left: 0.5em;
+  a + a {
+    margin-left: 0.6em;
+  }
+}
+.inline_forms-file-undo {
+  margin-left: 0.5em;
+  white-space: nowrap;
+}
+.inline_forms-file-hint,
+.inline_forms-file-meta {
+  display: block;
+  font-size: 0.85em;
+  opacity: 0.75;
+}
+.inline_forms-file-notice {
+  margin: 0.25em 0 0;
+  font-size: 0.9em;
+}
+.inline_forms-file-expiring {
+  color: var(--if-color-flash-accent);
+  font-weight: bold;
+}
+.inline_forms-file-trash-history {
+  opacity: 0.55;
+}

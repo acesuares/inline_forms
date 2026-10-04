@@ -263,6 +263,53 @@ In every case the Turbo wiring is the same: +link_options: { data: { turbo_frame
 
 New apps get +rails-i18n+ from RubyGems (+ '~> 8.1'+), not from the +svenfuchs/rails-i18n+ Git repository. The installer pins +rails ~> 8.1+ with +config.load_defaults 8.1+; the published +rails-i18n+ 8.x line matches that stack.
 
+== File slots with undo and a trash (+InlineForms::StoredFiles+)
+
+A +:simple_file_field+ can keep its bytes in the record's own table (a binary /
+LONGBLOB column plus a content-type column). Declare the slot on the model:
+
+  class Client < ApplicationRecord
+    include InlineForms::StoredFiles
+    inline_forms_file :filename                   # columns: filename, data, content_type
+    inline_forms_file :begeleidingsplan_filename  # begeleidingsplan_filename, _data, _content_type
+  end
+
+  # attribute list row: no values hash needed
+  [ :begeleidingsplan_filename, :simple_file_field ],
+
+  # routes.rb
+  resources :clients do
+    post 'revert', :on => :member
+    get 'list_versions', :on => :member
+    InlineForms.file_routes(self)
+  end
+  InlineForms.draw_file_trash_routes(self)   # global trash page, /file_trash
+
+Run <tt>rails g inline_forms:file_trash</tt> once for the trash tables, and
+schedule <tt>bin/rails inline_forms:file_trash:purge_expired</tt> daily.
+<tt>rails g inline_forms Model x:simple_file_field</tt> and
++inline_forms_addto+ generate all of this for you.
+
+Users then get replace / remove (to the trash) / undo / restore, a "Removed
+files" panel per record, file events in Versions, and (superadmin) a page with
+every trashed file. Removing or replacing never deletes bytes; they stay
+restorable for +InlineForms.file_trash_retention+ (30 days) until the sweep or
+a user purges them (bytes gone, a tombstone with name, size and SHA-256 kept).
+The slot columns are kept out of PaperTrail, so reverting a version never
+touches a file.
+
+Every action is a CanCan action, checked per attribute on the server, and none
+is granted by default: +:replace_file+ (on top of +:update+), +:remove_file+,
++:restore_file+, +:purge_file+, +:download_trashed_file+, +:read_file_trash+.
+The global page needs +:read_file_trash+ on +:all+.
+
+Settings: +InlineForms.file_trash_retention+ (nil = never expire),
++InlineForms.file_trash_redact_on_purge+ (blank the filename on purge),
++InlineForms.max_file_size+. Maintenance: <tt>rake inline_forms:files:audit</tt>
+(read-only consistency report) and <tt>inline_forms:files:trash_orphans
+CONFIRM=yes</tt>. Backups are outside the gem's reach: a purged file stays in
+database backups until their own rotation.
+
 == File uploads (CarrierWave)
 
 The +:image_field+ form element uses CarrierWave. Generated apps depend on +carrierwave '~> 3.1'+ from RubyGems, store uploads on the local filesystem under +public/uploads/+, and use the default uploader produced by +rails generate uploader Image+. CarrierWave 3.1 supports Rails 6.0 through 8.0 and is the upstream maintenance line.

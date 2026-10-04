@@ -1,0 +1,22 @@
+<%# A file slot's field frame after a file action (FileSlotsConcern), with a
+    one-line status notice; after a remove the notice carries the undo. -%>
+<% frame_id = local_assigns[:frame_id] || @update_span -%>
+<turbo-frame id="<%= frame_id %>">
+  <%= simple_file_field_show(@object, @attribute) %>
+  <% if @file_notice %>
+    <p class="inline_forms-file-notice" role="status">
+      <% if @file_notice == :removed %>
+        <%= t("inline_forms.files.notice_removed", filename: inline_forms_file_entry_name(@file_entry)) %>
+        <% if @file_entry&.trashed? && inline_forms_file_can?(:restore_file, @object, @attribute) && inline_forms_file_can?(:update, @object, @attribute) %>
+          &middot;
+          <%= link_to t("inline_forms.files.undo"),
+                polymorphic_path(@object, action: :restore_file, attribute: @attribute, trash_id: @file_entry.id,
+                                 update: frame_id, slots: inline_forms_file_trash_slots_param),
+                inline_forms_file_post_data(frame_id) %>
+        <% end %>
+      <% else %>
+        <%= t("inline_forms.files.notice_#{@file_notice}") %>
+      <% end %>
+    </p>
+  <% end %>
+</turbo-frame>
