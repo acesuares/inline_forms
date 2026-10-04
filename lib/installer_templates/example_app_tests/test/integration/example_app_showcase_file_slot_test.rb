@@ -90,4 +90,13 @@ class ExampleAppShowcaseFileSlotTest < ExampleAppIntegrationTestCase
     assert_response :success
     assert_includes response.body, "first.pdf"
   end
+
+  test "the user menu links the trash, next to logout" do
+    get form_element_showcases_path
+    assert_response :success
+
+    user_menu = response.body.scan(/<ul class="menu">(.*?)<\/ul>/m).flatten.find { |menu| menu.include?(destroy_user_session_path) }
+    assert user_menu, "no user menu with the logout link"
+    assert_includes user_menu, %(href="#{inline_forms_file_trash_path}")
+  end
 end

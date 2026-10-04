@@ -513,6 +513,20 @@ class FileSlotsTest < InlineFormsIntegrationTestCase
     assert entry.reload.purged?
   end
 
+  test "the global page offers bulk purge only when a listed row is purgeable" do
+    with_file
+    entry = @doc.inline_forms_remove_file!(:filename, by: 1)
+    get inline_forms_file_trash_path(state: "trashed")
+    assert_includes response.body, %(id="trash_entry_#{entry.id}")
+    assert_includes response.body, I18n.t("inline_forms.files.global.purge_selected")
+
+    entry.restore!(by: 1)
+    get inline_forms_file_trash_path(state: "restored")
+    assert_includes response.body, "plan.pdf"
+    refute_includes response.body, %(name="ids[]")
+    refute_includes response.body, I18n.t("inline_forms.files.global.purge_selected")
+  end
+
   test "the global page restores and downloads" do
     with_file
     entry = @doc.inline_forms_remove_file!(:filename, by: 1)

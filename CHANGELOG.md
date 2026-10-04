@@ -4,6 +4,29 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [8.1.51] - 2026-10-04
+
+### Changed
+
+- **File trash link moved to the user menu.** `link_to_inline_forms_file_trash` now sits in the user (logout) menu of the top bar, in the gem's `_header` and the example app's. It is still shown only to users who may `:read_file_trash` on `:all`, and it no longer depends on the admin-only "More" menu.
+
+### Fixed
+
+- **Global trash page:** the "Delete selected permanently" button and the checkbox column are shown only when a row on the page can still be purged. Before, the Restored and Purged states showed the button with nothing to select. New `InlineForms::TrashedFile#purgeable?` (trashed, or expired and not yet swept).
+
+### Notes
+
+- Known issues, parked (local note `stuff/2026-10-04-carrierwave-file-elements-oddities.md`) with the CarrierWave file elements (`file_field`, `audio_field`, `image_field`, `multi_image_field`): submitting without a file erases the file, no empty-state icon on file_field, no type allowlist, the gallery replaces instead of appending. Parked; not changed in this release.
+
+### Tests
+
+- Gem: the global page offers bulk purge only when a listed row is purgeable.
+- Example app: the user menu links the trash next to logout.
+
+### Lockstep
+
+- validation_hints 8.1.51, inline_forms_installer 8.1.51, inline_forms_schema_edit 8.1.51.
+
 ## [8.1.50] - 2026-10-03
 
 ### Added

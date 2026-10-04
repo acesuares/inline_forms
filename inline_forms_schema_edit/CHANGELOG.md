@@ -5,6 +5,15 @@ lockstep with inline_forms / inline_forms_installer / validation_hints.
 
 ## [Unreleased]
 
+## [8.1.51] - 2026-10-04
+
+### Changed
+
+- Version bump to stay in lockstep with `inline_forms` /
+  `inline_forms_installer` / `validation_hints` 8.1.51 (file trash link in
+  the user menu; trash page purge button only when something is purgeable).
+  No changes to this gem's own code.
+
 ## [8.1.50] - 2026-10-03
 
 ### Changed

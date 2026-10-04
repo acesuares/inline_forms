@@ -39,11 +39,12 @@
     <% if @entries.empty? %>
       <p><%= t("inline_forms.files.global.empty") %></p>
     <% else %>
+      <% purgeable = @entries.any?(&:purgeable?) -%>
       <%= form_with url: inline_forms_file_trash_purge_path(model: @model, state: @state, page: params[:page]), method: :post, local: true do %>
         <table class="inline_forms-file-trash-table">
           <thead>
             <tr>
-              <th></th>
+              <% if purgeable %><th></th><% end %>
               <th><%= t("inline_forms.files.global.record") %></th>
               <th><%= t("inline_forms.files.global.slot") %></th>
               <th><%= t("inline_forms.files.global.file") %></th>
@@ -57,11 +58,13 @@
               <% klass = entry.owner_class -%>
               <% record = entry.owner -%>
               <tr class="<%= 'inline_forms-file-trash-history' unless entry.trashed? %>">
-                <td>
-                  <% if entry.trashed? || entry.expired? && !entry.purged? && !entry.restored? %>
-                    <%= check_box_tag "ids[]", entry.id, false, id: "trash_entry_#{entry.id}", "aria-label": inline_forms_file_entry_name(entry) %>
-                  <% end %>
-                </td>
+                <% if purgeable %>
+                  <td>
+                    <% if entry.purgeable? %>
+                      <%= check_box_tag "ids[]", entry.id, false, id: "trash_entry_#{entry.id}", "aria-label": inline_forms_file_entry_name(entry) %>
+                    <% end %>
+                  </td>
+                <% end %>
                 <td>
                   <% if record %>
                     <%= "#{klass.model_name.human} ##{entry.record_id}" %>
@@ -98,8 +101,10 @@
             <% end %>
           </tbody>
         </table>
-        <%= submit_tag t("inline_forms.files.global.purge_selected"), class: "button alert",
-              data: { turbo_confirm: t("inline_forms.files.global.confirm_purge_selected") } %>
+        <% if purgeable %>
+          <%= submit_tag t("inline_forms.files.global.purge_selected"), class: "button alert",
+                data: { turbo_confirm: t("inline_forms.files.global.confirm_purge_selected") } %>
+        <% end %>
       <% end %>
       <%= will_paginate @entries %>
     <% end %>

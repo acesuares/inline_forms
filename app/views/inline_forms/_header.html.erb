@@ -23,15 +23,15 @@
                   <% end %>
                 <% end %>
               <% end %>
-              <% if (trash_link = link_to_inline_forms_file_trash) %>
-                <li><%= trash_link %></li>
-              <% end %>
             </ul>
           </li>
         <% end %>
         <li>
           <a href="#"><%= current_user.name %></a>
           <ul class="menu">
+            <% if (trash_link = link_to_inline_forms_file_trash) %>
+              <li><%= trash_link %></li>
+            <% end %>
             <li>
               <%= link_to( t("common.logout"), destroy_user_session_path, :method => :delete) if current_user  %>
             </li>

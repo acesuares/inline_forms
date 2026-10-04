@@ -119,6 +119,11 @@ class InlineForms::TrashedFile < ActiveRecord::Base
     trash_entry? && !restored? && !purged? && !expired?
   end
 
+  # May still be purged: trashed, or expired but not yet swept.
+  def purgeable?
+    trash_entry? && !restored? && !purged?
+  end
+
   # :trashed, :restored, :purged, :expired or :event
   def state
     return :event if event?
