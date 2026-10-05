@@ -4,6 +4,32 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [8.1.56] - 2026-10-05
+
+### Fixed
+
+- **HTML requests the engine refuses get an explicit answer instead of falling through to implicit rendering.** Several `InlineFormsController` actions registered `format.html` only behind a guard, or registered it with a block that rendered nothing on the refused path. Rails then rendered implicitly: `ActionController::MissingExactTemplate` (a 500 for browser requests), `UnknownFormat` (406) or a bare 204. That meant error pages and exception-notifier noise. StProject hit it as a 500 on `GET /dagrapportages` by a normal user: `Dagrapportage` is `not_accessible_through_html?` and only exists nested in a Client tab. Now:
+  - `index` of a `not_accessible_through_html?` model without `parent_class` → **404**. The resource has no top-level page.
+  - `new`, `create`, row `show`, `destroy`, `soft_delete`, `soft_restore` and `revert` without the frame context the gem needs (`update`, plus `parent_class` or a nested row frame for `not_accessible_through_html?` models) → **400**. The request is malformed for this UI rather than aimed at a missing resource, so 400 rather than 404. A guard that does not match the request is a refusal of the request.
+  - `destroy` by a user who may not hard-destroy (`destroy_permitted?`, i.e. not superadmin) → **403**, the same answer `revert` already gave. It used to render nothing.
+  - `create`, `destroy`, `soft_delete`, `soft_restore` and `revert` now refuse **before writing**. Before, `create` saved the record, and `destroy`/`revert` changed data, and only then failed to respond.
+  - The refusals happen after `load_and_authorize_resource` / `authorize!`, so a host's CanCan `check_authorization` stays satisfied. The working paths are unchanged, including the turbo_stream responses (open-after-create, revert), nested lists, forms and rows, and accessible models' lists and rows.
+- **File-slot actions under `check_authorization`.** `file_slot_request_permitted?` answered 400 for an unlisted attribute before any `authorize!`, so a host with CanCan's `check_authorization` raised `CanCan::AuthorizationNotPerformed` (500) instead. It now authorizes the record first, then the attribute.
+
+### Tests
+
+- `test/integration/html_refusal_test.rb`, using new dummy model `DailyReport` (a `not_accessible_through_html?` child of `Machine`):
+  - top-level index → 404; show, new and revert without a nested frame → 400; create → 400 with nothing created; destroy → 400 with the record kept;
+  - nested list, new, create, row, destroy and revert still work;
+  - an accessible model's list and row still render, and its new/create without `update` → 400;
+  - a non-superadmin destroy → 403;
+  - a refused file-slot request still counts as authorized.
+  - Every refusal also asserts that authorization ran.
+
+### Lockstep
+
+- validation_hints 8.1.56, inline_forms_installer 8.1.56, inline_forms_schema_edit 8.1.56.
+
 ## [8.1.55] - 2026-10-04
 
 ### Fixed

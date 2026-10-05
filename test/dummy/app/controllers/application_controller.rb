@@ -5,10 +5,13 @@ class ApplicationController < ActionController::Base
   # create/new HTML responses) calls `current_user.name` and
   # `current_user.role?`, so a nil current_user cannot render it. The stub is
   # superadmin so `destroy_permitted?` allows hard destroy, matching the
-  # generated apps' test user.
+  # generated apps' test user. A test can switch that off with
+  # dummy_user_superadmin (reset in InlineFormsIntegrationTestCase#setup).
+  mattr_accessor :dummy_user_superadmin, default: true
+
   DummyUser = Struct.new(:id, :name) do
     def role?(role)
-      role.to_sym == :superadmin
+      role.to_sym == :superadmin && ApplicationController.dummy_user_superadmin
     end
   end
 

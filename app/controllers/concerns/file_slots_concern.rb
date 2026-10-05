@@ -136,10 +136,16 @@ module FileSlotsConcern
   # Validates the attribute (declared slot shown as :simple_file_field in the
   # attribute list), then authorizes +action+ on it. Renders and returns false
   # when refused.
+  #
+  # The record is authorized first (these actions skip
+  # load_and_authorize_resource): a 400 for an unlisted attribute must still
+  # count as an authorization check, or a host with CanCan's
+  # +check_authorization+ raises AuthorizationNotPerformed (500) instead.
   def file_slot_request_permitted?(action)
     @attribute = params[:attribute].to_s
     @form_element = "simple_file_field"
     @update_span = params[:update]
+    authorize!(action, @object) if cancan_enabled?
     unless inline_forms_file_slot_listed?(@object, @attribute)
       head :bad_request
       return false
