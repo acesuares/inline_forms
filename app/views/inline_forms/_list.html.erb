@@ -117,16 +117,16 @@
 <!--  # pagination -->
 <% if parent_id.nil? -%>
   <%#
-    Every filter of the request's query string goes to the other pages
-    (search, a host's own filters such as first_name / sorteer / group[id],
-    parent_class / parent_id / update), not just `search`: page 2 of a
-    filtered list must stay filtered. will_paginate 4 also merges the
-    request's params implicitly (all params on GET, the query string
-    otherwise); passing them explicitly makes this the gem's contract rather
-    than a side effect of the pagination library. The page comes from
-    will_paginate.
+    Page 2 of a filtered list must stay filtered (search and a host's own
+    filters such as first_name / sorteer / group[id]). will_paginate does
+    that itself: it puts the request's params (all params on GET, the query
+    string otherwise) into every page link, except script_name and
+    original_script_name. Do not merge request.query_parameters in here:
+    explicit params skip that exclusion, so ?script_name=javascript:… became
+    the start of every page link's href (XSS), and ?controller=x a 500.
+    test/integration/list_params_test.rb covers both.
   -%>
-  <% paginate_params = request.query_parameters.except("page").deep_symbolize_keys.merge(update: update_span, ul_needed: true) %>
+  <% paginate_params = { update: update_span, ul_needed: true } %>
   <% pagination = will_paginate objects, params: paginate_params %>
 <% else %>
   <% if pagination %>

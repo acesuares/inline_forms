@@ -176,4 +176,25 @@ class ListParamsTest < InlineFormsIntegrationTestCase
     assert_equal "Match", query["search"]
     assert_equal "name", query["sorteer"]
   end
+
+  # url_for options in the query string must not shape the page links.
+  # will_paginate leaves out script_name / original_script_name; merging
+  # request.query_parameters into the links bypassed that, so the payload
+  # became the start of every page link's href, and controller= raised.
+  test "url options in the query string never reach the page links" do
+    9.times { |i| Widget.create!(name: "W #{i}") }
+
+    %w[script_name original_script_name].each do |option|
+      get "/widgets?update=widgets_list&#{option}=javascript:alert(1)//", headers: frame_headers("widgets_list")
+      assert_response :success
+      page_link = response.body[/href="([^"]*page=2[^"]*)"/, 1]
+      assert page_link, "a link to page 2"
+      assert page_link.start_with?("/widgets?"), "#{option} shaped the page link: #{page_link}"
+      refute_includes response.body, "javascript:alert"
+    end
+
+    get "/widgets?update=widgets_list&controller=widgets_x", headers: frame_headers("widgets_list")
+    assert_response :success
+    assert_match %r{href="/widgets\?[^"]*page=2}, response.body
+  end
 end
