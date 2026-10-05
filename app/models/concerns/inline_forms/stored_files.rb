@@ -56,7 +56,8 @@ module InlineForms::StoredFiles
   # * undo of a destroy (row gone): copy each slot's newest restorable
   #   record_destroyed entry onto the record BEFORE the save, so presence
   #   validations on the filename pass; a slot whose file was purged in the
-  #   meantime comes back empty (never a name without bytes).
+  #   meantime comes back empty (never a name without bytes). An entry whose
+  #   bytes fail their SHA-256 check raises NotRestorable (nothing restored).
   # * row exists already (replayed undo): nothing; persist_reverted_primary!
   #   leaves the slot columns alone.
   def self.prepare_revert!(record)
@@ -73,6 +74,9 @@ module InlineForms::StoredFiles
       entry = InlineForms::TrashedFile.lock.for_slot(record, attribute)
                 .where(reason: "record_destroyed").restorable.newest_first.first
       if entry
+        # Same integrity check as TrashedFile#restore!: a mismatch raises
+        # NotRestorable and the whole revert rolls back.
+        InlineForms::TrashedFile.verify_checksum!(id: entry.id, data: entry.data, checksum: entry.checksum)
         record.send(:write_attribute, slot[:data], entry.data)
         record.send(:write_attribute, attribute.to_s, entry.filename)
         record.send(:write_attribute, slot[:content_type], entry.content_type)

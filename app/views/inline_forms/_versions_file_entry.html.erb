@@ -23,7 +23,7 @@
     <%= t("inline_forms.files.event.#{entry[:file_event]}") %>
   </div>
   <div class="small-2 column">
-    <%= entry[:at] %>
+    <%= l(entry[:at], format: :short) %>
   </div>
   <div class="small-2 column">
     <%= inline_forms_file_user_name(entry[:by]) %>

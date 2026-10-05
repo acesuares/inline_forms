@@ -4,6 +4,71 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [8.1.57] - 2026-10-05
+
+Fixes from a security/UI review of a host app (StProject), plus missing and hard-coded translations found when StProject switched to `:nl` with `raise_on_missing_translations = :strict`.
+
+### Security
+
+- **Reflected XSS through the nested list's frame id.** `_list` built the list frame as `raw "<turbo-frame id=\"#{update_span}\" …>"`, with `update_span` made from `params[:parent_id]`, and nothing looked the parent up before rendering. So `/incidents?parent_class=Client&ul_needed=1&update=x&parent_id="><img src=x onerror=…>` rendered the payload. Two fixes:
+  - The list body is now captured and wrapped with `tag.turbo_frame(id:, class: "list_container")`, so the id is attribute-escaped. No other view or helper puts a request param into `raw` / `html_safe` markup.
+  - `InlineFormsController` refuses malformed parent params with **400** in `index`, `new`, `create` and `show` (new `before_action :refuse_malformed_parent_params`). `parent_id` must match `/\A\d+\z/`. `parent_class` must name the class of a non-polymorphic `belongs_to` of `@Klass` that is named after it (`Photo#apartment` for `parent_class=Apartment`), which is exactly what the gem's own links send. The check runs before `_list`'s `constantize` and before `new`/`create` write the foreign key, and after `load_and_authorize_resource`, so a host's `check_authorization` stays satisfied.
+- **Stored XSS in `info_list`.** `info_list_show` appended `item._presentation` unescaped and then marked the string `html_safe`. A `_presentation` built from user data (StProject: `User#name` listed on a Role) therefore ran as markup. It is now escaped with `ERB::Util.h`. Audit of the other helpers that mark strings `html_safe`:
+  - `file_field_show` now escapes the stored file name and URL.
+  - The versions list rendered a rich-text changeset with `raw`. It is now passed through `sanitize`, so a body posted outside Trix cannot carry script.
+  - `dropdown`, `dropdown_with_other`, `check_list`, `radio_button`, the list rows, `_close`, `_show` and the trash pages already escaped `_presentation` (via `link_to` / `link_to_inline_edit` / `h` / ERB) and are unchanged.
+  - **Hosts with their own `inline_forms/_versions_list.html.erb` (StProject has one) keep the `raw`** until they apply the same change.
+- **Restoring a trashed file verifies its bytes.** `InlineForms::TrashedFile#restore!` and `InlineForms::StoredFiles.prepare_revert!` (undo of a destroy) now compare the SHA-256 of `data` with the stored `checksum` before writing bytes back into the slot (new `TrashedFile.verify_checksum!`). On a mismatch they log an error (`inline_forms file_trash checksum mismatch entry=<id>`) and raise `NotRestorable`: the transaction rolls back, nothing is written and the row stays in the trash. The field shows "can no longer be restored". The revert answers **422** instead of a 500; this also covers a `NotRestorable` from a concurrent purge.
+- **Inline scripts carry the CSP nonce.** The Turbo module `<script>` in `layouts/inline_forms` and `layouts/application` is now rendered with `nonce: content_security_policy_nonce`, which adds no attribute without a nonce generator. It is also marked `data-turbo-eval="false"`, and both layouts emit `csp_meta_tag`. This is the same as StProject's own layout, so a `script-src 'nonce-…'` policy accepts the gem's layouts.
+
+### Removed
+
+- **`inline_forms/_flash.html.erb`.** It had an inline jQuery `<script>` (no nonce), and neither the gem, the installer, the example app nor StProject rendered it. The layouts show flash themselves, and Devise pages use `devise/sessions/_flash`. A host that still does `render "inline_forms/flash"` must provide its own partial.
+
+### Fixed
+
+- **File-slot actions keep the page's slots.** `FileSlotsConcern` has no per-tab `@inline_forms_attribute_list`. After a remove, restore or undo, the re-rendered field (`_file_slot`) and the versions panel built `slots=` from the model's full attribute list. On a tabbed host (StProject's Client), the next action's trash panel then listed files from other tabs' slots. `inline_forms_file_trash_slots` now uses the action's `@file_trash_slots` for its record. That value comes from the page's own `slots` param and is reduced to declared, listed, readable slots, as before.
+- **Pagination of the top-level list forwards the whole query string** (`request.query_parameters.except("page")`) instead of only `search`, so a host's own filters (`first_name`, `sorteer`, `group[id]`, `status[id]`, …) stay on page 2 by the gem's own contract. Note: will_paginate 4 already merged the request's params implicitly (all params on GET, the query string otherwise), so the GET list did not actually lose them. The new tests pass before and after, and they lock the behaviour in.
+
+- **The create flash was never translated.** `InlineFormsController#create` calls `t("success", message: …)`, but both locale files defined the key as `succes`, so every create looked up a missing translation (and raised under `raise_on_missing_translations`). The key is now `success` (en "%{message} created.", nl "%{message} is aangemaakt."). The misspelled `succes` is dropped: it never received the message, and nothing else used it.
+- **The versions panel is translated.** `_versions` and `_versions_list` hard-coded English: "Versions (n)", Event, When, Done by, Changeset, old value / new value, empty, "(rich text)" and the raw event names. They now use `inline_forms.view.versions` (with `count`), `versions_event`, `versions_when`, `versions_done_by`, `versions_changeset`, `versions_old_value`, `versions_new_value`, `versions_empty`, `versions_rich_text` and `version_events.{create,update,destroy}`. Unknown events fall back to the raw name. en and nl are included, with the same key names as StProject's overrides, so those overrides can be dropped.
+- **Missing view keys:**
+  - nl now has `inline_forms.view.restore`, `list_versions`, `close_versions_list` and `undelete`.
+  - en now has `undelete`, used by the soft-restore link (`link_to_soft_delete`).
+  - Both locales now have `common.more` and `common.logout`, which the engine header uses and which only hosts defined before.
+- **Version timestamps are localized.** The versions list and its file events printed `created_at` / the event time raw (`2026-10-05 15:10:24 UTC`). They now use `l(…, format: :short)`.
+- **`<html lang>`.** `layouts/devise` and `layouts/application` now declare `lang="<%= I18n.locale %>"`, like the `inline_forms` layout.
+- **The sign-in button is translated.** `devise/sessions/_form` used `f.submit :login` (always "login"). It now uses `t("inline_forms.devise.login", default: "login")`: en "login", nl "inloggen".
+
+### Tests
+
+- `test/integration/list_params_test.rb`:
+  - a crafted `parent_id` (frame request and full page) → 400 with the payload never in the body;
+  - a non-association or wrongly cased `parent_class` → 400, and a non-integer `parent_id` → 400;
+  - crafted `new` / `create` / `show` → 400, and `create` creates nothing;
+  - every refusal counts as authorized;
+  - well-formed nested list, new and create still work, including the `not_accessible_through_html?` child;
+  - `_list` escapes the frame id by itself;
+  - page 2 of a filtered list (and back to page 1) carries every filter, and so does the list rendered after a create.
+- `test/integration/presentation_escaping_test.rb`: `info_list`, `file_field`, `dropdown_with_other` and the list rows escape `<img src=x onerror=…>`; the versions list sanitizes a rich-text changeset.
+- `test/integration/file_slots_test.rb`:
+  - a restore re-renders with the page's `slots` only, so neither panel lists the other slot's file, and `slots` is reduced to declared slots;
+  - a tampered trash row (bytes or checksum) is refused by `restore_file` and by `restore!` (logged, nothing written);
+  - undo of a destroy with a tampered row → 422 with nothing restored.
+- `test/integration/csp_nonce_test.rb`: the dummy app now runs a nonce CSP (report-only, like StProject). Both layouts' inline scripts carry the request's nonce and publish it in `csp-nonce`, and `inline_forms/_flash` is gone.
+- `test/integration/locale_test.rb`. The dummy app now loads `rails-i18n`, as host Gemfiles do. Tests:
+  - every key above exists in en and nl, and `succes` is gone;
+  - create's flash is translated in nl;
+  - the versions panel and list render in nl with translated labels, event names and a localized timestamp, and in en with the English labels. Both render with missing translations raising, in views and controllers;
+  - the devise and application layouts declare `lang`.
+- Example app:
+  - `example_app_turbo_layout_test.rb` accepts the Turbo module script with its new attributes;
+  - new `example_app_devise_sign_in_test.rb`: the sign-in page has `<html lang>` and the translated submit button.
+
+### Lockstep
+
+- validation_hints 8.1.57 (now ships an nl locale, and `message: :required` hints, i.e. every `belongs_to`, resolve in en and nl), inline_forms_installer 8.1.57, inline_forms_schema_edit 8.1.57.
+
 ## [8.1.56] - 2026-10-05
 
 ### Fixed

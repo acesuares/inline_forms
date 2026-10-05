@@ -11,7 +11,7 @@ class ExampleAppTurboLayoutTest < ExampleAppIntegrationTestCase
     assert_response :success
 
     assert_match(
-      %r{<script\s+type="module">\s*import\s+\{\s*Turbo\s*\}\s+from\s+"[^"]*turbo\.min(?:-[a-f0-9]+)?\.js"}m,
+      %r{<script\s+type="module"[^>]*>\s*import\s+\{\s*Turbo\s*\}\s+from\s+"[^"]*turbo\.min(?:-[a-f0-9]+)?\.js"}m,
       @response.body,
       "expected the inline_forms layout to import turbo.min.js as a module"
     )

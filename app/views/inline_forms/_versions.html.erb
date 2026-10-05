@@ -7,7 +7,7 @@
     (parent + rich_text), flickering as the user toggled the panel. -%>
 <div class="row form_element_header associated_auto_header callout">
   <div class='medium-11 large-11 column' >
-    <%= "Versions (#{inline_forms_history_for(object).length})" %>
+    <%= t("inline_forms.view.versions", count: inline_forms_history_for(object).length) %>
   </div>
   <div class='medium-1 large-1 column'>
       <%= link_to_versions_list(

@@ -17,6 +17,9 @@ require "action_view/railtie"
 Bundler.require(*Rails.groups)
 
 require "inline_forms"
+# Host apps list rails-i18n in their Gemfile (the installer writes it): the
+# Rails strings for nl (time/date formats, ...) the gem's views localize with.
+require "rails-i18n"
 # The schema-GUI engine (separate gem, same repo; on the load path via the
 # Gemfile's test group). Its integration tests live in test/integration/.
 require "inline_forms_schema_edit"
@@ -34,5 +37,13 @@ module Dummy
     config.active_record.maintain_test_schema = false
     # Raise in-place so integration failures carry the real backtrace.
     config.action_dispatch.show_exceptions = :none
+    # A nonce-based CSP like StProject's (report-only): the layouts' inline
+    # script must carry the per-request nonce (test/integration/csp_nonce_test.rb).
+    config.content_security_policy do |policy|
+      policy.script_src :self
+    end
+    config.content_security_policy_nonce_generator = ->(_request) { SecureRandom.base64(16) }
+    config.content_security_policy_nonce_directives = %w[script-src]
+    config.content_security_policy_report_only = true
   end
 end

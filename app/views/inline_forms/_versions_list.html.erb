@@ -4,7 +4,7 @@
 <% restorable_files = inline_forms_restorable_file_entries(@object, entries.filter_map { |e| e[:entry]&.attribute_name }.uniq) -%>
 <div class="row form_element_header associated_auto_header callout">
   <div class='medium-11 large-11 column' >
-    <%= "Versions (#{entries.length})" %>
+    <%= t("inline_forms.view.versions", count: entries.length) %>
   </div>
   <div class='medium-1 large-1 column'>
     <%= close_versions_list_link(
@@ -32,16 +32,16 @@
     &nbsp;
   </div>
   <div class="small-1 column">
-    <strong>Event</strong>
+    <strong><%= t("inline_forms.view.versions_event") %></strong>
   </div>
   <div class="small-2 column">
-    <strong>When</strong>
+    <strong><%= t("inline_forms.view.versions_when") %></strong>
   </div>
   <div class="small-2 column">
-    <strong>Done by</strong>
+    <strong><%= t("inline_forms.view.versions_done_by") %></strong>
   </div>
   <div class="small-6 column">
-    <strong>Changeset</strong>
+    <strong><%= t("inline_forms.view.versions_changeset") %></strong>
   </div>
 </div>
 <% entries.reverse.each do |entry| %>
@@ -92,17 +92,17 @@
       <% end %>
     </div>
     <div class="small-1 column">
-      <%= version.event -%><% if entry[:kind] == :rich_text %> <em>(rich text)</em><% end %>
+      <%= t("inline_forms.view.version_events.#{version.event}", default: version.event) -%><% if entry[:kind] == :rich_text %> <em>(<%= t("inline_forms.view.versions_rich_text") %>)</em><% end %>
     </div>
     <div class="small-2 column">
-      <%= version.created_at -%>
+      <%= l(version.created_at, format: :short) -%>
     </div>
     <div class="small-2 column">
       <%= version_modified_by version.whodunnit -%>
     </div>
     <div class="small-6 column">
       <% if version.changeset.nil? || version.changeset.empty? %>
-        <em>empty</em>
+        <em><%= t("inline_forms.view.versions_empty") %></em>
       <% else %>
         <% version.changeset.each do |attribute, value| %>
           <% next if attribute == 'updated_at' %>
@@ -116,13 +116,15 @@
               <th></th>
             </tr>
             <tr>
-              <td>old value</td>
-              <td>new value</td>
+              <td><%= t("inline_forms.view.versions_old_value") %></td>
+              <td><%= t("inline_forms.view.versions_new_value") %></td>
             </tr>
             <tr>
               <% if entry[:kind] == :rich_text && attribute == 'body' %>
-                <td><%= raw value[0] %></td>
-                <td><%= raw value[1] %></td>
+                <%# Rich-text HTML as stored in the version: sanitized, never
+                    raw (a body posted outside Trix may carry script). -%>
+                <td><%= sanitize value[0].to_s %></td>
+                <td><%= sanitize value[1].to_s %></td>
               <% else %>
                 <td><%= value[0] %></td>
                 <td><%= value[1] %></td>

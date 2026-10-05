@@ -9,7 +9,9 @@ module InlineForms
       o = object.send(attribute)
       msg = o.to_s
       if o.send(:present?)
-        msg = "replace | <a href='#{o.send(:url)}'>#{o.send(:path).gsub(/^.*\//,'')}</a>".html_safe
+        # The stored file name and url are data: escape them before the
+        # string is marked html_safe.
+        msg = "replace | <a href='#{ERB::Util.h(o.send(:url))}'>#{ERB::Util.h(o.send(:path).gsub(/^.*\//,''))}</a>".html_safe
       end
         link_to_inline_edit object, attribute, msg, from_callee: __callee__
     end

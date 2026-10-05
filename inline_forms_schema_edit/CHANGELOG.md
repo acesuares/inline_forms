@@ -5,6 +5,17 @@ lockstep with inline_forms / inline_forms_installer / validation_hints.
 
 ## [Unreleased]
 
+## [8.1.57] - 2026-10-05
+
+### Changed
+
+- Version bump to stay in lockstep with `inline_forms` /
+  `inline_forms_installer` / `validation_hints` 8.1.57 (security fixes from
+  a host review: escaped list frame ids and refused malformed parent params,
+  escaped `_presentation` in `info_list`, checksum-verified file restores,
+  nonced layout scripts; translated versions panel, create flash and
+  sign-in button). No changes to this gem's own code.
+
 ## [8.1.56] - 2026-10-05
 
 ### Changed

@@ -14,6 +14,7 @@ nl:
       sign_up: inschrijven
       login_with_email_and_password: aanmelden door email-adres en wachtwoord in te voeren.
       sign_in: aanmelden
+      login: inloggen
       links:
         no_unlock_instructions: geen instructies ontvangen om blokkade op te heffen?
         sign_up: inschrijven
@@ -27,7 +28,24 @@ nl:
       close: sluiten
       add_new: Maak een nieuw %{model}
       undo: terughalen
+      restore: terugzetten
       trash: weggooien
+      undelete: terughalen
+      list_versions: versies tonen
+      close_versions_list: versies verbergen
+      versions: Versies (%{count})
+      versions_event: Gebeurtenis
+      versions_when: Wanneer
+      versions_done_by: Door
+      versions_changeset: Wijzigingen
+      versions_old_value: oude waarde
+      versions_new_value: nieuwe waarde
+      versions_empty: leeg
+      versions_rich_text: opgemaakte tekst
+      version_events:
+        create: aangemaakt
+        update: gewijzigd
+        destroy: verwijderd
     files:
       download: downloaden
       replace: bestand vervangen
@@ -113,7 +131,13 @@ nl:
           expired: verlopen
     pending_migration:
       notice: "migratie in afwachting \u2014 draai rails db:migrate"
-  succes: het ding is aangemaakt.
+  # The create flash (InlineFormsController#create). Was misspelled
+  # `succes`, so t("success") was missing in every app.
+  success: "%{message} is aangemaakt."
+  # The engine header (inline_forms/_header): the More menu and logout.
+  common:
+    more: meer...
+    logout: uitloggen
   activerecord:
     models:
       language: taal

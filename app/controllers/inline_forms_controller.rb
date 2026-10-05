@@ -32,6 +32,9 @@ class InlineFormsController < ApplicationController
 
   # +revert+ and the file-slot actions authorize themselves (attribute-level).
   load_and_authorize_resource except: [ :revert, *FileSlotsConcern::FILE_SLOT_ACTIONS ], no_params: true if cancan_enabled?
+  # After the authorization above, so a refusal still satisfies a host's
+  # check_authorization (see refuse_malformed_parent_params).
+  before_action :refuse_malformed_parent_params, only: [ :index, :new, :create, :show ]
   # :index shows a list of all objects from class @Klass, using will_paginate,
   # including a link to 'new', that allows you to create a new record.
   def index
@@ -380,11 +383,18 @@ class InlineFormsController < ApplicationController
     else
       # One transaction: the record, its files coming back out of the trash
       # (undo of a destroy) and its rich texts are restored together or not.
-      @object.class.transaction do
-        file_entries = InlineForms::StoredFiles.prepare_revert!(@object)
-        @parent = persist_reverted_primary!(@object, @version)
-        InlineForms::StoredFiles.finish_revert!(file_entries, by: inline_forms_current_user_id)
-        restore_rich_texts_for_reverted_parent!(@parent)
+      begin
+        @object.class.transaction do
+          file_entries = InlineForms::StoredFiles.prepare_revert!(@object)
+          @parent = persist_reverted_primary!(@object, @version)
+          InlineForms::StoredFiles.finish_revert!(file_entries, by: inline_forms_current_user_id)
+          restore_rich_texts_for_reverted_parent!(@parent)
+        end
+      rescue InlineForms::TrashedFile::NotRestorable
+        # A trashed file failed its checksum, or was purged/restored
+        # concurrently: the transaction rolled back and nothing was restored.
+        # An explicit answer instead of a 500.
+        return head :unprocessable_entity
       end
       @parent.reload
     end
@@ -392,6 +402,40 @@ class InlineFormsController < ApplicationController
   end
 
   private
+
+  # +parent_class+ / +parent_id+ come from the nested-list links and are
+  # client-controlled, yet +_list+ constantizes +parent_class+, +new+ and
+  # +create+ write +parent_id+ into the foreign key, and both land in the
+  # list's frame ids. Nothing +find+s the parent before the list renders, so a
+  # crafted +parent_id+ (markup) reached the page (reflected XSS), and any
+  # +parent_class+ string reached +constantize+. Refuse (400) unless
+  # +parent_id+ is a plain integer id and +parent_class+ names the class of a
+  # belongs_to association of @Klass named after it (Photo#apartment for
+  # +parent_class=Apartment+): exactly what the gem's own links send.
+  def refuse_malformed_parent_params
+    parent_class = params[:parent_class]
+    parent_id = params[:parent_id]
+    return if parent_class.blank? && parent_id.blank?
+    return if parent_id_param?(parent_id) && (parent_class.blank? || parent_class_param?(parent_class))
+
+    head :bad_request
+  end
+
+  def parent_id_param?(parent_id)
+    parent_id.is_a?(String) && parent_id.match?(/\A\d+\z/)
+  end
+
+  # Compared against the reflections (no +to_sym+ / +constantize+ of the
+  # param): a non-polymorphic belongs_to whose name is the underscored class.
+  def parent_class_param?(parent_class)
+    return false unless parent_class.is_a?(String)
+
+    @Klass.reflect_on_all_associations(:belongs_to).any? do |reflection|
+      !reflection.polymorphic? &&
+        reflection.class_name == parent_class &&
+        reflection.name.to_s == parent_class.underscore
+    end
+  end
 
   # Single-field requests (edit, update, show with an attribute) name the
   # field and its form element in params, and both are client-controlled.

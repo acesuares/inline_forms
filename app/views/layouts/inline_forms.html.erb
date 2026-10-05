@@ -14,6 +14,9 @@
     <%= stylesheet_link_tag "trix" %>
     <%= inline_forms_user_color_overrides_style %>
     <%= csrf_meta_tags %>
+    <%# Publishes the CSP nonce (nothing without a nonce generator) for the %>
+    <%# scripts Turbo inserts. %>
+    <%= csp_meta_tag %>
   </head>
 
   <body class="<%= inline_forms_body_theme_class %>">
@@ -40,10 +43,14 @@
     <%# Turbo (Hotwire) is loaded as an ES module so it does not collide with %>
     <%# the classic-script Sprockets bundle above. Drive stays at the default %>
     <%# (enabled); inline interactions use `<turbo-frame>` + HTML responses. %>
-    <script type="module">
+    <%# The nonce: hosts run a CSP with script-src 'nonce-…' (nil, so no %>
+    <%# attribute, without a nonce generator). data-turbo-eval="false": Turbo %>
+    <%# Drive must not re-run it on visits (Turbo is loaded; a re-inserted %>
+    <%# copy would carry a newer nonce the page's policy rejects). %>
+    <%= tag.script type: "module", nonce: content_security_policy_nonce, data: { turbo_eval: false } do %>
       import { Turbo } from "<%= asset_path('turbo.min.js') %>"
       window.Turbo = Turbo
-    </script>
+    <% end %>
     <%# Trix 2 (vendored; no CDN). Self-registers its custom elements on load. %>
     <%= javascript_include_tag "trix.min" %>
   </body>

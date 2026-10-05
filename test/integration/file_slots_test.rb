@@ -299,6 +299,44 @@ class FileSlotsTest < InlineFormsIntegrationTestCase
     assert_nil @doc.reload.data
   end
 
+  # The stored SHA-256 is checked before bytes go back into a slot: a
+  # tampered (or corrupted) trash row is refused, nothing is written, and the
+  # row stays in the trash.
+  test "restore refuses a trash row whose bytes do not match its checksum" do
+    with_file
+    entry = @doc.inline_forms_remove_file!(:filename, by: 1)
+    InlineForms::TrashedFile.where(id: entry.id).update_all(data: OTHER)
+
+    post restore_file_document_path(@doc, attribute: "filename", trash_id: entry.id, update: @frame),
+         headers: stream_headers(@frame)
+
+    assert_response :success
+    assert_includes response.body, "can no longer be restored"
+    @doc.reload
+    assert_nil @doc.filename
+    assert_nil @doc.data
+    assert entry.reload.trashed?, "not marked restored"
+    assert_equal OTHER, entry.file_data, "the row is left as it is, for a look"
+  end
+
+  test "restore! raises and logs on a checksum mismatch, writing nothing" do
+    with_file
+    entry = @doc.inline_forms_remove_file!(:filename, by: 1)
+    InlineForms::TrashedFile.where(id: entry.id).update_all(checksum: Digest::SHA256.hexdigest("something else"))
+    log = StringIO.new
+    original_logger = Rails.logger
+    Rails.logger = ActiveSupport::Logger.new(log)
+
+    assert_raises(InlineForms::TrashedFile::NotRestorable) { entry.reload.restore!(by: 1) }
+
+    assert_includes log.string, "checksum mismatch entry=#{entry.id}"
+    assert_nil @doc.reload.data
+    assert entry.reload.trashed?
+    assert_equal 0, trash.where(reason: "replaced").count
+  ensure
+    Rails.logger = original_logger
+  end
+
   test "a trash entry of another record is not found" do
     other = Document.create!(title: "Dossier B", filename: upload(PLAN))
     entry = other.inline_forms_remove_file!(:filename, by: 1)
@@ -414,6 +452,43 @@ class FileSlotsTest < InlineFormsIntegrationTestCase
     assert_includes response.body, "restorable until"
   end
 
+  # FileSlotsConcern has no per-tab attribute list, so the field it
+  # re-renders used to build its links' slots= from the model's full list:
+  # after a restore on one tab, the next action's panel (and the versions
+  # panel) listed the other tabs' slots. The page's own slots param now
+  # carries through.
+  test "a file action re-renders with the page's slots only" do
+    with_file
+    @doc.update!(plan_filename: upload(OTHER, "other-tab.pdf"))
+    @doc.inline_forms_remove_file!(:plan_filename, by: 1)
+    entry = @doc.inline_forms_remove_file!(:filename, by: 1)
+
+    post restore_file_document_path(@doc, attribute: "filename", trash_id: entry.id, update: @frame,
+                                          slots: "filename", panel: "open"),
+         headers: stream_headers(@frame)
+
+    assert_response :success
+    assert_equal PLAN, @doc.reload.data
+    remove_link = response.body[%r{href="([^"]*/remove_file\?[^"]*)"}, 1]
+    assert remove_link, "the restored field offers remove"
+    assert_equal "filename", Rack::Utils.parse_query(URI.parse(CGI.unescapeHTML(remove_link)).query)["slots"]
+    refute_includes response.body, "other-tab.pdf", "neither the trash panel nor the versions panel lists the other slot"
+  end
+
+  test "a file action's slots param is reduced to declared, listed slots" do
+    with_file
+    @doc.update!(plan_filename: upload(OTHER, "other-tab.pdf"))
+    @doc.inline_forms_remove_file!(:plan_filename, by: 1)
+    entry = @doc.inline_forms_remove_file!(:filename, by: 1)
+
+    post restore_file_document_path(@doc, attribute: "filename", trash_id: entry.id, update: @frame,
+                                          slots: "filename,title,data", panel: "open"),
+         headers: stream_headers(@frame)
+
+    remove_link = response.body[%r{href="([^"]*/remove_file\?[^"]*)"}, 1]
+    assert_equal "filename", Rack::Utils.parse_query(URI.parse(CGI.unescapeHTML(remove_link)).query)["slots"]
+  end
+
   test "the panel needs :read_file_trash" do
     Ability.restrictions = -> { cannot :read_file_trash, Document }
     panel = "document_#{@doc.id}_file_trash"
@@ -454,6 +529,22 @@ class FileSlotsTest < InlineFormsIntegrationTestCase
     restored = Document.find(@doc.id)
     assert_nil restored.filename
     assert_nil restored.data
+  end
+
+  test "undoing a destroy refuses a tampered trash row: nothing is restored" do
+    with_file
+    row = "document_#{@doc.id}"
+    delete document_path(@doc, update: row), headers: frame_headers(row)
+    entry = trash.where(reason: "record_destroyed").sole
+    InlineForms::TrashedFile.where(id: entry.id).update_all(data: OTHER)
+
+    version = PaperTrail::Version.where(item_type: "Document", item_id: @doc.id, event: "destroy").last
+    post revert_document_path(version.id, update: "documents_list"), headers: stream_headers("documents_list")
+
+    assert_response :unprocessable_entity
+    refute Document.exists?(@doc.id), "the revert rolled back"
+    assert entry.reload.trashed?
+    assert_equal OTHER, entry.file_data
   end
 
   test "reverting an update never touches a slot, even from an old version carrying a filename" do

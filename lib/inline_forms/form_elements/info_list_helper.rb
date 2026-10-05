@@ -11,7 +11,9 @@ module InlineForms
       out = "<div class='row #{cycle('odd', 'even')}'>--</div>" if object.send(attribute).empty? 
       object.send(attribute).sort.each do | item |
         out << "<div class='row #{cycle('odd', 'even')}'>"
-        out << item._presentation
+        # _presentation is model data (e.g. a User's name listed on a Role):
+        # escape it, the whole string is marked html_safe below.
+        out << ERB::Util.h(item._presentation)
         out << '</div>'
       end
       out.html_safe

@@ -24,7 +24,17 @@ module InlineFormsFileTrashHelper
 
   # Declared, routed slots among the rows of the attribute list being shown
   # (a Client tab shows only its own slots).
+  #
+  # The file-slot actions (FileSlotsConcern) re-render the field, the trash
+  # panel and the versions panel as streams, and that controller has no
+  # per-tab @inline_forms_attribute_list: falling back to the model's full
+  # list put every tab's slots into the re-rendered links (slots=…), so the
+  # next action's panel listed other tabs' files. Those actions set
+  # @file_trash_slots from the page's own +slots+ param (validated against
+  # the declared, listed, readable slots); use it for their record.
   def inline_forms_file_trash_slots(object, attributes = nil)
+    return Array(@file_trash_slots) if attributes.nil? && !@file_trash_slots.nil? && object == @object
+
     attributes ||= @inline_forms_attribute_list || object.inline_forms_attribute_list
     attributes.filter_map do |attribute, form_element, *|
       next unless form_element.to_s == "simple_file_field"

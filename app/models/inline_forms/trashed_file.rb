@@ -85,6 +85,18 @@ class InlineForms::TrashedFile < ActiveRecord::Base
     )
   end
 
+  # Restoring writes the stored bytes back into a live slot, so they must be
+  # the bytes that were trashed: compares the SHA-256 recorded by trash!
+  # (nil data has a nil checksum). Raises NotRestorable on a mismatch, before
+  # anything is written, so the caller's transaction rolls back; the mismatch
+  # is logged (a tampered or corrupted trash row needs a look).
+  def self.verify_checksum!(id:, data:, checksum:)
+    return if checksum == (data && Digest::SHA256.hexdigest(data))
+
+    Rails.logger.error("inline_forms file_trash checksum mismatch entry=#{id}: not restored")
+    raise NotRestorable, "this file failed its integrity check and cannot be restored"
+  end
+
   # Purges every trash row whose retention has passed. Returns the number
   # purged. Idempotent; safe to run while users work.
   def self.purge_expired!
@@ -189,14 +201,16 @@ class InlineForms::TrashedFile < ActiveRecord::Base
       record = record_class.unscoped.lock.find_by(record_class.primary_key => record_id)
       raise RecordGone, "the record was deleted" unless record
 
-      payload = self.class.lock.where(id: id).restorable.pick(:data, :filename, :content_type)
+      payload = self.class.lock.where(id: id).restorable.pick(:data, :filename, :content_type, :checksum)
       raise NotRestorable, "this file can no longer be restored" unless payload
+
+      data, filename, content_type, checksum = payload
+      self.class.verify_checksum!(id: id, data: data, checksum: checksum)
 
       now = Time.current
       count = self.class.where(id: id).restorable.update_all(data: nil, restored_at: now, restored_by_id: by, updated_at: now)
       raise NotRestorable, "this file can no longer be restored" unless count == 1
 
-      data, filename, content_type = payload
       record.inline_forms_put_file!(attribute_name, data: data, filename: filename, content_type: content_type, by: by)
       reload
       record

@@ -42,11 +42,16 @@
   <% end %>
 <% end %>
 
-<%# List root is `<turbo-frame class="list_container">` (Step 4). See SCSS. %>
-<% if ul_needed -%>
-  <%= raw "<turbo-frame id=\"#{update_span}\" class=\"list_container\">" -%>
-<% end -%>
-
+<%#
+  List root is `<turbo-frame class="list_container">` (Step 4). See SCSS.
+  The rows and pagination are captured and wrapped with tag.turbo_frame at
+  the end, so the frame id is attribute-escaped: it is built from request
+  params (parent_class / parent_id / update), and the former
+  `raw "<turbo-frame id=\"#{update_span}\" …>"` put a crafted parent_id
+  straight into the page (reflected XSS). The controller also refuses
+  malformed parent params (refuse_malformed_parent_params).
+-%>
+<% list_body = capture do -%>
 <!--  # list of objects -->
 <% for object in objects %>
   <% if parent_class.nil?  %>
@@ -111,8 +116,17 @@
 <% end -%>
 <!--  # pagination -->
 <% if parent_id.nil? -%>
-  <% paginate_params = { update: update_span, ul_needed: true } %>
-  <% paginate_params[:search] = params[:search] if params[:search].present? %>
+  <%#
+    Every filter of the request's query string goes to the other pages
+    (search, a host's own filters such as first_name / sorteer / group[id],
+    parent_class / parent_id / update), not just `search`: page 2 of a
+    filtered list must stay filtered. will_paginate 4 also merges the
+    request's params implicitly (all params on GET, the query string
+    otherwise); passing them explicitly makes this the gem's contract rather
+    than a side effect of the pagination library. The page comes from
+    will_paginate.
+  -%>
+  <% paginate_params = request.query_parameters.except("page").deep_symbolize_keys.merge(update: update_span, ul_needed: true) %>
   <% pagination = will_paginate objects, params: paginate_params %>
 <% else %>
   <% if pagination %>
@@ -144,6 +158,9 @@
     </div>
   </div>
 <% end %>
+<% end -%>
 <% if ul_needed -%>
-  <%= raw "</turbo-frame>" -%>
+  <%= tag.turbo_frame(list_body, id: update_span, class: "list_container") -%>
+<% else -%>
+  <%= list_body -%>
 <% end -%>

@@ -14,6 +14,7 @@ en:
       sign_up: sign up
       login_with_email_and_password: login with email and password
       sign_in: sign in
+      login: login
       links:
         no_unlock_instructions: did you not receive unlock instructions?
         sign_up: sign up
@@ -31,6 +32,20 @@ en:
       trash: trash
       list_versions: List versions
       close_versions_list: Close versions list
+      undelete: undelete
+      versions: Versions (%{count})
+      versions_event: Event
+      versions_when: When
+      versions_done_by: Done by
+      versions_changeset: Changeset
+      versions_old_value: old value
+      versions_new_value: new value
+      versions_empty: empty
+      versions_rich_text: rich text
+      version_events:
+        create: create
+        update: update
+        destroy: destroy
     files:
       download: download
       replace: replace file
@@ -116,7 +131,13 @@ en:
           expired: expired
     pending_migration:
       notice: "pending migration \u2014 run rails db:migrate"
-  succes: success.
+  # The create flash (InlineFormsController#create). Was misspelled
+  # `succes`, so t("success") was missing in every app.
+  success: "%{message} created."
+  # The engine header (inline_forms/_header): the More menu and logout.
+  common:
+    more: more...
+    logout: logout
   activerecord:
     models:
       language: language
