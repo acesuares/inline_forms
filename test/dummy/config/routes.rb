@@ -20,6 +20,11 @@ Rails.application.routes.draw do
     get "list_versions", on: :member
   end
 
+  resources :daily_reports do
+    post "revert", on: :member
+    get "list_versions", on: :member
+  end
+
   resources :gizmos do
     post "revert", on: :member
     get "list_versions", on: :member

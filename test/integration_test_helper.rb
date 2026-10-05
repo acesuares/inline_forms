@@ -49,6 +49,15 @@ ActiveRecord::Schema.define do
   end
   add_index :parts, :machine_id
 
+  # DailyReport: a not_accessible_through_html? child of Machine (shaped like
+  # StProject's Dagrapportage). See test/integration/html_refusal_test.rb.
+  create_table :daily_reports, force: true do |t|
+    t.string  :name
+    t.integer :machine_id
+    t.timestamps
+  end
+  add_index :daily_reports, :machine_id
+
   # Gizmo intentionally has NO `pending_note` column: its attribute_list
   # references one, modeling the inline_forms_addto pre-migrate window that
   # InlineForms.attribute_pending_migration? gates. See
@@ -163,9 +172,11 @@ class InlineFormsIntegrationTestCase < ActionDispatch::IntegrationTest
 
   setup do
     Ability.restrictions = nil
+    ApplicationController.dummy_user_superadmin = true
     Widget.delete_all
     Kind.delete_all
     Part.delete_all
+    DailyReport.delete_all
     Machine.delete_all
     Gizmo.delete_all
     Dossier.delete_all

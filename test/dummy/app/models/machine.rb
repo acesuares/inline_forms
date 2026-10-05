@@ -5,6 +5,7 @@
 # open-after-create flow (InlineFormsController#render_created_row_open_streams).
 class Machine < ApplicationRecord
   has_many :parts
+  has_many :daily_reports
 
   validates :name, presence: true
 

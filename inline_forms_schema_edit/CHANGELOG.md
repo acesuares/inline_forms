@@ -5,6 +5,15 @@ lockstep with inline_forms / inline_forms_installer / validation_hints.
 
 ## [Unreleased]
 
+## [8.1.56] - 2026-10-05
+
+### Changed
+
+- Version bump to stay in lockstep with `inline_forms` /
+  `inline_forms_installer` / `validation_hints` 8.1.56 (refused HTML
+  requests answer 404/400/403 instead of falling through to implicit
+  rendering). No changes to this gem's own code.
+
 ## [8.1.55] - 2026-10-04
 
 ### Fixed

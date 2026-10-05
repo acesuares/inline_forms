@@ -84,6 +84,11 @@ class InlineFormsController < ApplicationController
         format.html do
           if @parent_class.present?
             render_nested_associated_list_html
+          else
+            # No top-level page for this resource. An explicit answer: an
+            # empty block would fall through to implicit rendering and raise
+            # MissingExactTemplate (500).
+            head :not_found
           end
         end
       else
@@ -116,7 +121,7 @@ class InlineFormsController < ApplicationController
 
     @object.inline_forms_attribute_list = @inline_forms_attribute_list if @inline_forms_attribute_list
     respond_to do |format|
-      format.html { render_turbo_new } if html_list_flow_allowed?
+      format.html { html_list_flow_allowed? ? render_turbo_new : head(:bad_request) }
     end
   end
 
@@ -139,6 +144,11 @@ class InlineFormsController < ApplicationController
   def create
     @object ||= @Klass.new
     @update_span = params[:update]
+    @parent_class = params[:parent_class]
+    # Refuse before anything is written: the responses below only exist for
+    # a request from a list or nested-list frame.
+    return head :bad_request unless html_list_flow_allowed?
+
     attributes = @inline_forms_attribute_list || @object.inline_forms_attribute_list
     attributes.each do | attribute, form_element |
       # Skip a row whose column is not migrated yet (model edited, migration
@@ -149,7 +159,6 @@ class InlineFormsController < ApplicationController
       InlineForms.assert_plain_text_column!(object: @object, attribute: attribute, form_element: form_element)
       send("#{form_element}_update", @object, attribute) unless form_element == :associated || (cancan_enabled? && cannot?(:read, @object, attribute))
     end
-    @parent_class = params[:parent_class]
     @parent_id = params[:parent_id]
     # See #index for the order/search/parent-fk decomposition.
     fk_conditions = nil
@@ -171,19 +180,17 @@ class InlineFormsController < ApplicationController
       created_object = @object
       @object = nil
       respond_to do |format|
-        if html_list_flow_allowed?
-          if open_created_row?(created_object, attributes)
-            format.turbo_stream { render_created_row_open_streams(created_object) }
-          end
-          format.html { render_list_frame_after_save }
+        if open_created_row?(created_object, attributes)
+          format.turbo_stream { render_created_row_open_streams(created_object) }
         end
+        format.html { render_list_frame_after_save }
       end
     else
       flash.now[:header] = [ "Kan #{@object.class.to_s.underscore} niet aanmaken." ]
       flash.now[:error] = @object.errors.to_a
       respond_to do |format|
         @object.inline_forms_attribute_list = attributes
-        format.html { render_turbo_new } if html_list_flow_allowed?
+        format.html { render_turbo_new }
       end
     end
   end
@@ -257,10 +264,10 @@ class InlineFormsController < ApplicationController
     if @attribute.nil?
       respond_to do |format|
         @attributes = @object.inline_forms_attribute_list
-        if close
-          format.html { render_row_turbo(:close) } if row_html_turbo_allowed?
-        else
-          format.html { render_row_turbo(:show) } if row_html_turbo_allowed?
+        format.html do
+          next head(:bad_request) unless row_html_turbo_allowed?
+
+          render_row_turbo(close ? :close : :show)
         end
       end
     else
@@ -274,9 +281,11 @@ class InlineFormsController < ApplicationController
   def soft_delete
     @update_span = params[:update]
     @object = referenced_object
+    return head :bad_request unless row_html_turbo_allowed?
+
     @object.soft_delete(current_user)
     respond_to do |format|
-      format.html { render_row_turbo(:close) } if row_html_turbo_allowed?
+      format.html { render_row_turbo(:close) }
     end
   end
 
@@ -284,9 +293,11 @@ class InlineFormsController < ApplicationController
   def soft_restore
     @update_span = params[:update]
     @object = referenced_object
+    return head :bad_request unless row_html_turbo_allowed?
+
     @object.soft_restore
     respond_to do |format|
-      format.html { render_row_turbo(:close) } if row_html_turbo_allowed?
+      format.html { render_row_turbo(:close) }
     end
   end
 
@@ -294,14 +305,17 @@ class InlineFormsController < ApplicationController
   def destroy
     @update_span = params[:update]
     @object = referenced_object
-    if destroy_permitted?
-      @object.destroy
-      # Capture after destroy: `.last` before destroy was the latest *update*
-      # (e.g. a plain_text_area edit), so undo reified the pre-edit state.
-      @undo_version = @object.versions.last
-      respond_to do |format|
-        format.html { render_row_turbo_destroyed } if row_html_turbo_allowed?
-      end
+    # Both refusals answer before anything is destroyed (they used to render
+    # nothing and fall through to implicit rendering: a 500).
+    return head :forbidden unless destroy_permitted?
+    return head :bad_request unless row_html_turbo_allowed?
+
+    @object.destroy
+    # Capture after destroy: `.last` before destroy was the latest *update*
+    # (e.g. a plain_text_area edit), so undo reified the pre-edit state.
+    @undo_version = @object.versions.last
+    respond_to do |format|
+      format.html { render_row_turbo_destroyed }
     end
   end
 
@@ -327,6 +341,7 @@ class InlineFormsController < ApplicationController
     # has the Devise+roles system, otherwise no extra gate beyond CanCan.
     return head :forbidden unless destroy_permitted?
     return head :not_found unless @parent
+    return head :bad_request unless row_html_turbo_allowed?
 
     @object = reify_for_revert(@version)
     # PaperTrail::Version#reify returns nil for `create` events because
@@ -354,8 +369,7 @@ class InlineFormsController < ApplicationController
         @parent = item || @parent
         return head :not_found unless @parent
       end
-      return render_revert_response if row_html_turbo_allowed?
-      return
+      return render_revert_response
     end
     if defined?(ActionText::RichText) && @object.is_a?(ActionText::RichText)
       @rich_text_record = @object
@@ -374,7 +388,7 @@ class InlineFormsController < ApplicationController
       end
       @parent.reload
     end
-    render_revert_response if row_html_turbo_allowed?
+    render_revert_response
   end
 
   private
