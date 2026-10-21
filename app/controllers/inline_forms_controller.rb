@@ -189,7 +189,7 @@ class InlineFormsController < ApplicationController
         format.html { render_list_frame_after_save }
       end
     else
-      flash.now[:header] = [ "Kan #{@object.class.to_s.underscore} niet aanmaken." ]
+      flash.now[:header] = [ t("inline_forms.view.create_failed", model: @object.class.model_name.human) ]
       flash.now[:error] = @object.errors.to_a
       respond_to do |format|
         @object.inline_forms_attribute_list = attributes

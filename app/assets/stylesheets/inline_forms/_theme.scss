@@ -33,6 +33,11 @@ $if-flash-accent: #fade7a !default; // flash border band
 $if-error-bg: #a70f0f !default;
 $if-success-bg: #4f8d0d !default;
 $if-on-dark: #FFFFFF !default;      // text/icons on primary/secondary bands
+// The "+" / close icons on the gold bands (secondary, header-band). The
+// accent was 2.9:1 on the secondary gold and the white hover 1.8:1; these
+// clear 4.5:1 on both bands.
+$if-on-band: #8F2F18 !default;
+$if-on-band-hover: #4A1A0C !default;
 
 :root {
   --if-color-primary: #{$if-primary};
@@ -48,6 +53,8 @@ $if-on-dark: #FFFFFF !default;      // text/icons on primary/secondary bands
   --if-color-error-bg: #{$if-error-bg};
   --if-color-success-bg: #{$if-success-bg};
   --if-color-on-dark: #{$if-on-dark};
+  --if-color-on-band: #{$if-on-band};
+  --if-color-on-band-hover: #{$if-on-band-hover};
   // Foundation globals, bridged so body/anchors can be re-themed too.
   --if-color-body-bg: #{$body-background};
   --if-color-body-text: #{$body-font-color};
@@ -85,6 +92,8 @@ body.theme-dark {
   --if-color-input-bg-hover: #332e25;
   --if-color-input-bg-focus: #3a352b;
   --if-color-flash-accent: #7a6829;
+  --if-color-on-band: #fdeee5;
+  --if-color-on-band-hover: #ffffff;
   --if-color-body-bg: #1c1a16;
   --if-color-body-text: #e8e4da;
   --if-color-anchor: #e0a179;
@@ -108,6 +117,8 @@ body.theme-sepia {
   --if-color-input-bg-hover: #fffaf0;
   --if-color-input-bg-focus: #fffdf7;
   --if-color-flash-accent: #dcc078;
+  --if-color-on-band: #6e3a20;
+  --if-color-on-band-hover: #3a2418;
   --if-color-body-bg: #f4ecd8;
   --if-color-body-text: #5b4636;
   --if-color-anchor: #8b5e3c;
@@ -124,6 +135,8 @@ body.theme-high-contrast {
   --if-color-input-bg-hover: #f5f5f5;
   --if-color-input-bg-focus: #ffffff;
   --if-color-flash-accent: #ffd500;
+  --if-color-on-band: #b30000;
+  --if-color-on-band-hover: #000000;
   --if-color-body-bg: #ffffff;
   --if-color-body-text: #000000;
   --if-color-anchor: #0000d6;

@@ -223,12 +223,12 @@ select:hover, select:focus {
   }
   .new_button {
     background-color: var(--if-color-secondary);
-    color: var(--if-color-accent);
+    color: var(--if-color-on-band);
     font-size: 1.3rem;
     padding: 0 2rem 0 1rem;
   }
   .new_button:hover, .new_button:focus {
-    color: white;
+    color: var(--if-color-on-band-hover);
     -webkit-transition-property: color;
     transition-property: color;
   }
@@ -358,26 +358,26 @@ turbo-frame {
   .new_button  {
     background-color: var(--if-color-header-band);
     font-size: 1.5rem;
-    color: var(--if-color-accent);
+    color: var(--if-color-on-band);
     padding: 0 0.5rem 0 1rem;
     margin: 0;
   }
   .new_button:hover, .new_button:focus {
     background-color: var(--if-color-header-band);
-    color: white;
+    color: var(--if-color-on-band-hover);
     -webkit-transition-property: color;
     transition-property: color;
   }
   .close_button  {
     background-color: var(--if-color-header-band);
     font-size: 1.5rem;
-    color: var(--if-color-accent);
+    color: var(--if-color-on-band);
     padding: 0 0.5rem 0 1rem;
     margin: 0;
   }
-  .close_button:hover, .new_button:focus {
+  .close_button:hover, .close_button:focus {
     background-color: var(--if-color-header-band);
-    color: white;
+    color: var(--if-color-on-band-hover);
     -webkit-transition-property: color;
     transition-property: color;
   }

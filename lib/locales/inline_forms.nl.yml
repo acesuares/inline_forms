@@ -27,6 +27,7 @@ nl:
     view:
       close: sluiten
       add_new: Maak een nieuw %{model}
+      create_failed: Kan %{model} niet aanmaken.
       undo: terughalen
       restore: terugzetten
       trash: weggooien

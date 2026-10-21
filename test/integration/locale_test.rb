@@ -17,7 +17,7 @@ class LocaleTest < InlineFormsIntegrationTestCase
     inline_forms.view.versions_old_value inline_forms.view.versions_new_value inline_forms.view.versions_empty
     inline_forms.view.versions_rich_text inline_forms.view.version_events.create
     inline_forms.view.version_events.update inline_forms.view.version_events.destroy
-    inline_forms.devise.login common.more common.logout
+    inline_forms.devise.login common.more common.logout inline_forms.view.create_failed
   ].freeze
 
   setup do
@@ -69,6 +69,24 @@ class LocaleTest < InlineFormsIntegrationTestCase
 
     assert_response :success
     assert_equal "Machine is aangemaakt.", controller.flash[:success]
+  end
+
+  # The failure header was hard-coded Dutch with the underscored class name
+  # ("Kan machine niet aanmaken.") in every locale.
+  test "create's failure flash header translates, with the human model name" do
+    I18n.backend.store_translations(:nl, machines: "machines",
+                                         activerecord: { models: { machine: "Werkbank" } })
+    strictly(:nl) do
+      post machines_path(update: "machines_list"), params: { name: "" }, headers: frame_headers("machines_list")
+    end
+    assert_equal [ "Kan Werkbank niet aanmaken." ], controller.flash[:header]
+
+    I18n.backend.store_translations(:en, machines: "machines")
+    strictly(:en) do
+      post machines_path(update: "machines_list"), params: { name: "" }, headers: frame_headers("machines_list")
+    end
+    assert_equal [ "Could not create Machine." ], controller.flash[:header]
+    assert_includes response.body, "Could not create Machine."
   end
 
   test "the versions panel and list are translated, with localized timestamps" do

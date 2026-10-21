@@ -4,6 +4,24 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [8.1.58] - 2026-10-21
+
+Three gem issues found in the StProject review (2026-10-04). The fourth it listed, the CSS `@import` of `http://fonts.googleapis.com`, was already fixed in 8.1.22 (self-hosted Open Sans).
+
+### Fixed
+
+- **`dropdown` options are sorted again.** `dropdown_edit` called `values.sort_by { _presentation }` and discarded the result, so the options came out in id order. They are now sorted by their (dropdown) presentation.
+- **The failed-create flash header is translated.** `InlineFormsController#create` set `flash[:header]` to the hard-coded Dutch `"Kan <class_name> niet aanmaken."` (with the underscored class name, e.g. `client`) in every locale. It now uses the new key `inline_forms.view.create_failed` with the model's human name: "Could not create %{model}." (en), "Kan %{model} niet aanmaken." (nl). A host with its own locale needs that key.
+- **"+" and close icons on the gold bands meet WCAG contrast.** `.new_button` / `.close_button` in the model top bar and the associated header were the accent colour on gold: 2.9:1 on the model top bar (below the 3:1 for icons), and white on hover (1.8:1). They now use two new variables, `--if-color-on-band` and `--if-color-on-band-hover` (Sass `$if-on-band` / `$if-on-band-hover`), which clear 4.5:1 on both bands in every preset theme (default, dark, sepia, high-contrast). A host that overrides `--if-color-secondary` / `--if-color-header-band` should set them too. The associated header's close-button hover rule also targeted `.new_button:focus` instead of `.close_button:focus`.
+
+### Tests
+
+- `dropdown_test` (options sorted by presentation), `locale_test` (failure header in en and nl, `inline_forms.view.create_failed` in both locale files).
+
+### Lockstep
+
+- validation_hints 8.1.58, inline_forms_installer 8.1.58, inline_forms_schema_edit 8.1.58.
+
 ## [8.1.57] - 2026-10-05
 
 Fixes from a security/UI review of a host app (StProject), plus missing and hard-coded translations found when StProject switched to `:nl` with `raise_on_missing_translations = :strict`.

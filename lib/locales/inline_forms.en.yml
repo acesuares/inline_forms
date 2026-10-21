@@ -27,6 +27,7 @@ en:
     view:
       close: close
       add_new: make a new %{model}
+      create_failed: Could not create %{model}.
       undo: undo
       restore: restore
       trash: trash
