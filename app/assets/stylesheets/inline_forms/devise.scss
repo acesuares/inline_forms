@@ -1,6 +1,9 @@
 // Open Sans @font-face lives in inline_forms_fonts.css.erb (self-hosted,
 // Sprockets-served; linked from the layouts) — no external font CDN.
-@import 'foundation_and_overrides';
+// @use / @forward of foundation_and_overrides: see the module-system note
+// in inline_forms.scss.
+@forward 'foundation_and_overrides';
+@use 'foundation_and_overrides' as *;
 
 // Devise pages have only `.contain-to-grid` as the top-bar wrapper (no
 // `.fixed` variant), so constrain it directly to the F5 1000px row

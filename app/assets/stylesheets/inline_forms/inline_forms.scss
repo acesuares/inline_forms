@@ -2,19 +2,34 @@
 // Open Sans @font-face lives in inline_forms_fonts.css.erb (self-hosted,
 // Sprockets-served; linked from the layouts) — no external font CDN.
 //
-// Module-system status (8.1.24): `foundation_icons` is a self-contained
-// partial and loads via @use. Everything else must stay on @import until
-// the Foundation question is settled: foundation-rails 6.9 is @import-only
-// internally and its settings globals ($body-background, rem-calc, ...)
-// flow into foundation_and_overrides/theme/devise, which @use cannot
-// replicate without a Foundation that ships a module API (it never will —
-// the framework is unmaintained). See stuff/improvement-plan.md §1.
+// Module-system status (8.1.58). Loaded with @use:
+// - `foundation_icons` (8.1.24): a self-contained partial.
+// - `foundation_and_overrides`, here and in devise.scss (8.1.58). The
+//   compiled CSS is byte-identical to the @import version (the `.columns`
+//   alias below is the one rule that needed spelling out). The relative URL
+//   resolves next to this file first, as the @import did, so a same-named
+//   host or app/assets/builds file cannot shadow it. The @forward keeps what
+//   hosts saw through `@use "inline_forms/inline_forms"` before: Foundation's
+//   members (rem-calc, $global-width, ...) and the !default `$if-*` palette,
+//   configurable with `with (...)`.
+// Still @import, inside foundation_and_overrides:
+// - 'settings/settings' and 'foundation': foundation-rails 6.9 is
+//   @import-only and its settings globals feed our overrides. Blocked by the
+//   Foundation decision (unmaintained upstream; no module API coming).
+// - 'theme': a @use must precede the settings @import, which would move the
+//   theme's CSS ahead of Foundation's and run before $body-background exists;
+//   meta.load-css keeps the position but hides the `$if-*` palette from hosts
+//   (`with ($if-accent: ...)` stops working). Moves with Foundation.
+// The deadline is a dartsass-rails release that allows sass-embedded >= 3
+// (Dart Sass 3 removes @import; 0.5.1 pins ~> 1.63), not a date.
+// See stuff/improvement-plan.md §1.
 //
 // jQuery UI SCSS (sunny theme + widget styles) was dropped in 8.1.26 along
 // with the last jQuery UI widgets (native date/time/month/range/datalist
 // inputs replaced them).
 @use 'inline_forms/foundation_icons';
-@import 'foundation_and_overrides';
+@forward 'foundation_and_overrides';
+@use 'foundation_and_overrides' as *;
 
 // Foundation 6 makes `.row` a flex container (`display: flex`); a nested
 // `.row` is therefore a flex item and shrinks to its content's intrinsic
@@ -423,7 +438,11 @@ turbo-frame {
   margin-bottom: 1.5em;
 }
 
-.column {
+// `.columns` named explicitly: Foundation's flex grid aliases it with
+// `.columns { @extend .column }`, which reached this rule while
+// foundation_and_overrides was @imported. Since it is @used (8.1.58),
+// that @extend no longer crosses into this module.
+.column, .columns {
     padding-right: 0 !important;
 }
 

@@ -6,7 +6,17 @@ All notable changes to this project are documented in this file.
 
 ## [8.1.58] - 2026-10-21
 
-Three gem issues found in the StProject review (2026-10-04). The fourth it listed, the CSS `@import` of `http://fonts.googleapis.com`, was already fixed in 8.1.22 (self-hosted Open Sans).
+Three gem issues found in the StProject review (2026-10-04). The fourth it listed, the CSS `@import` of `http://fonts.googleapis.com`, was already fixed in 8.1.22 (self-hosted Open Sans). Also the first step of the Sass `@import` → `@use` move.
+
+### Changed
+
+- **Sass: the entry points load `foundation_and_overrides` with `@use`.** `inline_forms/inline_forms.scss` and `inline_forms/devise.scss` replace `@import 'foundation_and_overrides'` with `@use 'foundation_and_overrides' as *` plus `@forward 'foundation_and_overrides'`. Dart Sass 3 removes `@import`, and these were two of the five gem `@import`s a host build reported.
+  - The compiled `inline_forms.css` and `devise.css` are **byte-identical** to 8.1.57's (compressed, compiled with the host's dartsass-rails command; same SHA-256).
+  - One rule needed spelling out to stay identical: Foundation's flex grid makes `.columns` an alias with `.columns { @extend .column }`, which reached the gem's `.column { padding-right: 0 !important }` only while the file was `@import`ed. That rule is now `.column, .columns`.
+  - The `@forward` keeps the module's API for hosts: Foundation's members (`rem-calc`, `$global-width`, ...) stay visible through `@use "inline_forms/inline_forms" as *`, and the `!default` `$if-*` palette can still be set with `@use "inline_forms/inline_forms" with ($if-accent: ...)`. Without it, both fail to compile.
+  - The URL is relative, so it resolves next to the gem's file first, as the `@import` did; a host's `app/assets/stylesheets/inline_forms/foundation_and_overrides.scss` or anything in `app/assets/builds` cannot shadow it.
+  - Deprecations per entry point (with `--verbose`): 371 → 370 (`[import]` 118 → 117, `[if-function]` 58, `[global-builtin]` 195). Without `--verbose` Sass prints 5 per category and "356 → 355 repetitive deprecation warnings omitted".
+- **Still `@import`, inside `foundation_and_overrides.scss`:** `settings/settings` and `foundation` (foundation-rails 6.9 is `@import`-only and its settings globals feed the overrides), and `theme`. A `@use 'theme'` would have to precede the settings `@import`, which moves the theme's CSS ahead of Foundation's and runs before `$body-background` exists; `meta.load-css` keeps the position but hides the `$if-*` palette from hosts. All three wait for the Foundation decision. The remaining 114 `[import]`, and all `[if-function]` / `[global-builtin]` warnings, are inside foundation-rails. The deadline is a dartsass-rails release that allows sass-embedded ≥ 3 (0.5.1 pins `~> 1.63`), not a date. No `--quiet-deps` / `--silence-deprecation` was added.
 
 ### Fixed
 
@@ -17,6 +27,7 @@ Three gem issues found in the StProject review (2026-10-04). The fourth it liste
 ### Tests
 
 - `dropdown_test` (options sorted by presentation), `locale_test` (failure header in en and nl, `inline_forms.view.create_failed` in both locale files).
+- Example app: `example_app_sass_deprecations_test` compiles both gem entry points with sass-embedded (verbose) and fails if the gem gains an `@import` beyond the three above, or an entry point has more than 117 `[import]` deprecations.
 
 ### Lockstep
 
