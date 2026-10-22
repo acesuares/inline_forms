@@ -10,6 +10,7 @@ require "inline_forms/schema_apply"
 require "inline_forms/schema_label"
 require "inline_forms/form_element_from_callee"
 require "inline_forms/searchable"
+require "inline_forms/dropdown_order"
 require "inline_forms/archived_form_elements"
 require "inline_forms/form_element_registry"
 require "inline_forms/form_elements"
@@ -356,6 +357,14 @@ module InlineForms
         unless defined?(TabsOnRails::ActionController)
           ::ActionController::Base.include(InlineForms::Tabs::Controller)
         end
+      end
+    end
+
+    # `inline_forms_dropdown_order` on every model (InlineForms::DropdownOrder),
+    # so hosts need no ApplicationRecord change to declare a dropdown order.
+    initializer "inline_forms.dropdown_order" do
+      ActiveSupport.on_load(:active_record) do
+        extend InlineForms::DropdownOrder::ClassMethods
       end
     end
 

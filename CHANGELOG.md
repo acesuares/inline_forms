@@ -4,6 +4,29 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [8.1.59] - 2026-10-22
+
+### Fixed
+
+- **Dropdowns follow the model's order again, with one rule for every table-backed list.** 8.1.58 made `dropdown` sort its options alphabetically by presentation. That overrode the order lookups depend on, such as '---' / 'onbekend' first and process phases in process order. Before that, from 2017 to 8.1.57, the sort was discarded and dropdowns showed database order. Until 2015 they used the model's `order_by_clause`. `dropdown_with_other` used database order, and `check_list` used `inline_forms_list`. All three now use `InlineForms::DropdownOrder`; the first match wins:
+  1. the model declares **`inline_forms_dropdown_order :column`** (or `:column, :desc`);
+  2. the table has a **`dropdown_order`** column, used ascending: give '---' 0 and the phases 10, 20, 30;
+  3. the model's `inline_forms_list` scope (its list order; unchanged for `check_list`);
+  4. database order, including a `default_scope` order.
+
+  Rules 1 and 2 replace any `default_scope` order, put NULLs last (a record nobody has numbered yet goes to the end) and break ties on `id`.
+  - The macro is on every Active Record model (engine initializer `inline_forms.dropdown_order`), so hosts need no `ApplicationRecord` change. An unknown direction raises `ArgumentError` when the class loads; an unknown column raises when the dropdown renders.
+  - **Hosts:** lookups that declare nothing keep their `inline_forms_list` order. StProject's lookups declare `order(:name, :id)`, so they stay alphabetical; Scouting's `default_scope { order(name: :asc) }` still applies. A lookup that needs a fixed order gets a `dropdown_order` integer column, or `inline_forms_dropdown_order`. Papiamentu's `def self.order_by_clause` is still not read; use the macro instead.
+  - The installer's `ApplicationRecord` template documents the rule.
+
+### Tests
+
+- `dropdown_test`: each rule, desc, declared column over `dropdown_order`, NULLs last, `id` tie-break, `dropdown_with_other` and `check_list`, bad direction or column. The dummy app gains a `Phase` lookup with a `dropdown_order` column (`Part belongs_to :phase`).
+
+### Lockstep
+
+- validation_hints 8.1.59, inline_forms_installer 8.1.59, inline_forms_schema_edit 8.1.59.
+
 ## [8.1.58] - 2026-10-21
 
 Three gem issues found in the StProject review (2026-10-04). The fourth it listed, the CSS `@import` of `http://fonts.googleapis.com`, was already fixed in 8.1.22 (self-hosted Open Sans). Also the first step of the Sass `@import` → `@use` move.

@@ -3,6 +3,7 @@
 # Child of Machine (see machine.rb); shaped like the example app's Photo.
 class Part < ApplicationRecord
   belongs_to :machine, optional: true
+  belongs_to :phase, optional: true
 
   def _presentation
     "#{name}"

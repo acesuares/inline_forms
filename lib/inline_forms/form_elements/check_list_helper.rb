@@ -21,7 +21,7 @@ module InlineForms
       object.send(attribute).build  if object.send(attribute).empty?
       klass = object.send(attribute).first.class
       values = cancan_enabled? ? klass.accessible_by(current_ability) : klass.all
-      values = values.merge(klass.inline_forms_list) if klass.respond_to?(:inline_forms_list)
+      values = InlineForms::DropdownOrder.apply(values)
       out = ''
       values.each do | item |
         out << "<div class='row #{cycle('odd', 'even')}'>"

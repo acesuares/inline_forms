@@ -26,6 +26,15 @@ class ApplicationRecord < ActiveRecord::Base
   # `unscope`/`reorder` cleanly.
   scope :inline_forms_list, -> { all }
 
+  # Dropdowns, dropdown_with_other and check_list offer a model's records in
+  # this order (first match wins; InlineForms::DropdownOrder):
+  #   1. inline_forms_dropdown_order :col            # or :col, :desc
+  #   2. a `dropdown_order` integer column, ascending (e.g. '---' 0,
+  #      'helprequest' 10, 'decision' 20, 'admittance' 30)
+  #   3. inline_forms_list above
+  #   4. database order
+  # 1 and 2 put NULLs last and break ties on id.
+
   # Wrapper for @model.human_attribute_name -> Model.human_attribute_name
   def human_attribute_name(*args)
     self.class.human_attribute_name(*args)

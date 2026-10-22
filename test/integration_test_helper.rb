@@ -42,9 +42,18 @@ ActiveRecord::Schema.define do
     t.timestamps
   end
 
+  # Lookup with a dropdown_order column (InlineForms::DropdownOrder);
+  # Part belongs_to it for the dropdown tests.
+  create_table :phases, force: true do |t|
+    t.string  :name
+    t.integer :dropdown_order
+    t.timestamps
+  end
+
   create_table :parts, force: true do |t|
     t.string  :name
     t.integer :machine_id
+    t.integer :phase_id
     t.timestamps
   end
   add_index :parts, :machine_id

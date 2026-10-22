@@ -31,6 +31,7 @@ module InlineForms
       o = attribute.camelcase.constantize
       values = o.all
       values = o.accessible_by(current_ability) if cancan_enabled?
+      values = InlineForms::DropdownOrder.apply(values)
     
       current =
         if object[foreign_key].to_i == 0

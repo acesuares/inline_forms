@@ -5,6 +5,15 @@ lockstep with inline_forms / inline_forms_installer / validation_hints.
 
 ## [Unreleased]
 
+## [8.1.59] - 2026-10-22
+
+### Changed
+
+- Version bump to stay in lockstep with `inline_forms` /
+  `inline_forms_installer` / `validation_hints` 8.1.59 (dropdown order:
+  `inline_forms_dropdown_order`, a `dropdown_order` column, then the list
+  order). No changes to this gem's own code.
+
 ## [8.1.58] - 2026-10-21
 
 ### Changed
