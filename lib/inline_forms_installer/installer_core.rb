@@ -1095,11 +1095,40 @@ if ENV['install_example'] == 'true'
     end
   OWNERS_CTRL
 
+  # Phase -- a lookup whose dropdown follows its dropdown_order column
+  # (inline_forms 8.1.59, InlineForms::DropdownOrder): '---' first, then the
+  # process phases in process order. Its list (/phases) is alphabetical
+  # (_list_order:name) and the seed creates the rows in yet another order,
+  # so the dropdown order is visibly neither id nor name order.
+  say "- Generating Phase lookup (dropdown ordered by dropdown_order)..."
+  sleep 1
+  run %q{bundle exec rails g inline_forms Phase name:string dropdown_order:integer_field _enabled:yes _list_order:name _presentation:'#{name}'}
+
+  say "- Adding phase_id to apartments + belongs_to :phase..."
+  sleep 1
+  add_phase_ts = Time.now.utc.strftime("%Y%m%d%H%M%S")
+  create_file "db/migrate/#{add_phase_ts}_add_phase_to_apartments.rb", <<-ADD_PHASE.strip_heredoc
+    class AddPhaseToApartments < ActiveRecord::Migration[8.1]
+      def change
+        add_reference :apartments, :phase, null: true, foreign_key: true
+      end
+    end
+  ADD_PHASE
+
+  inject_into_file "app/models/apartment.rb",
+                   "  belongs_to :phase, optional: true\n",
+                   after: "class Apartment < ApplicationRecord\n"
+
+  # The :phase dropdown row goes right below :owner.
+  gsub_file "app/models/apartment.rb",
+            /     \[ :owner, :dropdown \], \n/,
+            "     [ :owner, :dropdown ], \n     [ :phase, :dropdown ], \n"
+
   # Seed the example app with 3 apartments + 3 owners and assign photos
   # from db/seed_images. Runs as a regular migration so `bundle exec rake
   # db:migrate` (and `rails db:setup` on a fresh checkout) populates the
   # demo gallery in one shot. Idempotent via find_or_create_by!.
-  say "- Generating seed migration (3 apartments + 3 owners + photo gallery)..."
+  say "- Generating seed migration (3 apartments + 3 owners + 4 phases + photo gallery)..."
   sleep 1
   seed_ts = Time.now.utc.strftime("%Y%m%d%H%M%S")
   create_file "db/migrate/#{seed_ts}_seed_example_apartments_and_owners.rb", <<-SEED_MIGRATION.strip_heredoc
@@ -1147,6 +1176,17 @@ if ENV['install_example'] == 'true'
           apartments: [] },
       ].freeze
 
+      # Phases, created in neither name nor dropdown order: the apartment
+      # dropdown shows ---, helprequest, decision, admittance (dropdown_order);
+      # /phases lists them by name.
+      PHASES = [
+        { name: "decision",    dropdown_order: 20 },
+        { name: "admittance",  dropdown_order: 30 },
+        { name: "---",         dropdown_order: 0 },
+        { name: "helprequest", dropdown_order: 10 },
+      ].freeze
+      APARTMENT_PHASES = { "Apt 1" => "helprequest", "Apt 2" => "decision", "Apt 3" => "---" }.freeze
+
       # Comments seeded on each apartment's first photo (Apartment ->
       # Photo -> Comment: the second nesting level).
       COMMENTS = [
@@ -1159,6 +1199,10 @@ if ENV['install_example'] == 'true'
         all_pics = seed_dir.directory? ?
           Dir.glob(seed_dir.join("*.{png,jpg,jpeg,gif}"), File::FNM_CASEFOLD).sort :
           []
+
+        PHASES.each do |spec|
+          Phase.find_or_create_by!(name: spec[:name]) { |ph| ph.dropdown_order = spec[:dropdown_order] }
+        end
 
         apt_records = {}
         APARTMENTS.each_with_index do |spec, idx|
@@ -1193,6 +1237,9 @@ if ENV['install_example'] == 'true'
             end
           end
 
+          phase = Phase.find_by(name: APARTMENT_PHASES[spec[:name]])
+          apt.update!(phase: phase) if phase && apt.phase_id != phase.id
+
           apt_records[spec[:name]] = apt
         end
 
@@ -1223,6 +1270,7 @@ if ENV['install_example'] == 'true'
           apt.photos.destroy_all
           apt.destroy
         end
+        PHASES.each { |spec| Phase.find_by(name: spec[:name])&.destroy }
       end
     end
   SEED_MIGRATION

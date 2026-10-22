@@ -18,10 +18,12 @@ All notable changes to this project are documented in this file.
   - The macro is on every Active Record model (engine initializer `inline_forms.dropdown_order`), so hosts need no `ApplicationRecord` change. An unknown direction raises `ArgumentError` when the class loads; an unknown column raises when the dropdown renders.
   - **Hosts:** lookups that declare nothing keep their `inline_forms_list` order. StProject's lookups declare `order(:name, :id)`, so they stay alphabetical; Scouting's `default_scope { order(name: :asc) }` still applies. A lookup that needs a fixed order gets a `dropdown_order` integer column, or `inline_forms_dropdown_order`. Papiamentu's `def self.order_by_clause` is still not read; use the macro instead.
   - The installer's `ApplicationRecord` template documents the rule.
+- **Example app: a `Phase` lookup shows the rule.** `inline_forms create … --example` generates `Phase` (`name`, `dropdown_order`), gives Apartment a `phase` dropdown below `owner`, and seeds `---` 0, helprequest 10, decision 20, admittance 30, created in neither order. On an apartment the dropdown reads ---, helprequest, decision, admittance, while `/phases` lists them alphabetically (`_list_order:name`). The seeded apartments get helprequest, decision and ---.
 
 ### Tests
 
 - `dropdown_test`: each rule, desc, declared column over `dropdown_order`, NULLs last, `id` tie-break, `dropdown_with_other` and `check_list`, bad direction or column. The dummy app gains a `Phase` lookup with a `dropdown_order` column (`Part belongs_to :phase`).
+- Example app: `example_app_phase_dropdown_test` checks the apartment's phase dropdown order, that choosing a phase saves it, and that `/phases` keeps its alphabetical list order.
 
 ### Lockstep
 
