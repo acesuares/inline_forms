@@ -21,6 +21,9 @@ module InlineForms
       object.send(attribute).build  if object.send(attribute).empty?
       klass = object.send(attribute).first.class
       values = cancan_enabled? ? klass.accessible_by(current_ability) : klass.all
+      # check_list has always applied the list scope's filter (a where in
+      # inline_forms_list hides records here); the order is DropdownOrder's.
+      values = values.merge(klass.inline_forms_list.unscope(:order)) if klass.respond_to?(:inline_forms_list)
       values = InlineForms::DropdownOrder.apply(values)
       out = ''
       values.each do | item |

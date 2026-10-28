@@ -11,19 +11,24 @@ All notable changes to this project are documented in this file.
 - **Dropdowns follow the model's order again, with one rule for every table-backed list.** 8.1.58 made `dropdown` sort its options alphabetically by presentation. That overrode the order lookups depend on, such as '---' / 'onbekend' first and process phases in process order. Before that, from 2017 to 8.1.57, the sort was discarded and dropdowns showed database order. Until 2015 they used the model's `order_by_clause`. `dropdown_with_other` used database order, and `check_list` used `inline_forms_list`. All three now use `InlineForms::DropdownOrder`; the first match wins:
   1. the model declares **`inline_forms_dropdown_order :column`** (or `:column, :desc`);
   2. the table has a **`dropdown_order`** column, used ascending: give '---' 0 and the phases 10, 20, 30;
-  3. the model's `inline_forms_list` scope (its list order; unchanged for `check_list`);
+  3. the ORDER BY of the model's `inline_forms_list` scope (its list order). Only the order: a `where` or `joins` in that scope filters `/index`, but hides no records from a dropdown;
   4. database order, including a `default_scope` order.
 
   Rules 1 and 2 replace any `default_scope` order, put NULLs last (a record nobody has numbered yet goes to the end) and break ties on `id`.
   - The macro is on every Active Record model (engine initializer `inline_forms.dropdown_order`), so hosts need no `ApplicationRecord` change. An unknown direction raises `ArgumentError` when the class loads; an unknown column raises when the dropdown renders.
   - **Hosts:** lookups that declare nothing keep their `inline_forms_list` order. StProject's lookups declare `order(:name, :id)`, so they stay alphabetical; Scouting's `default_scope { order(name: :asc) }` still applies. A lookup that needs a fixed order gets a `dropdown_order` integer column, or `inline_forms_dropdown_order`. Papiamentu's `def self.order_by_clause` is still not read; use the macro instead.
   - The installer's `ApplicationRecord` template documents the rule.
+  - `check_list` still applies the `where` of `inline_forms_list`, as it did before 8.1.59, under every rule (also when the lookup declares an order or has a `dropdown_order` column).
+  - A `dropdown` whose lookup defines `disabled_for_dropdown?` loads the lookup once, not twice.
+- **Installer: a gem path with a space no longer breaks the Dart Sass build.** 8.1.58's initializer put the gem's stylesheet dir first as a `build_options` entry, and dartsass-rails splits those on whitespace, so a gem installed under e.g. `/Users/John Doe/…` gave Sass two broken arguments. `config/initializers/inline_forms_dartsass_builds.rb` now prepends the dir to `Dartsass::Runner`'s own `--load-path` list as a separate argument (still ahead of `app/assets/builds`). Apps generated with 8.1.58 can copy the new initializer from the installer's `lib/installer_templates/dartsass/`.
+- **Example app: rolling back the seed migration works.** Its `down` destroyed the seeded owners while the seeded apartments still pointed at them, and `apartments.owner_id` / `apartments.phase_id` have foreign keys, so `Owner#destroy` raised `ActiveRecord::InvalidForeignKey`. It now sets those columns to NULL on every apartment that points at a seeded owner or phase before destroying it.
 - **Example app: a `Phase` lookup shows the rule.** `inline_forms create … --example` generates `Phase` (`name`, `dropdown_order`), gives Apartment a `phase` dropdown below `owner`, and seeds `---` 0, helprequest 10, decision 20, admittance 30, created in neither order. On an apartment the dropdown reads ---, helprequest, decision, admittance, while `/phases` lists them alphabetically (`_list_order:name`). The seeded apartments get helprequest, decision and ---.
 
 ### Tests
 
-- `dropdown_test`: each rule, desc, declared column over `dropdown_order`, NULLs last, `id` tie-break, `dropdown_with_other` and `check_list`, bad direction or column. The dummy app gains a `Phase` lookup with a `dropdown_order` column (`Part belongs_to :phase`).
+- `dropdown_test`: each rule, desc, declared column over `dropdown_order`, NULLs last, `id` tie-break, `dropdown_with_other` and `check_list`, bad direction or column; a filtering `inline_forms_list` orders a dropdown without hiding records, `check_list` keeps that filter under a declared order, and `disabled_for_dropdown?` costs no second query. The dummy app gains a `Phase` lookup with a `dropdown_order` column (`Part belongs_to :phase`).
 - Example app: `example_app_phase_dropdown_test` checks the apartment's phase dropdown order, that choosing a phase saves it, and that `/phases` keeps its alphabetical list order.
+- Example app: `example_app_dartsass_build_test` checks that the gem's stylesheet dir is the first `--load-path` and a separate argument.
 
 ### Lockstep
 

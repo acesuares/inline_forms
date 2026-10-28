@@ -23,8 +23,18 @@ Rails.application.config.dartsass.builds = {
 # inline_forms_install/*_main.scss entries would resolve to the PREVIOUS OUTPUT
 # app/assets/builds/inline_forms/{inline_forms,devise}.css instead of the gem's
 # .scss: from the second build on, each build re-imports its own stale result
-# and gem stylesheet changes never reach the app. build_options precede the
-# load paths in the command, so this --load-path wins. Single token on
-# purpose: the runner splits every build_options entry on whitespace.
-Rails.application.config.dartsass.build_options <<
-  "--load-path=#{InlineForms::Engine.root.join('app/assets/stylesheets')}"
+# and gem stylesheet changes never reach the app.
+#
+# The gem dir goes in front of the runner's own --load-path list, as a
+# separate argument: not in build_options (the runner splits every entry there
+# on whitespace, which breaks a gem path with a space in it) and not first on
+# config.assets.paths (Sprockets would then resolve inline_forms/*.css to the
+# gem's .scss instead of the compiled build).
+require "dartsass/runner"
+
+module InlineFormsDartsassLoadPath
+  def dartsass_load_paths
+    [ "--load-path", InlineForms::Engine.root.join("app/assets/stylesheets").to_s ] + super
+  end
+end
+Dartsass::Runner.singleton_class.prepend(InlineFormsDartsassLoadPath)

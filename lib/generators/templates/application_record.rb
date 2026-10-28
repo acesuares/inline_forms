@@ -31,7 +31,8 @@ class ApplicationRecord < ActiveRecord::Base
   #   1. inline_forms_dropdown_order :col            # or :col, :desc
   #   2. a `dropdown_order` integer column, ascending (e.g. '---' 0,
   #      'helprequest' 10, 'decision' 20, 'admittance' 30)
-  #   3. inline_forms_list above
+  #   3. the order of inline_forms_list above (only its ORDER BY: a where
+  #      there filters #index, not the dropdowns)
   #   4. database order
   # 1 and 2 put NULLs last and break ties on id.
 

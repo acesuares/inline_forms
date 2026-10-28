@@ -25,11 +25,12 @@ module InlineForms
       else
         values = klass.all
       end
+      values = InlineForms::DropdownOrder.apply(values)
       options_disabled = nil
       if klass.method_defined? :disabled_for_dropdown?
+        # loads values; collection_select below reuses the loaded records
         options_disabled = values.map{|v| v.id if v.disabled_for_dropdown?}.compact
       end
-      values = InlineForms::DropdownOrder.apply(values)
       # the leading underscore is to avoid name conflicts, like 'email' and 'email_type' will result in 'email' and 'email[email_type_id]' in the form!
       collection_select( ('_' + object.class.to_s.underscore).to_sym,
                           attribute.to_s.foreign_key.to_sym,

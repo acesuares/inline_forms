@@ -1259,9 +1259,13 @@ if ENV['install_example'] == 'true'
       end
 
       def down
+        # apartments.owner_id and apartments.phase_id have foreign keys:
+        # release the apartments (seeded or not) that point at a seeded owner
+        # or phase before destroying it, or destroy raises.
         OWNERS.each do |spec|
-          owner = Owner.find_by(name: spec[:name])
-          owner&.destroy
+          owner = Owner.find_by(name: spec[:name]) or next
+          Apartment.where(owner_id: owner.id).update_all(owner_id: nil)
+          owner.destroy
         end
         APARTMENTS.each do |spec|
           apt = Apartment.find_by(name: spec[:name])
@@ -1270,7 +1274,11 @@ if ENV['install_example'] == 'true'
           apt.photos.destroy_all
           apt.destroy
         end
-        PHASES.each { |spec| Phase.find_by(name: spec[:name])&.destroy }
+        PHASES.each do |spec|
+          phase = Phase.find_by(name: spec[:name]) or next
+          Apartment.where(phase_id: phase.id).update_all(phase_id: nil)
+          phase.destroy
+        end
       end
     end
   SEED_MIGRATION

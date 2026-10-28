@@ -10,6 +10,11 @@ class DropdownTest < InlineFormsIntegrationTestCase
     [ Phase, Machine, Kind, Part ].each do |klass|
       klass.remove_instance_variable(:@inline_forms_dropdown_order) if klass.instance_variable_defined?(:@inline_forms_dropdown_order)
     end
+    # Back to ApplicationRecord's `inline_forms_list -> { all }`.
+    [ Kind, Part ].each do |klass|
+      klass.singleton_class.remove_method(:inline_forms_list) if klass.singleton_class.method_defined?(:inline_forms_list, false)
+    end
+    Phase.remove_method(:disabled_for_dropdown?) if Phase.method_defined?(:disabled_for_dropdown?, false)
   end
 
   def view
@@ -76,6 +81,32 @@ class DropdownTest < InlineFormsIntegrationTestCase
     assert_equal %w[Zeta Alpha], InlineForms::DropdownOrder.apply(Kind.all).map(&:name)
   end
 
+  test "a filtering inline_forms_list only orders a dropdown, it hides no records" do
+    %w[Zeta Hidden Alpha].each { |name| Kind.create!(name: name) }
+    Kind.define_singleton_method(:inline_forms_list) { where.not(name: "Hidden").order(:name, :id) }
+
+    html = view.dropdown_with_other_edit(Widget.create!(name: "W"), :kind)
+
+    assert_equal %w[Alpha Hidden Zeta], html.scan(/<option value="([^"]*)">/).flatten
+  end
+
+  test "disabled_for_dropdown? and the options come from one query" do
+    create_phases
+    Phase.define_method(:disabled_for_dropdown?) { name == "decision" }
+    selects = []
+    counter = ->(*, payload) { selects << payload[:sql] if payload[:sql].match?(/\ASELECT .*FROM "phases"/) }
+
+    view_context, part = view, Part.create!(name: "Gear")
+
+    html = ActiveSupport::Notifications.subscribed(counter, "sql.active_record") do
+      view_context.dropdown_edit(part, :phase)
+    end
+
+    assert_equal 1, selects.size, selects.join("\n")
+    assert_match(/<option disabled="disabled" value="\d+">decision</, html)
+    assert_equal [ "---", "helprequest", "decision", "admittance", "nieuw" ], option_texts(html)
+  end
+
   test "dropdown_with_other offers its datalist in the dropdown order" do
     %w[Zeta Alpha Mu].each { |name| Kind.create!(name: name) }
     Kind.inline_forms_dropdown_order :name
@@ -88,6 +119,17 @@ class DropdownTest < InlineFormsIntegrationTestCase
   test "check_list lists its records in the dropdown order" do
     machine = Machine.create!(name: "Press")
     %w[Bolt Nut Axle].each { |name| Part.create!(name: name) }
+    Part.inline_forms_dropdown_order :name, :desc
+
+    html = view.check_list_edit(machine, :parts)
+
+    assert_equal %w[Nut Bolt Axle], html.scan(%r{<label for=[^>]*>([^<]*)</label>}).flatten.reject(&:empty?)
+  end
+
+  test "check_list keeps the inline_forms_list filter under a declared order" do
+    machine = Machine.create!(name: "Press")
+    %w[Bolt Hidden Nut Axle].each { |name| Part.create!(name: name) }
+    Part.define_singleton_method(:inline_forms_list) { where.not(name: "Hidden").order(:name) }
     Part.inline_forms_dropdown_order :name, :desc
 
     html = view.check_list_edit(machine, :parts)

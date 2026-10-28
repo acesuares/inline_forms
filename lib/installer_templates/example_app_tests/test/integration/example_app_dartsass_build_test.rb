@@ -17,7 +17,8 @@ class ExampleAppDartsassBuildTest < ActiveSupport::TestCase
     command = Dartsass::Runner.dartsass_compile_command
     first_load_path = command.index { |arg| arg == "--load-path" || arg.start_with?("--load-path=") }
 
-    assert_equal "--load-path=#{gem_stylesheets}", command[first_load_path]
+    # Two arguments, so a gem path with a space stays one argument.
+    assert_equal [ "--load-path", gem_stylesheets ], command[first_load_path, 2]
   end
 
   %w[inline_forms devise].each do |entry|
