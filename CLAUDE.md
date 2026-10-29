@@ -22,13 +22,10 @@ conflict. Consolidated from the former `stuff/prompt/workflow.md` and
    - Publishing to RubyGems is not part of this workflow: Ace runs
      `rake release` as `ace` in both repos. Never `gem push`, and never build
      gems for publishing; local builds are only for the example-app test.
-5. After committing, push to the `forgejo` remote
-   (`ssh://forgejo@dev02:2222/ace/...`) in **both repos** (inline_forms and
-   validation_hints) so every commit runs through CI (Forgejo Actions on dev02).
-   - Check the run at http://dev02:3300/ace/inline_forms/actions and fix
-     failures.
-6. Never push to `origin` (GitHub). Only Ace pushes there, and GitHub must not
-   run anything (no `.github/workflows`).
+5. After committing, push to the `forgejo` remote in **both repos**
+   (inline_forms and validation_hints), check CI for both and fix failures.
+   Remotes, `origin`, and how to check CI with the shared token:
+   `/srv/vmsshared/projects/CLAUDE.md`.
 
 ## Testing the example app
 
@@ -44,15 +41,21 @@ do not build or install while another session is running this test.
 
 Do all steps end-to-end without asking for confirmation unless a command fails.
 
+Every ruby, gem, inline_forms and rails command runs through the RVM binary,
+`/usr/share/rvm/bin/rvm . do …`, from the directory named in the step: it
+picks up that directory's `.ruby-version`/`.ruby-gemset` (why:
+/etc/claude-code/CLAUDE.md). `rvm use .` does nothing in the Bash tool, and
+shell state (`cd`, `export`) does not carry over between Bash calls, so put
+each step's `cd`, variables and command on one line.
+
 ### Steps
 
 1. In `/srv/vmsshared/projects/inline_forms` (or the worktree you work in):
    - Ensure the latest code is used.
-   - Run: `rvm use .`
    - Build gems:
-     `gem build inline_forms.gemspec && gem build inline_forms_installer.gemspec && (cd inline_forms_schema_edit && gem build inline_forms_schema_edit.gemspec)`
+     `/usr/share/rvm/bin/rvm . do bash -c 'gem build inline_forms.gemspec && gem build inline_forms_installer.gemspec && (cd inline_forms_schema_edit && gem build inline_forms_schema_edit.gemspec)'`
    - In `/srv/vmsshared/projects/validation_hints`:
-     `gem build validation_hints.gemspec`
+     `/usr/share/rvm/bin/rvm . do gem build validation_hints.gemspec`
    - Confirm the built file names/versions
      (`inline_forms-<version>.gem`, `inline_forms_installer-<version>.gem`,
      `inline_forms_schema_edit/inline_forms_schema_edit-<version>.gem`,
@@ -60,8 +63,8 @@ Do all steps end-to-end without asking for confirmation unless a command fails.
 
 2. In `/srv/vmsshared/projects/testInline`:
    - Remove the old app if present: `/srv/vmsshared/projects/testInline/MyApp`
-   - Run: `rvm use .`
-   - Install the freshly built gems: `validation_hints-<version>.gem`,
+   - Install the freshly built gems into the `@testInline` gemset with
+     `/usr/share/rvm/bin/rvm . do gem install <paths>`: `validation_hints-<version>.gem`,
      `inline_forms-<version>.gem`, `inline_forms_installer-<version>.gem` and
      `inline_forms_schema_edit/inline_forms_schema_edit-<version>.gem`.
 
@@ -69,15 +72,14 @@ Do all steps end-to-end without asking for confirmation unless a command fails.
    - Point the installer at the checkouts holding the built gems, so it
      installs them into the app's `@MyApp` gemset. Without these it silently
      uses whatever older inline_forms that gemset already has (it only looks
-     in `~/code/<repo>` and `~/<repo>` by itself):
-     `export INLINE_FORMS_RELEASE_ROOT=<the inline_forms checkout you built in> VALIDATION_HINTS_ROOT=/srv/vmsshared/projects/validation_hints`
-   - Generate a fresh example app:
-     `inline_forms create MyApp -d sqlite --example`
+     in `~/code/<repo>` and `~/<repo>` by itself). Set them on the same line
+     as the command that generates a fresh example app:
+     `INLINE_FORMS_RELEASE_ROOT=<the inline_forms checkout you built in> VALIDATION_HINTS_ROOT=/srv/vmsshared/projects/validation_hints /usr/share/rvm/bin/rvm . do inline_forms create MyApp -d sqlite --example`
    - Check that the "Install complete" summary shows the version you built.
 
 4. In `/srv/vmsshared/projects/testInline/MyApp`:
-   - Run: `rvm use .`
-   - Run verification: `rails test`
+   - Run verification (picks up the app's own `@MyApp` gemset):
+     `/usr/share/rvm/bin/rvm . do rails test`
 
 ### Output requirements
 
