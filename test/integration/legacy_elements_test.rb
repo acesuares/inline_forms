@@ -51,4 +51,13 @@ class LegacyElementsTest < InlineFormsIntegrationTestCase
     assert_includes response.body, %(href="/report/#{@widget.id}")
     assert_includes response.body, %(href="/report/#{@widget.id}.pdf")
   end
+
+  test "pdf_link links leave the field's turbo frame" do
+    frame = "widget_#{@widget.id}"
+    get widget_path(@widget, update: frame), headers: frame_headers(frame)
+
+    assert_response :success
+    assert_select %(a[href="/report/#{@widget.id}"][data-turbo="false"])
+    assert_select %(a[href="/report/#{@widget.id}.pdf"][data-turbo="false"])
+  end
 end
