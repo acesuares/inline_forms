@@ -60,4 +60,13 @@ class LegacyElementsTest < InlineFormsIntegrationTestCase
     assert_select %(a[href="/report/#{@widget.id}"][data-turbo="false"])
     assert_select %(a[href="/report/#{@widget.id}.pdf"][data-turbo="false"])
   end
+
+  test "pdf_link preview opens in a new tab, the pdf link does not" do
+    frame = "widget_#{@widget.id}"
+    get widget_path(@widget, update: frame), headers: frame_headers(frame)
+
+    assert_response :success
+    assert_select %(a[href="/report/#{@widget.id}"][target="_blank"])
+    assert_select %(a[href="/report/#{@widget.id}.pdf"][target]), false
+  end
 end
