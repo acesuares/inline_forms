@@ -8,12 +8,14 @@ module InlineForms
   # 2. the table has a `dropdown_order` column (ascending), so a lookup can
   #    put '---' / 'onbekend' first and process phases in process order;
   # 3. the ORDER BY of the model's `inline_forms_list` scope (its list order;
-  #    only the order: a where/joins in that scope does not hide records here);
+  #    only the order: a where in that scope does not hide records here, and
+  #    its joins come along as LEFT joins, for an order on a joined table);
   # 4. database order (a default_scope order included).
   #
   # 1 and 2 replace any default_scope order, put NULLs last (a record nobody
-  # numbered yet goes to the end) and break ties on the primary key. 3 adds to
-  # a default_scope order, as merging the scope did.
+  # numbered yet goes to the end) and break ties on the primary key. 3 keeps a
+  # default_scope order after it, unless the scope reorders: the scope's own
+  # order_values already say which.
   #
   # The macro is on every Active Record model (engine initializer), so hosts
   # need no ApplicationRecord change.
@@ -53,15 +55,26 @@ module InlineForms
         keys = [ table[column].public_send(direction).nulls_last ]
         keys << table[klass.primary_key].asc if klass.primary_key && klass.primary_key != column
         relation.reorder(*keys)
-      elsif (list_order = list_order_values(klass)).any?
-        relation.order(*list_order)
+      elsif (list = list_scope(klass))&.order_values&.any?
+        with_list_joins(relation, list).reorder(*list.order_values)
       else
         relation
       end
     end
 
-    def self.list_order_values(klass)
-      klass.respond_to?(:inline_forms_list) ? klass.inline_forms_list.order_values : []
+    def self.list_scope(klass)
+      klass.inline_forms_list if klass.respond_to?(:inline_forms_list)
+    end
+
+    # An association join becomes a LEFT join, so a record without the
+    # association stays in the list. A string join can't: it stays as written.
+    def self.with_list_joins(relation, list)
+      named, raw = list.joins_values.partition { |join| join.is_a?(Symbol) || join.is_a?(Hash) }
+      named = (named | list.left_outer_joins_values | list.eager_load_values) - relation.joins_values
+      raw -= relation.joins_values
+      relation = relation.left_outer_joins(*named) if named.any?
+      relation = relation.joins(*raw) if raw.any?
+      relation
     end
   end
 end

@@ -1418,13 +1418,10 @@ if ENV['install_example'] == 'true'
             "[ :description, :rich_text ], \n     [ :locales, :check_list ], \n     [ :locales_display, :info_list ], \n     [ :header_meta, :header ], \n     [ :created_at, :info ], \n     [ :updated_at, :info ], \n"
 
   # pdf_link links to /report/:id and /report/:id.pdf and leaves both routes
-  # to the app. There is no column; pdf_link_edit still reads the attribute.
+  # to the app. There is no column and no model method.
   gsub_file "app/models/form_element_showcase.rb",
             "[ :manual, :simple_file_field ], \n",
             "[ :manual, :simple_file_field ], \n      [ :report, :pdf_link ], \n"
-  inject_into_file "app/models/form_element_showcase.rb",
-                   "\n  def report\n  end\n",
-                   after: "class FormElementShowcase < ApplicationRecord\n"
   create_file "app/controllers/showcase_reports_controller.rb", <<-'SHOWCASE_REPORTS'.strip_heredoc
     # The two routes behind FormElementShowcase's :report pdf_link row.
     class ShowcaseReportsController < ApplicationController

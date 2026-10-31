@@ -62,6 +62,23 @@ class LegacyElementsTest < InlineFormsIntegrationTestCase
     assert_match %r{>preview</a> \| <a[^>]*>download pdf</a>}, response.body
   end
 
+  test "pdf_link needs no model method in the new form" do
+    assert_not Widget.new.respond_to?(:report)
+
+    get new_widget_path(update: "widgets_list"), headers: frame_headers("widgets_list")
+
+    assert_response :success
+  end
+
+  test "pdf_link links keep the app's sub-path" do
+    frame = "widget_#{@widget.id}"
+    get widget_path(@widget, update: frame), headers: frame_headers(frame), env: { "SCRIPT_NAME" => "/portal" }
+
+    assert_response :success
+    assert_select %(a.pdf_preview[href="/portal/report/#{@widget.id}"])
+    assert_select %(a.pdf_open[href="/portal/report/#{@widget.id}.pdf"])
+  end
+
   test "pdf_link links leave the field's turbo frame" do
     frame = "widget_#{@widget.id}"
     get widget_path(@widget, update: frame), headers: frame_headers(frame)

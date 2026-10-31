@@ -4,6 +4,32 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [8.1.65] - 2026-10-31
+
+Fixes from a review of 8.1.60 to 8.1.64.
+
+### Fixed
+
+- **Dropdowns honour a `reorder` in `inline_forms_list`.** Since 8.1.60 rule 3 added the scope's order to a `default_scope` order, so a scope that reorders lost: Scouting's lookups with `inline_forms_list_by_name` would have sorted by name and lost their pinned entries. Rule 3 now uses the scope's order as it stands: it follows a `default_scope` order, unless the scope reorders.
+- **A list order on a joined table no longer breaks the dropdown.** Since 8.1.60 rule 3 dropped the scope's joins and kept its ORDER BY, which was invalid SQL. Association joins now come along as LEFT joins, so the order works and no record is hidden. A string join stays as written, so it can still hide records.
+- **`pdf_link` needs no model method.** `pdf_link_edit` called the attribute, so a new form with a `pdf_link` row raised `NoMethodError` unless the model had a stub. The example app's `def report` is gone.
+- **`pdf_link` works under a sub-path.** Both links now start with the app's `request.script_name`.
+
+### Tests
+
+- `dropdown_test`: `default_scope` with a list scope, a `reorder`, and a list order on a joined table (`dropdown` and `check_list`).
+- `legacy_elements_test`: `pdf_link` in a new form without a model method, and under a sub-path.
+- Example app: `example_app_seed_rollback_test` runs the seed migration's `down`.
+
+### Documentation
+
+- `CLAUDE.md`: inline_forms is released with `rake release:all`.
+- The 8.1.59 changelog date is the release date, 2026-10-25.
+
+### Lockstep
+
+- validation_hints 8.1.65, inline_forms_installer 8.1.65, inline_forms_schema_edit 8.1.65.
+
 ## [8.1.64] - 2026-10-31
 
 ### Changed
@@ -82,7 +108,7 @@ Fixes from a review of 8.1.58 and 8.1.59.
 
 - validation_hints 8.1.60, inline_forms_installer 8.1.60, inline_forms_schema_edit 8.1.60.
 
-## [8.1.59] - 2026-10-22
+## [8.1.59] - 2026-10-25
 
 ### Fixed
 

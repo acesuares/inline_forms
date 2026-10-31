@@ -5,6 +5,15 @@ lockstep with inline_forms / inline_forms_installer / validation_hints.
 
 ## [Unreleased]
 
+## [8.1.65] - 2026-10-31
+
+### Changed
+
+- Version bump to stay in lockstep with `inline_forms` /
+  `inline_forms_installer` / `validation_hints` 8.1.65 (dropdowns honour a
+  `reorder` and joins in `inline_forms_list`, `pdf_link` needs no model
+  method and works under a sub-path). No changes to this gem's own code.
+
 ## [8.1.64] - 2026-10-31
 
 ### Changed
@@ -48,7 +57,7 @@ lockstep with inline_forms / inline_forms_installer / validation_hints.
   gem path with a space, a seed migration that rolls back). No changes to
   this gem's own code.
 
-## [8.1.59] - 2026-10-22
+## [8.1.59] - 2026-10-25
 
 ### Changed
 

@@ -123,11 +123,11 @@ class LocaleTest < InlineFormsIntegrationTestCase
   end
 
   test "pdf_link reads Dutch" do
+    original_default = I18n.default_locale
     widget = Widget.create!(name: "Rapport")
     frame = "widget_#{widget.id}"
 
     # Not strictly: the dummy's dropdown values have no nl texts.
-    original_default = I18n.default_locale
     I18n.with_locale(:nl) do
       I18n.default_locale = :nl
       get widget_path(widget, update: frame), headers: frame_headers(frame)

@@ -15,6 +15,7 @@ class DropdownTest < InlineFormsIntegrationTestCase
       klass.singleton_class.remove_method(:inline_forms_list) if klass.singleton_class.method_defined?(:inline_forms_list, false)
     end
     Phase.remove_method(:disabled_for_dropdown?) if Phase.method_defined?(:disabled_for_dropdown?, false)
+    Kind.default_scopes = []
   end
 
   def view
@@ -88,6 +89,45 @@ class DropdownTest < InlineFormsIntegrationTestCase
     html = view.dropdown_with_other_edit(Widget.create!(name: "W"), :kind)
 
     assert_equal %w[Alpha Hidden Zeta], html.scan(/<option value="([^"]*)">/).flatten
+  end
+
+  test "a reorder in inline_forms_list replaces a default_scope order" do
+    Kind.send(:default_scope) { order(:name) }
+    %w[Alpha Otro Zeta].each { |name| Kind.create!(name: name) }
+    Kind.define_singleton_method(:inline_forms_list) { reorder(Arel::Nodes::Descending.new(arel_table[:name].eq("Otro")), :name) }
+
+    assert_equal %w[Otro Alpha Zeta], InlineForms::DropdownOrder.apply(Kind.all).map(&:name)
+  end
+
+  test "the list order follows a default_scope order, without repeating it" do
+    Kind.send(:default_scope) { order(:name) }
+    Kind.define_singleton_method(:inline_forms_list) { order(:id) }
+
+    sql = InlineForms::DropdownOrder.apply(Kind.all).to_sql
+
+    assert_equal 1, sql.scan('"kinds"."name"').size, sql
+    assert_operator sql.index('"kinds"."name"'), :<, sql.index('"kinds"."id"')
+  end
+
+  test "an inline_forms_list order on a joined table hides no records" do
+    Part.create!(name: "Axle", phase: Phase.create!(name: "z"))
+    Part.create!(name: "Bolt", phase: Phase.create!(name: "a"))
+    Part.create!(name: "Free")
+    Part.define_singleton_method(:inline_forms_list) { joins(:phase).order("phases.name DESC") }
+
+    assert_equal %w[Axle Bolt Free], InlineForms::DropdownOrder.apply(Part.all).map(&:name)
+  end
+
+  test "check_list keeps a joining inline_forms_list filter and its order" do
+    machine = Machine.create!(name: "Press")
+    Part.create!(name: "Axle", phase: Phase.create!(name: "z"))
+    Part.create!(name: "Bolt", phase: Phase.create!(name: "a"))
+    Part.create!(name: "Hidden")
+    Part.define_singleton_method(:inline_forms_list) { joins(:phase).order("phases.name") }
+
+    html = view.check_list_edit(machine, :parts)
+
+    assert_equal %w[Bolt Axle], html.scan(%r{<label for=[^>]*>([^<]*)</label>}).flatten.reject(&:empty?)
   end
 
   test "disabled_for_dropdown? and the options come from one query" do

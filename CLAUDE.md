@@ -19,8 +19,10 @@ conflict. Consolidated from the former `stuff/prompt/workflow.md` and
      `inline_forms_schema_edit` (in this repo under `inline_forms_schema_edit/`).
 3. Update the Changelog of all four gems.
 4. Commit everything.
-   - Publishing to RubyGems is not part of this workflow: Ace runs
-     `rake release` as `ace` in both repos. Never `gem push`, and never build
+   - Publishing to RubyGems is not part of this workflow: Ace runs, as `ace`,
+     `rake release:all` in inline_forms (its plain `rake release` publishes
+     only inline_forms) and `rake release` in validation_hints. Never
+     `gem push`, and never build
      gems for publishing; local builds are only for the example-app test.
 5. After committing, push to the `forgejo` remote in **both repos**
    (inline_forms and validation_hints), check CI for both and fix failures.
