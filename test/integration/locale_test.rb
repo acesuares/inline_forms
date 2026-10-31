@@ -126,10 +126,17 @@ class LocaleTest < InlineFormsIntegrationTestCase
     widget = Widget.create!(name: "Rapport")
     frame = "widget_#{widget.id}"
 
-    strictly(:nl) { get widget_path(widget, update: frame), headers: frame_headers(frame) }
+    # Not strictly: the dummy's dropdown values have no nl texts.
+    original_default = I18n.default_locale
+    I18n.with_locale(:nl) do
+      I18n.default_locale = :nl
+      get widget_path(widget, update: frame), headers: frame_headers(frame)
+    end
 
     assert_response :success
     assert_match %r{>voorbeeld</a> \| <a[^>]*>pdf downloaden</a>}, response.body
+  ensure
+    I18n.default_locale = original_default
   end
 
   test "the devise and application layouts declare the page language" do
