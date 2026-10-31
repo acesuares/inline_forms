@@ -8,7 +8,7 @@ All notable changes to this project are documented in this file.
 
 ### Fixed
 
-- **`pdf_link`: the `preview` and `pdf` links work again under Turbo.** They sit inside the field's `<turbo-frame>`, so a click loaded the response into that frame: the preview showed Turbo's "Content missing" and the PDF never opened. Both links now carry `data-turbo="false"`, as `simple_file_field`'s download link does, and the preview opens in a new tab so the record stays open. An app that worked around this can drop its override.
+- **`pdf_link`: the `preview` and `pdf` links work again under Turbo.** They sit inside the field's `<turbo-frame>`, so a click loaded the response into that frame: the preview showed Turbo's "Content missing", and the PDF, which is not HTML, went to the same frame. Both links now carry `data-turbo="false"`, as `simple_file_field`'s download link does, and the preview opens in a new tab so the record stays open. An app that worked around this can drop its override.
 
 ### Tests
 
