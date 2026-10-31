@@ -5,6 +5,14 @@ lockstep with inline_forms / inline_forms_installer / validation_hints.
 
 ## [Unreleased]
 
+## [8.1.64] - 2026-10-31
+
+### Changed
+
+- Version bump to stay in lockstep with `inline_forms` /
+  `inline_forms_installer` / `validation_hints` 8.1.64 (`pdf_link`'s labels
+  are translated). No changes to this gem's own code.
+
 ## [8.1.63] - 2026-10-31
 
 ### Changed

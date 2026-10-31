@@ -49,6 +49,8 @@ en:
         destroy: destroy
     files:
       download: download
+      download_pdf: download pdf
+      preview: preview
       replace: replace file
       remove: remove file
       restore: restore

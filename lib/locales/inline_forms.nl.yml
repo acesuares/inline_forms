@@ -49,6 +49,8 @@ nl:
         destroy: verwijderd
     files:
       download: downloaden
+      download_pdf: pdf downloaden
+      preview: voorbeeld
       replace: bestand vervangen
       remove: bestand verwijderen
       restore: terugzetten

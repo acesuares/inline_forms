@@ -18,6 +18,7 @@ class LocaleTest < InlineFormsIntegrationTestCase
     inline_forms.view.versions_rich_text inline_forms.view.version_events.create
     inline_forms.view.version_events.update inline_forms.view.version_events.destroy
     inline_forms.devise.login common.more common.logout inline_forms.view.create_failed
+    inline_forms.files.preview inline_forms.files.download_pdf
   ].freeze
 
   setup do
@@ -119,6 +120,16 @@ class LocaleTest < InlineFormsIntegrationTestCase
     assert_includes response.body, "Versions (2)"
     assert_includes response.body, "<strong>Event</strong>"
     assert_includes response.body, "old value"
+  end
+
+  test "pdf_link reads Dutch" do
+    widget = Widget.create!(name: "Rapport")
+    frame = "widget_#{widget.id}"
+
+    strictly(:nl) { get widget_path(widget, update: frame), headers: frame_headers(frame) }
+
+    assert_response :success
+    assert_match %r{>voorbeeld</a> \| <a[^>]*>pdf downloaden</a>}, response.body
   end
 
   test "the devise and application layouts declare the page language" do

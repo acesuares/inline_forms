@@ -4,6 +4,20 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [8.1.64] - 2026-10-31
+
+### Changed
+
+- **`pdf_link`'s labels are translated.** `inline_forms.files.preview` and `inline_forms.files.download_pdf`, in English ("preview | download pdf") and Dutch ("voorbeeld | pdf downloaden"), with the English texts as defaults for other locales. An app in Dutch now shows the Dutch labels: a test that finds the link by its text needs the new text.
+
+### Tests
+
+- `locale_test`: `pdf_link` in Dutch.
+
+### Lockstep
+
+- validation_hints 8.1.64, inline_forms_installer 8.1.64, inline_forms_schema_edit 8.1.64.
+
 ## [8.1.63] - 2026-10-31
 
 ### Changed
