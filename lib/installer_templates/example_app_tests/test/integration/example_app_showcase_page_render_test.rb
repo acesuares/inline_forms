@@ -31,6 +31,7 @@ class ExampleAppShowcasePageRenderTest < ExampleAppIntegrationTestCase
     attachment
     jingle
     cover
+    report
     description
     locales
     locales_display

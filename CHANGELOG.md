@@ -4,6 +4,20 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [8.1.62] - 2026-10-30
+
+### Added
+
+- **The example app has a `pdf_link`.** `FormElementShowcase` gets a `report` row, with `ShowcaseReportsController` behind `/report/:id` (preview) and `/report/:id.pdf` (a sample PDF, as a download).
+
+### Tests
+
+- `example_app_showcase_pdf_link_test`: the links, the new form, the preview, the download and guests.
+
+### Lockstep
+
+- validation_hints 8.1.62, inline_forms_installer 8.1.62, inline_forms_schema_edit 8.1.62.
+
 ## [8.1.61] - 2026-10-30
 
 ### Fixed

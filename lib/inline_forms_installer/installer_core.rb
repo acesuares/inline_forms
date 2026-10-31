@@ -1417,6 +1417,33 @@ if ENV['install_example'] == 'true'
             "[ :description, :rich_text ], \n",
             "[ :description, :rich_text ], \n     [ :locales, :check_list ], \n     [ :locales_display, :info_list ], \n     [ :header_meta, :header ], \n     [ :created_at, :info ], \n     [ :updated_at, :info ], \n"
 
+  # pdf_link links to /report/:id and /report/:id.pdf and leaves both routes
+  # to the app. There is no column; pdf_link_edit still reads the attribute.
+  gsub_file "app/models/form_element_showcase.rb",
+            "[ :manual, :simple_file_field ], \n",
+            "[ :manual, :simple_file_field ], \n      [ :report, :pdf_link ], \n"
+  inject_into_file "app/models/form_element_showcase.rb",
+                   "\n  def report\n  end\n",
+                   after: "class FormElementShowcase < ApplicationRecord\n"
+  create_file "app/controllers/showcase_reports_controller.rb", <<-'SHOWCASE_REPORTS'.strip_heredoc
+    # The two routes behind FormElementShowcase's :report pdf_link row.
+    class ShowcaseReportsController < ApplicationController
+      def show
+        @showcase = FormElementShowcase.find(params[:id])
+        authorize! :read, @showcase
+
+        respond_to do |format|
+          format.html
+          format.pdf do
+            send_file Rails.root.join("db/seed_uploads/sample.pdf"),
+                      filename: "showcase_#{@showcase.id}.pdf", type: "application/pdf"
+          end
+        end
+      end
+    end
+  SHOWCASE_REPORTS
+  route 'get "report/:id", to: "showcase_reports#show", as: :showcase_report'
+
   # Locale keys for the showcase attributes. Headers + the timestamps
   # need explicit labels so `human_attribute_name` does not fall back to
   # "Header basics" / "Created at". The leading two-space indent puts
@@ -1456,6 +1483,7 @@ if ENV['install_example'] == 'true'
           cover: Cover
           gallery: Gallery (multiple images)
           manual: Manual (file slot with trash)
+          report: Report
           description: Description
           locales: Locales (editable)
           locales_display: Locales (read-only)
@@ -1478,7 +1506,7 @@ if ENV['install_example'] == 'true'
   # under db/seed_uploads so the seed migration can read them at
   # db:migrate time and store them through CarrierWave. Mirrors the
   # db/seed_images convention used for the Photo gallery seed above.
-  %w[sample.txt sample.wav sample_cover.png].each do |basename|
+  %w[sample.txt sample.wav sample_cover.png sample.pdf].each do |basename|
     src = File.join(showcase_assets_root, basename)
     copy_file src, File.join("db/seed_uploads", basename) if File.exist?(src)
   end

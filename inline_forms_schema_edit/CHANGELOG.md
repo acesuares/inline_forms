@@ -5,6 +5,14 @@ lockstep with inline_forms / inline_forms_installer / validation_hints.
 
 ## [Unreleased]
 
+## [8.1.62] - 2026-10-30
+
+### Changed
+
+- Version bump to stay in lockstep with `inline_forms` /
+  `inline_forms_installer` / `validation_hints` 8.1.62 (the example app has a
+  `pdf_link`). No changes to this gem's own code.
+
 ## [8.1.61] - 2026-10-30
 
 ### Changed
