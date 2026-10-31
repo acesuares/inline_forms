@@ -8,7 +8,7 @@ module InlineForms
     def pdf_link_show(object, attribute)
       # the attribute is the action
       # turbo:false so the links leave the field's turbo-frame: the preview has no matching frame ("Content missing") and the PDF is not HTML; the preview gets its own tab so the record stays open
-      "#{link_to 'preview', "/#{attribute}/#{object.id}", :class => "pdf_preview", :target => "_blank", :data => { :turbo => false }} #{link_to 'pdf', "/#{attribute}/#{object.id}.pdf", :class => "pdf_open", :data => { :turbo => false }}".html_safe
+      "#{link_to 'preview', "/#{attribute}/#{object.id}", :class => "pdf_preview", :target => "_blank", :data => { :turbo => false }} | #{link_to 'download pdf', "/#{attribute}/#{object.id}.pdf", :class => "pdf_open", :data => { :turbo => false }}".html_safe
     end
     
     def pdf_link_edit(object, attribute)

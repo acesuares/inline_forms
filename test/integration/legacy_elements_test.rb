@@ -52,6 +52,16 @@ class LegacyElementsTest < InlineFormsIntegrationTestCase
     assert_includes response.body, %(href="/report/#{@widget.id}.pdf")
   end
 
+  test "pdf_link reads preview | download pdf" do
+    frame = "widget_#{@widget.id}"
+    get widget_path(@widget, update: frame), headers: frame_headers(frame)
+
+    assert_response :success
+    assert_select %(a[href="/report/#{@widget.id}"]), text: "preview"
+    assert_select %(a[href="/report/#{@widget.id}.pdf"]), text: "download pdf"
+    assert_match %r{>preview</a> \| <a[^>]*>download pdf</a>}, response.body
+  end
+
   test "pdf_link links leave the field's turbo frame" do
     frame = "widget_#{@widget.id}"
     get widget_path(@widget, update: frame), headers: frame_headers(frame)

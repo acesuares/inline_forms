@@ -4,6 +4,20 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [8.1.63] - 2026-10-31
+
+### Changed
+
+- **`pdf_link` reads "preview | download pdf".** "preview pdf" read as one label. The second link's text is now `download pdf` and a ` | ` separates the links; hrefs, classes, `data-turbo` and `target` are unchanged.
+
+### Tests
+
+- `legacy_elements_test` and `example_app_showcase_pdf_link_test`: the link texts and the separator.
+
+### Lockstep
+
+- validation_hints 8.1.63, inline_forms_installer 8.1.63, inline_forms_schema_edit 8.1.63.
+
 ## [8.1.62] - 2026-10-30
 
 ### Added

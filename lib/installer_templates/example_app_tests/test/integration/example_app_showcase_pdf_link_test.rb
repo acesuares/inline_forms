@@ -14,6 +14,7 @@ class ExampleAppShowcasePdfLinkTest < ExampleAppIntegrationTestCase
     assert_select %(a.pdf_preview[href="/report/#{@showcase.id}"][data-turbo="false"][target="_blank"])
     assert_select %(a.pdf_open[href="/report/#{@showcase.id}.pdf"][data-turbo="false"])
     assert_select %(a.pdf_open[target]), false
+    assert_match %r{>preview</a> \| <a[^>]*>download pdf</a>}, response.body
   end
 
   test "the new form renders with the pdf_link row" do
