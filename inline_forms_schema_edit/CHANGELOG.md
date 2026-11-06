@@ -5,6 +5,16 @@ lockstep with inline_forms / inline_forms_installer / validation_hints.
 
 ## [Unreleased]
 
+## [8.1.67] - 2026-11-06
+
+### Changed
+
+- Version bump to stay in lockstep with `inline_forms` /
+  `inline_forms_installer` / `validation_hints` 8.1.67 (review fixes to
+  8.1.66: timestamps in any locale, no piled-up listeners, the bundle in
+  `<head>`, title keys with the app's name). No changes to this gem's own
+  code.
+
 ## [8.1.66] - 2026-11-06
 
 ### Changed

@@ -8,6 +8,36 @@ All notable changes to this project are documented in this file.
 
 - Known issues, parked (local note `stuff/2026-10-31-dropdown-rule-3-parked.md`) with dropdown order rule 3: `includes`, `group` or `select` in `inline_forms_list` make `dropdown` and `dropdown_with_other` raise while `/index` works, so 8.1.65's fix for a list order on a joined table holds only for `joins`, `left_joins` and `eager_load`; a has_many join gives duplicate options. Present since 8.1.60. No host's list scope has these today. Parked; not changed.
 
+## [8.1.67] - 2026-11-06
+
+Fixes from a code review of 8.1.66.
+
+### Fixed
+
+- **Version and file trash pages no longer crash in a locale without `time.formats.inline_forms`.** 8.1.66 defined the format in en and nl only, and a bare `l(time, format: :inline_forms)` raises `I18n::MissingTranslationData` in any other locale when the host has no i18n fallbacks (rails-i18n's `:short`, used before, exists in every locale). The versions list, the file entries and the file trash now go through `inline_forms_time_text`, which passes the same format (`InlineForms::TIME_FORMAT`) as the default; the month names still come from the locale.
+- **No more document listeners piling up on Turbo visits.** 8.1.66's once-guard in `inline_forms.js` left the `turbo:frame-load` listener and the `.translation_missing` mouseover handler outside it, so a layout that re-runs the bundle added another of each per visit (after 10 visits every frame load rebuilt each tooltip 11 times). Both are inside the guard now (the mouseover handler is a plain DOM listener).
+- **Foundation and the widgets initialise once per page.** The first page ran `foundation()` and `initInlineFormsWidgets` from both the ready event and `turbo:load`, which destroyed and rebuilt every tooltip; one boot function now runs once per `<body>`.
+- **The submenu rule no longer hides drilldown submenus.** 8.1.66 hid every `.dropdown.menu` submenu without `is-dropdown-submenu`, which beats Foundation's own `.is-drilldown-submenu` rules for a `data-responsive-menu` on small screens. It now applies to `[data-dropdown-menu]` menus only.
+- **The title keys exist again, and say the application's name.** 8.1.66 removed `inline_forms.general.application_title`, `inline_forms.devise.title_for_devise` and `inline_forms.devise.welcome`, so a host view calling one bare (Papiamentu has several) showed "translation missing" in any locale it did not translate and that had no fallbacks. In en and nl they are now lambdas (`lib/locales/inline_forms_titles.rb`) that return `InlineForms.application_title`; a host's own translation still wins (its locale files load after the gem's; the example app checks the order).
+- **One source for the application's name.** `InlineForms.application_title` is the host's `application_name` translation, else its `ApplicationHelper#application_name` (8.1.66 skipped that and used the titleized module name, so an app could say "MyApp" in en and "My App" in nl), else the Rails module name. `inline_forms_application_title`, the admin layout's `<title>` and the Devise header use it.
+
+### Changed
+
+- **The admin layout loads Popper, Tippy and `inline_forms.js` in `<head>`.** In `<body>` Turbo Drive re-ran them on every visit with a fresh jQuery, the cause of 8.1.66's menu flash; Turbo runs head scripts once and appends missing ones in order on a visit from another layout. `no-js`, the once-guard and the submenu rule stay for host layouts that still load the bundle in `<body>`.
+- **Installer: the generated `config/locales/inline_forms_local.en.yml` has only `application_name`.** It also wrote the three title keys, in en only.
+- **`inline_forms_search_on` builds its clause once,** on the first search (`inline_forms_search_clause`), instead of on every search.
+
+### Tests
+
+- `turbo_menu_test`: the scripts in `<head>` in order, no document listener outside the guard, one boot per body, the `[data-dropdown-menu]` rule.
+- `locale_test`: the title keys resolve to the app's name in en and nl (translation, then the helper), a host translation wins, timestamps render in a locale without the gem's format.
+- `model_top_bar_test`: the search clause is built once.
+- Example app: `example_app_layout_title_test` checks the host's locale files load after the gem's title keys and that the keys say the app name in en and nl; `example_app_stylesheet_test` expects the scoped rule.
+
+### Lockstep
+
+- validation_hints 8.1.67, inline_forms_installer 8.1.67, inline_forms_schema_edit 8.1.67.
+
 ## [8.1.66] - 2026-11-06
 
 Requests from Papiamentu's move to the 8.1.65 admin (gem layout, engine model top bar, gem stylesheet); each was worked around in the apps.

@@ -14,28 +14,41 @@
 // dropdown_with_other combobox is an <input list> + <datalist>, and
 // slider_with_values is a native <input type="range">. jQuery itself stays
 // only because Foundation 6's JS requires it.
-// Once per page load. Turbo Drive re-runs this bundle on every visit (it sits
-// in <body>), and each run brings a fresh jQuery: without the guard each run
-// added another turbo:load listener, and a ready-handler `foundation()` from
-// the fresh copy (its own plugin data) would initialise the menus twice.
+// Listeners are added once per page load. The gem's layouts load this bundle
+// in <head>, which Turbo Drive keeps across visits, but a host layout may
+// still have it in <body>, which Turbo re-runs on every visit (each run with a
+// fresh jQuery): without the guard every run would add another set.
 if (!window.inlineFormsBooted) {
   window.inlineFormsBooted = true;
 
-  $(function(){
-    $(document).foundation();
-    initInlineFormsWidgets(document);
-  });
-
-  // Turbo Drive replaces <body> on a visit: the new top bar's DropdownMenu
-  // has to be initialised again, or its submenus show as plain lists.
-  // Foundation's reflow skips elements that already carry a plugin, so the
-  // call on the first page (turbo:load fires there too) is harmless. jQuery
-  // is looked up at call time.
-  document.addEventListener("turbo:load", function() {
+  // Foundation and the widgets, once per <body>. Turbo Drive replaces <body>
+  // on a visit, and the new top bar's DropdownMenu needs initialising or its
+  // submenus show as plain lists. The first page gets both the ready event
+  // and turbo:load (and a layout without Turbo only the first), so the body
+  // check keeps it to one init. jQuery is looked up at call time.
+  var inlineFormsBootedBody = null;
+  var bootInlineFormsPage = function() {
+    if (!document.body || document.body === inlineFormsBootedBody) { return; }
+    inlineFormsBootedBody = document.body;
     if (window.jQuery && window.jQuery.fn.foundation) {
       window.jQuery(document).foundation();
     }
     initInlineFormsWidgets(document);
+  };
+  $(bootInlineFormsPage);
+  document.addEventListener("turbo:load", bootInlineFormsPage);
+
+  // Re-bind widgets (tooltips) after Turbo Frame swaps.
+  document.addEventListener("turbo:frame-load", function(event) {
+    var root = event.target;
+    if (!root || !root.querySelectorAll) { return; }
+    initInlineFormsWidgets(root);
+  });
+
+  // get rid of translation_missing tooltips
+  document.addEventListener("mouseover", function(event) {
+    var el = event.target.closest && event.target.closest(".translation_missing");
+    if (el) { el.setAttribute("title", ""); }
   });
 }
 
@@ -104,17 +117,3 @@ function initValidationHintTooltips(root) {
     }
   });
 }
-
-// get rid of translation_missing tooltips
-$(document).ready(function() {
-  $(this).on('mouseover', '.translation_missing', function() {
-    $(this).attr('title', '');
-  });
-});
-
-// Re-bind widgets (tooltips) after Turbo Frame swaps.
-document.addEventListener("turbo:frame-load", function(event) {
-  var root = event.target;
-  if (!root || !root.querySelectorAll) { return; }
-  initInlineFormsWidgets(root);
-});

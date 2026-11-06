@@ -658,15 +658,10 @@ PT_YAML
 say "- Creating application title via locales..."
 create_file "config/locales/inline_forms_local.en.yml", <<-END_LOCALE.strip_heredoc
   en:
-    # <title> of every page in the inline_forms layout (falls back to
-    # ApplicationHelper#application_name in locales that do not define it).
+    # The application's name in the gem's titles, Devise pages included
+    # (InlineForms.application_title; in a locale without this key the
+    # ApplicationHelper#application_name below, which says the same).
     application_name: #{app_name}
-    inline_forms:
-      general:
-        application_title: #{app_name}
-      devise:
-        title_for_devise: #{app_name}
-        welcome: Welcome to #{app_name}!
 END_LOCALE
 
 say "- Migrating Database (only when using sqlite)"

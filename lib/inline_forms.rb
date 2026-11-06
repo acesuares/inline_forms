@@ -187,6 +187,28 @@ module InlineForms
   # programmatically (generator / GUI); the user edits it to real values after.
   PLACEHOLDER_VALUES = { 1 => "one", 2 => "two" }.freeze
 
+  # Version and file timestamps: time.formats.inline_forms in the gem's en
+  # and nl locales, and the default where a locale lacks it.
+  TIME_FORMAT = "%d %b %Y %H:%M"
+
+  # The application's name for the gem's titles and the Devise pages: the
+  # host's `application_name` translation, else its
+  # ApplicationHelper#application_name (the installer writes both, and the
+  # gem's header partial uses the helper), else its Rails module name. The
+  # gem's title keys (inline_forms.general.application_title,
+  # inline_forms.devise.title_for_devise and .welcome) resolve to this in en
+  # and nl unless the host translates them (lib/locales/inline_forms_titles.rb).
+  def self.application_title
+    I18n.t("application_name", default: application_name_from_helper || Rails.application.class.module_parent_name)
+  end
+
+  def self.application_name_from_helper
+    return unless defined?(::ApplicationController)
+
+    helpers = ::ApplicationController.helpers
+    helpers.application_name if helpers.respond_to?(:application_name)
+  end
+
   def self.plain_text_form_element?(form_element)
     PLAIN_TEXT_FORM_ELEMENTS.include?(form_element.to_sym)
   rescue NoMethodError
@@ -408,7 +430,8 @@ module InlineForms
       end
     end
 
-    I18n.load_path << Dir[File.join(File.expand_path(File.dirname(__FILE__) + "/locales"), "*.yml")]
+    # .rb too: inline_forms_titles.rb holds the title keys as lambdas.
+    I18n.load_path << Dir[File.join(File.expand_path(File.dirname(__FILE__) + "/locales"), "*.{yml,rb}")]
     I18n.load_path.flatten!
   end
 end

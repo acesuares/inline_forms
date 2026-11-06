@@ -18,7 +18,7 @@ class ExampleAppStylesheetTest < ActiveSupport::TestCase
   end
 
   test "uninitialised top-bar submenus are hidden" do
-    assert_includes built("inline_forms"), ".dropdown.menu>li>ul.menu:not(.is-dropdown-submenu){display:none}"
+    assert_includes built("inline_forms"), ".dropdown.menu[data-dropdown-menu]>li>ul.menu:not(.is-dropdown-submenu){display:none}"
   end
 
   private

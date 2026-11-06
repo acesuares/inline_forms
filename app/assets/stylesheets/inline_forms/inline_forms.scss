@@ -117,9 +117,12 @@
 // marks it `is-dropdown-submenu` (whose own rules then hide it). On the first
 // page `html.no-js` covers that gap (layouts/inline_forms.html.erb), but
 // Foundation removes the class and Turbo Drive never restores it, so after a
-// visit the new body's submenus flashed open until inline_forms.js
-// re-initialised them on turbo:load.
-.dropdown.menu > li > ul.menu:not(.is-dropdown-submenu) {
+// visit the new body's submenus could flash open until inline_forms.js
+// re-initialised them on turbo:load (most of all from a host layout that
+// still loads the bundle in <body>). Only for menus marked
+// `data-dropdown-menu`: a `data-responsive-menu` turns its submenus into
+// `is-drilldown-submenu` on small screens, which this rule would hide.
+.dropdown.menu[data-dropdown-menu] > li > ul.menu:not(.is-dropdown-submenu) {
   display: none;
 }
 

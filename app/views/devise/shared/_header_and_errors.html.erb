@@ -1,7 +1,7 @@
 <%# Unused by the gem's own devise views; kept for host apps that render it. %>
 <%# Same title source as layouts/inline_forms; Devise 5 dropped %>
 <%# devise_error_messages!, so errors use Devise's own error_messages partial. %>
-<div id="large_title"><%= t('application_name', default: application_name) %></div>
+<div id="large_title"><%= inline_forms_application_title %></div>
 <div id="flash_message">
   <% if resource.errors.any? %>
     <%= render "devise/shared/error_messages", resource: resource %>

@@ -79,5 +79,7 @@ class ModelTopBarTest < InlineFormsIntegrationTestCase
     %i[connection lease_connection with_connection].each { |m| model.singleton_class.remove_method(m) }
     Widget.create!(name: "Gamma")
     assert_equal [ "Gamma" ], model.inline_forms_search("amm").pluck(:name)
+    # Built once, on the first search.
+    assert_same model.inline_forms_search_clause, model.inline_forms_search_clause
   end
 end

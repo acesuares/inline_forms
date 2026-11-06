@@ -398,15 +398,21 @@ module InlineFormsHelper
   # (time.formats.inline_forms; rails-i18n's :short has none, so edits years
   # apart read the same), the exact ISO 8601 time on hover.
   def inline_forms_time(time)
-    tag.time(l(time, format: :inline_forms), datetime: time.iso8601, title: time.iso8601)
+    tag.time(inline_forms_time_text(time), datetime: time.iso8601, title: time.iso8601)
   end
 
-  # The application's name for the gem's titles and the Devise pages: the
-  # host's `application_name` translation, else its Rails module name. The
-  # gem used to ship "Application Title" / "Title for Devise" placeholders,
-  # shown in every locale the host did not override (nl, in all of them).
+  # The text alone. The gem defines time.formats.inline_forms only in en and
+  # nl; in another locale without it (and without i18n fallbacks) a bare
+  # l(format: :inline_forms) raises, so the same format is the default. The
+  # month names still come from that locale (rails-i18n).
+  def inline_forms_time_text(time)
+    l(time, format: :inline_forms, default: InlineForms::TIME_FORMAT)
+  end
+
+  # The application's name for the gem's titles and the Devise pages
+  # (InlineForms.application_title).
   def inline_forms_application_title
-    t("application_name", default: Rails.application.class.module_parent_name.titleize)
+    InlineForms.application_title
   end
 
   def version_modified_by(id)

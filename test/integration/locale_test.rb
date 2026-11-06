@@ -143,26 +143,56 @@ class LocaleTest < InlineFormsIntegrationTestCase
 
   # The gem shipped "Application Title" / "Title for Devise" / "Welcome for
   # Devise" in en and nl; any locale the host did not override showed them.
-  test "no placeholder titles: the gem's titles use the host's application name" do
-    %i[en nl].each do |locale|
-      %w[inline_forms.general.application_title inline_forms.devise.title_for_devise inline_forms.devise.welcome].each do |key|
-        refute I18n.exists?(key, locale), "#{locale}.#{key} is a placeholder; the views fall back to application_name"
-      end
-    end
-
+  # The keys now resolve to the application's name, also when a host view
+  # calls them bare.
+  test "the gem's title keys resolve to the application's name" do
     get widgets_path
     I18n.backend.store_translations(:nl, application_name: "Werkplaats")
     strictly(:nl) do
+      assert_equal "Werkplaats", I18n.t("inline_forms.general.application_title")
+      assert_equal "Werkplaats", I18n.t("inline_forms.devise.title_for_devise")
+      assert_equal "Welkom bij Werkplaats!", I18n.t("inline_forms.devise.welcome")
       devise = controller.render_to_string(template: "stats/show", layout: "devise")
       assert_includes devise, "Werkplaats v#{InlineForms::VERSION}"
       top_bar = controller.render_to_string(partial: "devise/sessions/top-bar")
       assert_includes top_bar, "Werkplaats #{InlineForms::VERSION}"
-      assert_equal "Welkom bij Werkplaats!",
-        I18n.t("inline_forms.devise.welcome", default: I18n.t("inline_forms.devise.welcome_to", name: "Werkplaats"))
     end
     I18n.with_locale(:en) do
+      # No en application_name translation here: the host's
+      # ApplicationHelper#application_name.
+      assert_equal "Dummy", I18n.t("inline_forms.general.application_title")
+      assert_equal "Welcome to Dummy!", I18n.t("inline_forms.devise.welcome")
       assert_includes controller.render_to_string(template: "stats/show", layout: "application"), "Dummy v#{InlineForms::VERSION}"
     end
+  ensure
+    I18n.backend.reload!
+  end
+
+  test "a host translation of a title key wins" do
+    I18n.t("inline_forms.general.application_title") # loads the gem's files first, as a host app does
+    I18n.backend.store_translations(:nl, inline_forms: { general: { application_title: "Banko" } })
+
+    assert_equal "Banko", I18n.t("inline_forms.general.application_title", locale: :nl)
+  ensure
+    I18n.backend.reload!
+  end
+
+  # time.formats.inline_forms is defined in en and nl only; a bare
+  # l(format: :inline_forms) raises in any other locale without fallbacks.
+  test "version and trash timestamps render in a locale without the gem's format" do
+    original = I18n.available_locales
+    I18n.available_locales = original + [ :de ]
+    months = %w[Jan Feb Mär Apr Mai Jun Jul Aug Sep Okt Nov Dez]
+    I18n.backend.store_translations(:de, date: { abbr_month_names: [ nil, *months ] })
+    time = Time.zone.local(2019, 3, 5, 14, 7)
+
+    I18n.with_locale(:de) do
+      assert_raises(I18n::MissingTranslationData) { I18n.l(time, format: :inline_forms, raise: true) }
+      assert_equal "05 Mär 2019 14:07", ApplicationController.helpers.send(:inline_forms_time_text, time)
+    end
+  ensure
+    I18n.available_locales = original
+    I18n.backend.reload!
   end
 
   test "the versions list in en keeps its English labels" do
