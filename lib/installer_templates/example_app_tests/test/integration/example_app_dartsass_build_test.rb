@@ -1,27 +1,31 @@
 # frozen_string_literal: true
 
 require "test_helper"
-require "dartsass/runner"
 require "sass-embedded"
 
-# config/initializers/inline_forms_dartsass_builds.rb puts the gem's
-# stylesheet dir first on the Sass load path. Without it,
-# app/assets/builds (ahead of the gem in config.assets.paths) shadows the
-# gem's .scss: `@use "inline_forms/inline_forms"` in the
-# inline_forms_install/*_main.scss entries re-imports the app's previous
-# compiled CSS, and gem stylesheet changes never reach the app after its
-# first build. test_helper runs dartsass:build, so by now builds/ already held
-# a previous build when this run's one ran.
+# The inline_forms_install/*_main.scss entries `@use` the gem's stylesheets
+# with an explicit .scss extension (config/initializers/
+# inline_forms_dartsass_builds.rb). Without it app/assets/builds (ahead of the
+# gem on the Sass load path) shadows the gem's .scss: a bare
+# `@use "inline_forms/inline_forms"` re-imports the app's previous compiled
+# CSS, and gem stylesheet changes never reach the app after its first build.
+# test_helper runs dartsass:build, so by now builds/ already held a previous
+# build when this run's one ran.
 class ExampleAppDartsassBuildTest < ActiveSupport::TestCase
-  test "the gem stylesheet dir is the first Sass load path" do
-    command = Dartsass::Runner.dartsass_compile_command
-    first_load_path = command.index { |arg| arg == "--load-path" || arg.start_with?("--load-path=") }
+  test "the initializer no longer patches dartsass-rails' load paths" do
+    code = Rails.root.join("config/initializers/inline_forms_dartsass_builds.rb").readlines
+                .reject { |line| line.lstrip.start_with?("#") }.join
 
-    # Two arguments, so a gem path with a space stays one argument.
-    assert_equal [ "--load-path", gem_stylesheets ], command[first_load_path, 2]
+    refute_includes code, "Dartsass::Runner"
   end
 
   %w[inline_forms devise].each do |entry|
+    test "inline_forms_install/#{entry}_main.scss uses the gem's #{entry}.scss with its extension" do
+      main = Rails.root.join("app/assets/stylesheets/inline_forms_install/#{entry}_main.scss").read
+
+      assert_includes main, %(@use "inline_forms/#{entry}.scss" as *;)
+    end
+
     test "builds/inline_forms/#{entry}.css is compiled from the gem's #{entry}.scss" do
       built = Rails.root.join("app/assets/builds/inline_forms/#{entry}.css")
       assert built.file?, "#{built} missing; dartsass:build did not run"

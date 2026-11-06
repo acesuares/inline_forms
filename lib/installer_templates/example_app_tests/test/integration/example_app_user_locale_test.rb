@@ -11,7 +11,7 @@ class ExampleAppUserLocaleTest < ExampleAppIntegrationTestCase
     get apartments_path
 
     assert_response :success
-    assert_includes @response.body, %(<html lang="en">)
+    assert_includes @response.body, %(<html lang="en" class="no-js">)
   end
 
   test "user locale preference switches I18n for the request" do
@@ -23,7 +23,7 @@ class ExampleAppUserLocaleTest < ExampleAppIntegrationTestCase
     get apartments_path
 
     assert_response :success
-    assert_includes @response.body, %(<html lang="nl">)
+    assert_includes @response.body, %(<html lang="nl" class="no-js">)
   ensure
     en = Locale.find_by(name: "en")
     admin&.update!(locale: en) if en
@@ -38,7 +38,7 @@ class ExampleAppUserLocaleTest < ExampleAppIntegrationTestCase
     get apartments_path
 
     assert_response :success
-    assert_includes @response.body, %(<html lang="en">)
+    assert_includes @response.body, %(<html lang="en" class="no-js">)
   ensure
     en = Locale.find_by(name: "en")
     admin&.update!(locale: en) if en

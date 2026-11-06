@@ -113,6 +113,16 @@
   }
 }
 
+// A top-bar submenu shows as a plain list until Foundation's DropdownMenu
+// marks it `is-dropdown-submenu` (whose own rules then hide it). On the first
+// page `html.no-js` covers that gap (layouts/inline_forms.html.erb), but
+// Foundation removes the class and Turbo Drive never restores it, so after a
+// visit the new body's submenus flashed open until inline_forms.js
+// re-initialised them on turbo:load.
+.dropdown.menu > li > ul.menu:not(.is-dropdown-submenu) {
+  display: none;
+}
+
 // Match: model top bar is the wider gold band (height 90px, padded so its
 // usable area is in the lower 45px). Override Foundation 6's default
 // `.top-bar { padding: 0.5rem }` so our 45/90px math holds.

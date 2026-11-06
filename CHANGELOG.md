@@ -8,6 +8,38 @@ All notable changes to this project are documented in this file.
 
 - Known issues, parked (local note `stuff/2026-10-31-dropdown-rule-3-parked.md`) with dropdown order rule 3: `includes`, `group` or `select` in `inline_forms_list` make `dropdown` and `dropdown_with_other` raise while `/index` works, so 8.1.65's fix for a list order on a joined table holds only for `joins`, `left_joins` and `eager_load`; a has_many join gives duplicate options. Present since 8.1.60. No host's list scope has these today. Parked; not changed.
 
+## [8.1.66] - 2026-11-06
+
+Requests from Papiamentu's move to the 8.1.65 admin (gem layout, engine model top bar, gem stylesheet); each was worked around in the apps.
+
+### Fixed
+
+- **Top-bar submenus no longer flash open after a Turbo Drive visit.** Turbo replaced `<body>` and re-ran the inline_forms bundle, which loaded a fresh jQuery; until it finished, the new body's "more..." and user submenus showed as plain lists. StProject, Scouting and Papiamentu each copied the admin layout to fix it. Now `layouts/inline_forms` starts as `<html class="no-js">`; `inline_forms.js` re-initialises Foundation on `turbo:load`, behind a once-guard (Turbo still re-runs the bundle on each visit, so a visit from a layout without it works; the guard stops the listeners piling up and a second `foundation()` from the fresh jQuery); and `inline_forms.scss` hides a submenu until Foundation has marked it `is-dropdown-submenu`.
+- **No more 404 for `/vendor/assets/stylesheets/tippy.css`.** `foundation_and_overrides.scss` imported `tippy.css` with its extension, which Dart Sass keeps as a plain CSS `@import`; the browser resolved it next to the compiled stylesheet. The vendored file is now inlined with `meta.load-css` (no new `@import` deprecation), in admin and devise CSS. Apps can delete their `public/vendor/assets/stylesheets/tippy.css`.
+- **Version and file timestamps show the year.** The versions list, the file entries in it and the file trash used `l(time, format: :short)`, and rails-i18n's `:short` has no year. They now use the gem's `time.formats.inline_forms` (`"%d %b %Y %H:%M"` in en and nl; a host can override it). The versions list and file entries render a `<time>` with the ISO 8601 time as `datetime` and `title` (new helper `inline_forms_time`).
+- **The generic search box is translated.** `_generic_search` had "zoek op naam...", "zoek" and "reset" hard-coded; now `inline_forms.search.placeholder` / `.submit` / `.reset` (en: "search...", "search", "reset"; nl: "zoeken...", "zoek", "wissen").
+- **No placeholder titles.** The gem's en and nl locales defined `general.application_title: Application Title`, `devise.title_for_devise: Title for Devise` and `devise.welcome: Welcome for Devise`, shown in any locale the host did not override (the installer only writes en). The keys are gone; the application and devise layouts and the devise top bars fall back to the host's `application_name` translation, else the Rails module name (new helper `inline_forms_application_title`), and the sign-in page to `inline_forms.devise.welcome_to` ("Welcome to %{name}!" / "Welkom bij %{name}!"). A host's own translations still win.
+- **`inline_forms_search_on` no longer touches the database when the model loads.** It quoted the table and column names in the class body, so loading the model needed a connection; the clause is now built when the scope runs.
+
+### Changed
+
+- **Installer: the Dart Sass self-import guard no longer patches dartsass-rails.** The generated `config/initializers/inline_forms_dartsass_builds.rb` prepended the gem's stylesheet dir to `Dartsass::Runner.dartsass_load_paths`, an internal (a silent no-op if renamed; a boot error if `dartsass/runner` moved). The two `inline_forms_install/*_main.scss` entries now `@use "inline_forms/inline_forms.scss"` and `"inline_forms/devise.scss"` with the extension, which Dart Sass never resolves to a previous `app/assets/builds/*.css`, and which fails loudly if the gem renames the file. Existing apps keep their initializer until they change it.
+
+### Not done
+
+- **Autocomplete in the generic search** (a `rails-jquery-autocomplete` field when the controller declares `autocomplete :<model>, :name`): that gem needs jQuery UI, which inline_forms dropped in 8.1.26, and it is not an inline_forms dependency. An app that wants it keeps its own `_generic_search` override.
+
+### Tests
+
+- `turbo_menu_test` (new): the layout's `no-js`, the once-guarded `turbo:load` re-init, the submenu rule, tippy inlined.
+- `locale_test`: timestamps with the year and an ISO `title`, the search box in en and nl, no placeholder titles (devise and application layouts, the devise top bar).
+- `model_top_bar_test`: `inline_forms_search_on` declared on a model whose connection raises.
+- Example app: `example_app_stylesheet_test` (new) checks the compiled CSS has no `@import`, inlines tippy and hides uninitialised submenus; `example_app_dartsass_build_test` checks the `.scss` extensions instead of the patched load path. `example_app_user_locale_test` and `example_app_layout_title_test` expect `<html lang="…" class="no-js">`.
+
+### Lockstep
+
+- validation_hints 8.1.66, inline_forms_installer 8.1.66, inline_forms_schema_edit 8.1.66.
+
 ## [8.1.65] - 2026-10-31
 
 Fixes from a review of 8.1.60 to 8.1.64.

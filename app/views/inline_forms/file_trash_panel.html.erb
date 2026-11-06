@@ -41,13 +41,13 @@
           <span class="inline_forms-file-meta">
             <%= inline_forms_file_size(entry.byte_size) %> &middot;
             <%= t("inline_forms.files.reason.#{entry.reason}") %>
-            <%= t("inline_forms.files.by_on", user: inline_forms_file_user_name(entry.trashed_by_id), at: l(entry.trashed_at, format: :short)) %>
+            <%= t("inline_forms.files.by_on", user: inline_forms_file_user_name(entry.trashed_by_id), at: l(entry.trashed_at, format: :inline_forms)) %>
           </span>
           <span class="inline_forms-file-meta">
             <% if entry.state == :restored %>
-              <%= t("inline_forms.files.state_restored", user: inline_forms_file_user_name(entry.restored_by_id), at: l(entry.restored_at, format: :short)) %>
+              <%= t("inline_forms.files.state_restored", user: inline_forms_file_user_name(entry.restored_by_id), at: l(entry.restored_at, format: :inline_forms)) %>
             <% elsif entry.state == :purged %>
-              <%= t("inline_forms.files.state_purged", user: inline_forms_file_user_name(entry.purged_by_id), at: l(entry.purged_at, format: :short)) %>
+              <%= t("inline_forms.files.state_purged", user: inline_forms_file_user_name(entry.purged_by_id), at: l(entry.purged_at, format: :inline_forms)) %>
             <% elsif entry.state == :expired %>
               <%= t("inline_forms.files.state_expired") %>
             <% else %>

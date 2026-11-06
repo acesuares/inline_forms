@@ -1,10 +1,16 @@
 en:
   inline_forms:
-    general:
-      application_title: Application Title
+    # The generic list search (inline_forms/_generic_search), shown for
+    # models that declare inline_forms_search_on.
+    search:
+      placeholder: "search..."
+      submit: search
+      reset: reset
+    # general.application_title, devise.title_for_devise and devise.welcome
+    # are not defined here: without a host override the views use the
+    # host's application_name translation (InlineFormsHelper#inline_forms_application_title).
     devise:
-      title_for_devise: Title for Devise
-      welcome: Welcome for Devise
+      welcome_to: "Welcome to %{name}!"
       passwords:
         forgot_your_password: Forgot Your Password?
         change_your_password: Change your password, if you want!
@@ -152,3 +158,8 @@ en:
     messages:
       inline_forms_file_too_large: "is too large (maximum %{count} MB)"
       inline_forms_file_missing: "no file chosen"
+  # Version and file timestamps (InlineFormsHelper#inline_forms_time and the
+  # file trash): rails-i18n's :short has no year.
+  time:
+    formats:
+      inline_forms: "%d %b %Y %H:%M"

@@ -19,6 +19,8 @@ class LocaleTest < InlineFormsIntegrationTestCase
     inline_forms.view.version_events.update inline_forms.view.version_events.destroy
     inline_forms.devise.login common.more common.logout inline_forms.view.create_failed
     inline_forms.files.preview inline_forms.files.download_pdf
+    inline_forms.search.placeholder inline_forms.search.submit inline_forms.search.reset
+    inline_forms.devise.welcome_to time.formats.inline_forms
   ].freeze
 
   setup do
@@ -107,7 +109,60 @@ class LocaleTest < InlineFormsIntegrationTestCase
     end
     refute_includes body, "<strong>Event</strong>"
     version = @machine.versions.last
-    assert_includes body, ERB::Util.h(I18n.l(version.created_at, format: :short, locale: :nl))
+    assert_includes body, ERB::Util.h(I18n.l(version.created_at, format: :inline_forms, locale: :nl))
+  end
+
+  # rails-i18n's :short ("%d %b %H:%M") has no year: edits years apart read
+  # the same next to Restore.
+  test "version timestamps show the year, and the exact time on hover" do
+    version = @machine.versions.last
+    version.update_columns(created_at: Time.zone.local(2019, 3, 5, 14, 7))
+    row = "machine_#{@machine.id}"
+    strictly(:nl) do
+      get list_versions_machine_path(@machine, update: row), headers: frame_headers(row)
+    end
+
+    assert_response :success
+    iso = version.reload.created_at.iso8601
+    assert_includes response.body, %(<time datetime="#{iso}" title="#{iso}">05 mrt 2019 14:07</time>)
+  end
+
+  test "the generic search box is translated" do
+    I18n.backend.store_translations(:en, widgets: "widgets")
+    I18n.backend.store_translations(:nl, widgets: "widgets")
+    { en: [ "search...", "search", "reset" ], nl: [ "zoeken...", "zoek", "wissen" ] }.each do |locale, (placeholder, submit, reset)|
+      strictly(locale) { get widgets_path }
+
+      assert_response :success
+      assert_includes response.body, %(placeholder="#{placeholder}")
+      assert_includes response.body, %(value="#{submit}")
+      assert_includes response.body, %(title="#{reset}")
+      refute_includes response.body, "zoek op naam" if locale == :en
+    end
+  end
+
+  # The gem shipped "Application Title" / "Title for Devise" / "Welcome for
+  # Devise" in en and nl; any locale the host did not override showed them.
+  test "no placeholder titles: the gem's titles use the host's application name" do
+    %i[en nl].each do |locale|
+      %w[inline_forms.general.application_title inline_forms.devise.title_for_devise inline_forms.devise.welcome].each do |key|
+        refute I18n.exists?(key, locale), "#{locale}.#{key} is a placeholder; the views fall back to application_name"
+      end
+    end
+
+    get widgets_path
+    I18n.backend.store_translations(:nl, application_name: "Werkplaats")
+    strictly(:nl) do
+      devise = controller.render_to_string(template: "stats/show", layout: "devise")
+      assert_includes devise, "Werkplaats v#{InlineForms::VERSION}"
+      top_bar = controller.render_to_string(partial: "devise/sessions/top-bar")
+      assert_includes top_bar, "Werkplaats #{InlineForms::VERSION}"
+      assert_equal "Welkom bij Werkplaats!",
+        I18n.t("inline_forms.devise.welcome", default: I18n.t("inline_forms.devise.welcome_to", name: "Werkplaats"))
+    end
+    I18n.with_locale(:en) do
+      assert_includes controller.render_to_string(template: "stats/show", layout: "application"), "Dummy v#{InlineForms::VERSION}"
+    end
   end
 
   test "the versions list in en keeps its English labels" do

@@ -1,5 +1,7 @@
 @charset 'utf-8';
 
+@use 'sass:meta';
+
 @import 'settings/settings';
 
 // Match F5 visual proportions: F5 `$row-width` was 62.5rem (1000px); F6
@@ -58,7 +60,12 @@ $body-font-family: 'Open Sans', 'Helvetica Neue', Helvetica, Roboto, Arial, sans
 // Stays @import: see the module-system note in inline_forms.scss.
 @import 'theme';
 
-@import '../../../vendor/assets/stylesheets/tippy.css';
+// Tippy's vendored CSS, inlined. It used to be `@import '…/tippy.css'`,
+// which Dart Sass passes through as a plain CSS @import: the browser then
+// fetched /vendor/assets/stylesheets/tippy.css (resolved next to the compiled
+// stylesheet), a 404 on every page. load-css (not an extension-less @import,
+// deprecated for Dart Sass 3) emits it here, in the same place.
+@include meta.load-css('../../../vendor/assets/stylesheets/tippy');
 
 .validation-hints-source[hidden] {
   display: none !important;

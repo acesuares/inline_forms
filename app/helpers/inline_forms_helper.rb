@@ -394,6 +394,21 @@ module InlineFormsHelper
     values
   end
 
+  # A version or file timestamp: the date with its year
+  # (time.formats.inline_forms; rails-i18n's :short has none, so edits years
+  # apart read the same), the exact ISO 8601 time on hover.
+  def inline_forms_time(time)
+    tag.time(l(time, format: :inline_forms), datetime: time.iso8601, title: time.iso8601)
+  end
+
+  # The application's name for the gem's titles and the Devise pages: the
+  # host's `application_name` translation, else its Rails module name. The
+  # gem used to ship "Application Title" / "Title for Devise" placeholders,
+  # shown in every locale the host did not override (nl, in all of them).
+  def inline_forms_application_title
+    t("application_name", default: Rails.application.class.module_parent_name.titleize)
+  end
+
   def version_modified_by(id)
     return "Unknown" if id.blank?
 

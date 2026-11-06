@@ -1,5 +1,10 @@
 <!DOCTYPE html>
-<html lang="<%= I18n.locale %>">
+<%# class="no-js": Foundation's CSS hides the top-bar submenus while it is set %>
+<%# and its JS removes it on the first init, so the submenus do not show as %>
+<%# plain lists before then. Turbo Drive never puts it back, so later visits %>
+<%# rely on the `ul.menu:not(.is-dropdown-submenu)` rule in inline_forms.scss %>
+<%# and on the turbo:load handler in inline_forms.js. %>
+<html lang="<%= I18n.locale %>" class="no-js">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -37,6 +42,9 @@
     </div>
     <%# Tippy.js (v6) needs Popper.js as a global before its UMD factory runs %>
     <%# (`tippy-bundle.umd.min` only bundles default themes, not Popper itself). %>
+    <%# Turbo Drive re-runs these on every visit (no data-turbo-eval="false": %>
+    <%# a visit from a page whose layout lacks them must still load them). %>
+    <%# inline_forms.js boots once and re-initialises Foundation on turbo:load. %>
     <%= javascript_include_tag 'popper.min' %>
     <%= javascript_include_tag 'tippy-bundle.umd.min' %>
     <%= javascript_include_tag 'inline_forms/inline_forms' %>

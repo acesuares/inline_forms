@@ -13,28 +13,14 @@ Rails.application.config.dartsass.builds = {
   "inline_forms_install/devise_main.scss" => "inline_forms/devise.css"
 }
 
-# SELF-IMPORT GUARD: put the inline_forms gem's stylesheet dir FIRST on the
-# Sass load path. Dartsass::Runner assembles
-#   dartsass <build_options> --load-path app/assets/stylesheets
-#            --load-path <each config.assets.paths entry> <in:out ...>
-# and Dart Sass takes the first load path that has a match. app/assets/builds
-# is on config.assets.paths BEFORE the gem, and a plain .css file is importable
-# by Sass, so `@use "inline_forms/inline_forms"` (and ".../devise") in the
-# inline_forms_install/*_main.scss entries would resolve to the PREVIOUS OUTPUT
-# app/assets/builds/inline_forms/{inline_forms,devise}.css instead of the gem's
-# .scss: from the second build on, each build re-imports its own stale result
-# and gem stylesheet changes never reach the app.
-#
-# The gem dir goes in front of the runner's own --load-path list, as a
-# separate argument: not in build_options (the runner splits every entry there
-# on whitespace, which breaks a gem path with a space in it) and not first on
-# config.assets.paths (Sprockets would then resolve inline_forms/*.css to the
-# gem's .scss instead of the compiled build).
-require "dartsass/runner"
-
-module InlineFormsDartsassLoadPath
-  def dartsass_load_paths
-    [ "--load-path", InlineForms::Engine.root.join("app/assets/stylesheets").to_s ] + super
-  end
-end
-Dartsass::Runner.singleton_class.prepend(InlineFormsDartsassLoadPath)
+# SELF-IMPORT GUARD: the two inline_forms_install/*_main.scss entries `@use`
+# the gem's stylesheets WITH their .scss extension. dartsass-rails passes
+# app/assets/stylesheets and then every config.assets.paths entry as a
+# --load-path, app/assets/builds comes before the gem, and a plain .css file
+# is importable by Sass: a bare `@use "inline_forms/inline_forms"` resolved to
+# the PREVIOUS OUTPUT app/assets/builds/inline_forms/inline_forms.css, so from
+# the second build on each build re-imported its own stale result and gem
+# stylesheet changes never reached the app. With the extension Dart Sass only
+# takes a .scss file (the gem's), and the build fails loudly if the gem ever
+# renames it. (Until 8.1.66 this file prepended the gem dir to
+# Dartsass::Runner.dartsass_load_paths, an internal of dartsass-rails.)

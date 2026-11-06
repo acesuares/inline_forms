@@ -5,6 +5,16 @@ lockstep with inline_forms / inline_forms_installer / validation_hints.
 
 ## [Unreleased]
 
+## [8.1.66] - 2026-11-06
+
+### Changed
+
+- Version bump to stay in lockstep with `inline_forms` /
+  `inline_forms_installer` / `validation_hints` 8.1.66 (no Turbo menu flash,
+  tippy.css inlined, timestamps with the year, translated search box and
+  titles, a Dart Sass guard without patching dartsass-rails, lazy
+  `inline_forms_search_on`). No changes to this gem's own code.
+
 ## [8.1.65] - 2026-10-31
 
 ### Changed

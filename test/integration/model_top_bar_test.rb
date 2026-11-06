@@ -62,4 +62,22 @@ class ModelTopBarTest < InlineFormsIntegrationTestCase
     refute_includes response.body, "new_button"
     refute_includes response.body, %(id="input_search")
   end
+
+  # The class body runs whenever the model loads (eager loading,
+  # assets:precompile with no database); quoting there needed a connection.
+  test "inline_forms_search_on needs no database connection until the search runs" do
+    model = Class.new(ApplicationRecord) do
+      self.table_name = "widgets"
+      def self.name = "OfflineWidget"
+    end
+    no_db = ->(*) { raise "database touched at declaration" }
+    %i[connection lease_connection with_connection].each { |m| model.define_singleton_method(m, &no_db) }
+
+    model.inline_forms_search_on :name
+
+    assert model.inline_forms_searchable?
+    %i[connection lease_connection with_connection].each { |m| model.singleton_class.remove_method(m) }
+    Widget.create!(name: "Gamma")
+    assert_equal [ "Gamma" ], model.inline_forms_search("amm").pluck(:name)
+  end
 end

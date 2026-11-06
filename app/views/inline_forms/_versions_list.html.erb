@@ -95,7 +95,7 @@
       <%= t("inline_forms.view.version_events.#{version.event}", default: version.event) -%><% if entry[:kind] == :rich_text %> <em>(<%= t("inline_forms.view.versions_rich_text") %>)</em><% end %>
     </div>
     <div class="small-2 column">
-      <%= l(version.created_at, format: :short) -%>
+      <%= inline_forms_time(version.created_at) -%>
     </div>
     <div class="small-2 column">
       <%= version_modified_by version.whodunnit -%>

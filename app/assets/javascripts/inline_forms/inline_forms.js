@@ -14,14 +14,30 @@
 // dropdown_with_other combobox is an <input list> + <datalist>, and
 // slider_with_values is a native <input type="range">. jQuery itself stays
 // only because Foundation 6's JS requires it.
-$(function(){
-  $(document).foundation();
-  initInlineFormsWidgets(document);
-});
+// Once per page load. Turbo Drive re-runs this bundle on every visit (it sits
+// in <body>), and each run brings a fresh jQuery: without the guard each run
+// added another turbo:load listener, and a ready-handler `foundation()` from
+// the fresh copy (its own plugin data) would initialise the menus twice.
+if (!window.inlineFormsBooted) {
+  window.inlineFormsBooted = true;
 
-document.addEventListener("turbo:load", function() {
-  initInlineFormsWidgets(document);
-});
+  $(function(){
+    $(document).foundation();
+    initInlineFormsWidgets(document);
+  });
+
+  // Turbo Drive replaces <body> on a visit: the new top bar's DropdownMenu
+  // has to be initialised again, or its submenus show as plain lists.
+  // Foundation's reflow skips elements that already carry a plugin, so the
+  // call on the first page (turbo:load fires there too) is harmless. jQuery
+  // is looked up at call time.
+  document.addEventListener("turbo:load", function() {
+    if (window.jQuery && window.jQuery.fn.foundation) {
+      window.jQuery(document).foundation();
+    }
+    initInlineFormsWidgets(document);
+  });
+}
 
 // Widget init: one path for first paint, turbo:load and turbo:frame-load.
 // Form element helpers emit class hooks only — no inline <script> tags.

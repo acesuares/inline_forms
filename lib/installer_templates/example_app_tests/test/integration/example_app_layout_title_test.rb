@@ -43,7 +43,7 @@ class ExampleAppLayoutTitleTest < ExampleAppIntegrationTestCase
     get apartments_path
 
     assert_response :success
-    assert_includes @response.body, %(<html lang="nl">)
+    assert_includes @response.body, %(<html lang="nl" class="no-js">)
     assert_equal expected_title, page_title
   ensure
     en = Locale.find_by(name: "en")

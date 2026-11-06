@@ -14,7 +14,7 @@
       <% elsif @last_sweep.error.present? %>
         <%= t("inline_forms.files.global.sweep_failed", error: @last_sweep.error) %>
       <% else %>
-        <%= t("inline_forms.files.global.sweep_last", at: l(@last_sweep.ran_at, format: :short), count: @last_sweep.purged_count) %>
+        <%= t("inline_forms.files.global.sweep_last", at: l(@last_sweep.ran_at, format: :inline_forms), count: @last_sweep.purged_count) %>
       <% end %>
     </p>
 
@@ -78,10 +78,10 @@
                   <span class="inline_forms-file-name"><%= inline_forms_file_entry_name(entry) %></span>
                   <span class="inline_forms-file-meta"><%= inline_forms_file_size(entry.byte_size) %> &middot; <%= t("inline_forms.files.reason.#{entry.reason}") %></span>
                 </td>
-                <td><%= t("inline_forms.files.by_on", user: inline_forms_file_user_name(entry.trashed_by_id), at: l(entry.trashed_at, format: :short)) %></td>
+                <td><%= t("inline_forms.files.by_on", user: inline_forms_file_user_name(entry.trashed_by_id), at: l(entry.trashed_at, format: :inline_forms)) %></td>
                 <td>
-                  <% if entry.state == :restored %><%= t("inline_forms.files.state_restored", user: inline_forms_file_user_name(entry.restored_by_id), at: l(entry.restored_at, format: :short)) %>
-                  <% elsif entry.state == :purged %><%= t("inline_forms.files.state_purged", user: inline_forms_file_user_name(entry.purged_by_id), at: l(entry.purged_at, format: :short)) %>
+                  <% if entry.state == :restored %><%= t("inline_forms.files.state_restored", user: inline_forms_file_user_name(entry.restored_by_id), at: l(entry.restored_at, format: :inline_forms)) %>
+                  <% elsif entry.state == :purged %><%= t("inline_forms.files.state_purged", user: inline_forms_file_user_name(entry.purged_by_id), at: l(entry.purged_at, format: :inline_forms)) %>
                   <% elsif entry.state == :expired %><%= t("inline_forms.files.state_expired") %>
                   <% else %>
                     <% if entry.purge_after %><%= t("inline_forms.files.expires_in", count: ((entry.purge_after - Time.current) / 1.day).ceil, date: l(entry.purge_after.to_date)) %><% else %><%= t("inline_forms.files.global.states.trashed") %><% end %>

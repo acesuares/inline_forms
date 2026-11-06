@@ -1,10 +1,16 @@
 nl:
   inline_forms:
-    general:
-      application_title: Application Title
+    # The generic list search (inline_forms/_generic_search), shown for
+    # models that declare inline_forms_search_on.
+    search:
+      placeholder: "zoeken..."
+      submit: zoek
+      reset: wissen
+    # general.application_title, devise.title_for_devise and devise.welcome
+    # are not defined here: without a host override the views use the
+    # host's application_name translation (InlineFormsHelper#inline_forms_application_title).
     devise:
-      title_for_devise: Title for Devise
-      welcome: Welcome for Devise
+      welcome_to: "Welkom bij %{name}!"
       passwords:
         forgot_your_password: Wachtwoord Vergeten?
         change_your_password: Verander wachtwoord, als u wilt!
@@ -152,3 +158,8 @@ nl:
     messages:
       inline_forms_file_too_large: "is te groot (maximaal %{count} MB)"
       inline_forms_file_missing: "geen bestand gekozen"
+  # Version and file timestamps (InlineFormsHelper#inline_forms_time and the
+  # file trash): rails-i18n's :short has no year.
+  time:
+    formats:
+      inline_forms: "%d %b %Y %H:%M"
