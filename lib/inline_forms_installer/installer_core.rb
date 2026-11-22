@@ -166,8 +166,8 @@ gem 'dartsass-rails'
 # explicitly because the gem's own assets (foundation, jquery, etc.) live in
 # app/assets and rely on the Sprockets pipeline.
 gem 'sprockets-rails'
-# Rails 7 default JavaScript tooling: importmap-rails replaces Webpacker.
-gem 'importmap-rails'
+# No importmap-rails: JavaScript comes from gems through Sprockets, and
+# `bin/importmap pin` would download npm packages into the app.
 # Hotwire/Turbo. Loaded from layouts as `<script type="module">`; inline flows
 # use `<turbo-frame>` + HTML responses (see docs/ujs-to-turbo.md). Registers the
 # `turbo_stream` MIME type for optional stream responses.
@@ -230,7 +230,7 @@ copy_file File.join(INSTALLER_ROOT, "lib/installer_templates/dartsass/inline_for
 copy_file File.join(INSTALLER_ROOT, "lib/installer_templates/dartsass/devise_main.scss"),
           "app/assets/stylesheets/inline_forms_install/devise_main.scss"
 
-say "- Sprockets: app/assets/config/manifest.js (Rails 8 importmap default omits it)..."
+say "- Sprockets: app/assets/config/manifest.js (rails new omits it)..."
 empty_directory "app/assets/config"
 create_file "app/assets/config/manifest.js", <<~MANIFEST unless File.exist?("app/assets/config/manifest.js")
   //= link_tree ../images
@@ -889,23 +889,6 @@ if ENV['install_schema_edit'] == 'true'
   run "bundle exec rails g inline_forms_schema_edit:install"
   run "bundle exec rake db:migrate" if ENV['using_sqlite'] == 'true'
 end
-
-# bin/ci (written by `rails new`) runs `bin/importmap audit`, but `rails new`
-# leaves importmap:install to the bundle step, which the installer skips. Only
-# the command and an empty map: the app's JavaScript comes from Sprockets, so
-# importmap:install's layout tag, entrypoint and manifest lines are not wanted.
-say "- bin/importmap (bin/ci audits the import map with it)..."
-create_file "bin/importmap", <<~IMPORTMAP_BIN
-  #!/usr/bin/env ruby
-
-  require_relative "../config/application"
-  require "importmap/commands"
-IMPORTMAP_BIN
-chmod "bin/importmap", 0755
-create_file "config/importmap.rb", <<~IMPORTMAP_CONFIG
-  # No pins: this app's JavaScript comes from Sprockets. `bin/importmap audit`,
-  # which bin/ci runs, needs this file to exist.
-IMPORTMAP_CONFIG
 
 # Style: what inline_forms writes follows the app's RuboCop config by itself
 # (the example app's test suite checks that). These come from other gems'

@@ -163,7 +163,7 @@ module InlineFormsInstaller
 
       shell_cmd = [
         rails_invocation, "new", app_name, "-m", app_template_file,
-        "--skip-bundle", "--skip-bootsnap", "--javascript=importmap"
+        "--skip-bundle", "--skip-bootsnap", "--skip-javascript"
       ].join(" ")
 
       ok, log_path = InlineFormsInstaller::CreateLog.tee_rails_new(app_name, shell_cmd, started_at: started_at)
