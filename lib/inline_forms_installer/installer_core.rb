@@ -88,7 +88,7 @@ end
 # agnostic `X.Y.Z` form; `force: true` avoids Thor's interactive overwrite
 # prompt when Rails' value differs (it always does, now that we drop the
 # RVM-only `ruby-` prefix).
-create_file ".ruby-version", "#{ENV.fetch('ruby_version', '4.0.4')}\n", force: true
+create_file ".ruby-version", "#{ENV.fetch('ruby_version', '4.0.10')}\n", force: true
 if (gemset = ENV["inline_forms_rvm_gemset"]).to_s != ""
   create_file ".ruby-gemset", "#{gemset}\n"
 end

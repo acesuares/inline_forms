@@ -8,6 +8,18 @@ All notable changes to this project are documented in this file.
 
 - Known issues, parked (local note `stuff/2026-10-31-dropdown-rule-3-parked.md`) with dropdown order rule 3: `includes`, `group` or `select` in `inline_forms_list` make `dropdown` and `dropdown_with_other` raise while `/index` works, so 8.1.65's fix for a list order on a joined table holds only for `joins`, `left_joins` and `eager_load`; a has_many join gives duplicate options. Present since 8.1.60. No host's list scope has these today. Parked; not changed.
 
+## [8.1.68] - 2026-11-22
+
+### Security
+
+- **Ruby 4.0.10 instead of 4.0.4.** Ruby 4.0.4 has eight advisories in ruby-advisory-db (31efd9aa, 2026-11-22), among them CVE-2026-132825 (heap buffer overflow in string case conversion, fixed in 4.0.10) and CVE-2026-46727 (use-after-free in `getaddrinfo`, fixed in 4.0.5). `bundler-audit` does not check the interpreter.
+
+### Changed
+
+- **Installer: generated apps pin Ruby 4.0.10** in `.ruby-version` (`InlineFormsInstaller::TARGET_RUBY_VERSION` and the template's fallback). That Ruby must be installed before `inline_forms create`. Existing apps keep the `.ruby-version` they have.
+- The repo's own `.ruby-version` follows. `required_ruby_version` stays `>= 4.0.0`.
+- **CI runs without Node.** `ci.yml`, `full-gate.yml` and the `inline_forms_schema_edit` example workflow run in the official `ruby:4.0.10` image and check out with plain git instead of `actions/checkout` and `actions/cache`, which are JavaScript. Gems are installed fresh each run.
+
 ## [8.1.67] - 2026-11-06
 
 Fixes from a code review of 8.1.66.

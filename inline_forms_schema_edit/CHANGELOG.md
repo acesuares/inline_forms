@@ -5,6 +5,16 @@ lockstep with inline_forms / inline_forms_installer / validation_hints.
 
 ## [Unreleased]
 
+## [8.1.68] - 2026-11-22
+
+### Changed
+
+- `doc/schema-apply-workflow.yml.example` runs without Node: the official
+  `ruby:4.0.10` image, and plain git instead of `actions/checkout`.
+- Version bump to stay in lockstep with `inline_forms` /
+  `inline_forms_installer` / `validation_hints` 8.1.68 (Ruby 4.0.10). No
+  changes to this gem's own code.
+
 ## [8.1.67] - 2026-11-06
 
 ### Changed

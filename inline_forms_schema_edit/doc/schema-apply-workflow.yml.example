@@ -15,6 +15,10 @@
 # Secrets:
 #   SCHEMA_EXPORT_TOKEN  — matches InlineFormsSchemaEdit.export_token on the tenant
 #   TENANT_URL           — e.g. https://tenant.example.com
+#
+# No Node: the official ruby image and plain git instead of actions/checkout,
+# which is JavaScript and needs node in the container. The job's own token
+# must be allowed to push to this repo.
 
 name: Schema apply
 
@@ -29,9 +33,19 @@ jobs:
   schema-apply:
     runs-on: docker
     container:
-      image: papiamentu-ci:ruby-4.0.4-node20
+      image: docker.io/library/ruby:4.0.10
     steps:
-      - uses: actions/checkout@v4
+      - name: Check out
+        env:
+          TOKEN: ${{ github.token }}
+          SERVER: ${{ github.server_url }}
+          REPO: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+        run: |
+          auth=$(printf 'x-access-token:%s' "$TOKEN" | base64 -w0)
+          git init -q .
+          git -c http.extraHeader="Authorization: basic $auth" fetch -q --depth 1 "$SERVER/$REPO.git" "$SHA"
+          git checkout -q FETCH_HEAD
 
       - name: Fetch the frozen batch
         run: |
@@ -59,12 +73,18 @@ jobs:
         run: bundle exec rails test
 
       - name: Commit
+        env:
+          TOKEN: ${{ github.token }}
+          SERVER: ${{ github.server_url }}
+          REPO: ${{ github.repository }}
+          REF: ${{ github.ref }}
         run: |
+          auth=$(printf 'x-access-token:%s' "$TOKEN" | base64 -w0)
           git config user.email "schema-pipeline@invalid"
           git config user.name "Schema pipeline"
           git add -A
           git commit -m "Schema batch ${{ inputs.batch_id }}: $(date -u +%FT%TZ)"
-          git push origin HEAD
+          git -c http.extraHeader="Authorization: basic $auth" push "$SERVER/$REPO.git" "HEAD:$REF"
 
       - name: Mark ready
         run: |
