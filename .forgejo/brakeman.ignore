@@ -1,0 +1,211 @@
+{
+  "ignored_warnings": [
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "09d9d139a9c55d2f8ddc853b4e488d8b90a22e81f9b808d5ac60503296a17c40",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "engines/inline_forms/app/controllers/inline_forms_controller.rb",
+      "line": 181,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "(self.controller_name.classify.constantize.accessible_by(current_ability) or self.controller_name.classify.constantize.all).merge(self.controller_name.classify.constantize.inline_forms_list).merge(self.controller_name.classify.constantize.inline_forms_search(params[:search])).where((nil or [\"#{(self.controller_name.classify.constantize.reflect_on_association(params[:parent_class].underscore.to_sym).options[:foreign_key] or params[:parent_class].foreign_key)} = ?\", params[:parent_id]]))",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "InlineFormsController",
+        "method": "create"
+      },
+      "user_input": "params[:parent_class].underscore.to_sym",
+      "confidence": "Medium",
+      "cwe_id": [
+        89
+      ],
+      "note": "parent_class and parent_id are refused (400) by refuse_malformed_parent_params unless parent_class names a belongs_to association of the model and parent_id is all digits; foreign_key comes from the model's reflection or that class name, and parent_id is a bind value. Tests: test/integration/list_params_test.rb."
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "0ea384debe73789ae09a12359f268b7362bec05090e670f180ab1434d822a012",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "engines/inline_forms/app/views/inline_forms/_list.html.erb",
+      "line": 41,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "(parent_class.find(parent_id).send(attribute) or parent_class.find(parent_id).send(attribute).accessible_by(current_ability)).merge(attribute.to_s.singularize.camelcase.constantize.inline_forms_list).where([\"#{attribute.to_s.singularize.camelcase.constantize.table_name}.#{(parent_class.reflect_on_association(attribute.to_sym).options[:foreign_key] or parent_class.name.foreign_key)} = ?\", parent_id])",
+      "render_path": [
+        {
+          "type": "controller",
+          "class": "InlineFormsController",
+          "method": "index",
+          "line": 105,
+          "file": "engines/inline_forms/app/controllers/inline_forms_controller.rb",
+          "rendered": {
+            "name": "inline_forms/_list",
+            "file": "engines/inline_forms/app/views/inline_forms/_list.html.erb"
+          }
+        }
+      ],
+      "location": {
+        "type": "template",
+        "template": "inline_forms/_list"
+      },
+      "user_input": "parent_class.reflect_on_association(attribute.to_sym).options[:foreign_key]",
+      "confidence": "Weak",
+      "cwe_id": [
+        89
+      ],
+      "note": "In this branch parent_class is a class passed by _show.html.erb, not a param, and foreign_key is the association's foreign key or the class name's. parent_id is a bind value."
+    },
+    {
+      "warning_type": "Remote Code Execution",
+      "warning_code": 24,
+      "fingerprint": "61c8f32dd8829cb209a4136d62ff04f729a3f04ea1d1c69b64728ecabc1f4c66",
+      "check_name": "UnsafeReflection",
+      "message": "Unsafe reflection method `constantize` called on parameter value",
+      "file": "engines/inline_forms/app/views/inline_forms/_list.html.erb",
+      "line": 19,
+      "link": "https://brakemanscanner.org/docs/warning_types/remote_code_execution/",
+      "code": "params[:parent_class].constantize",
+      "render_path": [
+        {
+          "type": "controller",
+          "class": "InlineFormsController",
+          "method": "index",
+          "line": 105,
+          "file": "engines/inline_forms/app/controllers/inline_forms_controller.rb",
+          "rendered": {
+            "name": "inline_forms/_list",
+            "file": "engines/inline_forms/app/views/inline_forms/_list.html.erb"
+          }
+        }
+      ],
+      "location": {
+        "type": "template",
+        "template": "inline_forms/_list"
+      },
+      "user_input": "params[:parent_class]",
+      "confidence": "High",
+      "cwe_id": [
+        470
+      ],
+      "note": "@parent_class is only set in index, new and create, and the before_action refuse_malformed_parent_params covers index, new, create and show: parent_class is blank or the class name of a non-polymorphic belongs_to of the controller's model, so no other class is constantized. Tests: test/integration/list_params_test.rb."
+    },
+    {
+      "warning_type": "Dangerous Send",
+      "warning_code": 23,
+      "fingerprint": "67076d627523cb3c2746069c8e98d2261b3fcfe04a11463f6eb56e4f10e789a4",
+      "check_name": "Send",
+      "message": "User controlled method execution",
+      "file": "engines/inline_forms/app/controllers/inline_forms_controller.rb",
+      "line": 221,
+      "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
+      "code": "send(\"#{params[:form_element]}_update\", referenced_object, params[:attribute])",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "InlineFormsController",
+        "method": "update"
+      },
+      "user_input": "params[:form_element]",
+      "confidence": "High",
+      "cwe_id": [
+        77
+      ],
+      "note": "field_request_permitted?(:update) runs first and refuses (400) unless attribute and form_element name a row of the model's own attribute list, so only the *_update method of a declared form element can be called."
+    },
+    {
+      "warning_type": "Dangerous Send",
+      "warning_code": 23,
+      "fingerprint": "6988827dc9c767b44428caabc78a6c8596ad933a406ae1a32b85ae3fd4a4ed23",
+      "check_name": "Send",
+      "message": "User controlled method execution",
+      "file": "engines/inline_forms/app/controllers/inline_forms_controller.rb",
+      "line": 259,
+      "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
+      "code": "referenced_object.send(params[:attribute])",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "InlineFormsController",
+        "method": "show"
+      },
+      "user_input": "params[:attribute]",
+      "confidence": "High",
+      "cwe_id": [
+        77
+      ],
+      "note": "field_request_permitted?(:read) refuses (400) unless attribute and form_element name a row of the model's own attribute list, then authorizes the attribute. With no attribute the send is of nil, which raises. Covers the associated and has_one branches of show."
+    },
+    {
+      "warning_type": "Command Injection",
+      "warning_code": 14,
+      "fingerprint": "70ea329216e82770ca0de3975a7082e37fe86e417b021e68f95cc6e823e14a77",
+      "check_name": "Execute",
+      "message": "Possible command injection",
+      "file": "engines/inline_forms/lib/inline_forms_installer/create_log.rb",
+      "line": 55,
+      "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
+      "code": "system(\"bash\", \"-c\", \"#{shell_command} 2>&1 | tee -a #{Shellwords.escape(File.expand_path(basename_for(started_at)))}; exit ${PIPESTATUS[0]}\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "InlineFormsInstaller::CreateLog",
+        "method": "tee_rails_new"
+      },
+      "user_input": "shell_command",
+      "confidence": "Medium",
+      "cwe_id": [
+        77
+      ],
+      "note": "Installer command line, not reachable from a web request. shell_command is built by Creator#create from the rails command, the app name (checked against its regex first) and a path in the installer; the operator runs it as themself."
+    },
+    {
+      "warning_type": "Dangerous Send",
+      "warning_code": 23,
+      "fingerprint": "a858a85120c0ef89f96452d8bcb0d01664507ceb2ae4d834cfc237403b4b93a8",
+      "check_name": "Send",
+      "message": "User controlled method execution",
+      "file": "engines/inline_forms/app/controllers/inline_forms_controller.rb",
+      "line": 258,
+      "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
+      "code": "referenced_object.send((params[:attribute].to_s.singularize + \"_ids\"))",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "InlineFormsController",
+        "method": "show"
+      },
+      "user_input": "(params[:attribute].to_s.singularize + \"_ids\")",
+      "confidence": "High",
+      "cwe_id": [
+        77
+      ],
+      "note": "field_request_permitted?(:read) refuses (400) unless attribute and form_element name a row of the model's own attribute list, so only <association>_ids of a declared association is called."
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "ad2b4dd8ced8aa1edf48bfbb80730b2bd4dadc84a15de67fd9dde25d81c46e00",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "engines/inline_forms/app/controllers/inline_forms_controller.rb",
+      "line": 64,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "self.controller_name.classify.constantize.all.merge(self.controller_name.classify.constantize.inline_forms_list).merge(self.controller_name.classify.constantize.inline_forms_search(params[:search])).where((nil or [\"#{(self.controller_name.classify.constantize.reflect_on_association(params[:parent_class].underscore.to_sym).options[:foreign_key] or params[:parent_class].foreign_key)} = ?\", params[:parent_id]]))",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "InlineFormsController",
+        "method": "index"
+      },
+      "user_input": "params[:parent_class].underscore.to_sym",
+      "confidence": "Medium",
+      "cwe_id": [
+        89
+      ],
+      "note": "parent_class and parent_id are refused (400) by refuse_malformed_parent_params unless parent_class names a belongs_to association of the model and parent_id is all digits; foreign_key comes from the model's reflection or that class name, and parent_id is a bind value. Tests: test/integration/list_params_test.rb."
+    }
+  ],
+  "brakeman_version": "8.1.1"
+}

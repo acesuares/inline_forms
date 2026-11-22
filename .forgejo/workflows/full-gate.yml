@@ -2,10 +2,11 @@
 # generate the example app (which runs its own 150+ test suite as part of
 # `inline_forms create`), then run Brakeman against the generated app.
 #
-# Brakeman is aimed at Rails *applications*; scanning the generated MyApp
-# covers the engine's controllers/views in their real app context plus
-# everything the installer writes — scanning the bare engine repo would
-# skip most checks. bundler-audit for the engine runs in ci.yml.
+# Brakeman is aimed at Rails *applications* and skips gem code, so it runs
+# twice: on the generated MyApp (everything the installer writes), and on
+# MyApp together with the engine's own controllers, helpers and views
+# (.forgejo/brakeman-engine.sh; accepted warnings, with their reasons, in
+# .forgejo/brakeman.ignore). bundler-audit for the engine runs in ci.yml.
 #
 # Heavy (~3-4 min: rails new + bundle + migrations + tests), so it runs on
 # demand and weekly, not per push. Requires network access to rubygems.org
@@ -96,3 +97,8 @@ jobs:
           # Pedantic full set stays informational: it includes checks that
           # can fire on perfectly reasonable future code.
           brakeman --run-all-checks --no-pager || true
+
+      # ENFORCING: a warning that is not in .forgejo/brakeman.ignore fails, and
+      # so does an entry there that has no reason or no longer occurs.
+      - name: Brakeman against the app together with the engine
+        run: bash inline_forms/.forgejo/brakeman-engine.sh apps/MyApp
