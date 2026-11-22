@@ -43,7 +43,8 @@ All notable changes to this project are documented in this file.
 ### Changed
 
 - **Installer: generated apps have `rubocop-rails-omakase`** (development and test groups), the gem behind `bin/rubocop`, which `bin/ci` runs. The generated app had 335 offenses (all style); it now has none. Existing apps are not changed.
-- **Generators write RuboCop's style:** double quotes and new hash syntax, no trailing spaces, no blank line at the start or end of a class, and no comma after the last `inline_forms_attribute_list` row. `inline_forms_addto` adds that comma when it appends a row, also before a trailing comment. Lists with the comma keep working, as does `MODEL_TABS = %w( )`, which is now written as `%w[ ]`.
+- **Generators write RuboCop's style:** double quotes and new hash syntax, no trailing spaces, no blank line at the start or end of a class, and no comma after the last `inline_forms_attribute_list` row. `inline_forms_addto` adds that comma when it appends a row, also before a trailing comment. Lists with the comma keep working, as does `MODEL_TABS = %w( )`, which is now written as `%w[ ]`. Re-running `inline_forms_addto` recognises the `:dependent => :destroy` line it wrote before.
+- The installer runs `bin/rubocop -a` on the files Devise's and PaperTrail's generators write (`config/initializers/devise.rb` and the versions migrations).
 
 ### Fixed
 
@@ -52,6 +53,7 @@ All notable changes to this project are documented in this file.
 ### Tests
 
 - The example app's suite runs `bin/rubocop` on the whole app.
+- Generator tests for the style of the model and migration, lists with and without the last comma, and the pre-8.1.72 `MODEL_TABS` and `has_many` lines.
 
 ## [8.1.71] - 2026-11-22
 
