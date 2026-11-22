@@ -547,7 +547,7 @@ create_file "db/migrate/" +
     end
 
     def self.down
-      drop_table #{user_cfg.join_table}
+      drop_table :#{user_cfg.join_table}
     end
   end
 ROLES_MIGRATION

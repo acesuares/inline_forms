@@ -8,6 +8,16 @@ All notable changes to this project are documented in this file.
 
 - Known issues, parked (local note `stuff/2026-10-31-dropdown-rule-3-parked.md`) with dropdown order rule 3: `includes`, `group` or `select` in `inline_forms_list` make `dropdown` and `dropdown_with_other` raise while `/index` works, so 8.1.65's fix for a list order on a joined table holds only for `joins`, `left_joins` and `eager_load`; a has_many join gives duplicate options. Present since 8.1.60. No host's list scope has these today. Parked; not changed.
 
+## [8.1.74] - 2026-11-22
+
+### Fixed
+
+- **Installer: the users/roles join table migration rolls back.** Its `down` said `drop_table roles_users`, without the colon, and raised `NoMethodError`. An existing app can correct that line in its own `db/migrate/*_inline_forms_create_join_table_*_role.rb`.
+
+### Tests
+
+- The example app rolls that migration back and runs it again (`example_app_roles_join_table_rollback_test.rb`).
+
 ## [8.1.73] - 2026-11-22
 
 ### Fixed
