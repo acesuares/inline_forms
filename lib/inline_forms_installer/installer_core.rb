@@ -183,6 +183,13 @@ gem_group :test do
   gem 'minitest', '~> 5.25'
 end
 
+# The gems behind bin/brakeman and bin/bundler-audit, which `rails new` writes
+# and bin/ci runs. In both groups, as in the Gemfile Rails itself generates.
+gem_group :development, :test do
+  gem 'brakeman', require: false
+  gem 'bundler-audit', require: false
+end
+
 gem_group :development do
   gem 'capistrano-bundler', require: false
   gem 'capistrano-rails', require: false

@@ -8,6 +8,16 @@ All notable changes to this project are documented in this file.
 
 - Known issues, parked (local note `stuff/2026-10-31-dropdown-rule-3-parked.md`) with dropdown order rule 3: `includes`, `group` or `select` in `inline_forms_list` make `dropdown` and `dropdown_with_other` raise while `/index` works, so 8.1.65's fix for a list order on a joined table holds only for `joins`, `left_joins` and `eager_load`; a has_many join gives duplicate options. Present since 8.1.60. No host's list scope has these today. Parked; not changed.
 
+## [8.1.71] - 2026-11-22
+
+### Fixed
+
+- **Installer: generated apps have `brakeman` and `bundler-audit`** (development and test groups, `require: false`). `rails new` writes `bin/brakeman` and `bin/bundler-audit`, and `bin/ci` runs them, but the installer's own Gemfile left the gems out, so both failed. Existing apps are not changed.
+
+### Tests
+
+- The example app runs both binstubs (`example_app_security_tools_test.rb`).
+
 ## [8.1.70] - 2026-11-22
 
 ### Changed

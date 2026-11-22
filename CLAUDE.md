@@ -37,7 +37,7 @@ Goal: build the current gems, install them into
 
 `/srv/vmsshared/projects/testInline` replaces the old `/home/code/testInline`
 (only user `code` can read `/home/code`). It holds `.ruby-version`
-(`ruby-4.0.4`) and `.ruby-gemset` (`testInline`), and the generated app gets
+(`ruby-4.0.10`) and `.ruby-gemset` (`testInline`), and the generated app gets
 its own `@MyApp` gemset. Both gemsets are shared by everyone on this machine:
 do not build or install while another session is running this test.
 
