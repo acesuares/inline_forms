@@ -201,8 +201,11 @@ gem_group :development do
 end
 
 gem_group :production do
+  # The ExecJS runtime (embedded V8) terser runs on, so no node is needed.
   gem 'mini_racer'
-  gem 'uglifier'
+  # JavaScript compressor (config.assets.js_compressor in production.rb).
+  # uglifier is ES5-era and cannot parse Turbo 8's ES2022 bundle.
+  gem 'terser'
 end
 
 say "- Running bundle..."
@@ -773,6 +776,16 @@ gsub_file "config/environments/production.rb",
           "# config.assume_ssl = true", "config.assume_ssl = true"
 gsub_file "config/environments/production.rb",
           "# config.force_ssl = true", "config.force_ssl = true"
+
+# JavaScript compression on assets:precompile. Nothing else sets a compressor,
+# and the gem alone (production group) does not switch it on.
+say "- Setting js_compressor = :terser in environments/production.rb..."
+insert_into_file "config/environments/production.rb", <<-JS_COMPRESSOR.strip_heredoc.indent(2), after: "Rails.application.configure do\n"
+  # Compress JavaScript with terser (ES2022-capable), which runs on mini_racer;
+  # both are in the Gemfile's production group.
+  config.assets.js_compressor = :terser
+
+JS_COMPRESSOR
 
 # devise mailer stuff
 say "- Injecting devise mailer stuff in environments/production.rb..."

@@ -8,6 +8,16 @@ All notable changes to this project are documented in this file.
 
 - Known issues, parked (local note `stuff/2026-10-31-dropdown-rule-3-parked.md`) with dropdown order rule 3: `includes`, `group` or `select` in `inline_forms_list` make `dropdown` and `dropdown_with_other` raise while `/index` works, so 8.1.65's fix for a list order on a joined table holds only for `joins`, `left_joins` and `eager_load`; a has_many join gives duplicate options. Present since 8.1.60. No host's list scope has these today. Parked; not changed.
 
+## [8.1.69] - 2026-11-22
+
+### Changed
+
+- **Installer: generated apps use terser instead of uglifier,** and compress JavaScript on `assets:precompile`: the production group has `terser` next to `mini_racer` (its ExecJS runtime, so no Node), and `config/environments/production.rb` gets `config.assets.js_compressor = :terser`. Before, uglifier was in the Gemfile but nothing set a compressor. Existing apps are not changed.
+
+### Tests
+
+- The example app checks the setting and the production group (`example_app_production_js_compressor_test.rb`).
+
 ## [8.1.68] - 2026-11-22
 
 ### Security
