@@ -890,6 +890,23 @@ if ENV['install_schema_edit'] == 'true'
   run "bundle exec rake db:migrate" if ENV['using_sqlite'] == 'true'
 end
 
+# bin/ci (written by `rails new`) runs `bin/importmap audit`, but `rails new`
+# leaves importmap:install to the bundle step, which the installer skips. Only
+# the command and an empty map: the app's JavaScript comes from Sprockets, so
+# importmap:install's layout tag, entrypoint and manifest lines are not wanted.
+say "- bin/importmap (bin/ci audits the import map with it)..."
+create_file "bin/importmap", <<~IMPORTMAP_BIN
+  #!/usr/bin/env ruby
+
+  require_relative "../config/application"
+  require "importmap/commands"
+IMPORTMAP_BIN
+chmod "bin/importmap", 0755
+create_file "config/importmap.rb", <<~IMPORTMAP_CONFIG
+  # No pins: this app's JavaScript comes from Sprockets. `bin/importmap audit`,
+  # which bin/ci runs, needs this file to exist.
+IMPORTMAP_CONFIG
+
 # Style: what inline_forms writes follows the app's RuboCop config by itself
 # (the example app's test suite checks that). These come from other gems'
 # generators.
