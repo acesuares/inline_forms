@@ -5,6 +5,14 @@ lockstep with inline_forms / inline_forms_installer / validation_hints.
 
 ## [Unreleased]
 
+## [8.1.70] - 2026-11-22
+
+### Changed
+
+- Version bump to stay in lockstep with `inline_forms` /
+  `inline_forms_installer` / `validation_hints` 8.1.70 (inline_forms needs
+  Rails 8.1.4.1 or later). No changes to this gem's own code.
+
 ## [8.1.69] - 2026-11-22
 
 ### Changed
