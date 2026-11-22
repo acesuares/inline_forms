@@ -1,9 +1,10 @@
 # -*- encoding : utf-8 -*-
 
 module InlineFormsInstaller
-  VERSION = "8.1.75"
+  VERSION = "8.1.76"
 
-  # Canonical bare Ruby version (must match gemspec `required_ruby_version`).
+  # Canonical bare Ruby version (the gemspecs accept any Ruby >= 4.0.0; an app
+  # gets the running Ruby when this one is not there, see ruby_for_app).
   # Written verbatim into generated apps' `.ruby-version` for rbenv/chruby/asdf/
   # mise (which need the bare `X.Y.Z` form). For RVM installs the Creator writes
   # the `ruby-X.Y.Z` form instead, because RVM's `.ruby-version` reader rejects a

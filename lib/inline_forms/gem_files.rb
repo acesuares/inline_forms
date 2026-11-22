@@ -19,21 +19,24 @@ module InlineFormsGemFiles
     inline_forms_schema_edit/
   ].freeze
 
-  # Scratch / local-notes dir. It holds working notes and, crucially, secrets
-  # such as stuff/forgejo-token (mode 0600, only used by CI pushes to forgejo).
-  # It must NEVER be packaged into a gem. Do not rely on git ignore for this:
-  # gem_files sweeps untracked files too, and the global excludes file that
-  # ignores stuff/ is per-machine (present here, absent on the release box), so
-  # the token leaked into `gem build` on the release machine. Exclude it hard,
-  # independent of any ignore configuration.
-  #
-  # Same for Claude Code files: .claude/ (untracked, per checkout:
-  # launch.json, settings.local.json, worktrees) and CLAUDE.md (committed so
-  # worktrees see it, but repo instructions, not gem content).
-  EXCLUDED_FILE_PREFIXES = %w[
-    stuff/
-    .claude/
-    CLAUDE.md
+  # What an installed gem needs: the engine, the archived form elements (hosts
+  # copy them; ArchivedFormElements points there) and the documents. Everything
+  # else in the checkout stays out: tests, CI, RuboCop and Ruby version files, and
+  # above all untracked files, which gem_files sweeps too. stuff/ holds working notes and secrets such as stuff/forgejo-token; the
+  # global excludes file that ignores it is per-machine and absent on the release
+  # box, where the token once leaked into `gem build`. Hence a list of what goes
+  # in, not of what stays out.
+  PACKAGED_PREFIXES = %w[
+    app/
+    archived/
+    bin/
+    lib/
+    vendor/assets/
+    CHANGELOG.md
+    LICENSE.txt
+    README.rdoc
+    inline_forms.gemspec
+    inline_forms_installer.gemspec
   ].freeze
 
   module_function
@@ -59,8 +62,8 @@ module InlineFormsGemFiles
 
     files.select! { |f| File.file?(File.join(REPO_ROOT, f)) }
 
-    files.reject! do |f|
-      EXCLUDED_FILE_PREFIXES.any? { |prefix| f == prefix || f.start_with?(prefix) }
+    files.select! do |f|
+      PACKAGED_PREFIXES.any? { |prefix| prefix.end_with?("/") ? f.start_with?(prefix) : f == prefix }
     end
 
     files.reject! do |f|

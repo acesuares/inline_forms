@@ -1,6 +1,7 @@
 # -*- encoding : utf-8 -*-
 
 require "inline_forms_installer/version"
+require "inline_forms_installer/target_ruby"
 
 module InlineFormsInstaller
   def self.gem_root

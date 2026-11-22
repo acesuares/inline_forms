@@ -4,7 +4,7 @@ Inline Forms is almost a complete admin application. You can try it out easily.
 
 = Requirements
 
-* Ruby **>= 4.0** (generated apps pin **4.0.10** via +.ruby-version+)
+* Ruby **>= 4.0** (generated apps pin **4.0.10** via +.ruby-version+, or the Ruby that runs the installer when 4.0.10 is not installed)
 * Rails **8.1.x**, at least **8.1.4.1** (+rails ~> 8.1+, +config.load_defaults 8.1+)
 * **validation_hints** **~> 8** (companion gem; same version line as +inline_forms+ / +inline_forms_installer+)
 

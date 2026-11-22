@@ -1,6 +1,7 @@
 # -*- encoding : utf-8 -*-
 require "inline_forms"
 require_relative "inline_forms_attribute_overrides"
+require_relative "inline_forms_attribute_list_editor"
 
 # == Usage
 #
@@ -39,11 +40,6 @@ class InlineFormsAddtoGenerator < Rails::Generators::NamedBase
     # hash and warn the user to fill it in. Canonical list lives in InlineForms
     # (shared with the schema GUI/preview).
     VALUE_BEARING_ELEMENTS = InlineForms::VALUE_BEARING_FORM_ELEMENTS
-
-    # attribute_list rows whose form element (or name) marks the start of the
-    # trailing "metadata" block. The smart-default placement inserts new rows
-    # above this block instead of at the very end of the list.
-    METADATA_ROW_NAMES = %w[created_at updated_at].freeze
 
     argument :attributes, type: :array, banner: "[name:form_element]..."
     class_option :allow_unknown, type: :boolean, default: false,
@@ -124,8 +120,9 @@ class InlineFormsAddtoGenerator < Rails::Generators::NamedBase
           @migration_lines << "    add_column :#{table_name}, :#{columns[:data]}, :binary, **(connection.adapter_name.match?(/mysql|trilogy/i) ? { size: :long } : {})\n"
           @migration_lines << "    add_column :#{table_name}, :#{columns[:content_type]}, :string\n"
         else
-          commenter = attribute.attribute_type == :unknown ? "#" : " "
-          @migration_lines << "#{commenter}    add_column :#{table_name}, :#{attribute.name}, :#{attribute.column_type}\n"
+          commenter = attribute.attribute_type == :unknown ? "# " : ""
+          @migration_lines << "    #{commenter}add_column :#{table_name}, :#{attribute.name}, " \
+                              ":#{attribute.column_type}#{attribute.inline_forms_column_options}\n"
         end
       end
 
@@ -290,10 +287,8 @@ class InlineFormsAddtoGenerator < Rails::Generators::NamedBase
     # generator-shaped list (e.g. only the inherited
     # `attr_writer :inline_forms_attribute_list` and no body).
     #
-    # Row-aware, not regex-greedy: we locate the `[` after
-    # `@inline_forms_attribute_list ||=` and bracket-depth scan to its
-    # matching `]`, so the edit survives `].freeze`, trailing comments, and
-    # any methods defined after the list. Placement honors `--after`/`--before`
+    # InlineForms::AttributeListEditor finds the list with Ruby's parser and
+    # places the row. Placement honors `--after`/`--before`
     # (by attribute name) and otherwise lands above the trailing metadata block
     # (`:info` rows / created_at / updated_at, and a `:header` directly above
     # them) instead of after it.
@@ -307,8 +302,10 @@ class InlineFormsAddtoGenerator < Rails::Generators::NamedBase
         return
       end
 
-      bounds = attribute_list_bounds(content)
-      unless bounds
+      editor = attribute_list_editor(content, attribute)
+      return unless editor
+
+      unless editor.list?
         say_status :warn, "#{model_file_path}: no inline_forms_attribute_list found, appending a fresh method", :yellow
         body = <<~RUBY.gsub(/^(?=.)/, "  ")
           def inline_forms_attribute_list
@@ -322,143 +319,37 @@ class InlineFormsAddtoGenerator < Rails::Generators::NamedBase
       end
 
       warn_if_value_bearing!(attribute)
-
-      open_idx, close_idx = bounds
-      inner  = content[(open_idx + 1)...close_idx]
-      lines  = inner.lines
-      indent = detect_row_indent(lines)
-
-      insert_at, note = insertion_index(lines, attribute)
-
-      # A comma only when a row follows (RuboCop omakase wants none after the
-      # last one).
-      comma = lines.drop(insert_at).any? { |l| l.match?(/\A\s*\[/) } ? "," : ""
-      new_line = "#{indent}#{attribute_row_literal(attribute)}#{comma}\n"
-
-      # Keep the array valid: ensure the row we insert after ends with a comma.
-      if insert_at.positive?
-        prev = lines[insert_at - 1]
-        lines[insert_at - 1] = with_trailing_comma(prev) if prev
-      end
-
-      lines.insert(insert_at, new_line)
-      new_content = content[0..open_idx] + lines.join + content[close_idx..-1]
+      new_content, note = editor.insert(attribute_row_literal(attribute), **row_anchor(editor))
       File.write(path, new_content)
       say_status :insert, "#{model_file_path}: row :#{attribute.name}#{note}", :green
+    rescue InlineForms::AttributeListEditor::Unplaceable => e
+      row_not_added(attribute, e.message)
     end
 
-    # `line` with a comma after its row, before a trailing comment if it has
-    # one. Blank and comment lines, and rows that have their comma, unchanged.
-    def with_trailing_comma(line)
-      row = line.match(/\A(\s*)\[/)
-      return line if line.match?(/\A\s*(#|\z)/)
-
-      if row
-        depth = 0
-        ending = nil
-        line.each_char.with_index do |char, index|
-          depth += 1 if char == "["
-          depth -= 1 if char == "]"
-          if char == "]" && depth.zero?
-            ending = index
-            break
-          end
-        end
-      end
-      # Not a whole row on one line (the end of a longer one): its last `]`
-      # outside a comment.
-      ending ||= line.sub(/\s#.*/, "").rindex("]")
-      return line if ending.nil? || line[(ending + 1)..].match?(/\A\s*,/)
-
-      line.dup.insert(ending + 1, ",")
-    end
-
-    # Returns [open_bracket_index, close_bracket_index] for the
-    # `@inline_forms_attribute_list ||= [ ... ]` array literal, or nil when the
-    # model has no such list. Bracket-depth scan; nested `[ ]` (e.g. an
-    # options_disabled array inside a choice row) balances correctly.
-    def attribute_list_bounds(content)
-      m = content.match(/@inline_forms_attribute_list\s*\|\|=\s*\[/)
-      return nil unless m
-
-      open_idx = m.end(0) - 1 # index of the '[' itself
-      depth = 0
-      i = open_idx
-      while i < content.length
-        case content[i]
-        when "[" then depth += 1
-        when "]"
-          depth -= 1
-          return [ open_idx, i ] if depth.zero?
-        end
-        i += 1
-      end
+    def attribute_list_editor(content, attribute)
+      InlineForms::AttributeListEditor.new(content)
+    rescue InlineForms::AttributeListEditor::Unplaceable => e
+      row_not_added(attribute, e.message)
       nil
     end
 
-    # Decide where the new row goes. Returns [line_index, status_note].
-    def insertion_index(lines, _attribute)
-      if (anchor = options[:after].to_s) != ""
-        idx = row_line_index(lines, anchor)
-        return [ idx + 1, " (after :#{anchor})" ] if idx
-        say_status :warn, "#{model_file_path}: --after #{anchor} not found; using default placement", :yellow
-      elsif (anchor = options[:before].to_s) != ""
-        idx = row_line_index(lines, anchor)
-        return [ idx, " (before :#{anchor})" ] if idx
-        say_status :warn, "#{model_file_path}: --before #{anchor} not found; using default placement", :yellow
-      end
-
-      if (meta = metadata_start_index(lines))
-        return [ meta, " (above metadata)" ]
-      end
-
-      [ last_row_index(lines) + 1, "" ]
+    # Better no row than a model that does not load.
+    def row_not_added(attribute, reason)
+      say_status :error,
+                 "#{model_file_path}: #{reason}; row not added. Add it by hand: #{attribute_row_literal(attribute)}",
+                 :red
     end
 
-    def row_line_index(lines, name)
-      lines.index { |l| row_name(l) == name.to_s }
-    end
+    # { after: name } or { before: name } when that row exists, else {}.
+    def row_anchor(editor)
+      key = %i[after before].find { |option| options[option].to_s != "" }
+      return {} unless key
 
-    def row_name(line)
-      m = line.match(/\A\s*\[\s*:(\w+)\s*,/)
-      m && m[1]
-    end
+      name = options[key].to_s
+      return { key => name } if editor.row?(name)
 
-    def row_element(line)
-      m = line.match(/\A\s*\[\s*:\w+\s*,\s*:(\w+)/)
-      m && m[1]
-    end
-
-    # Index of the first row that starts the trailing metadata block. If a
-    # `:header` sits directly above that row, the header is treated as the
-    # block start (so the new field lands above the header, not between it and
-    # its info rows). nil when the list has no metadata block.
-    def metadata_start_index(lines)
-      first = nil
-      lines.each_with_index do |l, i|
-        if row_element(l) == "info" || METADATA_ROW_NAMES.include?(row_name(l))
-          first = i
-          break
-        end
-      end
-      return nil unless first
-
-      prev = first - 1
-      (prev >= 0 && row_element(lines[prev]) == "header") ? prev : first
-    end
-
-    def last_row_index(lines)
-      idx = nil
-      lines.each_with_index { |l, i| idx = i if row_name(l) }
-      idx || (lines.length - 1)
-    end
-
-    def detect_row_indent(lines)
-      lines.each do |l|
-        m = l.match(/\A(\s*)\[/)
-        return m[1] if m
-      end
-      "      " # 6 spaces, matching the create-time template
+      say_status :warn, "#{model_file_path}: --#{key} #{name} not found; using default placement", :yellow
+      {}
     end
 
     # `[ :name, :element ]`, or `[ :name, :element, { 1 => "one", 2 => "two" } ]`

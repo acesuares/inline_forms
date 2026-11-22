@@ -89,16 +89,26 @@ jobs:
 
       - name: Brakeman against the generated app
         run: |
-          gem install brakeman --no-document
+          # The version brakeman.ignore was made with: its fingerprints can
+          # change with another one. Raise both together.
+          version=$(ruby -rjson -e 'puts JSON.load_file("inline_forms/.forgejo/brakeman.ignore")["brakeman_version"]')
+          gem install brakeman -v "$version" --no-document
           cd apps/MyApp
           # Default check set is ENFORCING (baseline triaged 2026-07-06:
           # 0 warnings; the one ForceSSL finding was fixed in 8.1.36).
-          brakeman --no-pager
+          brakeman "_${version}_" --no-pager
           # Pedantic full set stays informational: it includes checks that
           # can fire on perfectly reasonable future code.
-          brakeman --run-all-checks --no-pager || true
+          brakeman "_${version}_" --run-all-checks --no-pager || true
 
       # ENFORCING: a warning that is not in .forgejo/brakeman.ignore fails, and
       # so does an entry there that has no reason or no longer occurs.
       - name: Brakeman against the app together with the engine
         run: bash inline_forms/.forgejo/brakeman-engine.sh apps/MyApp
+
+      # RuboCop, bundler-audit, Brakeman (the newest of each), tests and seeds, as the app's
+      # own bin/ci runs them. Not part of `inline_forms create`: a new RuboCop
+      # rule or advisory may turn this red, and that is only a notice here.
+      - name: The generated app's bin/ci
+        working-directory: apps/MyApp
+        run: bin/ci

@@ -105,6 +105,15 @@ Rails::Generators::GeneratedAttribute.class_eval do
     _no_model
   ].freeze unless const_defined?(:SPECIAL_GENERATOR_NAMES)
 
+  # Precision and scale of a decimal column, from `name:decimal_field{p,s}` or
+  # the 10,2 default. Without them MySQL makes it decimal(10,0) and drops the
+  # decimals. Empty for every other type.
+  def inline_forms_column_options
+    return "" unless column_type == :decimal
+
+    ", precision: #{attr_options[:precision] || 10}, scale: #{attr_options[:scale] || 2}"
+  end
+
   def migration?
     not ( column_type == :no_migration  ||
         SPECIAL_GENERATOR_NAMES.include?(name))

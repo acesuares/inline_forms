@@ -17,7 +17,6 @@ Gem::Specification.new do |s|
   s.required_ruby_version = ">= 4.0.0"
 
   s.files      = InlineFormsGemFiles.gem_files(include_installer: false)
-  s.test_files = s.files.grep(%r{^(test|spec|features)/})
   s.require_paths = [ "lib" ]
 
   s.add_dependency("validation_hints", ">= 8.1.4", "< 9.0")

@@ -5,6 +5,18 @@ lockstep with inline_forms / inline_forms_installer / validation_hints.
 
 ## [Unreleased]
 
+## [8.1.76] - 2026-11-22
+
+### Fixed
+
+- `doc/schema-apply-workflow.yml.example` installs the gems outside the
+  checkout. In `vendor/bundle` they were committed by its `git add -A`.
+
+### Changed
+
+- Version bump to stay in lockstep with `inline_forms` /
+  `inline_forms_installer` / `validation_hints` 8.1.76.
+
 ## [8.1.75] - 2026-11-22
 
 ### Changed

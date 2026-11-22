@@ -62,9 +62,9 @@ jobs:
             "${{ secrets.TENANT_URL }}/schema/batches/${{ inputs.batch_id }}/status"
 
       - name: Bundle
-        run: |
-          bundle config set --local path vendor/bundle
-          bundle install --jobs 4
+        # Into the image's own gem folder: a folder in the checkout would be
+        # committed by `git add -A` below.
+        run: bundle install --jobs 4
 
       - name: Replay the batch (codegen only)
         run: bundle exec rake "schema_edit:apply_batch[/tmp/batch.json]"

@@ -29,7 +29,7 @@ Value-bearing form elements:
     Choice elements (dropdown_with_values, dropdown_with_integers,
     dropdown_with_values_with_stars, radio_button, check_box,
     scale_with_integers, scale_with_values) need a values hash as the 3rd row
-    element. The generator inserts a placeholder `{ 1 => 'one', 2 => 'two' }`
+    element. The generator inserts a placeholder `{ 1 => "one", 2 => "two" }`
     and warns; edit it to your real values.
 
 Constraints and caveats:

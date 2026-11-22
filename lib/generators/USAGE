@@ -21,7 +21,7 @@ This will create:
                 [ :name, :text_field ],
                 [ :description, :plain_text ],
                 [ :yesno, :check_box ],
-                [ :gender, :boolean_with_values ],
+                [ :gender, :boolean_with_values ]
             ]
           end
         end

@@ -127,17 +127,18 @@ module InlineForms
             @list_scopes << "  inline_forms_search_on :#{attribute.type}\n"
           end
           if attribute.attribute?
-            commenter = attribute.attribute_type == :unknown ? '#' : ' '
-            rows << "#{commenter}     [ :#{attribute.name}, :#{attribute.attribute_type} ]"
+            commenter = attribute.attribute_type == :unknown ? '# ' : ''
+            rows << "      #{commenter}[ :#{attribute.name}, :#{attribute.attribute_type} ]"
           end
         end
         unless rows.empty?
-          # No comma after the last row that is not commented out (RuboCop
-          # omakase); inline_forms_addto adds it when it appends a row.
-          last_row = rows.rindex { |row| !row.start_with?('#') }
-          rows.each_with_index do |row, index|
-            @inline_forms_attribute_list << row << (index == last_row ? "\n" : ",\n")
-          end
+          # No comma after the last row (RuboCop omakase); inline_forms_addto adds
+          # it when it appends one. Commented-out rows at the end go above that
+          # last row, so that uncommenting one gives valid Ruby.
+          last_row = rows.rindex { |row| !row.lstrip.start_with?('#') }
+          last_row = rows.delete_at(last_row) if last_row
+          rows.each { |row| @inline_forms_attribute_list << row << ",\n" }
+          @inline_forms_attribute_list << last_row << "\n" if last_row
           @inline_forms_attribute_list =  "\n" +
             "  def inline_forms_attribute_list\n" +
             "    @inline_forms_attribute_list ||= [\n" +
@@ -179,31 +180,9 @@ module InlineForms
             @columns << '        t.datetime  :' + attribute.name + "_updated_at\n"
           else
             if attribute.migration?
-              attribute.attribute_type == :unknown ? commenter = '#' : commenter = ' '
-              # Render precision/scale for real :decimal columns. The override
-              # in lib/generators/inline_forms_attribute_overrides.rb teaches
-              # `Rails::Generators::GeneratedAttribute.parse` to extract
-              # `{p,s}` off the type for :decimal_field (Rails' own parser
-              # only honors `{…}` for a hardcoded list of built-in types
-              # and otherwise glues the braces onto the type symbol).
-              # Apply sensible defaults — precision: 10, scale: 2 — so a
-              # bare `name:decimal_field` becomes a real decimal column
-              # instead of the legacy varchar that 8.1.9 and earlier
-              # emitted. Existing apps keep their varchar columns until
-              # they migrate; only newly-generated tables get :decimal.
-              column_opts = ""
-              if attribute.column_type == :decimal
-                precision = attribute.attr_options[:precision] || 10
-                scale     = attribute.attr_options[:scale]     || 2
-                column_opts = ", precision: #{precision}, scale: #{scale}"
-              end
-              @columns << commenter +
-                '     t.' +
-                attribute.column_type.to_s +
-                " :" +
-                attribute.name +
-                column_opts +
-                "\n"
+              commenter = attribute.attribute_type == :unknown ? '# ' : ''
+              @columns << "      #{commenter}t.#{attribute.column_type} :#{attribute.name}" \
+                          "#{attribute.inline_forms_column_options}\n"
             end
           end
         end
@@ -232,9 +211,11 @@ module InlineForms
 
       content = File.read(full_path)
       return unless content.match?(marker)
-      return if content.include?(tab_token.rstrip)
+      # One of the words, not a substring: "showcases" is not there because
+      # "form_element_showcases" is. force: Thor skips on a substring too.
+      return if content[/MODEL_TABS = %w[\[(]([^\])]*)/, 1].to_s.split.include?(tab_token.rstrip)
 
-      inject_into_file relative_path, tab_token, after: marker
+      inject_into_file relative_path, tab_token, after: marker, force: true
     end
 
     def generate_test

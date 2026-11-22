@@ -30,8 +30,9 @@ work=$(mktemp -d)
 trap 'rm -rf "$work"' EXIT
 mkdir -p "$work/app/engines/inline_forms" "$work/app/engines/inline_forms_schema_edit"
 
-# No keys or credentials: Brakeman does not need them.
-tar -C "$app" --exclude='*.key' --exclude='credentials*' -cf - \
+# No keys or credentials: Brakeman does not need them. Only those in config/:
+# app code called credentials_controller.rb has to be scanned.
+tar -C "$app" --anchored --exclude='config/credentials*' --exclude='config/*.key' -cf - \
   app config lib Gemfile Gemfile.lock | tar -C "$work/app" -xf -
 
 for part in app config lib; do
@@ -45,7 +46,17 @@ done
 rm -rf "$work/app/engines/inline_forms/lib/installer_templates" \
        "$work/app/engines/inline_forms/lib/generators"
 
-brakeman --no-pager \
+# The version the ignore file was made with (its fingerprints can change with
+# another one): gem install brakeman -v <brakeman_version in brakeman.ignore>.
+version=$(ruby -rjson -e 'puts JSON.load_file(ARGV[0])["brakeman_version"]' "$here/brakeman.ignore")
+
+# From a folder without a Gemfile: RVM's launchers load the bundle of the current
+# folder and then ignore the version.
+cd "$work"
+found=$(brakeman "_${version}_" --version)
+[ "$found" = "brakeman $version" ] || { echo "expected brakeman $version, got: $found" >&2; exit 1; }
+
+brakeman "_${version}_" --no-pager \
   --add-engines-path engines/inline_forms,engines/inline_forms_schema_edit \
   -i "$here/brakeman.ignore" --ensure-ignore-notes --ensure-no-obsolete-ignore-entries \
   --path "$work/app" "$@"

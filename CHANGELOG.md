@@ -8,6 +8,30 @@ All notable changes to this project are documented in this file.
 
 - Known issues, parked (local note `stuff/2026-10-31-dropdown-rule-3-parked.md`) with dropdown order rule 3: `includes`, `group` or `select` in `inline_forms_list` make `dropdown` and `dropdown_with_other` raise while `/index` works, so 8.1.65's fix for a list order on a joined table holds only for `joins`, `left_joins` and `eager_load`; a has_many join gives duplicate options. Present since 8.1.60. No host's list scope has these today. Parked; not changed.
 
+## [8.1.76] - 2026-11-22
+
+### Fixed
+
+- **`inline_forms_addto` no longer breaks a model's list.** Since 8.1.72 it could write a syntax error: no comma before a splat or a conditional row, none after a line with two rows, and one in the middle of `[ ... ].freeze`, a conditional row or a label with `]`. It also put a new row inside a last row of several lines (since before 8.1.72). The list is now found with Ruby's own parser (`InlineForms::AttributeListEditor`), the result is parsed again before it is written, and what cannot be placed leaves the list alone and prints the row to add by hand. The schema editor uses the same code.
+- **`inline_forms_addto` writes precision and scale of a `decimal_field`,** 10,2 unless given as `{p,s}`, as `rails g inline_forms` does. Without them MySQL makes the column decimal(10,0) and drops the decimals. Columns that were added before are not changed.
+- `rails g inline_forms` adds the model to `MODEL_TABS` when its name is only part of another one (`showcases` next to `form_element_showcases`).
+- With `--allow-unknown`, the commented-out rows can be uncommented without adding a comma, and they and the commented-out columns are indented (RuboCop reported them). Columns in an addto migration are indented four spaces, not five.
+- **Installer: an app pins a Ruby that is there.** `.ruby-version` gets the Ruby that runs the installer when 4.0.10 is not it and RVM does not have 4.0.10 (a warning says so when that Ruby is older).
+- Installer: the Unicorn and Capistrano files no longer use figaro, which is not in the Gemfile, so Unicorn did not start. `DEPLOY_DIRECTORY` has to be in the environment.
+
+### Changed
+
+- **Installer: no `.github/` in generated apps** (`rails new --skip-ci`): GitHub runs nothing. `bin/ci` and `config/ci.rb` stay.
+- Installer: `bin/brakeman` no longer has `--ensure-latest`, which fails as soon as a newer Brakeman is released than the one in the app's lockfile.
+- The gem packages only what an installed gem needs: `app`, `archived`, `lib`, `vendor/assets` and the documents. Tests, `script/`, `.forgejo/`, RuboCop and Ruby version files, `Gemfile` and `Rakefile` are left out.
+- Installer: `brakeman`, `bundler-audit` and `rubocop-rails-omakase` are in the development group only. In the test group too, the generated Dockerfile put them in the production image.
+- The example app's tests check that `bin/rubocop` starts, not that it finds nothing: a new RuboCop rule could make `inline_forms create --example` fail. The full gate runs `bin/ci` instead.
+
+### CI
+
+- The full gate runs the generated app's `bin/ci`, and pins Brakeman to the version `.forgejo/brakeman.ignore` was made with.
+- The engine scan skips only `config/credentials*` and `config/*.key`, not app code with such a name.
+
 ## [8.1.75] - 2026-11-22
 
 ### Removed
@@ -22,7 +46,7 @@ All notable changes to this project are documented in this file.
 
 ### Fixed
 
-- **Installer: the users/roles join table migration rolls back.** Its `down` said `drop_table roles_users`, without the colon, and raised `NoMethodError`. An existing app can correct that line in its own `db/migrate/*_inline_forms_create_join_table_*_role.rb`.
+- **Installer: the users/roles join table migration rolls back.** Its `down` said `drop_table roles_users`, without the colon, and raised `NoMethodError`. An existing app can correct that line in its own `db/migrate/*_inline_forms_create_join_table_*_role.rb`. Look for it in other migrations too (`grep -rn 'drop_table [a-z]' db/migrate`): one copied from this template has to drop its own table, so do not just add the colon there.
 
 ### Tests
 

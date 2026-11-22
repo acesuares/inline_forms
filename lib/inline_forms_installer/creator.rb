@@ -110,7 +110,11 @@ module InlineFormsInstaller
         exit 1
       end
 
-      target_ruby = InlineFormsInstaller::TARGET_RUBY_VERSION
+      target_ruby = InlineFormsInstaller.ruby_for_app(rvm_path: rvm_active? ? (ENV["rvm_path"] || RVM.path) : nil)
+      if InlineFormsInstaller.older_than_target_ruby?(target_ruby)
+        say "Ruby #{InlineFormsInstaller::TARGET_RUBY_VERSION} not found: the app gets Ruby #{target_ruby}. " \
+            "Older Rubies have known vulnerabilities; install the newer one and change .ruby-version.", :yellow
+      end
       if rvm_active?
         say "Installing inline_forms with RVM", :green
       else
@@ -163,7 +167,7 @@ module InlineFormsInstaller
 
       shell_cmd = [
         rails_invocation, "new", app_name, "-m", app_template_file,
-        "--skip-bundle", "--skip-bootsnap", "--skip-javascript"
+        "--skip-bundle", "--skip-bootsnap", "--skip-javascript", "--skip-ci"
       ].join(" ")
 
       ok, log_path = InlineFormsInstaller::CreateLog.tee_rails_new(app_name, shell_cmd, started_at: started_at)

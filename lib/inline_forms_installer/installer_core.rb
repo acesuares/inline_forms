@@ -184,9 +184,10 @@ gem_group :test do
 end
 
 # The gems behind bin/brakeman, bin/bundler-audit and bin/rubocop, which
-# `rails new` writes and bin/ci runs. In both groups, as in the Gemfile Rails
-# itself generates.
-gem_group :development, :test do
+# `rails new` writes and bin/ci runs. Not in the test group, where Rails itself
+# also puts them: the generated Dockerfile leaves out only development, so they
+# would end up in the production image.
+gem_group :development do
   gem 'brakeman', require: false
   gem 'bundler-audit', require: false
   gem 'rubocop-rails-omakase', require: false
@@ -890,8 +891,14 @@ if ENV['install_schema_edit'] == 'true'
   run "bundle exec rake db:migrate" if ENV['using_sqlite'] == 'true'
 end
 
+# --ensure-latest makes Brakeman fail as soon as a newer one is released than the
+# one in Gemfile.lock: bin/ci would go red with no change in the app, and it
+# needs the network.
+say "- bin/brakeman without --ensure-latest..."
+gsub_file "bin/brakeman", /^ARGV\.unshift\("--ensure-latest"\)\n\n?/, ""
+
 # Style: what inline_forms writes follows the app's RuboCop config by itself
-# (the example app's test suite checks that). These come from other gems'
+# (the full gate runs bin/ci on the example app). These come from other gems'
 # generators.
 say "- Correcting the style of Devise's and PaperTrail's files (bin/rubocop)..."
 foreign_files = [ "config/initializers/devise.rb" ] +

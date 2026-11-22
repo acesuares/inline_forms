@@ -236,7 +236,7 @@ class InlineFormsAddtoGeneratorTest < Minitest::Test
     migration = read_single_addto_migration_for("widgets")
 
     assert_includes(model, '[ :payload, :unknown ]')
-    assert_includes(migration, "#    add_column :widgets, :payload, :unknown")
+    assert_includes(migration, "    # add_column :widgets, :payload, :unknown")
   end
 
   def test_install_time_only_names_are_rejected
@@ -369,6 +369,37 @@ class InlineFormsAddtoGeneratorTest < Minitest::Test
     assert_includes(read("app/models/widget.rb"),
       "      [ :color, :text_field ],\n      [ :size, :integer_field ]\n    ]")
     assert_valid_ruby("app/models/widget.rb")
+  end
+
+  def test_decimal_columns_keep_precision_and_scale
+    write_model("widget.rb", GENERATOR_SHAPED_MODEL)
+
+    capture_io { run_generator("Widget", "price:decimal_field", "latitude:decimal_field{9,6}", "title:string") }
+
+    migration = read_single_addto_migration_for("widgets")
+    assert_includes(migration, "    add_column :widgets, :price, :decimal, precision: 10, scale: 2\n")
+    assert_includes(migration, "    add_column :widgets, :latitude, :decimal, precision: 9, scale: 6\n")
+    assert_includes(migration, "    add_column :widgets, :title, :string\n")
+  end
+
+  def test_row_before_a_splat
+    write_model("widget.rb", widget_with_rows("[ :name, :text_field ],", "*EXTRA_ROWS"))
+
+    capture_io { run_generator("Widget", "color:string", "size:integer_field") }
+
+    assert_includes(read("app/models/widget.rb"),
+      "      [ :color, :text_field ],\n      [ :size, :integer_field ],\n      *EXTRA_ROWS\n    ]")
+    assert_valid_ruby("app/models/widget.rb")
+  end
+
+  def test_a_model_with_a_syntax_error_is_left_alone
+    broken = widget_with_rows("[ :name, :text_field ]", "[ :size, :integer_field ]")
+    write_model("widget.rb", broken)
+
+    out, _err = capture_io { run_generator("Widget", "color:string") }
+
+    assert_equal(broken, read("app/models/widget.rb"))
+    assert_includes(out, "Add it by hand: [ :color, :text_field ]")
   end
 
   def test_rerun_recognises_the_has_many_destroy_line_from_before_8_1_72

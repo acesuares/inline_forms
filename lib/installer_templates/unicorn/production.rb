@@ -1,9 +1,6 @@
-# Load ENV vars via Figaro
-require "figaro"
-Figaro.application = Figaro::Application.new(environment: "production", path: File.expand_path("../../../config/application.yml", __FILE__))
-Figaro.load
-
-app_path = "#{ENV['DEPLOY_DIRECTORY']}/current"
+# DEPLOY_DIRECTORY (see config/deploy.rb) has to be in the environment Unicorn
+# starts in.
+app_path = "#{ENV.fetch("DEPLOY_DIRECTORY")}/current"
 working_directory app_path
 
 pid "#{app_path}/tmp/pids/unicorn.pid"

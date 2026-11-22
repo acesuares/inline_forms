@@ -91,8 +91,8 @@ class InlineFormsGeneratorTest < Minitest::Test
     model = read("app/models/mystery.rb")
     migration = read_single_migration_for("mysteries")
 
-    assert_includes(model, "#     [ :payload, :unknown ]")
-    assert_includes(migration, "#     t.unknown :payload")
+    assert_includes(model, "      # [ :payload, :unknown ]")
+    assert_includes(migration, "      # t.unknown :payload")
   end
 
   def test_rich_text_adds_has_rich_text_without_migration_column
@@ -212,12 +212,21 @@ class InlineFormsGeneratorTest < Minitest::Test
     end
   end
 
-  def test_a_commented_out_row_leaves_the_last_real_row_without_a_comma
+  def test_a_commented_out_row_can_be_uncommented
     run_generator("Mystery", "name:string", "payload:not_a_real_type", "--allow-unknown")
 
     model = read("app/models/mystery.rb")
-    assert_includes(model, "      [ :name, :text_field ]\n#     [ :payload, :unknown ],\n    ]")
-    RubyVM::InstructionSequence.compile(model)
+    assert_includes(model, "      # [ :payload, :unknown ],\n      [ :name, :text_field ]\n    ]")
+    assert(RubyVM::InstructionSequence.compile(model))
+    assert(RubyVM::InstructionSequence.compile(model.sub("# [ :payload, :unknown ]", "[ :payload, :text_field ]")))
+  end
+
+  def test_only_commented_out_rows
+    run_generator("Mystery", "payload:not_a_real_type", "--allow-unknown")
+
+    model = read("app/models/mystery.rb")
+    assert_includes(model, "||= [\n      # [ :payload, :unknown ],\n    ]")
+    assert(RubyVM::InstructionSequence.compile(model))
   end
 
   def test_tab_injection_into_an_initializer_from_before_8_1_72
@@ -226,6 +235,14 @@ class InlineFormsGeneratorTest < Minitest::Test
     run_generator("Thing", "name:string", "_enabled:yes")
 
     assert_equal("MODEL_TABS = %w(things users )\n", read("config/initializers/inline_forms.rb"))
+  end
+
+  def test_tab_for_a_model_whose_name_is_part_of_another
+    write("config/initializers/inline_forms.rb", "MODEL_TABS = %w[form_element_showcases users ]\n")
+
+    2.times { run_generator("Showcase", "name:string", "_enabled:yes", "--force") }
+
+    assert_equal("MODEL_TABS = %w[showcases form_element_showcases users ]\n", read("config/initializers/inline_forms.rb"))
   end
 
   def test_no_file_routes_without_a_file_field
