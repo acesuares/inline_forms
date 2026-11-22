@@ -1,9 +1,9 @@
-set :application, ENV['DEPLOY_APPLICATION']
-set :repo_url, ENV['DEPLOY_REPO_URL']
+set :application, ENV["DEPLOY_APPLICATION"]
+set :repo_url, ENV["DEPLOY_REPO_URL"]
 set :bundle_binstubs, nil
 
 # Default deploy_to directory is /var/www/my_app_name
-set :deploy_to, ENV['DEPLOY_DIRECTORY']
+set :deploy_to, ENV["DEPLOY_DIRECTORY"]
 
 # Default value for :linked_files is []
 set :linked_files, fetch(:linked_files, [])
@@ -15,14 +15,14 @@ set :linked_dirs, fetch(:linked_dirs, [])
 # Default value for keep_releases is 5
 set :keep_releases, 5
 
-before 'rvm1:install:rvm', 'app:update_rvm_key'
-after 'rvm1:install:ruby', 'rvm1:install_bundler'
+before "rvm1:install:rvm", "app:update_rvm_key"
+after "rvm1:install:ruby", "rvm1:install_bundler"
 
-before 'deploy', 'rvm1:install:rvm'  # install/update RVM
-before 'deploy', 'rvm1:install:ruby'  # install/update Ruby
+before "deploy", "rvm1:install:rvm"  # install/update RVM
+before "deploy", "rvm1:install:ruby"  # install/update Ruby
 
-before 'deploy:check', 'figaro:upload'
-after 'deploy:publishing', 'deploy:restart'
+before "deploy:check", "figaro:upload"
+after "deploy:publishing", "deploy:restart"
 
 # Restart unicorn
 namespace :deploy do
@@ -36,7 +36,7 @@ namespace :figaro do
   task :upload do
     on roles(:all) do
       execute "mkdir -p #{shared_path}/config"
-      upload! 'config/application.yml', "#{shared_path}/config/application.yml"
+      upload! "config/application.yml", "#{shared_path}/config/application.yml"
     end
   end
 end

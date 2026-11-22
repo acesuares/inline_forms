@@ -8,6 +8,21 @@ All notable changes to this project are documented in this file.
 
 - Known issues, parked (local note `stuff/2026-10-31-dropdown-rule-3-parked.md`) with dropdown order rule 3: `includes`, `group` or `select` in `inline_forms_list` make `dropdown` and `dropdown_with_other` raise while `/index` works, so 8.1.65's fix for a list order on a joined table holds only for `joins`, `left_joins` and `eager_load`; a has_many join gives duplicate options. Present since 8.1.60. No host's list scope has these today. Parked; not changed.
 
+## [8.1.72] - 2026-11-22
+
+### Changed
+
+- **Installer: generated apps have `rubocop-rails-omakase`** (development and test groups), the gem behind `bin/rubocop`, which `bin/ci` runs. The generated app had 335 offenses (all style); it now has none. Existing apps are not changed.
+- **Generators write RuboCop's style:** double quotes and new hash syntax, no trailing spaces, no blank line at the start or end of a class, and no comma after the last `inline_forms_attribute_list` row. `inline_forms_addto` adds that comma when it appends a row, also before a trailing comment. Lists with the comma keep working, as does `MODEL_TABS = %w( )`, which is now written as `%w[ ]`.
+
+### Fixed
+
+- The installer's Devise mailer settings are indented and on their own lines in `config/environments/*.rb`; in development.rb the first line was glued to Rails' last comment.
+
+### Tests
+
+- The example app's suite runs `bin/rubocop` on the whole app.
+
 ## [8.1.71] - 2026-11-22
 
 ### Fixed

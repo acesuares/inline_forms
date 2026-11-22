@@ -51,10 +51,10 @@ class InlineFormsGeneratorTest < Minitest::Test
     assert_includes(controller, "set_tab :thing")
 
     assert_includes(routes, "resources :things do")
-    assert_includes(routes, "post 'revert', :on => :member")
-    assert_includes(routes, "get 'list_versions', :on => :member")
+    assert_includes(routes, 'post "revert", on: :member')
+    assert_includes(routes, 'get "list_versions", on: :member')
 
-    assert_includes(inline_forms_initializer, "MODEL_TABS = %w(things ")
+    assert_includes(inline_forms_initializer, "MODEL_TABS = %w[things ")
 
     assert_includes(migration, "class InlineFormsCreateThings < ActiveRecord::Migration[8.1]")
     assert_includes(migration, "create_table :things do |t|")
@@ -188,6 +188,46 @@ class InlineFormsGeneratorTest < Minitest::Test
     assert_includes(routes, "InlineForms.file_routes(self)")
   end
 
+  # RuboCop omakase, which generated apps run in bin/ci.
+  def test_model_and_migration_follow_the_style_of_a_generated_app
+    run_generator(
+      "Thing",
+      "name:string",
+      "category:dropdown",
+      "photos:has_many_destroy",
+      "_enabled:yes",
+      "_list_order:name",
+      "_presentation:\\#{name}"
+    )
+
+    model = read("app/models/thing.rb")
+    assert_includes(model, "      [ :name, :text_field ],\n      [ :category, :dropdown ]\n    ]\n")
+    assert_includes(model, "has_many :photos, dependent: :destroy")
+    [ model, read_single_migration_for("things"), read("test/unit/thing_test.rb") ].each do |content|
+      refute_match(/[ \t]$/, content)
+      refute_match(/\Aclass [^\n]*\n\n/, content)
+      refute_match(/\n\nend\n\z/, content)
+      refute_match(/\n{3}/, content)
+      assert(content.end_with?("end\n"))
+    end
+  end
+
+  def test_a_commented_out_row_leaves_the_last_real_row_without_a_comma
+    run_generator("Mystery", "name:string", "payload:not_a_real_type", "--allow-unknown")
+
+    model = read("app/models/mystery.rb")
+    assert_includes(model, "      [ :name, :text_field ]\n#     [ :payload, :unknown ],\n    ]")
+    RubyVM::InstructionSequence.compile(model)
+  end
+
+  def test_tab_injection_into_an_initializer_from_before_8_1_72
+    write("config/initializers/inline_forms.rb", "MODEL_TABS = %w(users )\n")
+
+    run_generator("Thing", "name:string", "_enabled:yes")
+
+    assert_equal("MODEL_TABS = %w(things users )\n", read("config/initializers/inline_forms.rb"))
+  end
+
   def test_no_file_routes_without_a_file_field
     run_generator("Thing", "name:string", "_enabled:yes")
 
@@ -222,12 +262,12 @@ class InlineFormsGeneratorTest < Minitest::Test
     )
 
     # Matches the file the installer writes; the generator's `add_tab` step
-    # injects `<plural_route> ` tokens after the `MODEL_TABS = %w(` marker.
+    # injects `<plural_route> ` tokens after the `MODEL_TABS = %w[` marker.
     write(
       "config/initializers/inline_forms.rb",
       <<~RUBY
         Rails.application.reloader.to_prepare do
-          MODEL_TABS = %w()
+          MODEL_TABS = %w[]
         end
       RUBY
     )

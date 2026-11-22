@@ -1,5 +1,4 @@
 class InlineFormsCreate<%= table_name.camelize %> < ActiveRecord::Migration[8.1]
-
   def self.up
     create_table :<%= table_name + @primary_key_option %> do |t|
 <%= @columns -%>
@@ -10,5 +9,4 @@ class InlineFormsCreate<%= table_name.camelize %> < ActiveRecord::Migration[8.1]
   def self.down
     drop_table :<%= table_name %>
   end
-
 end

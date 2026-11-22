@@ -148,5 +148,4 @@ class ExampleAppShowcaseChoiceScaleFieldsTest < ExampleAppIntegrationTestCase
     assert_response :success
     assert_equal 3, @showcase.reload.scale_val
   end
-
 end

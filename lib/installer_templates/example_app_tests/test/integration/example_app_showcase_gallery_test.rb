@@ -10,7 +10,7 @@ class ExampleAppShowcaseGalleryTest < ExampleAppIntegrationTestCase
     @showcase = FormElementShowcase.find_or_create_by!(title: "Gallery demo")
     src = Rails.root.join("db", "seed_uploads", "sample_cover.png")
     if @showcase.gallery.blank? && src.file?
-      File.open(src, "rb") { |io| @showcase.gallery = [io] }
+      File.open(src, "rb") { |io| @showcase.gallery = [ io ] }
       @showcase.save!
     end
   end

@@ -331,6 +331,55 @@ class InlineFormsAddtoGeneratorTest < Minitest::Test
     assert(model.index("[ :occupation") < model.index("[ :category"))
   end
 
+  # What `rails g inline_forms` writes: no comma after the last row.
+  def test_list_without_a_trailing_comma
+    write_model("widget.rb", widget_with_rows("[ :name, :text_field ],", "[ :size, :integer_field ]"))
+
+    capture_io { run_generator("Widget", "color:string") }
+
+    assert_includes(read("app/models/widget.rb"),
+      "      [ :size, :integer_field ],\n      [ :color, :text_field ]\n    ]")
+    assert_valid_ruby("app/models/widget.rb")
+  end
+
+  def test_last_row_with_a_trailing_comment
+    write_model("widget.rb", widget_with_rows("[ :size, :dropdown_with_values, { 1 => \"a\" }, [ 1 ] ] # see [x], y"))
+
+    capture_io { run_generator("Widget", "color:string") }
+
+    assert_includes(read("app/models/widget.rb"),
+      "[ 1 ] ], # see [x], y\n      [ :color, :text_field ]\n    ]")
+    assert_valid_ruby("app/models/widget.rb")
+  end
+
+  def test_row_that_already_has_its_comma_before_a_comment
+    write_model("widget.rb", widget_with_rows("[ :size, :integer_field ], # cm"))
+
+    capture_io { run_generator("Widget", "color:string") }
+
+    assert_includes(read("app/models/widget.rb"), "[ :size, :integer_field ], # cm\n      [ :color, :text_field ]\n")
+    assert_valid_ruby("app/models/widget.rb")
+  end
+
+  def test_row_before_another_gets_a_comma
+    write_model("widget.rb", widget_with_rows("[ :name, :text_field ],", "[ :size, :integer_field ]"))
+
+    capture_io { run_generator("Widget", "color:string", "--before=size") }
+
+    assert_includes(read("app/models/widget.rb"),
+      "      [ :color, :text_field ],\n      [ :size, :integer_field ]\n    ]")
+    assert_valid_ruby("app/models/widget.rb")
+  end
+
+  def test_rerun_recognises_the_has_many_destroy_line_from_before_8_1_72
+    write_model("widget.rb", widget_with_rows("[ :name, :text_field ]")
+      .sub("ApplicationRecord\n", "ApplicationRecord\n  has_many :parts, :dependent => :destroy\n"))
+
+    capture_io { run_generator("Widget", "parts:has_many_destroy") }
+
+    assert_equal(1, read("app/models/widget.rb").scan("has_many :parts").size)
+  end
+
   def test_missing_anchor_warns_and_falls_back_to_default
     write_model("widget.rb", GENERATOR_SHAPED_MODEL)
 
@@ -351,7 +400,7 @@ class InlineFormsAddtoGeneratorTest < Minitest::Test
     end
 
     model = read("app/models/widget.rb")
-    assert_includes(model, "[ :status, :dropdown_with_values, { 1 => 'one', 2 => 'two' } ]")
+    assert_includes(model, '[ :status, :dropdown_with_values, { 1 => "one", 2 => "two" } ]')
     assert_includes(out, "values hash")
   end
 
@@ -491,6 +540,23 @@ class InlineFormsAddtoGeneratorTest < Minitest::Test
       end
       Object.const_get(:ScratchAddtoMigrationBase)
     end
+  end
+
+  def widget_with_rows(*rows)
+    list = rows.map { |row| "      #{row}\n" }.join
+    <<~RUBY
+      class Widget < ApplicationRecord
+        def inline_forms_attribute_list
+          @inline_forms_attribute_list ||= [
+      #{list.chomp}
+          ]
+        end
+      end
+    RUBY
+  end
+
+  def assert_valid_ruby(path)
+    assert(RubyVM::InstructionSequence.compile(read(path)))
   end
 
   def write_model(file, content)

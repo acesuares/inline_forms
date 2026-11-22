@@ -8,7 +8,7 @@ class UserModelConfigTest < Minitest::Test
     cfg = InlineFormsInstaller::UserModelConfig.from_name("User")
     assert cfg.default?
     assert_equal "users", cfg.table_name
-    assert_equal "devise_for :users, :path_prefix => 'auth'", cfg.devise_route_line
+    assert_equal 'devise_for :users, path_prefix: "auth"', cfg.devise_route_line
     assert_equal "/auth/users/sign_in", cfg.sign_in_path_fragment
   end
 

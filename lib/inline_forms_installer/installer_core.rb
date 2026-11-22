@@ -183,11 +183,13 @@ gem_group :test do
   gem 'minitest', '~> 5.25'
 end
 
-# The gems behind bin/brakeman and bin/bundler-audit, which `rails new` writes
-# and bin/ci runs. In both groups, as in the Gemfile Rails itself generates.
+# The gems behind bin/brakeman, bin/bundler-audit and bin/rubocop, which
+# `rails new` writes and bin/ci runs. In both groups, as in the Gemfile Rails
+# itself generates.
 gem_group :development, :test do
   gem 'brakeman', require: false
   gem 'bundler-audit', require: false
+  gem 'rubocop-rails-omakase', require: false
 end
 
 gem_group :development do
@@ -333,8 +335,8 @@ say "- Create Devise route and add path_prefix..."
 route <<-ROUTE.strip_heredoc
 #{user_cfg.devise_route_line}
   resources :#{user_cfg.plural_route} do
-    post 'revert', :on => :member
-    get 'list_versions', :on => :member
+    post "revert", on: :member
+    get "list_versions", on: :member
 end
 ROUTE
 
@@ -346,7 +348,6 @@ create_file "db/migrate/" +
   "_" +
   "#{user_cfg.devise_migration_basename}.rb", <<-DEVISE_MIGRATION.strip_heredoc
 class #{user_cfg.devise_migration_class} < ActiveRecord::Migration[8.1]
-
   def change
     create_table(:#{user_cfg.table_name}) do |t|
       ## Database authenticatable
@@ -409,7 +410,6 @@ USERS_CONTROLLER
 say "- Create #{user_cfg.class_name} model..."
 create_file user_cfg.model_path, <<-USER_MODEL.strip_heredoc
   class #{user_cfg.class_name} < ApplicationRecord
-
     # devise options
     devise :database_authenticatable
     # devise :registerable # uncomment this if you want people to be able to register
@@ -423,13 +423,13 @@ create_file user_cfg.model_path, <<-USER_MODEL.strip_heredoc
     # devise :timeoutable
     # devise :omniauthable
 
-    #attr_accessible :email, :password, :locale, :remember_me
+    # attr_accessible :email, :password, :locale, :remember_me
 
     belongs_to :locale
     has_and_belongs_to_many :roles
 
     # validations
-    validates :name, :presence => true
+    validates :name, presence: true
     # Theming Pattern 2 color overrides; the color_field element only ever
     # submits "#rrggbb" or nil, but validate anyway (console edits, imports).
     validates :primary_color, format: { with: /\\A#\\h{6}\\z/i }, allow_blank: true
@@ -446,24 +446,24 @@ create_file user_cfg.model_path, <<-USER_MODEL.strip_heredoc
     end
 
     def role?(role)
-      return !!self.roles.find_by_name(role)
+      !!self.roles.find_by_name(role)
     end
 
     # Preset UI themes (inline_forms Pattern 1 theming). The integer `theme`
     # column maps to a body class `theme-<name>`; the palettes ship in the
     # inline_forms engine (_theme.scss). The engine layout calls
     # #inline_forms_theme on current_user when the method exists.
-    INLINE_FORMS_THEMES = { 0 => 'default', 1 => 'dark', 2 => 'sepia', 3 => 'high-contrast' }.freeze
+    INLINE_FORMS_THEMES = { 0 => "default", 1 => "dark", 2 => "sepia", 3 => "high-contrast" }.freeze
 
     def inline_forms_theme
-      INLINE_FORMS_THEMES.fetch(theme.to_i, 'default')
+      INLINE_FORMS_THEMES.fetch(theme.to_i, "default")
     end
 
     # Theming Pattern 2: --if-color-* overrides for this user, rendered as an
     # inline <style> by the engine layout (inline_forms_user_color_overrides_style).
     # Keys are --if-color- suffixes; values must be "#rrggbb".
     def inline_forms_color_overrides
-      { 'primary' => primary_color, 'accent' => accent_color }.compact
+      { "primary" => primary_color, "accent" => accent_color }.compact
     end
 
     def inline_forms_attribute_list
@@ -472,7 +472,7 @@ create_file user_cfg.model_path, <<-USER_MODEL.strip_heredoc
         [ :name,                      :text_field ],
         [ :email,                     :text_field ],
         [ :locale,                    :dropdown ],
-        [ :theme,                     :dropdown_with_values, { 0 => 'default', 1 => 'dark', 2 => 'sepia', 3 => 'high contrast' } ],
+        [ :theme,                     :dropdown_with_values, { 0 => "default", 1 => "dark", 2 => "sepia", 3 => "high contrast" } ],
         [ :primary_color,             :color_field ],
         [ :accent_color,              :color_field ],
         [ :password,                  :devise_password_field ],
@@ -489,10 +489,9 @@ create_file user_cfg.model_path, <<-USER_MODEL.strip_heredoc
         [ :current_sign_in_ip,        :info ],
         [ :last_sign_in_ip,           :info ],
         [ :created_at,                :info ],
-        [ :updated_at,                :info ],
+        [ :updated_at,                :info ]
       ]
     end
-
   end
 USER_MODEL
 
@@ -504,7 +503,7 @@ USER_MODEL
 say "- Creating inline_forms initializer (MODEL_TABS seeded with #{user_cfg.plural_route})"
 create_file "config/initializers/inline_forms.rb", <<-END_INITIALIZER.strip_heredoc
   Rails.application.reloader.to_prepare do
-    MODEL_TABS = %w(#{user_cfg.plural_route} )
+    MODEL_TABS = %w[#{user_cfg.plural_route} ]
   end
 END_INITIALIZER
 
@@ -540,7 +539,7 @@ create_file "db/migrate/" +
   "#{user_cfg.join_migration_basename}.rb", <<-ROLES_MIGRATION.strip_heredoc
   class #{user_cfg.join_migration_class} < ActiveRecord::Migration[8.1]
     def self.up
-      create_table  :#{user_cfg.join_table}, :id => false, :force => true do |t|
+      create_table  :#{user_cfg.join_table}, id: false, force: true do |t|
         t.integer   :role_id
         t.integer   :#{user_cfg.foreign_key}
       end
@@ -608,7 +607,7 @@ create_file 'config/initializers/rich_text_paper_trail.rb', <<-PT_RICH_TEXT.stri
   # `touch: true` pointing at it, the parent versions panel must not surface
   # touch-only "empty" rich-text rows whose Restore link reifies a no-op.
   ActiveSupport.on_load(:action_text_rich_text) do
-    has_paper_trail on: [:create, :update, :destroy]
+    has_paper_trail on: [ :create, :update, :destroy ]
   end
 PT_RICH_TEXT
 
@@ -685,10 +684,10 @@ remove_file "app/helpers/application_helper.rb" # the one that 'rails new' creat
 create_file "app/helpers/application_helper.rb", <<-END_APPHELPER.strip_heredoc
   module ApplicationHelper
     def application_name
-      '#{app_name}'
+      "#{app_name}"
     end
     def application_title
-      '#{app_name}'
+      "#{app_name}"
     end
   end
 END_APPHELPER
@@ -708,9 +707,9 @@ create_file "app/controllers/application_controller.rb", <<-END_APPCONTROLLER.st
 
     rescue_from CanCan::AccessDenied do |exception|
       respond_to do |format|
-        format.json { head :forbidden, content_type: 'text/html' }
+        format.json { head :forbidden, content_type: "text/html" }
         format.html { redirect_to main_app.root_url, notice: exception.message }
-        format.js   { head :forbidden, content_type: 'text/html' }
+        format.js   { head :forbidden, content_type: "text/html" }
       end
     end
     # Comment previous lines if you don't want Devise authentication
@@ -797,18 +796,17 @@ JS_COMPRESSOR
 # devise mailer stuff
 say "- Injecting devise mailer stuff in environments/production.rb..."
 # strip_heredoc_with_indent(2) became strip_heredoc(2), but only in rails 4... :-(
-insert_into_file "config/environments/production.rb", <<-DEVISE_MAILER_PROD_STUFF.strip_heredoc, :before => "end\n"
+insert_into_file "config/environments/production.rb", <<-DEVISE_MAILER_PROD_STUFF.strip_heredoc.indent(2), before: /^end\n/
 
   # for devise
-  config.action_mailer.default_url_options = { protocol: 'https', host: Rails.application.credentials[:smtp_app_host] }
+  config.action_mailer.default_url_options = { protocol: "https", host: Rails.application.credentials[:smtp_app_host] }
   config.action_mailer.delivery_method = :smtp
   config.action_mailer.smtp_settings = {
     address: Rails.application.credentials[:smtp_host],
     enable_starttls_auto: true,
-    password: Rails.application.credentials[:smtp_password] ,
+    password: Rails.application.credentials[:smtp_password],
     user_name: Rails.application.credentials[:smtp_username]
   }
-
 DEVISE_MAILER_PROD_STUFF
 
 say "Setting production smtp settings in credentials"
@@ -828,17 +826,17 @@ remove_file 'temp_production_smtp_credentials'
 
 say "- Injecting devise mailer stuff in environments/development.rb..."
 # strip_heredoc_with_indent(2) became strip_heredoc(2), but only in rails 4... :-(
-insert_into_file "config/environments/development.rb", <<-DEVISE_MAILER_DEV_STUFF.strip_heredoc, :before => "\nend\n"
+insert_into_file "config/environments/development.rb", <<-DEVISE_MAILER_DEV_STUFF.strip_heredoc.indent(2), before: /^end\n/
+
   # for devise
-  config.action_mailer.default_url_options = { protocol: 'http', host: 'localhost', port: 3000 }
+  config.action_mailer.default_url_options = { protocol: "http", host: "localhost", port: 3000 }
   config.action_mailer.delivery_method = :smtp
   config.action_mailer.smtp_settings = {
     address: Rails.application.credentials[:smtp_host],
     enable_starttls_auto: true,
-    password: Rails.application.credentials[:smtp_password] ,
+    password: Rails.application.credentials[:smtp_password],
     user_name: Rails.application.credentials[:smtp_username]
   }
-
 DEVISE_MAILER_DEV_STUFF
 
 say "Setting development smtp settings in credentials"
@@ -892,6 +890,15 @@ if ENV['install_schema_edit'] == 'true'
   run "bundle exec rake db:migrate" if ENV['using_sqlite'] == 'true'
 end
 
+# Style: what inline_forms writes follows the app's RuboCop config by itself
+# (the example app's test suite checks that). These come from other gems'
+# generators.
+say "- Correcting the style of Devise's and PaperTrail's files (bin/rubocop)..."
+foreign_files = [ "config/initializers/devise.rb" ] +
+                Dir.glob("db/migrate/*_create_versions.rb") +
+                Dir.glob("db/migrate/*_add_object_changes_to_versions.rb")
+run "bin/rubocop -a #{foreign_files.join(' ')}"
+
 # Git
 say "- adding and committing to git..."
 
@@ -915,7 +922,7 @@ if ENV['install_example'] == 'true'
 
   say "- Apartment name is required..."
   inject_into_file "app/models/apartment.rb",
-                   "\n  validates :name, presence: true\n",
+                   "  validates :name, presence: true\n\n",
                    after: "class Apartment < ApplicationRecord\n"
 
   # CarrierWave + PaperTrail history.
@@ -942,7 +949,7 @@ if ENV['install_example'] == 'true'
 
   inject_into_file "app/uploaders/image_uploader.rb",
                    after: "class ImageUploader < CarrierWave::Uploader::Base\n" do
-    <<-RUBY.strip_heredoc.gsub(/^/, "  ")
+    <<-RUBY.strip_heredoc.indent(2)
       # PaperTrail history support. CarrierWave's default behaviour wipes the
       # previous file on update and reuses the same filename; PaperTrail only
       # stores the column scalar, so a plain `version.reify; save!` restores a
@@ -1032,7 +1039,7 @@ if ENV['install_example'] == 'true'
 
   say "- Owner name is required..."
   inject_into_file "app/models/owner.rb",
-                   "\n  validates :name, presence: true\n",
+                   "  validates :name, presence: true\n\n",
                    after: "class Owner < ApplicationRecord\n"
 
   say "- Adding owner_id to apartments + belongs_to :owner..."
@@ -1054,7 +1061,7 @@ if ENV['install_example'] == 'true'
   # so it appears above :name in the inline panel.
   gsub_file "app/models/apartment.rb",
             /@inline_forms_attribute_list \|\|= \[\n/,
-            "@inline_forms_attribute_list ||= [\n     [ :owner, :dropdown ], \n"
+            "@inline_forms_attribute_list ||= [\n      [ :owner, :dropdown ],\n"
 
   # Owner -> apartments: render as a check_list of EXISTING apartments
   # (not the default :associated panel that only lets you create new
@@ -1077,7 +1084,7 @@ if ENV['install_example'] == 'true'
       OWNER_TABS = %w[naw apartments].freeze
       OWNER_TAB_FIELDS = {
         "naw"        => %i[name birthdate address city country],
-        "apartments" => %i[name apartments],
+        "apartments" => %i[name apartments]
       }.freeze
 
       def show
@@ -1136,8 +1143,8 @@ if ENV['install_example'] == 'true'
 
   # The :phase dropdown row goes right below :owner.
   gsub_file "app/models/apartment.rb",
-            /     \[ :owner, :dropdown \], \n/,
-            "     [ :owner, :dropdown ], \n     [ :phase, :dropdown ], \n"
+            /      \[ :owner, :dropdown \],\n/,
+            "      [ :owner, :dropdown ],\n      [ :phase, :dropdown ],\n"
 
   # Seed the example app with 3 apartments + 3 owners and assign photos
   # from db/seed_images. Runs as a regular migration so `bundle exec rake
@@ -1160,7 +1167,7 @@ if ENV['install_example'] == 'true'
       APARTMENTS = [
         { name: "Apt 1", title: "Casa Aurora",   opening_date: Date.new(2026, 1, 10) },
         { name: "Apt 2", title: "Villa Marina",  opening_date: Date.new(2026, 2, 14) },
-        { name: "Apt 3", title: "Loft del Sol",  opening_date: Date.new(2026, 3, 21) },
+        { name: "Apt 3", title: "Loft del Sol",  opening_date: Date.new(2026, 3, 21) }
       ].freeze
 
       # ---------------------------------------------------------------
@@ -1176,19 +1183,19 @@ if ENV['install_example'] == 'true'
           address: "Calle del Sol 42",
           city: "Willemstad",
           country: "Curacao",
-          apartments: ["Apt 1", "Apt 2"] },
+          apartments: [ "Apt 1", "Apt 2" ] },
         { name: "Jean-Pierre Dupont",
           birthdate: Date.new(1972, 3, 4),
           address: "Rue des Lilas 7",
           city: "Lyon",
           country: "France",
-          apartments: ["Apt 3"] },
+          apartments: [ "Apt 3" ] },
         { name: "Akira Tanaka",
           birthdate: Date.new(1990, 11, 23),
           address: "1-2-3 Sakura",
           city: "Kyoto",
           country: "Japan",
-          apartments: [] },
+          apartments: [] }
       ].freeze
 
       # Phases, created in neither name nor dropdown order: the apartment
@@ -1198,7 +1205,7 @@ if ENV['install_example'] == 'true'
         { name: "decision",    dropdown_order: 20 },
         { name: "admittance",  dropdown_order: 30 },
         { name: "---",         dropdown_order: 0 },
-        { name: "helprequest", dropdown_order: 10 },
+        { name: "helprequest", dropdown_order: 10 }
       ].freeze
       APARTMENT_PHASES = { "Apt 1" => "helprequest", "Apt 2" => "decision", "Apt 3" => "---" }.freeze
 
@@ -1206,7 +1213,7 @@ if ENV['install_example'] == 'true'
       # Photo -> Comment: the second nesting level).
       COMMENTS = [
         "Lovely light in this room!",
-        "Could use a fresh coat of paint.",
+        "Could use a fresh coat of paint."
       ].freeze
 
       def up
@@ -1376,13 +1383,13 @@ if ENV['install_example'] == 'true'
   # A `def` body is parsed but only resolved at call time, side-stepping
   # the ordering hazard.
   inject_into_file "app/models/form_element_showcase.rb",
-                   "\n  validates :count, numericality: { only_integer: true }, allow_blank: true\n" \
+                   "  validates :count, numericality: { only_integer: true }, allow_blank: true\n" \
                    "  validates :price, numericality: true, allow_blank: true\n" \
                    "  validates :latitude,  numericality: { greater_than_or_equal_to:  -90, less_than_or_equal_to:  90 }, allow_blank: true\n" \
                    "  validates :longitude, numericality: { greater_than_or_equal_to: -180, less_than_or_equal_to: 180 }, allow_blank: true\n" \
                    "  mount_uploader :attachment, AttachmentUploader\n" \
                    "  serialize :gallery, coder: JSON\n  mount_uploaders :gallery, ImageUploader\n" \
-                   "  monetize :amount_cents\n\n  def locales_display\n    locales\n  end\n",
+                   "  monetize :amount_cents\n\n  def locales_display\n    locales\n  end\n\n",
                    after: "class FormElementShowcase < ApplicationRecord\n"
 
   # Value-bearing rows for every form_element that needs a values hash
@@ -1390,14 +1397,14 @@ if ENV['install_example'] == 'true'
   # for bare rows, [:attr, :form_element, values, options_disabled] for
   # choice rows.
   showcase_value_rows = {
-    "[ :is_active, :check_box ]"                       => "[ :is_active, :check_box, { 0 => 'no', 1 => 'yes' } ]",
-    "[ :gender, :radio_button ]"                       => "[ :gender, :radio_button, { 1 => 'male', 2 => 'female' } ]",
-    "[ :rating_int, :dropdown_with_integers ]"         => "[ :rating_int, :dropdown_with_integers, { 1 => 'one', 2 => 'two', 3 => 'three' } ]",
-    "[ :priority, :dropdown_with_values ]"             => "[ :priority, :dropdown_with_values, { 1 => 'low', 2 => 'mid', 3 => 'high' } ]",
-    "[ :priority2, :dropdown_with_values ]"            => "[ :priority2, :dropdown_with_values, { 1 => 'low', 2 => 'mid', 3 => 'high' }, [ 2 ] ]",
-    "[ :stars, :dropdown_with_values_with_stars ]"     => "[ :stars, :dropdown_with_values_with_stars, { 1 => '1stars', 2 => '2stars', 3 => '3stars', 4 => '4stars', 5 => '5stars' } ]",
-    "[ :scale_int, :scale_with_integers ]"             => "[ :scale_int, :scale_with_integers, { 1 => 'one', 2 => 'two', 3 => 'three', 4 => 'four', 5 => 'five' } ]",
-    "[ :scale_val, :scale_with_values ]"               => "[ :scale_val, :scale_with_values, { 1 => 'red', 2 => 'green', 3 => 'blue' } ]",
+    "[ :is_active, :check_box ]"                       => '[ :is_active, :check_box, { 0 => "no", 1 => "yes" } ]',
+    "[ :gender, :radio_button ]"                       => '[ :gender, :radio_button, { 1 => "male", 2 => "female" } ]',
+    "[ :rating_int, :dropdown_with_integers ]"         => '[ :rating_int, :dropdown_with_integers, { 1 => "one", 2 => "two", 3 => "three" } ]',
+    "[ :priority, :dropdown_with_values ]"             => '[ :priority, :dropdown_with_values, { 1 => "low", 2 => "mid", 3 => "high" } ]',
+    "[ :priority2, :dropdown_with_values ]"            => '[ :priority2, :dropdown_with_values, { 1 => "low", 2 => "mid", 3 => "high" }, [ 2 ] ]',
+    "[ :stars, :dropdown_with_values_with_stars ]"     => '[ :stars, :dropdown_with_values_with_stars, { 1 => "1stars", 2 => "2stars", 3 => "3stars", 4 => "4stars", 5 => "5stars" } ]',
+    "[ :scale_int, :scale_with_integers ]"             => '[ :scale_int, :scale_with_integers, { 1 => "one", 2 => "two", 3 => "three", 4 => "four", 5 => "five" } ]',
+    "[ :scale_val, :scale_with_values ]"               => '[ :scale_val, :scale_with_values, { 1 => "red", 2 => "green", 3 => "blue" } ]',
   }
   showcase_value_rows.each do |from, to|
     gsub_file "app/models/form_element_showcase.rb", from, to
@@ -1408,12 +1415,12 @@ if ENV['install_example'] == 'true'
   # attribute_list row; we hand-insert it as `:info_list` (read-only
   # checklist of role _presentation strings).
   showcase_header_inserts = {
-    "[ :title, :text_field ],"                  => "[ :header_basics, :header ], \n     [ :title, :text_field ],",
-    "[ :count, :integer_field ],"               => "[ :header_numbers, :header ], \n     [ :count, :integer_field ],",
-    "[ :meeting_date, :date_select ],"          => "[ :header_dates, :header ], \n     [ :meeting_date, :date_select ],",
-    "[ :is_active, :check_box, { 0 => 'no'"     => "[ :header_choices, :header ], \n     [ :is_active, :check_box, { 0 => 'no'",
-    "[ :attachment, :file_field ],"             => "[ :header_files, :header ], \n     [ :attachment, :file_field ],",
-    "[ :description, :rich_text ],"             => "[ :header_rich, :header ], \n     [ :description, :rich_text ],",
+    "[ :title, :text_field ],"                  => "[ :header_basics, :header ],\n      [ :title, :text_field ],",
+    "[ :count, :integer_field ],"               => "[ :header_numbers, :header ],\n      [ :count, :integer_field ],",
+    "[ :meeting_date, :date_select ],"          => "[ :header_dates, :header ],\n      [ :meeting_date, :date_select ],",
+    "[ :is_active, :check_box, {"               => "[ :header_choices, :header ],\n      [ :is_active, :check_box, {",
+    "[ :attachment, :file_field ],"             => "[ :header_files, :header ],\n      [ :attachment, :file_field ],",
+    "[ :description, :rich_text ]"              => "[ :header_rich, :header ],\n      [ :description, :rich_text ]",
   }
   showcase_header_inserts.each do |from, to|
     gsub_file "app/models/form_element_showcase.rb", from, to
@@ -1429,14 +1436,14 @@ if ENV['install_example'] == 'true'
   # Locale already has a `_presentation` returning `title`, which is
   # exactly what `info_list_show` renders per row.
   gsub_file "app/models/form_element_showcase.rb",
-            "[ :description, :rich_text ], \n",
-            "[ :description, :rich_text ], \n     [ :locales, :check_list ], \n     [ :locales_display, :info_list ], \n     [ :header_meta, :header ], \n     [ :created_at, :info ], \n     [ :updated_at, :info ], \n"
+            "[ :description, :rich_text ]\n",
+            "[ :description, :rich_text ],\n      [ :locales, :check_list ],\n      [ :locales_display, :info_list ],\n      [ :header_meta, :header ],\n      [ :created_at, :info ],\n      [ :updated_at, :info ]\n"
 
   # pdf_link links to /report/:id and /report/:id.pdf and leaves both routes
   # to the app. There is no column and no model method.
   gsub_file "app/models/form_element_showcase.rb",
-            "[ :manual, :simple_file_field ], \n",
-            "[ :manual, :simple_file_field ], \n      [ :report, :pdf_link ], \n"
+            "[ :manual, :simple_file_field ],\n",
+            "[ :manual, :simple_file_field ],\n      [ :report, :pdf_link ],\n"
   create_file "app/controllers/showcase_reports_controller.rb", <<-'SHOWCASE_REPORTS'.strip_heredoc
     # The two routes behind FormElementShowcase's :report pdf_link row.
     class ShowcaseReportsController < ApplicationController
@@ -1600,7 +1607,7 @@ if ENV['install_example'] == 'true'
         {
           attachment: seed_uploads.join("sample.txt"),
           jingle:     seed_uploads.join("sample.wav"),
-          cover:      seed_uploads.join("sample_cover.png"),
+          cover:      seed_uploads.join("sample_cover.png")
         }.each do |attr, path|
           next unless path.file?
           next if full.public_send(attr).present?
@@ -1611,7 +1618,7 @@ if ENV['install_example'] == 'true'
         # mount_uploaders. One file is enough to exercise the array path.
         gallery_src = seed_uploads.join("sample_cover.png")
         if full.respond_to?(:gallery) && gallery_src.file? && full.gallery.blank?
-          File.open(gallery_src, "rb") { |io| full.gallery = [io] }
+          File.open(gallery_src, "rb") { |io| full.gallery = [ io ] }
         end
         full.save! if full.changed?
 
@@ -1633,7 +1640,7 @@ if ENV['install_example'] == 'true'
 
       def down
         return unless defined?(FormElementShowcase)
-        FormElementShowcase.where(title: ["Full demo", "Empty demo"]).destroy_all
+        FormElementShowcase.where(title: [ "Full demo", "Empty demo" ]).destroy_all
       end
     end
   SHOWCASE_SEED
@@ -1660,7 +1667,7 @@ if ENV['install_example'] == 'true'
 
   route 'get "apartments/name_list", to: "apartments#name_list", as: :apartment_name_list'
 
-  route "root :to => 'apartments#index'"
+  route 'root to: "apartments#index"'
 
   example_tests_root = File.join(INSTALLER_ROOT, "lib/installer_templates/example_app_tests")
   example_user_cfg = InlineFormsInstaller::UserModelConfig.from_env

@@ -68,6 +68,7 @@ module InlineForms
         @carrierwave_mounters     = "\n"
         @stored_files             = String.new
         @inline_forms_attribute_list  = String.new
+        rows                      = []
 
         for attribute in attributes
           if attribute.column_type  == :belongs_to
@@ -81,7 +82,7 @@ module InlineForms
           if attribute.type         == :has_many ||
               attribute.type         == :has_many_destroy
             @has_many << '  has_many :'             + attribute.name
-            @has_many << ', :dependent => :destroy' if attribute.type == :has_many_destroy
+            @has_many << ', dependent: :destroy' if attribute.type == :has_many_destroy
             @has_many << "\n"
           end
           if attribute.type         == :has_one
@@ -126,15 +127,17 @@ module InlineForms
             @list_scopes << "  inline_forms_search_on :#{attribute.type}\n"
           end
           if attribute.attribute?
-            attribute.attribute_type == :unknown ? commenter = '#' : commenter = ' '
-            @inline_forms_attribute_list << commenter +
-              '     [ :' +
-              attribute.name +
-              ', :' + attribute.attribute_type.to_s +
-              " ], \n"
+            commenter = attribute.attribute_type == :unknown ? '#' : ' '
+            rows << "#{commenter}     [ :#{attribute.name}, :#{attribute.attribute_type} ]"
           end
         end
-        unless @inline_forms_attribute_list.empty?
+        unless rows.empty?
+          # No comma after the last row that is not commented out (RuboCop
+          # omakase); inline_forms_addto adds it when it appends a row.
+          last_row = rows.rindex { |row| !row.start_with?('#') }
+          rows.each_with_index do |row, index|
+            @inline_forms_attribute_list << row << (index == last_row ? "\n" : ",\n")
+          end
           @inline_forms_attribute_list =  "\n" +
             "  def inline_forms_attribute_list\n" +
             "    @inline_forms_attribute_list ||= [\n" +
@@ -143,7 +146,7 @@ module InlineForms
             "  end\n" +
             "\n"
         end
-        template "model.erb", "app/models/#{model_file_name}.rb"
+        template("model.erb", "app/models/#{model_file_name}.rb") { |content| tidy_class_body(content) }
       end
     end
 
@@ -152,8 +155,8 @@ module InlineForms
         file_routes = file_slot_attributes.any? ? "\n            InlineForms.file_routes(self)" : ""
         route <<-ROUTE.strip_heredoc
           resources :#{resource_name} do
-            post 'revert', :on => :member
-            get 'list_versions', :on => :member#{file_routes}
+            post "revert", on: :member
+            get "list_versions", on: :member#{file_routes}
           end
         ROUTE
       end
@@ -200,7 +203,7 @@ module InlineForms
                 " :" +
                 attribute.name +
                 column_opts +
-                " \n"
+                "\n"
             end
           end
         end
@@ -212,7 +215,8 @@ module InlineForms
     def add_tab
       return if @flag_not_accessible_through_html
 
-      # The installer seeds `MODEL_TABS = %w(<user_model_route> )` in
+      # The installer seeds `MODEL_TABS = %w[<user_model_route> ]` (`%w( )`
+      # before 8.1.72) in
       # `config/initializers/inline_forms.rb` before any `rails g inline_forms`
       # runs. Inject each generated model's pluralised route token into that
       # list so the inline_forms top-bar dropdown (rendered by
@@ -221,13 +225,13 @@ module InlineForms
       # consumer running `rails g inline_forms` in a non-installer-shaped app)
       # or when the token is already present (idempotent re-run).
       relative_path = "config/initializers/inline_forms.rb"
-      marker = "MODEL_TABS = %w("
+      marker = /MODEL_TABS = %w[\[(]/
       tab_token = "#{name.pluralize.underscore} "
       full_path = File.join(destination_root, relative_path)
       return unless File.exist?(full_path)
 
       content = File.read(full_path)
-      return unless content.include?(marker)
+      return unless content.match?(marker)
       return if content.include?(tab_token.rstrip)
 
       inject_into_file relative_path, tab_token, after: marker
@@ -243,6 +247,14 @@ module InlineForms
 
 
     private
+    # The optional parts of model.erb each bring their own blank lines: none
+    # right after `class` or before its `end`, and never two in a row.
+    def tidy_class_body(content)
+      content.gsub(/\n{3,}/, "\n\n")
+             .sub(/\A(class [^\n]*\n)\n+/, '\1')
+             .sub(/\n+end\s*\z/, "\nend\n")
+    end
+
     def file_slot_attributes
       attributes.select { |attribute| attribute.type == :simple_file_field }
     end

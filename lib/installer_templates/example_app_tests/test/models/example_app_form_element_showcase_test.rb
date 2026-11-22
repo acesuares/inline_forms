@@ -64,7 +64,7 @@ class ExampleAppFormElementShowcaseTest < ActiveSupport::TestCase
     assert_not_nil row, "expected a :priority2 row"
     assert_equal :dropdown_with_values, row[1]
     assert_kind_of Hash, row[2]
-    assert_equal [2], row[3],
+    assert_equal [ 2 ], row[3],
       "expected options_disabled at index 3 (was the 8.1.5 row-shape shift)"
   end
 
@@ -99,7 +99,7 @@ class ExampleAppFormElementShowcaseTest < ActiveSupport::TestCase
     assert_equal :decimal, price_col.type,
       "expected :price to be a :decimal column, got #{price_col.type.inspect} (#{price_col.sql_type.inspect})"
     assert_equal 10, price_col.precision, "expected default precision: 10"
-    assert_equal  2, price_col.scale,     "expected default scale: 2"
+    assert_equal 2, price_col.scale,     "expected default scale: 2"
   end
 
   test "decimal_field{p,s} CLI suffix sets precision and scale" do
@@ -107,9 +107,9 @@ class ExampleAppFormElementShowcaseTest < ActiveSupport::TestCase
     lon = FormElementShowcase.columns_hash["longitude"]
     assert_equal :decimal, lat.type
     assert_equal :decimal, lon.type
-    assert_equal [9, 6],  [lat.precision, lat.scale],
+    assert_equal [ 9, 6 ],  [ lat.precision, lat.scale ],
       "expected latitude:decimal_field{9,6} -> decimal(9,6), got decimal(#{lat.precision},#{lat.scale})"
-    assert_equal [10, 6], [lon.precision, lon.scale],
+    assert_equal [ 10, 6 ], [ lon.precision, lon.scale ],
       "expected longitude:decimal_field{10,6} -> decimal(10,6), got decimal(#{lon.precision},#{lon.scale})"
   end
 

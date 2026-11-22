@@ -41,7 +41,7 @@ class ExampleAppShowcaseLocalesAssociationsTest < ExampleAppIntegrationTestCase
     ), params: { locales: { @en.id.to_s => 1, @de.id.to_s => 1 } }, headers: field_headers(:locales)
 
     assert_response :success
-    assert_equal [@en.id, @de.id].sort, @showcase.reload.locale_ids.sort
+    assert_equal [ @en.id, @de.id ].sort, @showcase.reload.locale_ids.sort
 
     # PUT again with only one locale; the missing one is uncoupled.
     put form_element_showcase_path(
@@ -52,7 +52,7 @@ class ExampleAppShowcaseLocalesAssociationsTest < ExampleAppIntegrationTestCase
     ), params: { locales: { @nl.id.to_s => 1 } }, headers: field_headers(:locales)
 
     assert_response :success
-    assert_equal [@nl.id], @showcase.reload.locale_ids
+    assert_equal [ @nl.id ], @showcase.reload.locale_ids
   end
 
   test "info_list locales_display mirrors the locales association read-only" do

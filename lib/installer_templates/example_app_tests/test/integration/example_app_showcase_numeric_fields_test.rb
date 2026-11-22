@@ -112,8 +112,8 @@ class ExampleAppShowcaseNumericFieldsTest < ExampleAppIntegrationTestCase
                priority2: 1,
                stars: 1,
                scale_int: 1,
-               scale_val: 1,
-             },
+               scale_val: 1
+             }
            },
            headers: @list_headers
     end
@@ -161,8 +161,8 @@ class ExampleAppShowcaseNumericFieldsTest < ExampleAppIntegrationTestCase
                priority2: 1,
                stars: 1,
                scale_int: 1,
-               scale_val: 1,
-             },
+               scale_val: 1
+             }
            },
            headers: @list_headers
     end

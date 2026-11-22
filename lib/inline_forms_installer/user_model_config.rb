@@ -85,9 +85,9 @@ module InlineFormsInstaller
 
     def devise_route_line
       if default?
-        "devise_for :users, :path_prefix => 'auth'"
+        "devise_for :users, path_prefix: \"auth\""
       else
-        "devise_for :users, class_name: \"#{class_name}\", path: \"#{plural_route}\", path_prefix: 'auth'"
+        "devise_for :users, class_name: \"#{class_name}\", path: \"#{plural_route}\", path_prefix: \"auth\""
       end
     end
 

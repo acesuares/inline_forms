@@ -279,8 +279,8 @@ LONGBLOB column plus a content-type column). Declare the slot on the model:
 
   # routes.rb
   resources :clients do
-    post 'revert', :on => :member
-    get 'list_versions', :on => :member
+    post "revert", on: :member
+    get "list_versions", on: :member
     InlineForms.file_routes(self)
   end
   InlineForms.draw_file_trash_routes(self)   # global trash page, /file_trash

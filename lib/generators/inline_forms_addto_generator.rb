@@ -157,7 +157,7 @@ class InlineFormsAddtoGenerator < Rails::Generators::NamedBase
         when :has_many
           inject_class_line!("  has_many :#{attribute.name}\n")
         when :has_many_destroy
-          inject_class_line!("  has_many :#{attribute.name}, :dependent => :destroy\n")
+          inject_class_line!("  has_many :#{attribute.name}, dependent: :destroy\n")
         when :has_one
           inject_class_line!("  has_one :#{attribute.name}\n")
         when :habtm, :has_and_belongs_to_many, :check_list
@@ -277,7 +277,8 @@ class InlineFormsAddtoGenerator < Rails::Generators::NamedBase
     def inject_class_line!(line)
       content = File.read(File.join(destination_root, model_file_path))
       probe = line.rstrip
-      if content.include?(probe)
+      # `:dependent => :destroy` is what this generator wrote before 8.1.72.
+      if content.gsub(":dependent => ", "dependent: ").include?(probe)
         say_status :identical, "#{model_file_path}: #{probe.strip}", :blue
         return
       end
@@ -309,11 +310,10 @@ class InlineFormsAddtoGenerator < Rails::Generators::NamedBase
       bounds = attribute_list_bounds(content)
       unless bounds
         say_status :warn, "#{model_file_path}: no inline_forms_attribute_list found, appending a fresh method", :yellow
-        body = <<~RUBY.gsub(/^/, "  ")
-
+        body = <<~RUBY.gsub(/^(?=.)/, "  ")
           def inline_forms_attribute_list
             @inline_forms_attribute_list ||= [
-              #{attribute_row_literal(attribute)},
+              #{attribute_row_literal(attribute)}
             ]
           end
         RUBY
@@ -327,22 +327,50 @@ class InlineFormsAddtoGenerator < Rails::Generators::NamedBase
       inner  = content[(open_idx + 1)...close_idx]
       lines  = inner.lines
       indent = detect_row_indent(lines)
-      new_line = "#{indent}#{attribute_row_literal(attribute)},\n"
 
       insert_at, note = insertion_index(lines, attribute)
+
+      # A comma only when a row follows (RuboCop omakase wants none after the
+      # last one).
+      comma = lines.drop(insert_at).any? { |l| l.match?(/\A\s*\[/) } ? "," : ""
+      new_line = "#{indent}#{attribute_row_literal(attribute)}#{comma}\n"
 
       # Keep the array valid: ensure the row we insert after ends with a comma.
       if insert_at.positive?
         prev = lines[insert_at - 1]
-        if prev && prev.match?(/\S/) && !prev.match?(/,\s*\z/)
-          lines[insert_at - 1] = prev.sub(/(\S)(\s*)\z/, "\\1,\\2")
-        end
+        lines[insert_at - 1] = with_trailing_comma(prev) if prev
       end
 
       lines.insert(insert_at, new_line)
       new_content = content[0..open_idx] + lines.join + content[close_idx..-1]
       File.write(path, new_content)
       say_status :insert, "#{model_file_path}: row :#{attribute.name}#{note}", :green
+    end
+
+    # `line` with a comma after its row, before a trailing comment if it has
+    # one. Blank and comment lines, and rows that have their comma, unchanged.
+    def with_trailing_comma(line)
+      row = line.match(/\A(\s*)\[/)
+      return line if line.match?(/\A\s*(#|\z)/)
+
+      if row
+        depth = 0
+        ending = nil
+        line.each_char.with_index do |char, index|
+          depth += 1 if char == "["
+          depth -= 1 if char == "]"
+          if char == "]" && depth.zero?
+            ending = index
+            break
+          end
+        end
+      end
+      # Not a whole row on one line (the end of a longer one): its last `]`
+      # outside a comment.
+      ending ||= line.sub(/\s#.*/, "").rindex("]")
+      return line if ending.nil? || line[(ending + 1)..].match?(/\A\s*,/)
+
+      line.dup.insert(ending + 1, ",")
     end
 
     # Returns [open_bracket_index, close_bracket_index] for the
@@ -433,12 +461,12 @@ class InlineFormsAddtoGenerator < Rails::Generators::NamedBase
       "      " # 6 spaces, matching the create-time template
     end
 
-    # `[ :name, :element ]`, or `[ :name, :element, { 1 => 'one', 2 => 'two' } ]`
+    # `[ :name, :element ]`, or `[ :name, :element, { 1 => "one", 2 => "two" } ]`
     # for value-bearing choice elements (a placeholder the user then edits).
     def attribute_row_literal(attribute)
       el = attribute.attribute_type
       if VALUE_BEARING_ELEMENTS.include?(el)
-        "[ :#{attribute.name}, :#{el}, { 1 => 'one', 2 => 'two' } ]"
+        "[ :#{attribute.name}, :#{el}, { 1 => \"one\", 2 => \"two\" } ]"
       else
         "[ :#{attribute.name}, :#{el} ]"
       end
@@ -449,7 +477,7 @@ class InlineFormsAddtoGenerator < Rails::Generators::NamedBase
 
       say_status :warn,
                  "#{model_file_path}: :#{attribute.name} is a #{attribute.attribute_type}; " \
-                 "edit the placeholder values hash { 1 => 'one', ... }",
+                 "edit the placeholder values hash { 1 => \"one\", ... }",
                  :yellow
     end
 
@@ -471,7 +499,7 @@ class InlineFormsAddtoGenerator < Rails::Generators::NamedBase
                     /  def _presentation\b.*?\n  end\n/m,
                     new_method
         else
-          inject_into_class model_file_path, model_class_name, "\n#{new_method}"
+          inject_into_class model_file_path, model_class_name, "#{new_method}\n"
         end
       when "_list_order", "_order"
         col = attribute.type
@@ -487,7 +515,7 @@ class InlineFormsAddtoGenerator < Rails::Generators::NamedBase
         if content.match?(/def <=>\(other\)/)
           gsub_file model_file_path, /  def <=>\(other\).*?\n  end\n/m, new_spaceship
         else
-          inject_into_class model_file_path, model_class_name, "\n#{new_spaceship}"
+          inject_into_class model_file_path, model_class_name, "#{new_spaceship}\n"
         end
       when "_list_search"
         col = attribute.type

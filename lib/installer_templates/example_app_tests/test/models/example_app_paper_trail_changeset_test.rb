@@ -31,8 +31,8 @@ class ExampleAppPaperTrailChangesetTest < ActiveSupport::TestCase
       "config/initializers/paper_trail_yaml_safe_load.rb and the Rails " \
       "ActiveRecord.yaml_column_permitted_classes setting."
 
-    assert_equal ["Original", "Renamed"], changeset["name"]
-    assert_equal ["Old Title", "New Title"], changeset["title"]
+    assert_equal [ "Original", "Renamed" ], changeset["name"]
+    assert_equal [ "Old Title", "New Title" ], changeset["title"]
   end
 
   # Regression for `Psych::DisallowedClass: Tried to load unspecified class:
