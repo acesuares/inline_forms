@@ -15,22 +15,8 @@ class ExampleAppIntegrationTestCase < ActionDispatch::IntegrationTest
 
   private
 
+  # User 1, the one superadmin (test/test_helpers/the_superadmin.rb).
   def example_app_admin_user
-    @example_app_admin_user ||= begin
-      locale = Locale.find_or_create_by!(name: "en") { |l| l.title = "English" }
-      role = Role.find_or_create_by!(name: "superadmin") { |r| r.description = "Super Admin" }
-      user = User.find_or_initialize_by(email: "admin@example.com")
-      if user.new_record?
-        user.assign_attributes(
-          name: "Admin",
-          password: "admin999",
-          password_confirmation: "admin999",
-          locale: locale
-        )
-        user.save!
-      end
-      user.roles << role unless user.roles.where(id: role.id).exists?
-      user
-    end
+    @example_app_admin_user ||= TheSuperadmin.user
   end
 end

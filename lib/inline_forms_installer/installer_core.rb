@@ -426,8 +426,12 @@ create_file user_cfg.model_path, <<-USER_MODEL.strip_heredoc
 
     # attr_accessible :email, :password, :locale, :remember_me
 
+    # One superadmin, user 1 (app/models/concerns/single_superadmin.rb):
+    # role? and superadmin?, and the refusals in the roles callbacks.
+    include SingleSuperadmin
+
     belongs_to :locale
-    has_and_belongs_to_many :roles
+    has_and_belongs_to_many :roles, before_add: :superadmin_role_added!, before_remove: :superadmin_role_removed!
 
     # validations
     validates :name, presence: true
@@ -444,10 +448,6 @@ create_file user_cfg.model_path, <<-USER_MODEL.strip_heredoc
 
     def _presentation
       "\#{name}"
-    end
-
-    def role?(role)
-      !!self.roles.find_by_name(role)
     end
 
     # Preset UI themes (inline_forms Pattern 1 theming). The integer `theme`
@@ -496,6 +496,43 @@ create_file user_cfg.model_path, <<-USER_MODEL.strip_heredoc
   end
 USER_MODEL
 
+# One superadmin, user 1: the concern, its messages, and for the tests a
+# helper that makes user 1 plus the model's own tests. The same pattern as the
+# apps on inline_forms that had it first (has_and_belongs_to_many :roles).
+say "- One superadmin, user 1: SingleSuperadmin concern, messages, tests..."
+single_superadmin_root = File.join(INSTALLER_ROOT, "lib/installer_templates/single_superadmin")
+single_superadmin_source = lambda do |name|
+  user_cfg.adapt_example_test_source(File.read(File.join(single_superadmin_root, name)))
+          .gsub(".users", ".#{user_cfg.table_name}")
+end
+copy_file File.join(single_superadmin_root, "single_superadmin.rb"), "app/models/concerns/single_superadmin.rb"
+{
+  "en" => [ "This role is reserved for the one superadmin",
+            "The superadmin keeps this role and cannot be removed" ],
+  "nl" => [ "Deze rol is voorbehouden aan de ene superadmin",
+            "De superadmin houdt deze rol en kan niet verwijderd worden" ]
+}.each do |locale, (reserved, stays)|
+  create_file "config/locales/single_superadmin.#{locale}.yml", <<~SUPERADMIN_LOCALE
+    # One superadmin, user 1 (app/models/concerns/single_superadmin.rb).
+    #{locale}:
+      activerecord:
+        errors:
+          models:
+            #{user_cfg.class_name.underscore}:
+              superadmin_reserved: "#{reserved}"
+              superadmin_stays: "#{stays}"
+            role:
+              superadmin_stays: "#{stays}"
+  SUPERADMIN_LOCALE
+end
+create_file "test/test_helpers/the_superadmin.rb", single_superadmin_source.call("the_superadmin.rb")
+create_file "test/models/single_superadmin_test.rb", single_superadmin_source.call("single_superadmin_test.rb")
+insert_into_file "test/test_helper.rb", <<~'SUPERADMIN_TEST_HELPER', after: %(require "rails/test_help"\n)
+
+  # TheSuperadmin.user / the_superadmin: user 1, the one superadmin.
+  require_relative "test_helpers/the_superadmin"
+SUPERADMIN_TEST_HELPER
+
 # inline_forms initializer (must exist before subsequent `rails g inline_forms`
 # runs so the generator's `add_tab` step can inject each generated model's
 # route token into `MODEL_TABS`). Pre-seeded with the user-model route
@@ -526,6 +563,32 @@ LOCALE_SEED
 say "- Create roles"
 generate "inline_forms", "Role name:string description:text #{user_cfg.table_name}:has_and_belongs_to_many _enabled:yes _list_order:name _presentation:\#{name}"
 append_to_file "db/seeds.rb", "Role.create({ id: 1, name: 'superadmin', description: 'Super Admin can access all.' })\n"
+# The superadmin role is user 1's only (SingleSuperadmin): giving it to another
+# user, taking it from user 1, renaming or destroying it is refused, also from
+# this side of the association.
+gsub_file "app/models/role.rb", /^  has_and_belongs_to_many :#{user_cfg.table_name}$/, <<~ROLE_GUARDS.chomp.indent(2)
+  # The superadmin role is user 1's only (SingleSuperadmin): giving it to
+  # another #{user_cfg.class_name.underscore.humanize(capitalize: false)}, taking it from user 1, renaming or deleting it is refused.
+  has_and_belongs_to_many :#{user_cfg.table_name}, before_add: ->(role, user) { user.superadmin_role_added!(role) },
+                             #{" " * user_cfg.table_name.length}before_remove: ->(role, user) { user.superadmin_role_removed!(role) }
+  validate :superadmin_role_keeps_its_name, on: :update
+  before_destroy :superadmin_role_is_not_destroyed, prepend: true
+ROLE_GUARDS
+inject_into_file "app/models/role.rb", <<~ROLE_GUARD_METHODS.indent(2), before: /^end\s*\z/
+
+  private
+
+  def superadmin_role_keeps_its_name
+    errors.add(:base, :superadmin_stays) if name_changed? && name_was == SingleSuperadmin::SUPERADMIN_ROLE
+  end
+
+  def superadmin_role_is_not_destroyed
+    return unless name_was == SingleSuperadmin::SUPERADMIN_ROLE
+
+    errors.add(:base, :superadmin_stays)
+    throw :abort
+  end
+ROLE_GUARD_METHODS
 
 # Create Admin User
 
@@ -759,14 +822,27 @@ create_file "app/models/ability.rb", <<-END_ABILITY.strip_heredoc
 
       user ||= #{user_cfg.class_name}.new # guest user
 
-      # use this if you get stuck:
-      # if user.id == 1 #quick hack
-      #   can :manage, :all
-      if user.role? :superadmin
+      # The superadmin is user 1 holding the role "superadmin", nobody else
+      # (SingleSuperadmin): ask superadmin?, never role?(:superadmin).
+      if user.superadmin?
         can :manage, :all
       else
         # put restrictions for other users here
       end
+
+      # At the end, so it wins over every `can` above (SingleSuperadmin).
+      unless user.superadmin?
+        # User 1 is the superadmin: nobody else changes that account (all
+        # changing actions of the inline_forms controller, its file slots and
+        # PaperTrail revert) ...
+        cannot [ :update, :edit, :destroy, :soft_delete, :soft_restore, :revert,
+                 :replace_file, :remove_file, :restore_file, :purge_file ],
+               #{user_cfg.class_name}, id: SingleSuperadmin::SUPERADMIN_ID
+        # ... and nobody else sees or touches the role.
+        cannot :manage, Role, name: SingleSuperadmin::SUPERADMIN_ROLE
+      end
+      # User 1 is never destroyed, also not by user 1.
+      cannot :destroy, #{user_cfg.class_name}, id: SingleSuperadmin::SUPERADMIN_ID
     end
   end
 END_ABILITY

@@ -8,6 +8,17 @@ All notable changes to this project are documented in this file.
 
 - Known issues, parked (local note `stuff/2026-10-31-dropdown-rule-3-parked.md`) with dropdown order rule 3: `includes`, `group` or `select` in `inline_forms_list` make `dropdown` and `dropdown_with_other` raise while `/index` works, so 8.1.65's fix for a list order on a joined table holds only for `joins`, `left_joins` and `eager_load`; a has_many join gives duplicate options. Present since 8.1.60. No host's list scope has these today. Parked; not changed.
 
+## [8.1.78] - 2026-11-22
+
+### Changed
+
+- **Installer: one superadmin, user 1, from the start.** A new app gets the rule the apps on inline_forms already follow:
+  - The concern `SingleSuperadmin` (`app/models/concerns/single_superadmin.rb`): `superadmin?` is true only for user 1 holding the role "superadmin". `role?` asks by name and is false without roles.
+  - Refused with a message, in the model: giving the role to anybody but user 1 (from the user's roles and from the role's users), taking it from user 1, destroying user 1 (or soft-deleting it, in a model with `InlineForms::SoftDeletable`), renaming or destroying the "superadmin" role. The messages are in `config/locales/single_superadmin.en.yml` and `.nl.yml`.
+  - `Ability` asks `superadmin?`. At its end nobody else may change user 1 or see the role, and nobody destroys user 1.
+  - Tests: `test/test_helpers/the_superadmin.rb` makes user 1 (`TheSuperadmin.user`, `the_superadmin`) and `test/models/single_superadmin_test.rb` tests the rule. The example app's tests sign in as user 1 and check the messages on the screen.
+  - Apps made before keep what they have.
+
 ## [8.1.77] - 2026-11-22
 
 ### Changed
