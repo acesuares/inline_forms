@@ -7,7 +7,7 @@ module InlineForms
   #
   # The model's own validations run first, so a model that refuses the value
   # with a message of its own keeps that message; :inclusion is only added
-  # when the attribute has no error yet.
+  # when the attribute, or its foreign key, has no error yet.
   module RefusedValues
     def self.add(object, attribute)
       object.extend(self)
@@ -21,7 +21,10 @@ module InlineForms
     def valid?(...)
       super
       inline_forms_refused_values.each do |attribute|
-        errors.add(attribute, :inclusion) unless errors.include?(attribute)
+        foreign_key = self.class.reflect_on_association(attribute)&.foreign_key
+        next if errors.include?(attribute) || (foreign_key && errors.include?(foreign_key.to_sym))
+
+        errors.add(attribute, :inclusion)
       end
       errors.empty?
     end

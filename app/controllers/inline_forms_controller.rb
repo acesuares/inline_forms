@@ -196,7 +196,12 @@ class InlineFormsController < ApplicationController
       flash.now[:error] = refusals.presence || @object.errors.to_a
       respond_to do |format|
         @object.inline_forms_attribute_list = attributes
-        format.html { render_turbo_new }
+        # A refusal answers 422, as the hosts' own handlers for it did before
+        # the engine rescued it; a failed validation keeps its 200.
+        format.html do
+          render_turbo_new
+          response.status = :unprocessable_entity if refusals.any?
+        end
       end
     end
   end

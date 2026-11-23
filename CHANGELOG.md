@@ -15,9 +15,16 @@ All notable changes to this project are documented in this file.
 - **Installer: one superadmin, user 1, from the start.** A new app gets the rule the apps on inline_forms already follow:
   - The concern `SingleSuperadmin` (`app/models/concerns/single_superadmin.rb`): `superadmin?` is true only for user 1 holding the role "superadmin". `role?` asks by name and is false without roles.
   - Refused with a message, in the model: giving the role to anybody but user 1 (from the user's roles and from the role's users), taking it from user 1, destroying user 1 (or soft-deleting it, in a model with `InlineForms::SoftDeletable`), renaming or destroying the "superadmin" role. The messages are in `config/locales/single_superadmin.en.yml` and `.nl.yml`.
-  - `Ability` asks `superadmin?`. At its end nobody else may change user 1 or see the role, and nobody destroys user 1.
+  - `Ability` asks `superadmin?`. At its end nobody else may change user 1 or see the role, and nobody destroys or soft-deletes user 1.
   - Tests: `test/test_helpers/the_superadmin.rb` makes user 1 (`TheSuperadmin.user`, `the_superadmin`) and `test/models/single_superadmin_test.rb` tests the rule. The example app's tests sign in as user 1 and check the messages on the screen.
+  - The role name "superadmin" is reserved: no other role is created with it or renamed to it, in any case. Role names are unique regardless of case.
   - Apps made before keep what they have.
+
+### Fixed
+
+- **A create refused by an association callback answers 422,** as the apps' own handlers for it did. Since 8.1.77 the engine shows the refusal itself, and a host's `rescue_from` for it no longer runs. A failed validation still answers 200.
+- **`dropdown` refuses an option it shows disabled** (`disabled_for_dropdown?`), unless the record already has it.
+- A refused dropdown value no longer shows two messages when the model's own message is on the foreign key (`phase_id`) instead of the association.
 
 ## [8.1.77] - 2026-11-22
 

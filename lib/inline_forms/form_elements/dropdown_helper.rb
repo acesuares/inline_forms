@@ -42,6 +42,12 @@ module InlineForms
       cancan_enabled? ? klass.accessible_by(current_ability) : klass.all
     end
     
+    # An option shown disabled (disabled_for_dropdown?) is not offered either.
+    def dropdown_offers?(klass, value)
+      record = dropdown_offered(klass).find_by(klass.primary_key => value.to_s)
+      record.present? && !(record.respond_to?(:disabled_for_dropdown?) && record.disabled_for_dropdown?)
+    end
+
     def dropdown_update(object, attribute)
       # Inline edit posts the value under the leading-underscore wrapper key
       # (`params[:_apartment][:owner_id]`); top-level create through a
@@ -57,8 +63,7 @@ module InlineForms
       # A hidden option is also a refused value. The value the record already
       # has may stay. It is assigned all the same, so that a model that refuses
       # it says so in its own words; RefusedValues keeps it from being saved.
-      if value.present? && value.to_s != object[foreign_key].to_s &&
-          !dropdown_offered(reflection.klass).exists?(reflection.klass.primary_key => value.to_s)
+      if value.present? && value.to_s != object[foreign_key].to_s && !dropdown_offers?(reflection.klass, value)
         InlineForms::RefusedValues.add(object, attribute)
       end
       object[foreign_key] = value

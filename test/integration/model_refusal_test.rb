@@ -134,7 +134,7 @@ class ModelRefusalTest < InlineFormsIntegrationTestCase
       create_member(name: "Bea", badges: { gold.id => "1" })
     end
 
-    assert_response :ok
+    assert_response :unprocessable_entity
     assert_includes response.body, "No change of gold."
     assert_includes response.body, "Could not create Member."
     assert_includes response.body, "Bea"
@@ -185,6 +185,37 @@ class ModelRefusalTest < InlineFormsIntegrationTestCase
 
     assert_select ".inline_forms_field_error li", count: 1, text: "Phase is for the boss"
     assert_nil ann.reload.phase
+  end
+
+  test "a message on the foreign key also wins over the general one" do
+    closed = Phase.create!(name: "closed")
+    Ability.restrictions = -> { cannot :read, Phase, name: "closed" }
+    ann = member
+
+    put_field(ann, "phase", "dropdown", _member: { phase_id: closed.id })
+
+    assert_select ".inline_forms_field_error li", count: 1, text: "Phase is closed"
+    assert_nil ann.reload.phase
+  end
+
+  test "a dropdown option shown disabled is refused, unless the record has it" do
+    open_phase = Phase.create!(name: "intake")
+    shut = Phase.create!(name: "shut")
+    Phase.define_method(:disabled_for_dropdown?) { name == "shut" }
+    ann = member(phase: open_phase)
+
+    put_field(ann, "phase", "dropdown", _member: { phase_id: shut.id })
+
+    assert_select ".inline_forms_field_error li", text: "Phase is not included in the list"
+    assert_equal open_phase, ann.reload.phase
+
+    bob = member("Bob", phase: shut)
+    put_field(bob, "phase", "dropdown", _member: { phase_id: shut.id })
+
+    assert_select ".inline_forms_field_error", count: 0
+    assert_equal shut, bob.reload.phase
+  ensure
+    Phase.remove_method(:disabled_for_dropdown?) if Phase.method_defined?(:disabled_for_dropdown?, false)
   end
 
   test "the dropdown value a record already has may stay, hidden or not" do
@@ -278,6 +309,6 @@ class ModelRefusalTest < InlineFormsIntegrationTestCase
     assert_response :forbidden
     assert Member.exists?(ann.id)
   ensure
-    ApplicationController::DummyUser.remove_method(:superadmin?)
+    ApplicationController::DummyUser.remove_method(:superadmin?) if ApplicationController::DummyUser.method_defined?(:superadmin?, false)
   end
 end

@@ -65,12 +65,23 @@ class SingleSuperadminTest < ActiveSupport::TestCase
     assert Role.exists?(name: SingleSuperadmin::SUPERADMIN_ROLE)
   end
 
+  test "no other role takes the name superadmin, in any spelling" do
+    [ "superadmin", "SuperAdmin", " superadmin " ].each do |name|
+      role = Role.new(name: name)
+      assert_not role.valid?, name
+    end
+    editor = Role.create!(name: "editor")
+    assert_not editor.update(name: "Superadmin")
+    assert_equal "editor", editor.reload.name
+  end
+
   test "another holder of the role, by a database edit, gets nothing" do
     give_role_by_database_edit(@other)
     ability = Ability.new(@other.reload)
     assert @other.role?(:superadmin)
     assert_not @other.superadmin?
     assert ability.cannot?(:update, @superadmin)
+    assert ability.cannot?(:soft_delete, @superadmin)
     assert ability.cannot?(:read, @role)
     assert ability.cannot?(:manage, User)
   end
@@ -81,6 +92,7 @@ class SingleSuperadminTest < ActiveSupport::TestCase
     assert ability.can?(:update, @role)
     assert ability.can?(:destroy, @other)
     assert ability.cannot?(:destroy, @superadmin)
+    assert ability.cannot?(:soft_delete, @superadmin)
   end
 
   private

@@ -508,10 +508,12 @@ end
 copy_file File.join(single_superadmin_root, "single_superadmin.rb"), "app/models/concerns/single_superadmin.rb"
 {
   "en" => [ "This role is reserved for the one superadmin",
-            "The superadmin keeps this role and cannot be removed" ],
+            "The superadmin keeps this role and cannot be removed",
+            "This role name is reserved for the one superadmin" ],
   "nl" => [ "Deze rol is voorbehouden aan de ene superadmin",
-            "De superadmin houdt deze rol en kan niet verwijderd worden" ]
-}.each do |locale, (reserved, stays)|
+            "De superadmin houdt deze rol en kan niet verwijderd worden",
+            "Deze rolnaam is voorbehouden aan de ene superadmin" ]
+}.each do |locale, (reserved, stays, name_reserved)|
   create_file "config/locales/single_superadmin.#{locale}.yml", <<~SUPERADMIN_LOCALE
     # One superadmin, user 1 (app/models/concerns/single_superadmin.rb).
     #{locale}:
@@ -522,6 +524,7 @@ copy_file File.join(single_superadmin_root, "single_superadmin.rb"), "app/models
               superadmin_reserved: "#{reserved}"
               superadmin_stays: "#{stays}"
             role:
+              superadmin_reserved: "#{name_reserved}"
               superadmin_stays: "#{stays}"
   SUPERADMIN_LOCALE
 end
@@ -568,10 +571,14 @@ append_to_file "db/seeds.rb", "Role.create({ id: 1, name: 'superadmin', descript
 # this side of the association.
 gsub_file "app/models/role.rb", /^  has_and_belongs_to_many :#{user_cfg.table_name}$/, <<~ROLE_GUARDS.chomp.indent(2)
   # The superadmin role is user 1's only (SingleSuperadmin): giving it to
-  # another #{user_cfg.class_name.underscore.humanize(capitalize: false)}, taking it from user 1, renaming or deleting it is refused.
+  # another #{user_cfg.class_name.underscore.humanize(capitalize: false)}, taking it from user 1, renaming or deleting it is refused,
+  # and its name is reserved: no other role is created with it or renamed to
+  # it, in any case or with spaces around it.
+  validates :name, uniqueness: { case_sensitive: false }
   has_and_belongs_to_many :#{user_cfg.table_name}, before_add: ->(role, user) { user.superadmin_role_added!(role) },
                              #{" " * user_cfg.table_name.length}before_remove: ->(role, user) { user.superadmin_role_removed!(role) }
   validate :superadmin_role_keeps_its_name, on: :update
+  validate :superadmin_name_is_reserved
   before_destroy :superadmin_role_is_not_destroyed, prepend: true
 ROLE_GUARDS
 inject_into_file "app/models/role.rb", <<~ROLE_GUARD_METHODS.indent(2), before: /^end\s*\z/
@@ -580,6 +587,18 @@ inject_into_file "app/models/role.rb", <<~ROLE_GUARD_METHODS.indent(2), before: 
 
   def superadmin_role_keeps_its_name
     errors.add(:base, :superadmin_stays) if name_changed? && name_was == SingleSuperadmin::SUPERADMIN_ROLE
+  end
+
+  # Refused, never rewritten. The one exception is the row itself: the
+  # existing one, or the first one, spelled exactly, when there is none yet
+  # (seeds, a fresh database).
+  def superadmin_name_is_reserved
+    return unless name.to_s.strip.casecmp?(SingleSuperadmin::SUPERADMIN_ROLE)
+    return if persisted? && name_was == SingleSuperadmin::SUPERADMIN_ROLE
+    return if new_record? && name == SingleSuperadmin::SUPERADMIN_ROLE &&
+              !Role.unscoped.exists?(name: SingleSuperadmin::SUPERADMIN_ROLE)
+
+    errors.add(:base, :superadmin_reserved)
   end
 
   def superadmin_role_is_not_destroyed
@@ -841,8 +860,8 @@ create_file "app/models/ability.rb", <<-END_ABILITY.strip_heredoc
         # ... and nobody else sees or touches the role.
         cannot :manage, Role, name: SingleSuperadmin::SUPERADMIN_ROLE
       end
-      # User 1 is never destroyed, also not by user 1.
-      cannot :destroy, #{user_cfg.class_name}, id: SingleSuperadmin::SUPERADMIN_ID
+      # User 1 is never destroyed or soft-deleted, also not by user 1.
+      cannot [ :destroy, :soft_delete ], #{user_cfg.class_name}, id: SingleSuperadmin::SUPERADMIN_ID
     end
   end
 END_ABILITY

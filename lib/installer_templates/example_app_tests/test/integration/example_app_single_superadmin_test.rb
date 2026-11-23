@@ -54,6 +54,16 @@ class ExampleAppSingleSuperadminTest < ExampleAppIntegrationTestCase
     frame = "user_#{@superadmin.id}"
     delete user_path(@superadmin, update: frame), headers: { "Turbo-Frame" => frame, "Accept" => "text/html" }
 
+    # The Ability refuses before the model does: CanCan's message on the page
+    # the app sends the user to.
+    assert_redirected_to root_url
+    assert_equal I18n.t("unauthorized.default", default: "You are not authorized to access this page."), flash[:notice]
+    assert User.exists?(@superadmin.id)
+  end
+
+  test "the model refuses destroying user 1 when the Ability lets it through" do
+    assert_equal false, @superadmin.destroy
+    assert_includes @superadmin.errors.full_messages, "The superadmin keeps this role and cannot be removed"
     assert User.exists?(@superadmin.id)
   end
 

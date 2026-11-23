@@ -18,6 +18,7 @@ class Member < ApplicationRecord
   validate { errors.add(:base, "The boss stays.") if name == "Boss" && deleted? }
   validate { errors.add(:base, "Gone for good.") if name == "Ghost" && active? && persisted? }
   validate { errors.add(:phase, "is for the boss") if phase&.name == "top" && name != "Boss" }
+  validate { errors.add(:phase_id, "is closed") if phase&.name == "closed" }
   before_destroy { throw :abort if name == "Silent" }
   before_destroy do
     if name == "Boss"
