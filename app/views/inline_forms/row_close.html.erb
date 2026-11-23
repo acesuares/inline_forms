@@ -2,6 +2,11 @@
 <% object = local_assigns[:object] || @object -%>
 <% inline_forms_turbo_row = local_assigns.fetch(:inline_forms_turbo_row, @inline_forms_turbo_row) -%>
 <turbo-frame id="<%= update_span %>">
+  <% if @inline_forms_row_errors.present? %>
+    <div class="flash error inline_forms_row_error" role="alert">
+      <ul><% @inline_forms_row_errors.each do |message| %><li><%= message %></li><% end %></ul>
+    </div>
+  <% end %>
   <div class="row odd top-level">
     <%= render partial: "inline_forms/close",
           locals: {

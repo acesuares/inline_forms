@@ -20,12 +20,7 @@ module InlineForms
       presentation = "_presentation"
       presentation = "_dropdown_presentation" if attr.respond_to? "_dropdown_presentation"
       klass = object.send(attribute).class
-      if cancan_enabled?
-        values = klass.accessible_by(current_ability)
-      else
-        values = klass.all
-      end
-      values = InlineForms::DropdownOrder.apply(values)
+      values = InlineForms::DropdownOrder.apply(dropdown_offered(klass))
       options_disabled = nil
       if klass.method_defined? :disabled_for_dropdown?
         # loads values; collection_select below reuses the loaded records
@@ -42,6 +37,11 @@ module InlineForms
                         )
     end
     
+    # The records the dropdown offers; dropdown_update accepts no others.
+    def dropdown_offered(klass)
+      cancan_enabled? ? klass.accessible_by(current_ability) : klass.all
+    end
+    
     def dropdown_update(object, attribute)
       # Inline edit posts the value under the leading-underscore wrapper key
       # (`params[:_apartment][:owner_id]`); top-level create through a
@@ -51,8 +51,17 @@ module InlineForms
       # walks do not raise NoMethodError on nil[:owner_id].
       scope = params[('_' + object.class.to_s.underscore).to_sym]
       return if scope.blank?
-      foreign_key = object.class.reflect_on_association(attribute.to_sym).options[:foreign_key] || attribute.to_s.foreign_key.to_sym
-      object[foreign_key] = scope[attribute.to_s.foreign_key.to_sym]
+      reflection = object.class.reflect_on_association(attribute.to_sym)
+      foreign_key = reflection.options[:foreign_key] || attribute.to_s.foreign_key.to_sym
+      value = scope[attribute.to_s.foreign_key.to_sym]
+      # A hidden option is also a refused value. The value the record already
+      # has may stay. It is assigned all the same, so that a model that refuses
+      # it says so in its own words; RefusedValues keeps it from being saved.
+      if value.present? && value.to_s != object[foreign_key].to_s &&
+          !dropdown_offered(reflection.klass).exists?(reflection.klass.primary_key => value.to_s)
+        InlineForms::RefusedValues.add(object, attribute)
+      end
+      object[foreign_key] = value
     end
     
     def dropdown_info(object, attribute)

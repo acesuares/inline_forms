@@ -503,7 +503,9 @@ turbo-frame {
 
 // Inline-edit validation feedback (flash.now[:error] on failed field save).
 // Shown in field_edit only; _edit deliberately skips flash to avoid session notices.
-.inline_forms_field_error {
+// _row_error: a refused destroy / soft delete / restore, above the closed row.
+.inline_forms_field_error,
+.inline_forms_row_error {
   font-size: 100%;
   font-weight: normal;
   line-height: 1.3;

@@ -8,6 +8,19 @@ All notable changes to this project are documented in this file.
 
 - Known issues, parked (local note `stuff/2026-10-31-dropdown-rule-3-parked.md`) with dropdown order rule 3: `includes`, `group` or `select` in `inline_forms_list` make `dropdown` and `dropdown_with_other` raise while `/index` works, so 8.1.65's fix for a list order on a joined table holds only for `joins`, `left_joins` and `eager_load`; a has_many join gives duplicate options. Present since 8.1.60. No host's list scope has these today. Parked; not changed.
 
+## [8.1.77] - 2026-11-22
+
+### Changed
+
+- **`dropdown` and `check_list` accept only the records they offer** (`accessible_by`, for a check list with the `inline_forms_list` filter). Before, any posted id was written, so hiding an option did not refuse it. A posted id that was not offered makes the record invalid and the field or new form shows why: the model's own message for that attribute, else "is not included in the list". The value a record already has may stay. `dropdown_with_other`, which looks its record up by name, is not changed.
+- **`check_list` leaves the records it did not offer.** Saving used to remove every record the user was not shown.
+- **The app's `User#superadmin?` decides,** where it has one: destroy, revert and the header's menu ask `InlineForms.superadmin?`, which falls back to `role?(:superadmin)`.
+
+### Fixed
+
+- **A refused destroy, soft delete or soft restore says so.** The result was ignored: a refused destroy showed the undo button of a deleted record. The row now stays, with the record's errors (or "Could not delete" / "Could not restore", new keys `inline_forms.view.destroy_failed` and `restore_failed`), as a 422.
+- **An association callback may refuse.** A `before_add` / `before_remove` that raises `ActiveRecord::RecordInvalid` or `RecordNotSaved` was a 500; create and update now show the errors in the form, as for a failed validation.
+
 ## [8.1.76] - 2026-11-22
 
 ### Fixed

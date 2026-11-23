@@ -18,6 +18,7 @@ class LocaleTest < InlineFormsIntegrationTestCase
     inline_forms.view.versions_rich_text inline_forms.view.version_events.create
     inline_forms.view.version_events.update inline_forms.view.version_events.destroy
     inline_forms.devise.login common.more common.logout inline_forms.view.create_failed
+    inline_forms.view.destroy_failed inline_forms.view.restore_failed
     inline_forms.files.preview inline_forms.files.download_pdf
     inline_forms.search.placeholder inline_forms.search.submit inline_forms.search.reset
     inline_forms.devise.welcome_to time.formats.inline_forms

@@ -153,6 +153,7 @@ class InlineFormsController < ApplicationController
     return head :bad_request unless html_list_flow_allowed?
 
     attributes = @inline_forms_attribute_list || @object.inline_forms_attribute_list
+    refusals = []
     attributes.each do | attribute, form_element |
       # Skip a row whose column is not migrated yet (model edited, migration
       # not run). Writing it would raise; the new form shows it as a pending
@@ -160,7 +161,9 @@ class InlineFormsController < ApplicationController
       next if InlineForms.attribute_pending_migration?(@object, attribute, form_element)
 
       InlineForms.assert_plain_text_column!(object: @object, attribute: attribute, form_element: form_element)
-      send("#{form_element}_update", @object, attribute) unless form_element == :associated || (cancan_enabled? && cannot?(:read, @object, attribute))
+      next if form_element == :associated || (cancan_enabled? && cannot?(:read, @object, attribute))
+
+      refusals.concat(assign_field(attribute, form_element))
     end
     @parent_id = params[:parent_id]
     # See #index for the order/search/parent-fk decomposition.
@@ -171,7 +174,7 @@ class InlineFormsController < ApplicationController
       @object[foreign_key] = @parent_id
     end
 
-    if @object.save
+    if refusals.empty? && @object.save
       flash.now[:success] = t("success", message: @object.class.model_name.human)
       @objects = cancan_enabled? ? @Klass.accessible_by(current_ability) : @Klass.all
       @objects = @objects.merge(@Klass.inline_forms_list) if @Klass.respond_to?(:inline_forms_list)
@@ -190,7 +193,7 @@ class InlineFormsController < ApplicationController
       end
     else
       flash.now[:header] = [ t("inline_forms.view.create_failed", model: @object.class.model_name.human) ]
-      flash.now[:error] = @object.errors.to_a
+      flash.now[:error] = refusals.presence || @object.errors.to_a
       respond_to do |format|
         @object.inline_forms_attribute_list = attributes
         format.html { render_turbo_new }
@@ -218,7 +221,7 @@ class InlineFormsController < ApplicationController
       return
     end
     InlineForms.assert_plain_text_column!(object: @object, attribute: @attribute, form_element: @form_element)
-    send("#{@form_element}_update", @object, @attribute)
+    refusals = assign_field(@attribute, @form_element)
     # Branch on the actual save result. Previously the return value of
     # `@object.save` was ignored and `field_show` was rendered
     # unconditionally from the in-memory `@object`. When a save failed
@@ -229,12 +232,12 @@ class InlineFormsController < ApplicationController
     #
     # On failure we keep the user in the edit field with their rejected
     # input visible and surface the validation errors (mirrors `create`).
-    if @object.save
+    if refusals.empty? && @object.save
       respond_to do |format|
         format.html { render_turbo_field(:field_show, turbo_field_show: true) }
       end
     else
-      flash.now[:error] = @object.errors.to_a
+      flash.now[:error] = refusals.presence || @object.errors.to_a
       respond_to do |format|
         format.html { render_turbo_field(:field_edit) }
       end
@@ -286,7 +289,8 @@ class InlineFormsController < ApplicationController
     @object = referenced_object
     return head :bad_request unless row_html_turbo_allowed?
 
-    @object.soft_delete(current_user)
+    return render_row_refused("inline_forms.view.destroy_failed") if @object.soft_delete(current_user) == false
+
     respond_to do |format|
       format.html { render_row_turbo(:close) }
     end
@@ -298,7 +302,8 @@ class InlineFormsController < ApplicationController
     @object = referenced_object
     return head :bad_request unless row_html_turbo_allowed?
 
-    @object.soft_restore
+    return render_row_refused("inline_forms.view.restore_failed") if @object.soft_restore == false
+
     respond_to do |format|
       format.html { render_row_turbo(:close) }
     end
@@ -313,7 +318,8 @@ class InlineFormsController < ApplicationController
     return head :forbidden unless destroy_permitted?
     return head :bad_request unless row_html_turbo_allowed?
 
-    @object.destroy
+    return render_row_refused("inline_forms.view.destroy_failed") if @object.destroy == false
+
     # Capture after destroy: `.last` before destroy was the latest *update*
     # (e.g. a plain_text_area edit), so undo reified the pre-edit state.
     @undo_version = @object.versions.last
@@ -470,17 +476,31 @@ class InlineFormsController < ApplicationController
     true
   end
 
-  # Hard-destroy gate. Generated apps restrict destroy to a Devise user with
-  # `role?(:superadmin)` (Role model + roles HABTM). Hosts without that role
+  # Write one field's submitted value to @object; returns the messages of a
+  # refusal, empty when there is none. A check_list on a saved record writes
+  # its join rows here, before any validation, so a model can only refuse them
+  # in an association callback (before_add / before_remove) that raises. The
+  # association is reset: its in-memory list may hold the refused change.
+  def assign_field(attribute, form_element)
+    send("#{form_element}_update", @object, attribute)
+    []
+  rescue ActiveRecord::RecordInvalid, ActiveRecord::RecordNotSaved => refusal
+    @object.association(attribute.to_sym).reset if @object.class.reflect_on_association(attribute.to_sym)
+    (refusal.record&.errors&.full_messages || []).presence || [ refusal.message ]
+  end
+
+  # Hard-destroy gate. Generated apps restrict destroy to a Devise user who is
+  # the superadmin (InlineForms.superadmin?: the app's own `superadmin?`, else
+  # the role). Hosts without that role
   # system (e.g. the engine's test/dummy harness, or apps using a different
   # auth stack) have no gatekeeper here beyond CanCan's
   # `load_and_authorize_resource`; pre-8.1.27 this crashed with
   # `NoMethodError` on `nil.role?` instead of deciding either way.
   def destroy_permitted?
     user = respond_to?(:current_user, true) ? current_user : nil
-    return true unless user.respond_to?(:role?)
+    return true unless user.respond_to?(:superadmin?) || user.respond_to?(:role?)
 
-    user.role?(:superadmin)
+    InlineForms.superadmin?(user)
   end
 
   # Every reify on the revert path goes through here. +unversioned_attributes:
@@ -658,6 +678,22 @@ class InlineFormsController < ApplicationController
     template = (mode == :close) ? "inline_forms/row_close" : "inline_forms/row_show"
     layout = turbo_frame_request? ? "turbo_rails/frame" : "inline_forms"
     render template, layout: layout
+  end
+
+  # The model refused a destroy, soft delete or soft restore: the row as it is
+  # in the database, with the reason. +fallback+ is for a model that gave none.
+  def render_row_refused(fallback)
+    @inline_forms_row_errors = @object.errors.to_a.presence ||
+      [ t(fallback, model: @object.class.model_name.human) ]
+    @object = referenced_object
+    @inline_forms_turbo_row = true
+    respond_to do |format|
+      format.html do
+        render "inline_forms/row_close",
+          layout: turbo_frame_request? ? "turbo_rails/frame" : "inline_forms",
+          status: 422
+      end
+    end
   end
 
   def render_row_turbo_destroyed

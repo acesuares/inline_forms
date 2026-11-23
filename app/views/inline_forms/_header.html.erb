@@ -9,7 +9,7 @@
     </div>
     <div class="top-bar-right">
       <ul class="dropdown menu" data-dropdown-menu>
-        <% if current_user.role?(:admin) || current_user.role?(:superadmin) %>
+        <% if current_user.role?(:admin) || InlineForms.superadmin?(current_user) %>
           <li>
             <a href="#"><%= t 'common.more' %></a>
             <ul class="menu">

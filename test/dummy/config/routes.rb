@@ -25,6 +25,13 @@ Rails.application.routes.draw do
     get "list_versions", on: :member
   end
 
+  resources :members do
+    post "revert", on: :member
+    get "list_versions", on: :member
+    post "soft_delete", on: :member
+    post "soft_restore", on: :member
+  end
+
   resources :gizmos do
     post "revert", on: :member
     get "list_versions", on: :member

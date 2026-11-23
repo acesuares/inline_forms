@@ -58,6 +58,27 @@ ActiveRecord::Schema.define do
   end
   add_index :parts, :machine_id
 
+  # Member: what a model can refuse (destroy, soft delete / restore, a badge
+  # in its check_list) and a dropdown; see model_refusal_test.rb.
+  create_table :members, force: true do |t|
+    t.string   :name
+    t.integer  :phase_id
+    t.integer  :deleted, default: 1
+    t.datetime :deleted_at
+    t.integer  :deleted_by
+    t.timestamps
+  end
+
+  create_table :badges, force: true do |t|
+    t.string :name
+    t.timestamps
+  end
+
+  create_table :badges_members, id: false, force: true do |t|
+    t.integer :badge_id
+    t.integer :member_id
+  end
+
   # DailyReport: a not_accessible_through_html? child of Machine (shaped like
   # StProject's Dagrapportage). See test/integration/html_refusal_test.rb.
   create_table :daily_reports, force: true do |t|
@@ -187,6 +208,10 @@ class InlineFormsIntegrationTestCase < ActionDispatch::IntegrationTest
     Part.delete_all
     DailyReport.delete_all
     Machine.delete_all
+    ActiveRecord::Base.connection.execute("DELETE FROM badges_members")
+    Member.delete_all
+    Badge.delete_all
+    Phase.delete_all
     Gizmo.delete_all
     Dossier.delete_all
     Document.delete_all

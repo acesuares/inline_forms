@@ -11,6 +11,7 @@ require "inline_forms/schema_label"
 require "inline_forms/form_element_from_callee"
 require "inline_forms/searchable"
 require "inline_forms/dropdown_order"
+require "inline_forms/refused_values"
 require "inline_forms/archived_form_elements"
 require "inline_forms/form_element_registry"
 require "inline_forms/form_elements"
@@ -63,6 +64,15 @@ module InlineForms
       router.get  "trashed_file"
       router.get  "file_trash"
     end
+  end
+
+  # Is this user the superadmin? An app that has its own answer
+  # (`User#superadmin?`, e.g. only user 1) is asked first; otherwise it is
+  # whoever holds the role. A user class with neither is not a superadmin.
+  def self.superadmin?(user)
+    return !!user.superadmin? if user.respond_to?(:superadmin?)
+
+    user.respond_to?(:role?) && !!user.role?(:superadmin)
   end
 
   # The cross-record trash page (superadmin). One line in routes.rb:
