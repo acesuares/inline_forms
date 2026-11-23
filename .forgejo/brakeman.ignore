@@ -94,29 +94,6 @@
     {
       "warning_type": "Dangerous Send",
       "warning_code": 23,
-      "fingerprint": "67076d627523cb3c2746069c8e98d2261b3fcfe04a11463f6eb56e4f10e789a4",
-      "check_name": "Send",
-      "message": "User controlled method execution",
-      "file": "engines/inline_forms/app/controllers/inline_forms_controller.rb",
-      "line": 221,
-      "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
-      "code": "send(\"#{params[:form_element]}_update\", referenced_object, params[:attribute])",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "InlineFormsController",
-        "method": "update"
-      },
-      "user_input": "params[:form_element]",
-      "confidence": "High",
-      "cwe_id": [
-        77
-      ],
-      "note": "field_request_permitted?(:update) runs first and refuses (400) unless attribute and form_element name a row of the model's own attribute list, so only the *_update method of a declared form element can be called."
-    },
-    {
-      "warning_type": "Dangerous Send",
-      "warning_code": 23,
       "fingerprint": "6988827dc9c767b44428caabc78a6c8596ad933a406ae1a32b85ae3fd4a4ed23",
       "check_name": "Send",
       "message": "User controlled method execution",

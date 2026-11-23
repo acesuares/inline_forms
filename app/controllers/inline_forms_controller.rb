@@ -486,6 +486,12 @@ class InlineFormsController < ApplicationController
   # its join rows here, before any validation, so a model can only refuse them
   # in an association callback (before_add / before_remove) that raises. The
   # association is reset: its in-memory list may hold the refused change.
+  #
+  # The send names a method after form_element. In update that comes from
+  # params, but field_request_permitted?(:update) has already refused (400)
+  # anything that is not a row of the model's attribute list; in create it
+  # comes from that list itself. (Brakeman does not follow params into this
+  # method, so brakeman.ignore no longer needs an entry for it.)
   def assign_field(attribute, form_element)
     send("#{form_element}_update", @object, attribute)
     []
