@@ -1,7 +1,7 @@
 # -*- encoding : utf-8 -*-
 
 module InlineFormsInstaller
-  VERSION = "8.1.78"
+  VERSION = "8.1.79"
 
   # Canonical bare Ruby version (the gemspecs accept any Ruby >= 4.0.0; an app
   # gets the running Ruby when this one is not there, see ruby_for_app).

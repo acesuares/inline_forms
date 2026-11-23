@@ -1,5 +1,6 @@
 //= require jquery
 //= require foundation
+//= require inline_forms/datalist_suggest
 
 // Turbo / Hotwire is intentionally NOT required into this Sprockets bundle.
 // `turbo-rails` ships only an ES-module build of turbo (`app/assets/javascripts/turbo.js`

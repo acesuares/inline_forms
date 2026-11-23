@@ -8,6 +8,22 @@ All notable changes to this project are documented in this file.
 
 - Known issues, parked (local note `stuff/2026-10-31-dropdown-rule-3-parked.md`) with dropdown order rule 3: `includes`, `group` or `select` in `inline_forms_list` make `dropdown` and `dropdown_with_other` raise while `/index` works, so 8.1.65's fix for a list order on a joined table holds only for `joins`, `left_joins` and `eager_load`; a has_many join gives duplicate options. Present since 8.1.60. No host's list scope has these today. Parked; not changed.
 
+## [8.1.79] - 2026-11-23
+
+### Added
+
+- **Search suggestions, in the engine.** The pieces Scouting, StProject and Papiamentu each had, so an app can drop its own copies on an upgrade:
+  - `inline_forms/datalist_suggest.js`, in the engine's script bundle: while the user types, it fills the browser's own suggestion list (`<datalist>`) from a JSON URL. It is the apps' file unchanged; its once-guard (`window.datalistSuggestLoaded`) keeps it from running twice when an app still loads its own copy. No library, no inline script; it passes terser on mini_racer.
+  - The helper `suggest_field_tag(name, value, url, options)`: a text field with `list`, `autocomplete="off"` and `data-suggest-url`, and an empty `<datalist>`. It has the apps' module name, `DatalistSuggestHelper`, so an app's own copy wins.
+  - The controller macro `suggest_names :client, :last_name`, in every controller that inherits from `InlineFormsController`. It defines the action `autocomplete_client_last_name`, which answers `?term=` with at most 12 names (`limit:`), each once (case and surrounding spaces ignored), in A-Z order, only from records the user may read (`accessible_by`). `scope:` narrows them further, run in the controller. The app adds the route and the ability, as before.
+  - **`match:` says where the term must be:** `:contains` (anywhere, the default: "ma" finds Martina, tinaMart and tinartma), `:start` (only at the start: Martina) or `:word` (at the start of any word: Martina, Anna Maria). Case is ignored, and `%` and `_` in the term are taken literally.
+- **The engine's search box suggests,** for a model that asks for it: `inline_forms_search_on :name, :email, suggest: true`, or `suggest: { on: :name, match: :start, limit: 8 }`. The list answers the suggestions itself (`?suggest=1&term=…`), from the records the user may see there, so they need no route or ability of their own. Without `suggest:` the box is as before.
+- Installer: a new app's users list suggests names (`inline_forms_search_on :name, :email, suggest: { on: :name }`), with an example-app test.
+
+### Changed
+
+- Full gate (CI, run by hand or weekly): the Brakeman ignore entry that 8.1.77 made obsolete is gone, so the gate is green again for the code released as 8.1.78.
+
 ## [8.1.78] - 2026-11-22
 
 ### Changed

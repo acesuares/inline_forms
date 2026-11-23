@@ -6,6 +6,7 @@ Rails.application.routes.draw do
   delete "logout", to: proc { [ 204, {}, [] ] }, as: :destroy_user_session
 
   resources :widgets do
+    get "autocomplete_widget_name", on: :collection
     post "revert", on: :member
     get "list_versions", on: :member
   end
@@ -26,6 +27,7 @@ Rails.application.routes.draw do
   end
 
   resources :members do
+    get "autocomplete_member_name", on: :collection
     post "revert", on: :member
     get "list_versions", on: :member
     post "soft_delete", on: :member

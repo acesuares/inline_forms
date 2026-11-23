@@ -27,6 +27,7 @@ class InlineFormsController < ApplicationController
   include CancanConcern
   include VersionsConcern
   include FileSlotsConcern
+  include SuggestionsConcern
 
   before_action :getKlass
 
@@ -58,6 +59,9 @@ class InlineFormsController < ApplicationController
     @objects ||= @Klass.accessible_by(current_ability) if cancan_enabled?
     @objects ||= @Klass.all
     @objects = @objects.merge(@Klass.inline_forms_list) if @Klass.respond_to?(:inline_forms_list)
+    # The search box's suggestions (?suggest=1&term=…): from the same records
+    # as the list, so they need no route or ability of their own.
+    return render_search_suggestions if params.key?(:suggest) && fk_conditions.nil?
     if fk_conditions.nil? && params[:search].present? && @Klass.respond_to?(:inline_forms_search)
       @objects = @objects.merge(@Klass.inline_forms_search(params[:search]))
     end
@@ -778,6 +782,17 @@ class InlineFormsController < ApplicationController
   def render_turbo_new
     @turbo_frame = true
     render "inline_forms/new_record", layout: associated_list_frame_layout
+  end
+
+  # The engine's search box asks the list for suggestions when the model
+  # declares `inline_forms_search_on …, suggest: …`; else there are none (404).
+  def render_search_suggestions
+    options = @Klass.respond_to?(:inline_forms_suggestions) && @Klass.inline_forms_suggestions
+    return head(:not_found) unless options
+
+    render_inline_forms_suggestions InlineForms::Suggestions.values(
+      @objects, options[:on], params[:term], match: options[:match], limit: options[:limit]
+    )
   end
 
   # Nested +index+ / cancel / +create+ HTML inside a parent-associated +<turbo-frame>+.

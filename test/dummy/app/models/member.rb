@@ -11,6 +11,9 @@ class Member < ApplicationRecord
     before_add: ->(member, badge) { member.refuse_badge!(badge, "gold") },
     before_remove: ->(member, badge) { member.refuse_badge!(badge, "iron") }
 
+  # Search box with suggestions (test/integration/suggestions_test.rb).
+  inline_forms_search_on :name, suggest: { match: :word, limit: 3 }
+
   enum :deleted, { active: 1, deleted: 2 }
 
   attr_accessor :deleter

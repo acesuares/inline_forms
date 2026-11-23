@@ -5,6 +5,13 @@ lockstep with inline_forms / inline_forms_installer / validation_hints.
 
 ## [Unreleased]
 
+## [8.1.79] - 2026-11-23
+
+### Changed
+
+- Version bump to stay in lockstep with `inline_forms` /
+  `inline_forms_installer` / `validation_hints` 8.1.79.
+
 ## [8.1.78] - 2026-11-22
 
 ### Changed

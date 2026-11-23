@@ -444,7 +444,8 @@ create_file user_cfg.model_path, <<-USER_MODEL.strip_heredoc
     # via `#{user_cfg.class_name}.inline_forms_list`). Avoids `default_scope`
     # so callers can `unscope`/`reorder` cleanly when needed.
     scope :inline_forms_list, -> { order(:name, :id) }
-    inline_forms_search_on :name, :email
+    # Suggestions in the search box while typing, from the names (8.1.79).
+    inline_forms_search_on :name, :email, suggest: { on: :name }
 
     def _presentation
       "\#{name}"

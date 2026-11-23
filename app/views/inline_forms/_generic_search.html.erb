@@ -4,7 +4,13 @@
       <%= link_to tag.i(class: "fi-x"), request.path, title: t("inline_forms.search.reset"), class: "button expanded inline_forms_model_top_bar_buttons" %>
     </div>
     <div class="large-6 small-6 columns">
-      <%= text_field_tag :search, params[:search], placeholder: t("inline_forms.search.placeholder"), id: "input_search" %>
+      <%# With `inline_forms_search_on …, suggest: …` the list itself answers %>
+      <%# the suggestions (index with ?suggest=1&term=…). %>
+      <% if @Klass.respond_to?(:inline_forms_suggestions) && @Klass.inline_forms_suggestions %>
+        <%= suggest_field_tag :search, params[:search], "#{request.path}?suggest=1", placeholder: t("inline_forms.search.placeholder"), id: "input_search", list: "input_search_suggestions" %>
+      <% else %>
+        <%= text_field_tag :search, params[:search], placeholder: t("inline_forms.search.placeholder"), id: "input_search" %>
+      <% end %>
     </div>
     <div class="large-3 small-3 columns">
       <%= submit_tag t("inline_forms.search.submit"), class: "button expanded inline_forms_model_top_bar_buttons" %>
