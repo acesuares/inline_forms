@@ -354,6 +354,17 @@ module InlineFormsHelper
   #
   # or a Range
   #
+  # A value of a values list as the user sees it: its translation, or the
+  # value itself when there is none. A bare t(value) gave the view helper's
+  # <span class="translation_missing"> for an untranslated value ("Ja" in
+  # yavetracker), which a select option or a link escaped into raw markup.
+  # Numbers (a Range's values) are shown as they are.
+  def inline_forms_value_label(value)
+    return value unless value.is_a?(String) || value.is_a?(Symbol)
+
+    t(value, default: value.to_s)
+  end
+
   def attribute_values(object, attribute)
     # if we have a range 1..6  will result in [[0,1],[1,2],[2,3],...,[5,6]]
     # or range -3..3 will result in [[0,-3],[1,-2],[2,-1],...,[6,3]]
@@ -391,13 +402,13 @@ module InlineFormsHelper
     if values.is_a?(Hash)
       temp = Array.new
       values.to_a.each do |k, v|
-        temp << [ k, t(v) ]
+        temp << [ k, inline_forms_value_label(v) ]
       end
       values = temp.sort { |a, b| a[0]<=>b[0] }
     else
       temp = Array.new
       values.to_a.each_index do |i|
-        temp << [ i, t(values.to_a[i]) ]
+        temp << [ i, inline_forms_value_label(values.to_a[i]) ]
       end
       values = temp.sort { |a, b| a[1]<=>b[1] }
     end
@@ -434,6 +445,17 @@ module InlineFormsHelper
   # (InlineForms.application_title).
   def inline_forms_application_title
     InlineForms.application_title
+  end
+
+  # An update version that changed nothing (a `touch`, a callback): the
+  # versions panel hides its Restore link. Only when the versions table
+  # records changes at all: without an object_changes column every changeset
+  # is empty, and Restore (which reifies `object`) must stay.
+  def inline_forms_empty_changeset?(version)
+    columns = version.class.try(:column_names)
+    return false if columns && !columns.include?("object_changes")
+
+    version.changeset.nil? || version.changeset.except("updated_at").empty?
   end
 
   def version_modified_by(id)

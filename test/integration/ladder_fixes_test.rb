@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative "../integration_test_helper"
+require "minitest/mock"
 
 # Fixes from the RACVS / yavetracker Rails ladder (8.1.81): an app's own list
 # filter survives index, dates read dd-mm-yyyy, new and create in a Turbo
@@ -154,5 +155,49 @@ class LadderFixesTest < InlineFormsIntegrationTestCase
     head, body = response.body.split("</head>", 2)
     assert_match %r{<script[^>]+trix[^"]*\.js}, head
     assert_no_match %r{<script[^>]+trix[^"]*\.js}, body
+  end
+
+  # ---- 13. form-element helpers are not actions --------------------------------
+
+  test "the form-element helpers are not actions of an inline_forms controller" do
+    helpers = WidgetsController.action_methods.grep(/_(show|edit|update|info)\z/)
+
+    assert_empty helpers, "form-element helpers counted as actions: #{helpers.first(5).join(", ")}"
+    assert WidgetsController.private_method_defined?(:text_field_update)
+    assert_includes WidgetsController.action_methods, "update"
+  end
+
+  # ---- 14. Restore without an object_changes column --------------------------
+
+  test "without an object_changes column every update keeps its Restore link" do
+    widget = Widget.create!(name: "Versioned")
+    widget.update!(name: "Renamed")
+    version = widget.versions.last
+    helpers = ApplicationController.helpers
+
+    refute helpers.send(:inline_forms_empty_changeset?, version), "a real change"
+    version.define_singleton_method(:changeset) { {} }
+    assert helpers.send(:inline_forms_empty_changeset?, version), "an empty update, with the column"
+
+    columns = PaperTrail::Version.column_names - [ "object_changes" ]
+    PaperTrail::Version.stub(:column_names, columns) do
+      refute helpers.send(:inline_forms_empty_changeset?, version), "no column: Restore stays"
+    end
+  end
+
+  # ---- 15. a value without a translation -------------------------------------
+
+  test "a dropdown value without a translation reads as itself, in show and in edit" do
+    widget = Widget.create!(name: "Untranslated", priority: 2)
+    frame = "widget_#{widget.id}_priority"
+
+    get widget_path(widget, update: frame), headers: frame_headers("widget_#{widget.id}")
+    refute_includes response.body, "translation_missing"
+    refute_includes response.body, "&lt;span"
+
+    get edit_widget_path(widget, attribute: "priority", form_element: "dropdown_with_values", update: frame),
+        headers: frame_headers(frame)
+    assert_select "option[value=2]", text: "mid"
+    refute_includes response.body, "translation_missing"
   end
 end

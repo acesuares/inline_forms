@@ -24,6 +24,10 @@
 #
 class InlineFormsController < ApplicationController
   include InlineForms::FormElements::HelperIncludes
+  # The form-element helpers are here for assign_field (`send("#{element}_update")`),
+  # not as actions: private, so they stay out of action_methods (RACVS's
+  # ClientsController counted 122 of them). Views get them from InlineFormsHelper.
+  private(*InlineForms::FormElements.helper_modules.flat_map(&:public_instance_methods).uniq)
   include CancanConcern
   include VersionsConcern
   include FileSlotsConcern

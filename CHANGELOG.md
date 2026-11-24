@@ -8,6 +8,16 @@ All notable changes to this project are documented in this file.
 
 - Known issues, parked (local note `stuff/2026-10-31-dropdown-rule-3-parked.md`) with dropdown order rule 3: `includes`, `group` or `select` in `inline_forms_list` make `dropdown` and `dropdown_with_other` raise while `/index` works, so 8.1.65's fix for a list order on a joined table holds only for `joins`, `left_joins` and `eager_load`; a has_many join gives duplicate options. Present since 8.1.60. No host's list scope has these today. Parked; not changed.
 
+## [8.1.83] - 2026-11-24
+
+From items 13-18 of the RACVS / yavetracker ladder prompt (`ladder/inline_forms-PROMPT-2026-11-24.md`).
+
+### Fixed
+
+- **The form-element helpers are no longer actions.** `InlineFormsController` includes every form-element helper (`text_field_show`, `…_edit`, `…_update`, …) for `assign_field`, and they were public, so they counted as actions (122 of the 177 in RACVS's `ClientsController.action_methods`). They are private in the controller now; views still get them, public, from `InlineFormsHelper`.
+- **Restore stays in the versions panel when the versions table has no `object_changes` column.** Every changeset is empty there, and 7.13's rule "an update that changed nothing gets no Restore link" hid every Restore link (yavetracker kept an app copy of the partial for this). The rule now applies only when the column exists (`inline_forms_empty_changeset?`).
+- **A value without a translation shows as itself.** `attribute_values` ran each label of a values list through `t()`, which in a view gives a `<span class="translation_missing">` for an untranslated value: shown with a tooltip and a capital in a row, and escaped into raw markup in a dropdown's options (`Ja">Ja</Span>` in yavetracker). An untranslated label is now the value itself (`inline_forms_value_label`); a translated one is unchanged, and numbers (a Range) are shown as they are. **Visible change:** an untranslated `"mid"` reads `mid`, no longer `Mid`.
+
 ## [8.1.82] - 2026-11-24
 
 From a review of 8.1.78 to 8.1.81.

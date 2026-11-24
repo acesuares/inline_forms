@@ -82,7 +82,7 @@
           link is hidden here so the action is never offered. -%>
       <% if version.event == "create" && entry[:kind] != :rich_text %>
         &nbsp;
-      <% elsif version.changeset.nil? || version.changeset.except("updated_at").empty? %>
+      <% elsif inline_forms_empty_changeset?(version) %>
         &nbsp;
       <% else %>
         <% row_id = inline_forms_row_turbo_frame_id(@object) %>
