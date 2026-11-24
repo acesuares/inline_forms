@@ -16,7 +16,7 @@ class IsCuracaoPhoneValidator < ActiveModel::EachValidator
 
   def validate_each(record, attribute, value)
     unless value =~ /[4-8][0-9]{6}/
-      record.errors[attribute] << (options[:message] || error_message)
+      record.errors.add(attribute, options[:message] || error_message)
     end
   end
 end

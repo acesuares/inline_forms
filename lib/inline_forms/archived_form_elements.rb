@@ -70,17 +70,23 @@ module InlineForms
     }
   }.freeze
 
-  def self.validate_no_archived_form_elements_for!(klass)
+  # An app that vendors an archived element (copies its helper into its own
+  # app/helpers, see archived/README.md) defines `<element>_show` itself: the
+  # element is then the app's, and allowed. `helpers` is the view helper
+  # proxy to ask (default: ApplicationController's, with all app helpers).
+  def self.validate_no_archived_form_elements_for!(klass, helpers: nil)
     return unless klass.instance_methods.include?(:inline_forms_attribute_list)
 
     klass.new.inline_forms_attribute_list.each do |attribute, form_element|
       key = form_element.to_sym
       next unless ARCHIVED_FORM_ELEMENTS.key?(key)
+      next if vendored_form_element?(key, helpers)
 
       meta = ARCHIVED_FORM_ELEMENTS[key]
       version = meta[:archived_in_version] || meta[:removed_in_version]
       hint = if meta[:archive_path]
-        "Restore from #{meta[:archive_path]}/README.md or vendor into your app."
+        "Vendor it into your app: define #{key}_show (and _edit, _update) in an app helper " \
+          "(#{meta[:archive_path]}/README.md, archived/README.md)."
       else
         "See archived/README.md and CHANGELOG #{version}."
       end
@@ -89,5 +95,12 @@ module InlineForms
         "#{klass.name} inline_forms_attribute_list declares #{attribute}:#{form_element}, " \
         "which was retired in inline_forms #{version} (#{meta[:summary]}). #{hint}"
     end
+  end
+
+  def self.vendored_form_element?(key, helpers = nil)
+    helpers ||= ::ApplicationController.helpers if defined?(::ApplicationController)
+    !!helpers&.respond_to?(:"#{key}_show")
+  rescue StandardError
+    false
   end
 end

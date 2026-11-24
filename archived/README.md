@@ -39,6 +39,18 @@ Active form elements load from `app/helpers/form_elements/*.rb` only (top-level 
 4. Remove the symbol from `InlineForms::ARCHIVED_FORM_ELEMENTS` (or leave it and remove the model reference only in your app).
 5. Bump your app/gem as needed; run tests.
 
+## Vendoring an archived form element into an app
+
+An app can keep using an archived element without changing the gem: put its
+helper methods (`<name>_show`, `<name>_edit`, `<name>_update`, and `_info` if it
+has one) in a module under the app's own `app/helpers/`, plus the models,
+controllers, views, routes and assets its README lists. Since 8.1.81 the boot
+check (`InlineForms.validate_no_archived_form_elements_for!`) skips an archived
+symbol when the app's helpers (`ApplicationController.helpers`) answer
+`<name>_show`, so the element is then the app's. The archived files are
+written in the old top-level `def` style; wrap them in a helper module
+(`module GeoCodeCuracaoHelper … end`) and replace any jQuery/UJS they use.
+
 ## Adding a new archive entry
 
 When retiring a form element:

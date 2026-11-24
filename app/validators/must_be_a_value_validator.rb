@@ -16,7 +16,7 @@ class MustBeAValueValidator < ActiveModel::EachValidator
   def validate_each(record, attribute, value)
     values = attribute_values(record, attribute)
     if values.assoc(value).nil?
-      record.errors[attribute] << (options[:message] || error_message)
+      record.errors.add(attribute, options[:message] || error_message)
     end
   end
 

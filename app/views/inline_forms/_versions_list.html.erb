@@ -126,8 +126,8 @@
                 <td><%= sanitize value[0].to_s %></td>
                 <td><%= sanitize value[1].to_s %></td>
               <% else %>
-                <td><%= value[0] %></td>
-                <td><%= value[1] %></td>
+                <td><%= inline_forms_value_text(value[0]) %></td>
+                <td><%= inline_forms_value_text(value[1]) %></td>
               <% end %>
             </tr>
           </table>

@@ -9,6 +9,7 @@ module InlineForms
       # show the attribute. if it's a date/time, make it nicer. If it has a _presentation, show that instead
       o = object.send(attribute)
       o = o.to_s + " (" + distance_of_time_in_words_to_now(o) + ")" if o.is_a?(Time)
+      o = o.strftime(InlineForms::DATE_FORMAT) if o.instance_of?(Date)
       o = o._presentation if o.respond_to?(:_presentation)
       o
     end
@@ -16,6 +17,7 @@ module InlineForms
     def info_edit(object, attribute)
       o = object.send(attribute)
       o = o.to_s + " (" + distance_of_time_in_words_to_now(o) + ")" if o.is_a?(Time)
+      o = o.strftime(InlineForms::DATE_FORMAT) if o.instance_of?(Date)
       o = o._presentation if o.respond_to?(:_presentation)
       o
     end
@@ -28,6 +30,7 @@ module InlineForms
       # show the attribute. if it's a date/time, make it nicer. If it has a _presentation, show that instead
       o = object.send(attribute)
       o = o.to_s + " (" + distance_of_time_in_words_to_now(o) + ")" if o.is_a?(Time)
+      o = o.strftime(InlineForms::DATE_FORMAT) if o.instance_of?(Date)
       o = o._presentation if o.respond_to?(:_presentation)
       o
     end

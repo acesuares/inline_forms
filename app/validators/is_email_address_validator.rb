@@ -29,7 +29,7 @@ class IsEmailAddressValidator < ActiveModel::EachValidator
 
   def validate_each(record, attribute, value)
     unless value =~ EmailAddress
-      record.errors[attribute] << (options[:message] || error_message)
+      record.errors.add(attribute, options[:message] || error_message)
     end
   end
 end

@@ -8,6 +8,30 @@ All notable changes to this project are documented in this file.
 
 - Known issues, parked (local note `stuff/2026-10-31-dropdown-rule-3-parked.md`) with dropdown order rule 3: `includes`, `group` or `select` in `inline_forms_list` make `dropdown` and `dropdown_with_other` raise while `/index` works, so 8.1.65's fix for a list order on a joined table holds only for `joins`, `left_joins` and `eager_load`; a has_many join gives duplicate options. Present since 8.1.60. No host's list scope has these today. Parked; not changed.
 
+## [8.1.81] - 2026-11-24
+
+From the RACVS / yavetracker Rails ladder (`ladder/inline_forms-PROMPT-2026-11-24.md`).
+
+### Fixed
+
+- **Three validators added no error since Rails 7.0.** `is_email_address`, `is_curacao_phone` and `must_be_a_value` did `record.errors[attribute] << …`, which Rails 7.0 and later throw away: the record stayed valid and every value was saved. They now call `errors.add`. **An app that uses them will see validation errors on values it used to accept**, including on records already stored with such values (they fail on their next save). Scouting, StProject, Papiamentu and PapCWScrabble do not use them.
+- **An app's own list filter survives `index`.** An index override or `before_action` that sets a filtered `@objects` (a relation of the list's model) before the engine's `index` runs keeps its filter; with CanCan it is narrowed to what the ability allows (`@objects.merge(accessible_by)`), so it never shows more than before. Until now CanCan's collection replaced it, and the app's search and filters were silently lost (apps worked around it, e.g. RACVS's `sync_cancan_collection!`). Anything else in `@objects` (an Array, another model) is replaced as before.
+- **The versions panel and the undo of a delete in an app without the Action Text table.** They asked only whether `ActionText::RichText` is defined, which it is under `rails/all`, and then queried `action_text_rich_texts`. They now ask `InlineForms.action_text_table?` (the class and its table).
+- **Dates read dd-mm-yyyy everywhere the engine shows them.** `date_select_info`, the `info` element (for a Date) and the old and new values in the versions panel printed a bare Date, which is ISO (`2026-01-13`) since Rails 7.1; `date_select_show` already printed `13-01-2026`. New: `InlineForms::DATE_FORMAT` (`"%d-%m-%Y"`) and the view helper `inline_forms_value_text` (a Date as that, a time as `inline_forms_time_text`, anything else unchanged).
+- **`new` and a successful `create` inside a Turbo frame answer with the frame layout** (`turbo_rails/frame`), as `index` and `destroy` do, instead of the full layout: an app's header and menus no longer run there (partials that expect a list's data crashed). A full page load keeps the `inline_forms` layout. This undoes 7.5.1's choice of the full layout for nested new forms "so the swapped frame is styled": Turbo inserts only the frame, which the page already styles (checked in a browser: the nested Photo new form, its Trix editor, cancel and ok).
+- **Logout works without rails-ujs.** The header's link carries `data-turbo-method="delete"` (Turbo sends the DELETE) besides `data-method`; it was a GET, which Devise refuses. The same in the installer's example-app header. Apps with a header of their own (Scouting, StProject, Papiamentu) check theirs.
+- **Trix loads once, in `<head>`,** in both layouts. In `<body>` Turbo ran it again on every visit and it threw on the second definition of `trix-toolbar`.
+- **The cancel buttons are links styled as buttons.** The field cancel and the new form's cancel were an `<input type="button">` inside an `<a>` (invalid HTML). Now `<a class="… button alert" role="button">cancel</a>` (`inline_forms-field-cancel`, `inline_forms-new-cancel`); the CSS follows. An app that styles or selects `input[name=cancel]` must follow.
+
+### Added
+
+- **Page links of a top-level list advance the address bar** (`data-turbo-action="advance"`, renderer `inline_forms_advancing_link_renderer`): back, reload and a shared link keep the page. Nested lists keep the plain links.
+- **An app may vendor an archived form element.** The boot check skips an archived symbol when the app's helpers define `<name>_show` (`InlineForms.vendored_form_element?`); `archived/README.md` says how. Before, vendoring did not stop the raise although the message suggested it.
+
+### Upgrade notes
+
+- **`:text_area` is rich text (Action Text) since 7.3.1, and `:ckeditor` is archived (8.1.21).** HTML that CKEditor stored in the model's own text column is not shown by `:text_area`, which reads `action_text_rich_texts`. Either declare the column `:plain_text_area` (shows the column as plain text), or move the HTML into Action Text once: rename the old column (say `body` to `body_html`) in a migration, declare `has_rich_text :body`, copy with `Model.find_each { |r| r.update!(body: r.body_html) if r.body_html.present? }` (a runner or a data migration), check the result on a copy of production data, and drop `body_html` later.
+
 ## [8.1.80] - 2026-11-24
 
 From the notes of the apps' move to 8.1.79's suggestions.

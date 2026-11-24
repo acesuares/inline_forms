@@ -70,7 +70,7 @@ module InlineFormsHelper
       { version: v, kind: :primary, rich_text_name: nil }
     end
 
-    if defined?(ActionText::RichText)
+    if InlineForms.action_text_table?
       ActionText::RichText
         .where(record_type: object.class.base_class.name, record_id: object.id)
         .each do |rich_text|
@@ -94,6 +94,23 @@ module InlineFormsHelper
   # requests +text/vnd.turbo-stream.html+ so Turbo does not expect a single matching
   # frame in the response — POSTs from nested +…_versions+ frames otherwise send
   # +Turbo-Frame: …_versions+ while the server returns the row frame (+Content missing+).
+  # will_paginate renderer for a top-level list: each page link carries
+  # data-turbo-action="advance", so a page change inside the list's
+  # <turbo-frame> also updates the address bar (back, reload and a shared
+  # link keep the page). Nested lists keep the plain renderer: their pages
+  # change one panel, not the page.
+  def inline_forms_advancing_link_renderer
+    InlineFormsHelper.advancing_link_renderer
+  end
+
+  def self.advancing_link_renderer
+    @advancing_link_renderer ||= Class.new(WillPaginate::ActionView::LinkRenderer) do
+      def link(text, target, attributes = {})
+        super(text, target, attributes.merge("data-turbo-action": "advance"))
+      end
+    end
+  end
+
   def inline_forms_turbo_link_data(update_span, method: :get, turbo_stream: false)
     data = { turbo: true, turbo_frame: update_span }
     data[:turbo_method] = method.to_s.downcase unless method == :get
@@ -268,22 +285,15 @@ module InlineFormsHelper
       form_element: form_element,
       sub_id: sub_id
     )
-    opts = { class: "inline_forms-field-cancel" }
+    # The link itself is the button (an <input> inside an <a> is invalid HTML).
+    opts = { class: "inline_forms-field-cancel postfix button alert", role: "button", tabindex: "-1" }
     if turbo_frame
       # Inside a <turbo-frame>: plain GET link; no data-method (legacy ujs fought Turbo).
       opts[:data] = { turbo: true, turbo_frame: "_self" }
     else
       opts[:data] = { turbo: true, turbo_frame: update_span }
     end
-    link_to path, opts do
-      tag.input(
-        type: "button",
-        name: "cancel",
-        value: "cancel",
-        class: "postfix button alert",
-        tabindex: "-1"
-      )
-    end
+    link_to "cancel", path, opts
   end
 
   # link_to_inline_edit
@@ -392,6 +402,17 @@ module InlineFormsHelper
       values = temp.sort { |a, b| a[1]<=>b[1] }
     end
     values
+  end
+
+  # A value as text for the screen: a Date as dd-mm-yyyy (since Rails 7.1 a
+  # bare Date prints ISO), a time as inline_forms_time_text, anything else
+  # as it is. Used by the info elements and the versions panel.
+  def inline_forms_value_text(value)
+    case value
+    when DateTime, Time, ActiveSupport::TimeWithZone then inline_forms_time_text(value)
+    when Date then value.strftime(InlineForms::DATE_FORMAT)
+    else value
+    end
   end
 
   # A version or file timestamp: the date with its year

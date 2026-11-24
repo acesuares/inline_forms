@@ -52,10 +52,16 @@ class InlineFormsController < ApplicationController
       fk_conditions = [ "#{foreign_key} = ?", @parent_id ]
     end
     # CanCan's load_and_authorize_resource sets @apartments (etc.); keep @objects in sync.
+    # An app's index override or before_action may already have set a filtered
+    # @objects (a relation) before this runs: keep its filter, narrowed to what
+    # the ability allows, instead of replacing it with the whole collection.
     collection_ivar = :"@#{controller_name}"
     if instance_variable_defined?(collection_ivar)
       loaded = instance_variable_get(collection_ivar)
-      @objects = loaded unless loaded.nil?
+      unless loaded.nil?
+        app_filtered = @objects.is_a?(ActiveRecord::Relation) && @objects.model == @Klass
+        @objects = app_filtered ? @objects.merge(loaded) : loaded
+      end
     end
     @objects ||= @Klass.accessible_by(current_ability) if cancan_enabled?
     @objects ||= @Klass.all
@@ -582,7 +588,7 @@ class InlineFormsController < ApplicationController
   # row already exists. Only the newest destroy version per attribute name is
   # applied (repeat delete/undo leaves multiple RT destroy versions in the table).
   def restore_rich_texts_for_reverted_parent!(parent)
-    return unless defined?(ActionText::RichText)
+    return unless InlineForms.action_text_table?
 
     record_type = parent.class.base_class.name
     record_id = parent.id
@@ -775,9 +781,11 @@ class InlineFormsController < ApplicationController
   end
 
   def associated_list_frame_layout
-    # Use full inline_forms chrome so the swapped frame is styled; Turbo extracts
-    # the matching <turbo-frame id="…"> from the response body.
-    "inline_forms"
+    # A Turbo frame request gets the bare frame layout: Turbo takes only the
+    # matching <turbo-frame id="…"> from the answer, and the full layout would
+    # run the app's header and menus (partials that may expect a list's data)
+    # for nothing. A full page load keeps the inline_forms layout.
+    turbo_frame_request? ? "turbo_rails/frame" : "inline_forms"
   end
 
   def render_turbo_new

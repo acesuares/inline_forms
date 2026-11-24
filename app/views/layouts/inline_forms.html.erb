@@ -31,6 +31,10 @@
     <%= javascript_include_tag 'popper.min' %>
     <%= javascript_include_tag 'tippy-bundle.umd.min' %>
     <%= javascript_include_tag 'inline_forms/inline_forms' %>
+    <%# Trix 2 (vendored; no CDN). Self-registers its custom elements on load. %>
+    <%# In <head>, so Turbo Drive loads it once: a body copy ran again on each %>
+    <%# visit and threw on the second definition of trix-toolbar. %>
+    <%= javascript_include_tag "trix.min" %>
   </head>
 
   <body class="<%= inline_forms_body_theme_class %>">
@@ -60,7 +64,5 @@
       import { Turbo } from "<%= asset_path('turbo.min.js') %>"
       window.Turbo = Turbo
     <% end %>
-    <%# Trix 2 (vendored; no CDN). Self-registers its custom elements on load. %>
-    <%= javascript_include_tag "trix.min" %>
   </body>
 </html>

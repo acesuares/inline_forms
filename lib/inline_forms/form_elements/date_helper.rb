@@ -7,7 +7,7 @@ module InlineForms
     
     # date
     def date_select_show(object, attribute)
-      link_to_inline_edit object, attribute, object.send(attribute).nil? ? "<i class='fi-plus'></i>".html_safe : object.send(attribute).to_date.strftime("%d-%m-%Y"), from_callee: __callee__
+      link_to_inline_edit object, attribute, object.send(attribute).nil? ? "<i class='fi-plus'></i>".html_safe : object.send(attribute).to_date.strftime(InlineForms::DATE_FORMAT), from_callee: __callee__
     end
     
     # Native <input type="date"> (8.1.25; replaces jQuery UI datepicker).
@@ -23,7 +23,7 @@ module InlineForms
     end
     
     def date_select_info(object, attribute)
-      object.send(attribute).nil? ? "-" : object.send(attribute).to_date
+      object.send(attribute).nil? ? "-" : object.send(attribute).to_date.strftime(InlineForms::DATE_FORMAT)
     end
       INLINE_FORMS_FORM_ELEMENT
     end

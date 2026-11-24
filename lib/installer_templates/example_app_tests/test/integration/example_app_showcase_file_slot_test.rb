@@ -98,5 +98,8 @@ class ExampleAppShowcaseFileSlotTest < ExampleAppIntegrationTestCase
     user_menu = response.body.scan(/<ul class="menu">(.*?)<\/ul>/m).flatten.find { |menu| menu.include?(destroy_user_session_path) }
     assert user_menu, "no user menu with the logout link"
     assert_includes user_menu, %(href="#{inline_forms_file_trash_path}")
+    # The engine loads Turbo, not rails-ujs: Turbo must send the DELETE, or the
+    # link is a GET that Devise refuses.
+    assert_match %r{<a[^>]+data-turbo-method="delete"[^>]+href="#{Regexp.escape(destroy_user_session_path)}"|<a[^>]+href="#{Regexp.escape(destroy_user_session_path)}"[^>]+data-turbo-method="delete"}, user_menu
   end
 end

@@ -33,7 +33,8 @@
               <li><%= trash_link %></li>
             <% end %>
             <li>
-              <%= link_to( t("common.logout"), destroy_user_session_path, :method => :delete) if current_user  %>
+              <%# data-turbo-method: Turbo sends the DELETE (the engine loads no rails-ujs); data-method for an app that does. %>
+              <%= link_to(t("common.logout"), destroy_user_session_path, method: :delete, data: { turbo_method: :delete }) if current_user %>
             </li>
           </ul>
         </li>

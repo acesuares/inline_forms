@@ -75,9 +75,8 @@
               parent_id: @parent_id,
               ul_needed: true) %>
         <% cancel_opts = @update_span.present? ? inline_forms_turbo_link_data(@update_span) : {} %>
-        <%= link_to cancel_path, cancel_opts do -%>
-          <input type="button" name="cancel" value="cancel" class="button alert" />
-        <% end %>
+        <%# The link itself is the button (an <input> inside an <a> is invalid HTML). %>
+        <%= link_to "cancel", cancel_path, cancel_opts.merge(class: "button alert inline_forms-new-cancel", role: "button") %>
         <%= submit_tag "ok", :class => "button "-%>
       </div>
     </div>

@@ -403,7 +403,9 @@ class ExampleAppApartmentPhotosPaginationTest < ExampleAppIntegrationTestCase
         headers: headers
     assert_response :success
     assert_includes @response.body, %(<turbo-frame id="#{frame}">)
-    assert_includes @response.body, "stylesheet", "new form must use inline_forms layout (styled)"
+    # Since 8.1.81 a frame request gets the frame layout (no head assets, no
+    # header): Turbo inserts only the frame, which the page already styles.
+    refute_includes @response.body, "stylesheet", "new in a frame answers with the frame layout"
     assert_includes @response.body, %(enctype="multipart/form-data")
     assert_includes @response.body, 'class="edit_form"'
     assert_includes @response.body, 'name="name"'

@@ -70,6 +70,14 @@ module InlineForms
   # Is this user the superadmin? An app that has its own answer
   # (`User#superadmin?`, e.g. only user 1) is asked first; otherwise it is
   # whoever holds the role. A user class with neither is not a superadmin.
+  # True when the app has Action Text and its table. An app may load the
+  # Action Text railtie (rails/all) without ever installing it, and then has
+  # no action_text_rich_texts table: the versions panel and the undo of a
+  # delete look for rich text versions only when the table is there.
+  def self.action_text_table?
+    defined?(ActionText::RichText) ? ActionText::RichText.table_exists? : false
+  end
+
   def self.superadmin?(user)
     return !!user.superadmin? if user.respond_to?(:superadmin?)
 
@@ -201,6 +209,8 @@ module InlineForms
   # Version and file timestamps: time.formats.inline_forms in the gem's en
   # and nl locales, and the default where a locale lacks it.
   TIME_FORMAT = "%d %b %Y %H:%M"
+  # A date as the engine shows it (date_select, info, the versions panel).
+  DATE_FORMAT = "%d-%m-%Y"
 
   # The application's name for the gem's titles and the Devise pages: the
   # host's `application_name` translation, else its

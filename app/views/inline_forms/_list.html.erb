@@ -127,7 +127,7 @@
     test/integration/list_params_test.rb covers both.
   -%>
   <% paginate_params = { update: update_span, ul_needed: true } %>
-  <% pagination = will_paginate objects, params: paginate_params %>
+  <% pagination = will_paginate objects, params: paginate_params, renderer: inline_forms_advancing_link_renderer %>
 <% else %>
   <% if pagination %>
     <%#

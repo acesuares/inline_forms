@@ -98,4 +98,15 @@ class ArchivedFormElementsTest < Minitest::Test
     assert_includes err.message, "8.1.30"
     assert_includes err.message, "archived/form_elements/dns_records"
   end
+
+  # An app that vendors the element defines its helpers itself: allowed.
+  def test_a_vendored_archived_element_is_the_apps
+    helpers = Object.new
+    def helpers.geo_code_curacao_show(*) = "vendored"
+
+    InlineForms.validate_no_archived_form_elements_for!(ModelWithArchivedElement, helpers: helpers) # does not raise
+    assert_raises(InlineForms::ArchivedFormElementError) do
+      InlineForms.validate_no_archived_form_elements_for!(ModelWithArchivedTree, helpers: helpers)
+    end
+  end
 end
