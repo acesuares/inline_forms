@@ -4,6 +4,7 @@ nl:
     # models that declare inline_forms_search_on.
     search:
       placeholder: "zoeken..."
+      label: zoeken
       submit: zoek
       reset: wissen
     # general.application_title, devise.title_for_devise and devise.welcome

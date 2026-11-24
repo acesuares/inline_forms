@@ -45,6 +45,19 @@ class ExampleAppUserSearchSuggestionsTest < ExampleAppIntegrationTestCase
     assert_response :redirect
   end
 
+  test "the search box has accessible names" do
+    get users_path
+
+    assert_select "form[role=search] input#input_search[aria-label]"
+    assert_select "form[role=search] a[aria-label] i.fi-x[aria-hidden=true]"
+  end
+
+  test "every controller can tell a suggestion request from a list view" do
+    assert ApplicationController.new.respond_to?(:inline_forms_suggestion_request?, true),
+           "ApplicationController inherits inline_forms_suggestion_request? for the app's own callbacks"
+    refute ApplicationController.action_methods.include?("inline_forms_suggestion_request?")
+  end
+
   test "the layout's script bundle carries the suggestion script" do
     get users_path
 

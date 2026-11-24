@@ -4,6 +4,7 @@ en:
     # models that declare inline_forms_search_on.
     search:
       placeholder: "search..."
+      label: search
       submit: search
       reset: reset
     # general.application_title, devise.title_for_devise and devise.welcome

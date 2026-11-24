@@ -2,6 +2,7 @@
 
 class InlineFormsApplicationController < ActionController::Base
   protect_from_forgery
+  include SuggestionRequestConcern
   # `layout 'devise' if :devise_controller?` was wrong: `:devise_controller?` is a
   # Symbol (always truthy), so every controller used the Devise layout. Use a
   # callable so only Devise controllers get `layouts/devise`; everything else

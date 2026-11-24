@@ -33,6 +33,15 @@ class SuggestionsTest < InlineFormsIntegrationTestCase
     assert_equal [ "Anna Maria", "Martina" ], values("ma", match: :word)
   end
 
+  test "word also starts after a hyphen or an apostrophe" do
+    names "Jean-Marc", "O'Brien", "D’Abreu", "Marcus", "Lamarck", "Obrienne"
+
+    assert_equal %w[Jean-Marc Marcus], values("marc", match: :word)
+    assert_equal [ "O'Brien" ], values("brien", match: :word)
+    assert_equal [ "D’Abreu" ], values("abreu", match: :word)
+    assert_equal [ "Jean-Marc" ], values("jean-m", match: :word)
+  end
+
   test "percent and underscore in the term are taken literally" do
     names "100% wool", "1000 wool", "a_b", "axb", 'back\slash', "backslash"
 
@@ -132,6 +141,31 @@ class SuggestionsTest < InlineFormsIntegrationTestCase
       assert_equal "#{members_path}?suggest=1", input.first["data-suggest-url"]
     end
     assert_select "datalist#input_search_suggestions"
+  end
+
+  test "the search box has accessible names, with or without suggestions" do
+    [ members_path, widgets_path ].each do |path|
+      get path
+
+      assert_select "form[role=search]"
+      assert_select "input#input_search[aria-label=search]"
+      assert_select "form[role=search] a[aria-label=reset][title=reset] i.fi-x[aria-hidden=true]"
+    end
+  end
+
+  test "inline_forms_suggestion_request? tells the suggestions from a list view" do
+    seen = []
+    MembersController.define_method(:record_suggestion_request) { seen << inline_forms_suggestion_request? }
+    MembersController.after_action :record_suggestion_request, only: :index
+
+    get members_path
+    get members_path(suggest: 1, term: "ma")
+    get members_path(search: "ma")
+
+    assert_equal [ false, true, false ], seen
+  ensure
+    MembersController.skip_after_action :record_suggestion_request, raise: false
+    MembersController.remove_method(:record_suggestion_request) if MembersController.method_defined?(:record_suggestion_request)
   end
 
   test "a model without suggest: keeps the plain search box" do

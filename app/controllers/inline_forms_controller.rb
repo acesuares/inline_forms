@@ -28,6 +28,7 @@ class InlineFormsController < ApplicationController
   include VersionsConcern
   include FileSlotsConcern
   include SuggestionsConcern
+  include SuggestionRequestConcern
 
   before_action :getKlass
 

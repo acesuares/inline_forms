@@ -12,13 +12,17 @@ module InlineForms
   #
   #   :contains  anywhere in the value ("ma" finds Martina, Tinamart, Tima)
   #   :start     at the start of the value ("ma" finds Martina only)
-  #   :word      at the start of any word ("ma" finds Martina, Anna Maria)
+  #   :word      at the start of any word ("ma" finds Martina, Anna Maria);
+  #              a word starts after a space, a hyphen or an apostrophe
+  #              ("marc" finds Jean-Marc, "brien" O'Brien and O’Brien)
   #
   # The answer: at most `limit` values, each once (compared stripped and in any
   # case, the first in A-Z order kept), in case-insensitive A-Z order. An empty
   # term gives [].
   module Suggestions
     MATCHES = %i[contains start word].freeze
+    # What starts a word for match: :word, besides the start of the value.
+    WORD_STARTS = [ " ", "-", "'", "’" ].freeze
     LIMIT = 12
 
     module_function
@@ -77,7 +81,7 @@ module InlineForms
       case match
       when :contains then [ "%#{escaped}%" ]
       when :start    then [ "#{escaped}%" ]
-      when :word     then [ "#{escaped}%", "% #{escaped}%" ]
+      when :word     then [ "#{escaped}%", *WORD_STARTS.map { |start| "%#{start}#{escaped}%" } ]
       end
     end
   end

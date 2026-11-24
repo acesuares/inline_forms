@@ -8,6 +8,22 @@ All notable changes to this project are documented in this file.
 
 - Known issues, parked (local note `stuff/2026-10-31-dropdown-rule-3-parked.md`) with dropdown order rule 3: `includes`, `group` or `select` in `inline_forms_list` make `dropdown` and `dropdown_with_other` raise while `/index` works, so 8.1.65's fix for a list order on a joined table holds only for `joins`, `left_joins` and `eager_load`; a has_many join gives duplicate options. Present since 8.1.60. No host's list scope has these today. Parked; not changed.
 
+## [8.1.80] - 2026-11-24
+
+From the notes of the apps' move to 8.1.79's suggestions.
+
+### Changed
+
+- **`match: :word` also starts a word after a hyphen or an apostrophe** (`'` and `’`), not only after a space: "marc" finds Jean-Marc, "brien" O'Brien, "abreu" D’Abreu. Still not inside a word ("marc" does not find Lamarck). Apps that pin the old space-only behaviour in a spec (Scouting's `members_autocomplete_spec.rb`) see that spec fail on the upgrade, on purpose.
+
+### Added
+
+- **`inline_forms_suggestion_request?`** (concern `SuggestionRequestConcern`), in `InlineFormsController` and in `InlineFormsApplicationController`, so a generated app's `ApplicationController` has it for every controller, and in views: true when the request is the search box's suggestions (`index` with `?suggest=1`), which answer JSON and are not a list view; false outside the inline_forms lists. For an app's own callbacks, e.g. statistics that count list views only: `skip_after_action :track_action, if: :inline_forms_suggestion_request?`.
+
+### Fixed
+
+- **The generic search box has accessible names.** The form has `role="search"`, the field an `aria-label` (new key `inline_forms.search.label`: "search", "zoeken"; without it, the placeholder text), the reset link an `aria-label` as well as its `title`, and its `fi-x` icon `aria-hidden="true"`.
+
 ## [8.1.79] - 2026-11-23
 
 ### Added
