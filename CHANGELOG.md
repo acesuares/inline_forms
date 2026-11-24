@@ -8,6 +8,16 @@ All notable changes to this project are documented in this file.
 
 - Known issues, parked (local note `stuff/2026-10-31-dropdown-rule-3-parked.md`) with dropdown order rule 3: `includes`, `group` or `select` in `inline_forms_list` make `dropdown` and `dropdown_with_other` raise while `/index` works, so 8.1.65's fix for a list order on a joined table holds only for `joins`, `left_joins` and `eager_load`; a has_many join gives duplicate options. Present since 8.1.60. No host's list scope has these today. Parked; not changed.
 
+## [8.1.82] - 2026-11-24
+
+From a review of 8.1.78 to 8.1.81.
+
+### Fixed
+
+- **An app's list filter on the ability's own column is kept.** 8.1.81 combined the app's `@objects` with CanCan's collection by `merge`, and since Rails 7 a merged condition on the same column replaces the first: with `can :read, Member, group_id: user.group_ids` an app's `where(group_id: 1)` gave way to `group_id IN (1, 2)`. The two are now combined with `and` (both conditions kept), or with an id subquery when they are not structurally compatible (an order or joins of the app's own). A filtered relation of an STI subclass of the list's model counts as the app's filter too.
+- **Search suggestions only from columns the user may read.** The engine's search box (`suggest:`) and `suggest_names` checked only which records the user may see (`accessible_by`): a field rule such as `cannot :read, User, :email` (which the row's show honours) did not stop the e-mail addresses being suggested. A column the ability does not let the user read (`can?(:read, Model, :column)`) is now left out; with none left the answer is `[]`.
+- **The three validators fixed in 8.1.81 leave a blank value alone.** `is_email_address` and `is_curacao_phone` skip a blank value, `must_be_a_value` skips nil and `""` (false and 0 are values), as Rails' own format validators leave blanks to `presence:`. Without this, an app whose optional e-mail or phone was empty could no longer save the record, since these validators were never declared with `allow_blank` while they did nothing.
+
 ## [8.1.81] - 2026-11-24
 
 From the RACVS / yavetracker Rails ladder (`ladder/inline_forms-PROMPT-2026-11-24.md`).

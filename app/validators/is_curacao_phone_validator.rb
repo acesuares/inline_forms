@@ -14,7 +14,11 @@ class IsCuracaoPhoneValidator < ActiveModel::EachValidator
     "Telefoonnummer moet 7 cijfers zijn, bijvoorbeeld 6781256."
   end
 
+  # A blank value is left to `presence:` (the validator says what a filled-in
+  # value must look like).
   def validate_each(record, attribute, value)
+    return if value.blank?
+
     unless value =~ /[4-8][0-9]{6}/
       record.errors.add(attribute, options[:message] || error_message)
     end

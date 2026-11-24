@@ -19,7 +19,8 @@
 #   end
 #   can :autocomplete_client_last_name, Client
 #
-# Only names of records the user may read (`accessible_by`) when CanCan is
+# Only names of records the user may read (`accessible_by`), and only from a
+# column the user may read (`can?(:read, Model, :column)`), when CanCan is
 # on; `scope:` narrows them further, run in the controller (instance_exec)
 # with the relation, and returns a relation.
 module SuggestionsConcern
@@ -33,7 +34,9 @@ module SuggestionsConcern
         model = model_name.to_s.camelize.constantize
         names = inline_forms_suggestion_scope(model)
         names = instance_exec(names, &scope) if scope
-        render_inline_forms_suggestions InlineForms::Suggestions.values(names, column, params[:term], match: match, limit: limit)
+        render_inline_forms_suggestions InlineForms::Suggestions.values(
+          names, inline_forms_readable_columns(model, [ column ]), params[:term], match: match, limit: limit
+        )
       end
     end
   end
@@ -42,6 +45,15 @@ module SuggestionsConcern
 
   def inline_forms_suggestion_scope(model)
     cancan_enabled? ? model.accessible_by(current_ability) : model.all
+  end
+
+  # The columns whose values this user may read: `accessible_by` only picks
+  # the rows, and a field rule (`cannot :read, User, :email`, as _show asks
+  # with can?(:read, record, attribute)) must not leak through suggestions.
+  def inline_forms_readable_columns(model, columns)
+    return Array(columns) unless cancan_enabled?
+
+    Array(columns).select { |column| can?(:read, model, column.to_sym) }
   end
 
   # A JSON string, so a serializer gem (active_model_serializers 0.9) does

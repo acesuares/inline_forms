@@ -4,16 +4,17 @@ require_relative "../integration_test_helper"
 
 # The engine's validators (app/validators) add their error with
 # errors.add. Until 8.1.81 three of them did `errors[attribute] << …`, which
-# Rails 7.0 and later throw away: the record stayed valid.
+# Rails 7.0 and later throw away: the record stayed valid. Since 8.1.82 a
+# blank value is left to presence:.
 class ValidatorsTest < InlineFormsIntegrationTestCase
   class Contact
     include ActiveModel::Validations
 
     attr_accessor :email, :phone, :sex
 
-    validates :email, is_email_address: true, allow_nil: true
-    validates :phone, is_curacao_phone: true, allow_nil: true
-    validates :sex, must_be_a_value: true, allow_nil: true
+    validates :email, is_email_address: true
+    validates :phone, is_curacao_phone: true
+    validates :sex, must_be_a_value: true
 
     def initialize(**attributes) = attributes.each { |name, value| public_send("#{name}=", value) }
 
@@ -39,6 +40,16 @@ class ValidatorsTest < InlineFormsIntegrationTestCase
   test "must_be_a_value refuses a value the list does not have" do
     assert_equal [ "is geen geldige keuze." ], errors_for(sex: 3)[:sex]
     assert_empty errors_for(sex: 2)[:sex]
+  end
+
+  test "a blank value is left to presence:, without allow_nil" do
+    [ nil, "", "  " ].each do |blank|
+      assert_empty errors_for(email: blank, phone: blank)[:email], "email #{blank.inspect}"
+      assert_empty errors_for(email: blank, phone: blank)[:phone], "phone #{blank.inspect}"
+    end
+    assert_empty errors_for(sex: nil)[:sex]
+    assert_empty errors_for(sex: "")[:sex]
+    assert_equal [ "is geen geldige keuze." ], errors_for(sex: 0)[:sex], "0 is a value, and not in the list"
   end
 
   test "a message: option replaces the validator's own" do

@@ -13,7 +13,10 @@ class MustBeAValueValidator < ActiveModel::EachValidator
   def help_message
   end
 
+  # No value (nil or "") is left to `presence:`; false and 0 are values.
   def validate_each(record, attribute, value)
+    return if value.nil? || value == ""
+
     values = attribute_values(record, attribute)
     if values.assoc(value).nil?
       record.errors.add(attribute, options[:message] || error_message)

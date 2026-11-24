@@ -59,8 +59,8 @@ class InlineFormsController < ApplicationController
     if instance_variable_defined?(collection_ivar)
       loaded = instance_variable_get(collection_ivar)
       unless loaded.nil?
-        app_filtered = @objects.is_a?(ActiveRecord::Relation) && @objects.model == @Klass
-        @objects = app_filtered ? @objects.merge(loaded) : loaded
+        app_filtered = @objects.is_a?(ActiveRecord::Relation) && @objects.model <= @Klass
+        @objects = app_filtered ? inline_forms_both(@objects, loaded) : loaded
       end
     end
     @objects ||= @Klass.accessible_by(current_ability) if cancan_enabled?
@@ -780,6 +780,18 @@ class InlineFormsController < ApplicationController
     ]
   end
 
+  # The records in both relations: the app's filter AND what the ability
+  # allows. Not `merge`: since Rails 7 a merged condition on the same column
+  # replaces the first (a group filter would give way to the ability's list
+  # of groups). `and` keeps both; when the two are not structurally
+  # compatible (different joins), an id subquery does.
+  def inline_forms_both(filtered, allowed)
+    filtered.and(allowed)
+  rescue ArgumentError
+    key = filtered.model.primary_key
+    filtered.where(key => allowed.unscope(:order, :select).select(key))
+  end
+
   def associated_list_frame_layout
     # A Turbo frame request gets the bare frame layout: Turbo takes only the
     # matching <turbo-frame id="…"> from the answer, and the full layout would
@@ -800,7 +812,8 @@ class InlineFormsController < ApplicationController
     return head(:not_found) unless options
 
     render_inline_forms_suggestions InlineForms::Suggestions.values(
-      @objects, options[:on], params[:term], match: options[:match], limit: options[:limit]
+      @objects, inline_forms_readable_columns(@Klass, options[:on]), params[:term],
+      match: options[:match], limit: options[:limit]
     )
   end
 

@@ -194,6 +194,25 @@ class SuggestionsTest < InlineFormsIntegrationTestCase
     assert_equal %w[Marta], suggestions
   end
 
+  test "no suggestions from a column the user may not read" do
+    names "Mark", "Marta"
+    Ability.restrictions = -> { cannot :read, Member, :name }
+
+    get members_path(suggest: 1, term: "mar")
+    assert_equal [], suggestions
+
+    get autocomplete_member_name_members_path(term: "mar")
+    assert_equal [], suggestions
+  end
+
+  test "of several columns, only the readable ones are asked" do
+    Ability.restrictions = -> { cannot :read, Widget, :notes }
+    controller = WidgetsController.new
+    controller.define_singleton_method(:current_ability) { Ability.new(nil) }
+
+    assert_equal %w[name], controller.send(:inline_forms_readable_columns, Widget, %w[name notes])
+  end
+
   test "a model without suggest: has no suggestions" do
     Widget.create!(name: "Alpha")
 

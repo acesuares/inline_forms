@@ -29,6 +29,40 @@ class LadderFixesTest < InlineFormsIntegrationTestCase
     WidgetsController.remove_method(:only_b_widgets) if WidgetsController.method_defined?(:only_b_widgets, false) || WidgetsController.private_method_defined?(:only_b_widgets, false)
   end
 
+  test "the app's filter on the ability's own column is kept too" do
+    %w[Alpha Beta Bravo].each { |name| Widget.create!(name: name) }
+    # `merge` would let the ability's name IN (Beta, Bravo) replace the app's name = Beta.
+    WidgetsController.define_method(:only_beta) { @objects = Widget.where(name: "Beta") }
+    WidgetsController.before_action :only_beta, only: :index
+    Ability.restrictions = -> { cannot :read, Widget; can :read, Widget, name: %w[Beta Bravo] }
+
+    get widgets_path(update: "widgets_list"), headers: frame_headers("widgets_list")
+
+    assert_response :success
+    assert_includes response.body, "Beta"
+    refute_includes response.body, "Bravo", "the app's filter is kept"
+    refute_includes response.body, "Alpha"
+  ensure
+    WidgetsController.skip_before_action :only_beta, raise: false
+    WidgetsController.remove_method(:only_beta) if WidgetsController.method_defined?(:only_beta, false)
+  end
+
+  test "an app filter with its own order or joins is narrowed by the ability too" do
+    %w[Alpha Beta Bravo].each { |name| Widget.create!(name: name) }
+    WidgetsController.define_method(:b_widgets_ordered) { @objects = Widget.where("widgets.name LIKE ?", "B%").order(name: :desc).left_joins(:kind) }
+    WidgetsController.before_action :b_widgets_ordered, only: :index
+    Ability.restrictions = -> { cannot :read, Widget, name: "Bravo" }
+
+    get widgets_path(update: "widgets_list"), headers: frame_headers("widgets_list")
+
+    assert_includes response.body, "Beta"
+    refute_includes response.body, "Bravo"
+    refute_includes response.body, "Alpha"
+  ensure
+    WidgetsController.skip_before_action :b_widgets_ordered, raise: false
+    WidgetsController.remove_method(:b_widgets_ordered) if WidgetsController.method_defined?(:b_widgets_ordered, false)
+  end
+
   test "without an @objects of the app's, index lists what the ability allows" do
     %w[Alpha Beta].each { |name| Widget.create!(name: name) }
     Ability.restrictions = -> { cannot :read, Widget, name: "Beta" }
