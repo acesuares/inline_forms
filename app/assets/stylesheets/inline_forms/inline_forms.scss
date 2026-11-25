@@ -588,3 +588,9 @@ trix-toolbar .trix-button-row.trix-button-row {
 trix-toolbar:has(+ trix-editor.inline_forms-trix-no-files) .trix-button-group--file-tools {
   display: none;
 }
+// The notice inline_forms.js shows under it when a file is dropped or pasted.
+.inline_forms-trix-refused {
+  margin: 0.25rem 0 0;
+  font-size: 0.875rem;
+  font-style: italic;
+}

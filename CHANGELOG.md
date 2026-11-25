@@ -8,6 +8,22 @@ All notable changes to this project are documented in this file.
 
 - Known issues, parked (local note `stuff/2026-10-31-dropdown-rule-3-parked.md`) with dropdown order rule 3: `includes`, `group` or `select` in `inline_forms_list` make `dropdown` and `dropdown_with_other` raise while `/index` works, so 8.1.65's fix for a list order on a joined table holds only for `joins`, `left_joins` and `eager_load`; a has_many join gives duplicate options. Present since 8.1.60. No host's list scope has these today. Parked; not changed.
 
+## [8.1.88] - 2026-11-25
+
+From the fourth ladder note from RACVS and yavetracker (`ladder/inline_forms-PROMPT-4-2026-11-25.md`).
+
+### Changed
+
+- **A file dropped or pasted into a `:rich_text` editor on a plain column now gives a message.** Since 8.1.86 the file was refused without a word. The editor now carries the translated `inline_forms.files.not_in_this_field` ("Files cannot be added to this field.") in `data-no-files-message`, and `inline_forms.js` shows it under the editor when it refuses a file, once however many files were dropped. The message goes away when the text changes. Styled by `.inline_forms-trix-refused`. New locale key in en and nl.
+
+### Fixed
+
+- **`order: :relation` reads its pages in one fixed order.** Rows equal on the relation's order and on `LOWER(value)` had no fixed order between the page queries (MySQL and PostgreSQL may order ties differently each time), so a row could be read twice or skipped at a page boundary. The primary key is now the last `ORDER BY` term. The visible effect was at most which spelling of an equal value ("José", "Jose") was kept.
+
+### Documentation
+
+- **The plus on a plain-column `:rich_text` is decided by text, not by what the allowlist removes.** A value with no text in what is shown gets the plus, which includes markup that shows something but holds no text (a lone `<hr>`, a table of empty cells), not only what the allowlist empties. The code is unchanged since 8.1.86; the comment in `rich_text_show`, the README and this entry now say so. The plus opens the editor with that markup in it.
+
 ## [8.1.87] - 2026-11-25
 
 From a review of 8.1.85 and 8.1.86 (local note `stuff/reviews/2026-11-25-review-8.1.85-8.1.86.md`).

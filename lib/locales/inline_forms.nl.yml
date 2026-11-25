@@ -68,6 +68,7 @@ nl:
       undo: ongedaan maken
       restore_previous: "verwijderd bestand %{filename} terugzetten"
       replace_hint: "Het huidige bestand %{filename} gaat naar de prullenbak."
+      not_in_this_field: "In dit veld kunnen geen bestanden worden opgenomen."
       confirm_remove:
         one: "%{filename} verwijderen? Het gaat naar de prullenbak en kan 1 dag worden teruggezet."
         other: "%{filename} verwijderen? Het gaat naar de prullenbak en kan %{count} dagen worden teruggezet."

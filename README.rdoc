@@ -333,6 +333,8 @@ Trade-off: files accumulate on disk; periodic sweeping is out of scope of the ge
 
 For long text fields, use +:plain_text+ for a plain textarea backed by a DB +text+ column, or +:rich_text+ for ActionText/Trix content. +:plain_text+ requires an actual column on the model table; if the column is missing, inline_forms now raises +InlineForms::PlainTextColumnMissingError+ during controller boot/runtime checks.
 
++:rich_text+ also works on a plain text column, without +has_rich_text+. The stored HTML is shown through the display allowlist (<tt>InlineForms.rich_text_display_html</tt>). A value with no text in what is shown gets the plus, so the field can still be opened: that covers what the allowlist empties (only an +<img>+ or a +<script>+) and also markup that shows something but holds no text, such as a lone +<hr>+ or a table of empty cells. Such a column cannot store a file: the editor has no attach button, and a file dropped or pasted into it is refused with the notice <tt>inline_forms.files.not_in_this_field</tt> under the editor (8.1.88).
+
 Note: generated apps also depend on ActiveStorage transitively because the +:rich_text+ form element uses ActionText (+active_storage:install+ runs during +inline_forms create+). Image uploads still go through CarrierWave; ActiveStorage is only there to back ActionText embeds.
 
 == Native inputs (no jQuery UI)
@@ -361,7 +363,7 @@ Each defines <tt>autocomplete_<model>_<column></tt>, answering <tt>GET …?term=
  end
  can :autocomplete_client_last_name, Client
 
-Only values of records the user may read (+accessible_by+) and of a column the user may read (<tt>can?(:read, Model, :column)</tt>). <tt>order: :relation</tt> (8.1.86) keeps the relation's own order (a +default_scope+, or a scope that orders documents newest first) instead of A-Z. It reads the matching rows in that order, at most 10 pages of 4 × +limit+ rows (480 at the default 12) per column, and stops there: a column where one value fills those rows (500 documents with the same subject) answers fewer values than A-Z would. Each page is a query.
+Only values of records the user may read (+accessible_by+) and of a column the user may read (<tt>can?(:read, Model, :column)</tt>). <tt>order: :relation</tt> (8.1.86) keeps the relation's own order (a +default_scope+, or a scope that orders documents newest first) instead of A-Z. It reads the matching rows in that order, at most 10 pages of 4 × +limit+ rows (480 at the default 12) per column, and stops there: a column where one value fills those rows (500 documents with the same subject) answers fewer values than A-Z would. Each page is a query. Rows equal on the relation's order and the value are read in primary-key order, so none is read twice or skipped between pages (8.1.88).
 
 Outside +InlineFormsController+ nothing checks the action's ability: +InlineFormsController+'s +load_and_authorize_resource+ does that. Records and columns are still limited to what the user may read, but the app authorizes the action itself (+authorize!+ in a +before_action+, or its own +load_and_authorize_resource+).
 

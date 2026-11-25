@@ -83,7 +83,7 @@ module InlineForms
 
     # The relation's own order kept, so no GROUP BY (its ORDER BY columns
     # would have to be grouped or aggregated): rows in that order, LOWER(value)
-    # A-Z after it, a page at a time, each value once (stripped, any case),
+    # A-Z and the primary key after it, a page at a time, each value once (stripped, any case),
     # until `limit` values or PAGES pages.
     PAGES = 10
 
@@ -94,7 +94,12 @@ module InlineForms
       condition = patterns(model, term, match).map { |pattern|
         lowered.matches(Arel::Nodes::NamedFunction.new("LOWER", [ Arel::Nodes.build_quoted(pattern) ]), "\\", true)
       }.reduce(:or)
-      rows = relation.where(condition).unscope(:select).order(lowered.asc)
+      # The primary key last, so rows equal on everything before it keep one
+      # order from page to page (none would be read twice or skipped at a
+      # page boundary: MySQL and PostgreSQL may order ties differently in
+      # each query).
+      tiebreak = Array(model.primary_key).map { |key| model.arel_table[key].asc }
+      rows = relation.where(condition).unscope(:select).order(lowered.asc, *tiebreak)
       page_size = limit * 4
       found = {}
       PAGES.times do |page|

@@ -9,9 +9,12 @@ module InlineForms
       rich = object.respond_to?(attribute) ? object.public_send(attribute) : nil
       # A plain column's HTML goes through the display allowlist; Action Text
       # sanitizes its own (InlineForms.rich_text_display_html). Blank is
-      # decided on what is shown: a value the allowlist empties (only an
-      # <img>, a <script>, an empty <p>) gets the plus, or the link would be
-      # empty and the field could not be opened.
+      # decided on the TEXT of what is shown: a value without any text gets
+      # the plus, or the link could be empty and the field could not be
+      # opened. That is wider than what the allowlist empties (only an <img>,
+      # a <script>, an empty <p>): markup that shows something but holds no
+      # text, such as a lone <hr> or a table of empty cells, gets the plus
+      # too, and the plus opens the editor with that markup in it.
       shown = rich.is_a?(String) ? InlineForms.rich_text_display_html(rich) : rich
       is_blank =
         shown.nil? ||
@@ -41,11 +44,16 @@ module InlineForms
         end
       input_id = "trix_input_#{object.class.name.underscore}_#{object.id || 'new'}_#{attribute}"
       # A plain column (no has_rich_text) cannot hold attachments: the class
-      # hides Trix's attach button there.
+      # hides Trix's attach button there, and inline_forms.js refuses a
+      # dropped or pasted file and shows the message in the data attribute.
       classes = 'trix-content attribute_rich_text_area'
-      classes += ' inline_forms-trix-no-files' unless rich.respond_to?(:body)
+      data = {}
+      unless rich.respond_to?(:body)
+        classes += ' inline_forms-trix-no-files'
+        data[:no_files_message] = t('inline_forms.files.not_in_this_field')
+      end
       hidden_field_tag(attribute, body, id: input_id) +
-        content_tag(:'trix-editor', ''.html_safe, input: input_id, class: classes)
+        content_tag(:'trix-editor', ''.html_safe, input: input_id, class: classes, data: data)
     end
     
     def rich_text_update(object, attribute)

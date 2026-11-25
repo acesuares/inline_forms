@@ -48,12 +48,28 @@ if (!window.inlineFormsBooted) {
 
   // A :rich_text editor on a plain column (no has_rich_text) cannot store a
   // file: the attach button is hidden (CSS), and a dropped or pasted file is
-  // refused here, so nothing is inserted.
+  // refused here, so nothing is inserted. The editor's data-no-files-message
+  // (translated by rich_text_edit) is shown under it, once however many files
+  // were dropped, and goes away when the text changes.
   document.addEventListener("trix-file-accept", function(event) {
     var editor = event.target;
     if (editor && editor.classList && editor.classList.contains("inline_forms-trix-no-files")) {
       event.preventDefault();
+      var message = editor.getAttribute("data-no-files-message");
+      if (!message) { return; }
+      var notice = editor.nextElementSibling;
+      if (!notice || !notice.classList.contains("inline_forms-trix-refused")) {
+        notice = document.createElement("p");
+        notice.className = "inline_forms-trix-refused";
+        notice.setAttribute("role", "status");
+        editor.insertAdjacentElement("afterend", notice);
+      }
+      notice.textContent = message;
     }
+  });
+  document.addEventListener("trix-change", function(event) {
+    var notice = event.target && event.target.nextElementSibling;
+    if (notice && notice.classList.contains("inline_forms-trix-refused")) { notice.remove(); }
   });
 
   // get rid of translation_missing tooltips

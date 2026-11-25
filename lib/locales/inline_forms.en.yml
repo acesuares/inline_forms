@@ -68,6 +68,7 @@ en:
       undo: undo
       restore_previous: "restore removed file %{filename}"
       replace_hint: "The current file %{filename} goes to the trash."
+      not_in_this_field: "Files cannot be added to this field."
       confirm_remove:
         one: "Remove %{filename}? It goes to the trash and can be restored for 1 day."
         other: "Remove %{filename}? It goes to the trash and can be restored for %{count} days."
