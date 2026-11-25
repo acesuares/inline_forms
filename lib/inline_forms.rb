@@ -22,6 +22,38 @@ require "inline_forms/turbo_tabs_builder"
 # easy. Please install it as a gem or include it in your Gemfile.
 module InlineForms
   class PlainTextColumnMissingError < StandardError; end
+  # A model without an instance inline_forms_attribute_list got a field
+  # request (edit, update, a field's show); the message names the model.
+  class MissingAttributeListError < StandardError; end
+
+  # ---- :rich_text on a plain column ----------------------------------------
+  #
+  # :rich_text (and :text_area, which delegates to it) on a model without
+  # has_rich_text reads the model's own text column. That HTML was put on the
+  # page as it was stored (CKEditor's, or anything posted around the editor):
+  # a <script>, an onerror or a javascript: link in it ran. It is shown through
+  # this allowlist now: Trix's tags plus the formatting older editors wrote
+  # (tables, underline, sub/sup, h2-h6, span), and their attributes. `style`
+  # keeps only the sanitizer's safe CSS properties (never url() or
+  # expression()); href keeps only safe protocols. The stored value is not
+  # changed. An Action Text value is not passed through here: Action Text
+  # sanitizes it itself.
+  RICH_TEXT_DISPLAY_TAGS = %w[
+    a b strong i em u s strike del ins sub sup small big
+    p div span br hr blockquote pre code
+    h1 h2 h3 h4 h5 h6 ul ol li dl dt dd
+    table thead tbody tfoot tr th td caption colgroup col
+    figure figcaption
+  ].freeze
+  RICH_TEXT_DISPLAY_ATTRIBUTES = %w[
+    href title style align valign width border cellpadding cellspacing colspan rowspan
+  ].freeze
+
+  def self.rich_text_display_html(html)
+    Rails::HTML::Sanitizer.best_supported_vendor.safe_list_sanitizer.new.sanitize(
+      html.to_s, tags: RICH_TEXT_DISPLAY_TAGS, attributes: RICH_TEXT_DISPLAY_ATTRIBUTES
+    ).to_s.html_safe
+  end
 
   # ---- File slots and the file trash (InlineForms::StoredFiles) ------------
   #

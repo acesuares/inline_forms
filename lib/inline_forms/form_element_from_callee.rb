@@ -21,7 +21,12 @@ module InlineForms
   # when +attribute+/+form_element+ (both from params) do not name a row the
   # UI could have linked to. The controller uses this as a whitelist before
   # it dispatches +send("#{form_element}_update")+ or touches the attribute.
-  def self.attribute_list_row_for(attribute_list, attribute, form_element)
+  #
+  # A delegate's name (+rich_text+ on a +:text_area+ row) is accepted only
+  # when +delegate_allowed+ says so for the declared element: the controller
+  # refuses it when the app has its own +text_area_*+, which the engine's
+  # +rich_text_update+ would otherwise bypass.
+  def self.attribute_list_row_for(attribute_list, attribute, form_element, delegate_allowed: nil)
     attribute = attribute.to_s
     form_element = form_element.to_s
     return nil if attribute.empty? || form_element.empty?
@@ -29,8 +34,10 @@ module InlineForms
     attribute_list.find do |listed_attribute, declared, *|
       next false unless listed_attribute.to_s == attribute
 
-      declared.to_s == form_element ||
-        FORM_ELEMENT_DELEGATES[declared.to_s.to_sym].to_s == form_element
+      next true if declared.to_s == form_element
+
+      FORM_ELEMENT_DELEGATES[declared.to_s.to_sym].to_s == form_element &&
+        (delegate_allowed.nil? || delegate_allowed.call(declared))
     end
   end
 end

@@ -573,3 +573,18 @@ turbo-frame {
 .inline_forms-file-trash-history {
   opacity: 0.55;
 }
+
+// Trix's toolbar is one row that scrolls sideways when the value column is
+// narrower than it: let the button groups wrap onto a second line instead.
+// The class is doubled to outweigh trix.css, which the layout loads later.
+trix-toolbar .trix-button-row.trix-button-row {
+  flex-wrap: wrap;
+  overflow-x: visible;
+  row-gap: 0.25rem;
+}
+
+// A :rich_text on a plain column (no has_rich_text) cannot store an
+// attachment: no attach button there (rich_text_edit sets the class).
+trix-toolbar:has(+ trix-editor.inline_forms-trix-no-files) .trix-button-group--file-tools {
+  display: none;
+}

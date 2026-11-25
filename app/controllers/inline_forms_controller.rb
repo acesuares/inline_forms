@@ -150,11 +150,12 @@ class InlineFormsController < ApplicationController
     @form_element = params[:form_element]
     @sub_id = params[:sub_id]
     @update_span = params[:update]
-    return unless field_request_permitted?(:update)
-    return unless file_replace_permitted?
+    return true unless field_request_permitted?(:update)
+    return true unless file_replace_permitted?
     respond_to do |format|
       format.html { render_turbo_field(:field_edit) }
     end
+    true
   end
 
   # :create creates the object made with :new.
@@ -228,8 +229,8 @@ class InlineFormsController < ApplicationController
     @form_element = params[:form_element]
     @sub_id = params[:sub_id]
     @update_span = params[:update]
-    return unless field_request_permitted?(:update)
-    return unless file_replace_permitted?
+    return true unless field_request_permitted?(:update)
+    return true unless file_replace_permitted?
     # Defense-in-depth: the UI renders a pending field as a read-only
     # placeholder (never links to edit/update), but a hand-crafted request
     # could still target a column that is not migrated yet. Refuse cleanly
@@ -238,7 +239,7 @@ class InlineFormsController < ApplicationController
       respond_to do |format|
         format.html { render "inline_forms/field_pending", layout: "turbo_rails/frame", status: :unprocessable_entity }
       end
-      return
+      return true
     end
     InlineForms.assert_plain_text_column!(object: @object, attribute: @attribute, form_element: @form_element)
     refusals = assign_field(@attribute, @form_element)
@@ -253,6 +254,9 @@ class InlineFormsController < ApplicationController
     # On failure we keep the user in the edit field with their rejected
     # input visible and surface the validation errors (mirrors `create`).
     if refusals.empty? && @object.save
+      # The save added a version: the open record's "Versions (n)" header
+      # is refreshed with the field (field_show.html.erb).
+      @inline_forms_refresh_versions = true
       respond_to do |format|
         format.html { render_turbo_field(:field_show, turbo_field_show: true) }
       end
@@ -262,30 +266,23 @@ class InlineFormsController < ApplicationController
         format.html { render_turbo_field(:field_edit) }
       end
     end
+    true
   end
 
-  # :show shows one attribute (attribute) from a record (object).
-  # It includes the link to 'edit'
+  # :show shows one attribute (attribute) from a record (object), with the
+  # link to 'edit', or the whole record when no attribute is given.
+  #
+  # Returns true once it has answered, a refusal (400) included, so an app
+  # override written as `super and return if params[:form_element]` stops
+  # there instead of rendering a second time (DoubleRenderError).
   def show
     @object = referenced_object
     @attribute = params[:attribute]
     @form_element = params[:form_element]
     close = params[:close] || false
     # Single-field show (cancel link, post-update render): same whitelist as
-    # edit/update -- the associated/has_one branches below `send` the
-    # attribute name to the record.
-    return if @attribute && !field_request_permitted?(:read)
-    if @form_element == "associated"
-      @sub_id = params[:sub_id]
-      if @sub_id.to_i > 0
-        @associated_record_id = @object.send(@attribute.to_s.singularize + "_ids").index(@sub_id.to_i)
-        @associated_record = @object.send(@attribute)[@associated_record_id]
-      end
-    end
-    if @form_element == "has_one"
-      @associated_record = @object.send(@attribute)
-      @associated_record_id = @associated_record.id
-    end
+    # edit/update.
+    return true if @attribute && !field_request_permitted?(:read)
     @update_span = params[:update]
     if @attribute.nil?
       respond_to do |format|
@@ -301,6 +298,7 @@ class InlineFormsController < ApplicationController
         format.html { render_turbo_field(:field_show, turbo_field_show: true) }
       end
     end
+    true
   end
 
   # :soft_delete
@@ -472,16 +470,56 @@ class InlineFormsController < ApplicationController
   # element went straight into `send("#{form_element}_update")`.
   #
   # Refuse (400) unless attribute + form_element name a row of the model's
-  # attribute list (as the UI's links do), then authorize the attribute
-  # itself. Renders and returns false when the request is refused.
+  # attribute list (as the UI's links do) whose form element has the helper
+  # this action calls, then authorize the attribute itself. Renders and
+  # returns false when the request is refused.
+  #
+  # A row without that helper is refused too: :associated and :has_one rows
+  # are lists, not fields, and have no `<element>_show` (a listed :associated
+  # row requested through show raised NoMethodError, a 500). A delegated name (form_element=rich_text on a
+  # :text_area row) only counts while the row's element is the engine's own.
   def field_request_permitted?(action)
-    attributes = @inline_forms_attribute_list || @object.inline_forms_attribute_list
-    unless InlineForms.attribute_list_row_for(attributes, @attribute, @form_element)
+    attributes = @inline_forms_attribute_list || inline_forms_attribute_list_of!(@object)
+    row = InlineForms.attribute_list_row_for(attributes, @attribute, @form_element,
+      delegate_allowed: ->(declared) { engine_form_element?(declared) })
+    unless row && form_element_helper?(@form_element, FIELD_REQUEST_HELPER_SUFFIX.fetch(action_name, "show"))
       head :bad_request
       return false
     end
     authorize!(action, @object, @attribute.to_sym) if cancan_enabled?
     true
+  end
+
+  FIELD_REQUEST_HELPER_SUFFIX = { "edit" => "edit", "update" => "update", "show" => "show" }.freeze
+  private_constant :FIELD_REQUEST_HELPER_SUFFIX
+
+  # The record's attribute list, or an error that names the model. Field
+  # requests are checked against it (8.1.76); a model whose rows live only in
+  # a class-level structure (tabs) raised a bare NoMethodError on every edit.
+  def inline_forms_attribute_list_of!(object)
+    return object.inline_forms_attribute_list if object.respond_to?(:inline_forms_attribute_list)
+
+    raise InlineForms::MissingAttributeListError,
+      "#{object.class.name} has no instance method inline_forms_attribute_list. Every field " \
+      "request (edit, update, a field's show) is checked against it since inline_forms 8.1.76: " \
+      "define it on #{object.class.name} and return all rows the UI can show " \
+      "(for a model with tabs: the rows of every tab)."
+  end
+
+  # `<form_element>_<suffix>` exists for this request: `_update` is called on
+  # the controller (assign_field), `_show` and `_edit` in the view.
+  def form_element_helper?(form_element, suffix)
+    name = :"#{form_element}_#{suffix}"
+    suffix == "update" ? respond_to?(name, true) : helpers.respond_to?(name, true)
+  end
+
+  # The element's show helper is the engine's own, not an app's vendored copy
+  # of the same name (InlineForms::FormElements::*).
+  def engine_form_element?(form_element)
+    owner = helpers.method(:"#{form_element}_show").owner
+    owner.name.to_s.start_with?("InlineForms::FormElements::")
+  rescue NameError
+    false
   end
 
   # Uploading over a file that is already in a declared slot is a replace:

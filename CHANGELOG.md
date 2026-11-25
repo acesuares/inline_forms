@@ -8,6 +8,33 @@ All notable changes to this project are documented in this file.
 
 - Known issues, parked (local note `stuff/2026-10-31-dropdown-rule-3-parked.md`) with dropdown order rule 3: `includes`, `group` or `select` in `inline_forms_list` make `dropdown` and `dropdown_with_other` raise while `/index` works, so 8.1.65's fix for a list order on a joined table holds only for `joins`, `left_joins` and `eager_load`; a has_many join gives duplicate options. Present since 8.1.60. No host's list scope has these today. Parked; not changed.
 
+## [8.1.84] - 2026-11-24
+
+From the second RACVS / yavetracker ladder prompt (`ladder/inline_forms-PROMPT-2-2026-11-24.md`).
+
+### Security
+
+- **`:rich_text` (and `:text_area`) on a plain column no longer puts the stored HTML on the page as it is.** Without `has_rich_text` the element reads the model's own column, and `rich_text_show` marked that value `html_safe`: a stored `<script>` ran when the field was shown, an `onerror` on load, an `onclick` on a click (confirmed in yavetracker). Such a value is now shown through an allowlist (`InlineForms.rich_text_display_html`): Trix's tags plus the formatting older editors wrote (tables, underline, sub/sup, headings, span), `href` with safe protocols only, and `style` with the sanitizer's safe CSS properties only (no `url()`). The stored value is not changed. An Action Text value is unchanged (Action Text sanitizes it). yavetracker's own `rich_text_show` can go.
+- **`form_element=rich_text` on a `:text_area` row is accepted only while `:text_area` is the engine's own.** An app with its own `text_area_*` helpers (a vendored CKEditor element) could be sent around them to the engine's `rich_text_update`, past whatever the app's update checks.
+
+### Fixed
+
+- **A field request for a row that is not a field answers 400.** A listed `:associated` (or `:has_one`) row requested through `show` passed the row check and then raised NoMethodError on `associated_show` (a 500 in RACVS). The check now also asks for the helper the action calls (`<element>_show`, `_edit` or `_update`). The unused `@associated_record` lookup in `show` is gone.
+- **A model without an instance `inline_forms_attribute_list` gets an error that names it** (`InlineForms::MissingAttributeListError`) on a field request, instead of a bare NoMethodError. RACVS's Ouderbrief, Schoolbrief and Vibrief had their rows only in a class-level tab structure. The README's tabs section says what to define.
+- **`show`, `edit` and `update` return true once they have answered, a refusal included.** An app override written `super and return if params[:form_element]` went on after a refused request (400, `nil`) and rendered again: DoubleRenderError, a 500. `return super if …` was and stays the recommended form.
+- **The vendored-element opt-out (8.1.81) sees private helpers.** `InlineForms.vendored_form_element?` asked `respond_to?` without the private flag, so yavetracker's private `geo_code_curacao_show` still needed its own boot exception, which can go now.
+- **The `info` element formats a DateTime.** It formatted only `instance_of?(Date)` and `is_a?(Time)`; a DateTime (a Date subclass) printed `2026-11-24 22:13:13 UTC` (RACVS's client sheet). A Time, TimeWithZone or DateTime now reads as in the versions panel (`24 Nov 2026 22:13`) with how long ago; a Date stays dd-mm-yyyy. **Visible change:** a Time shown by `info` no longer prints its raw `to_s`.
+- **The "Versions (n)" header follows a field save.** The update response carries a `<turbo-stream>` that replaces the open record's versions panel (closed, with the new count). An open versions list closes on a save.
+- **Trix's toolbar wraps** onto a second line instead of scrolling sideways in a narrow value column, and **has no attach button on a plain column**, where nothing can be stored (the editor gets `inline_forms-trix-no-files`).
+
+### Upgrade notes
+
+- **Correction to 8.1.81's `:text_area` note.** It is true only with `has_rich_text` on the model. Without it, `:text_area` (delegating to `:rich_text`) reads the model's own column: CKEditor's HTML is shown (through the allowlist above since 8.1.84) and loaded into Trix, and **Trix rewrites it on the next save**: tables, underline, colours, fonts and alignment are lost. Keep such a column read-mostly, declare it `:plain_text_area`, or move the HTML into Action Text as that note says (the same loss happens there, once, when the HTML is first edited in Trix).
+- **Apps made before 8.1.66:** if `app/assets/stylesheets/inline_forms_install/*_main.scss` `@use`s the gem's stylesheet without the `.scss` extension, Dart Sass resolves it to the app's own previous build, and the gem's CSS never changes again. Write the extension (`@use "inline_forms/inline_forms.scss"`), as the installer does since 8.1.66.
+- **`order_by_clause` is not read since 8.1.0.** Replacing it with `inline_forms_list` also re-sorts the model's dropdowns, which follow `inline_forms_list` (RACVS: alphabetical where 8.0 had database order; `inline_forms_dropdown_order :id` puts that back, see 8.1.59), and rows with a NULL in the order column, which 8.0.4 hid through its `LIKE '%%'`, now show.
+- **The attribute list rows lost their label slot at 8.1.0** (`[ :name, "Name", :text_field ]` became `[ :name, :text_field ]`), and the field request check (8.1.76) reads slot 1 as the form element. An app coming up from 8.0 rewrites every row, and any code of its own that reads rows by position, before a field can be edited.
+- **`CanCan::AccessDenied`:** do not add a `format.turbo_stream` branch to the handler; it broke Devise's sign-out in RACVS. The README now shows the installer's handler.
+
 ## [8.1.83] - 2026-11-24
 
 From items 13-18 of the RACVS / yavetracker ladder prompt (`ladder/inline_forms-PROMPT-2026-11-24.md`).

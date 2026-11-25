@@ -257,7 +257,12 @@ Active-tab highlighting is unchanged from upstream (still driven by +set_tab :fo
 
 The +--example+ app uses option *2* because the only per-tab difference is which attribute subset to render, and +inline_forms/_show+ already drives off +@inline_forms_attribute_list+ — so a single filter in +OwnersController#show+ is enough and a per-tab partial would be over-engineering. For real apps with heterogeneous tabs, option *4* is usually a better fit; option *5* layers on top of any of the others when you need visual grouping.
 
-In every case the Turbo wiring is the same: +link_options: { data: { turbo_frame: @update_span } }+ on the +<a>+, surrounding +<turbo-frame id="<%= @update_span %>">+ in the show view, and a controller that picks the active tab via +set_tab+ + +params[:tab]+. The +InlineForms::TurboTabsBuilder+ choice is independent of which partial layout you adopt.
+Two rules hold for every pattern:
+
+- *The model keeps an instance +inline_forms_attribute_list+ with the rows of every tab.* Each field request (edit, update, a field's show) is checked against the record's list since 8.1.76, not against the tab's +@inline_forms_attribute_list+ of the page that linked to it. A model whose rows live only in a class-level structure raises +InlineForms::MissingAttributeListError+, naming the model; give it e.g. <tt>def inline_forms_attribute_list = @inline_forms_attribute_list ||= self.class.tab_fields.values.flatten(1)</tt>.
+- *A +show+ override hands field requests to the engine with <tt>return super if params[:form_element] || …</tt>*, as above. Since 8.1.84 +show+ returns true after it has answered, a refusal included, so the older <tt>super and return if …</tt> works too; before, a refused request (400) fell through to the override's own render (DoubleRenderError).
+
+In every case the Turbo wiring is the same:+link_options: { data: { turbo_frame: @update_span } }+ on the +<a>+, surrounding +<turbo-frame id="<%= @update_span %>">+ in the show view, and a controller that picks the active tab via +set_tab+ + +params[:tab]+. The +InlineForms::TurboTabsBuilder+ choice is independent of which partial layout you adopt.
 
 == Generated application +rails-i18n+
 
@@ -366,6 +371,10 @@ Once inside the box, goto /vagrant and install_stuff:
  ./install_stuff
  
 This should update your box, install rvm and ruby and inline_forms, and create an example app.
+
+== Handling +CanCan::AccessDenied+
+
+The installer's +ApplicationController+ has the handler the engine expects: JSON and JS get a 403, HTML a redirect to the root with the message. A frame request gets that redirect too; Turbo then shows the frame's "content missing", which is the intended signal for a refused field. Do *not* add a <tt>format.turbo_stream</tt> branch: Turbo accepts a stream on a form or <tt>data-turbo-method</tt> request, Devise's sign-out link included, and with that branch the sign-out broke (RACVS tried it and took it out again). The engine has no other recommended handler for frame or stream requests.
 
 
 == Disclaimer

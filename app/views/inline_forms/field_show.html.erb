@@ -1,3 +1,14 @@
 <turbo-frame id="<%= @update_span %>">
   <%= inline_forms_field_show(@object, @attribute, @form_element, turbo_frame: @turbo_field_show_turbo_frame) %>
+  <%# After a save: replace the record's versions panel (closed, with the new
+      count). Turbo performs a <turbo-stream> when the frame's content is
+      inserted, so the field's frame response can update that other frame. -%>
+  <% if @inline_forms_refresh_versions && (cancan_disabled? || can?(:list_versions, @object)) -%>
+    <% versions_frame_id = inline_forms_versions_turbo_frame_id(@object) -%>
+    <turbo-stream action="replace" target="<%= versions_frame_id %>"><template>
+      <turbo-frame id="<%= versions_frame_id %>">
+        <%= render "inline_forms/versions", object: @object %>
+      </turbo-frame>
+    </template></turbo-stream>
+  <% end -%>
 </turbo-frame>

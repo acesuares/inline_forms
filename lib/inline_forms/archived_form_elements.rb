@@ -72,7 +72,7 @@ module InlineForms
 
   # An app that vendors an archived element (copies its helper into its own
   # app/helpers, see archived/README.md) defines `<element>_show` itself: the
-  # element is then the app's, and allowed. `helpers` is the view helper
+  # element is then the app's, and allowed. The helper may be private. `helpers` is the view helper
   # proxy to ask (default: ApplicationController's, with all app helpers).
   def self.validate_no_archived_form_elements_for!(klass, helpers: nil)
     return unless klass.instance_methods.include?(:inline_forms_attribute_list)
@@ -99,7 +99,7 @@ module InlineForms
 
   def self.vendored_form_element?(key, helpers = nil)
     helpers ||= ::ApplicationController.helpers if defined?(::ApplicationController)
-    !!helpers&.respond_to?(:"#{key}_show")
+    !!helpers&.respond_to?(:"#{key}_show", true)
   rescue StandardError
     false
   end
