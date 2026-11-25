@@ -23,7 +23,10 @@ module InlineForms
   #                  (the default)
   #   :relation      the relation's own order (a default_scope's, a scope's:
   #                  documents newest first), LOWER(value) A-Z after it; the
-  #                  first record's spelling kept (8.1.86)
+  #                  first record's spelling kept (8.1.86). It reads at most
+  #                  PAGES pages of 4 × limit matching rows per column (480 at
+  #                  the default limit), one query each, and stops there: a
+  #                  value that fills them hides the values after it.
   module Suggestions
     MATCHES = %i[contains start word].freeze
     ORDERS = %i[alphabetical relation].freeze

@@ -15,7 +15,7 @@ This directory is the **versioned archive** for inline_forms capabilities that a
 | `:question_list` | **Archived** | **8.1.30** | [`form_elements/question_list/`](form_elements/question_list/) — hardcoded host `Question` model |
 | `:dnsrecords` | **Archived** | **8.1.30** | [`form_elements/dns_records/`](form_elements/dns_records/) — host `a_records`/`djbdns_line` APIs |
 
-Programmatic registry: `InlineForms::ARCHIVED_FORM_ELEMENTS` in `lib/inline_forms.rb` (boot-time check if a model still declares an archived symbol).
+Programmatic registry: `InlineForms::ARCHIVED_FORM_ELEMENTS` in `lib/inline_forms.rb` (checked on every code reload in development, after the app's own `to_prepare` blocks, if a model still declares an archived symbol; since 8.1.85 not at boot).
 
 ## Layout
 
@@ -47,9 +47,20 @@ has one) in a module, plus the models, controllers, views, routes and assets
 its README lists. The views call `_show` and `_edit`, but the save calls
 `_update` on the controller, which does not get the app's helpers. So include
 the module into both, in a `to_prepare` (both are reloadable engine
-constants):
+constants). Make its methods **private**: a public method of a module
+included into a controller is an action, and since 8.1.83 the engine's own
+form element helpers are not.
 
 ```ruby
+# lib/form_elements/geo_code_curacao.rb
+module GeoCodeCuracaoHelper
+  private
+
+  def geo_code_curacao_show(object, attribute) = …
+  def geo_code_curacao_edit(object, attribute) = …
+  def geo_code_curacao_update(object, attribute) = …
+end
+
 # config/initializers/inline_forms_vendored_form_elements.rb
 require Rails.root.join("lib/form_elements/geo_code_curacao").to_s
 
@@ -59,11 +70,13 @@ end
 ```
 
 A module only under `app/helpers/` shows and edits, but every save is refused
-(400). Since 8.1.81 the boot check
+(400). Since 8.1.81 the archived-element check
 (`InlineForms.validate_no_archived_form_elements_for!`) skips an archived
 symbol when the app's helpers (`ApplicationController.helpers`) answer
-`<name>_show`, so the element is then the app's. Since 8.1.85 that check runs
-after the app's own `to_prepare` blocks, so the include above is seen. The archived files are
+`<name>_show`, private or not (8.1.84), so the element is then the app's.
+Since 8.1.85 that check runs on each code reload in development, after the
+app's own `to_prepare` blocks, so the include above is seen; it no longer
+runs at boot. The archived files are
 written in the old top-level `def` style; wrap them in a helper module
 (`module GeoCodeCuracaoHelper … end`) and replace any jQuery/UJS they use.
 

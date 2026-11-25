@@ -8,6 +8,25 @@ All notable changes to this project are documented in this file.
 
 - Known issues, parked (local note `stuff/2026-10-31-dropdown-rule-3-parked.md`) with dropdown order rule 3: `includes`, `group` or `select` in `inline_forms_list` make `dropdown` and `dropdown_with_other` raise while `/index` works, so 8.1.65's fix for a list order on a joined table holds only for `joins`, `left_joins` and `eager_load`; a has_many join gives duplicate options. Present since 8.1.60. No host's list scope has these today. Parked; not changed.
 
+## [8.1.87] - 2026-11-25
+
+From a review of 8.1.85 and 8.1.86 (local note `stuff/reviews/2026-11-25-review-8.1.85-8.1.86.md`).
+
+### Fixed
+
+- **A values list that mixes numbers and strings sorts the same way every time.** 8.1.85 compared two numbers as numbers and anything else as text, and the two rules contradicted each other: `[10, 9, "1a"]` gave 10, "1a", 9, and a `0..12` list with "12+" added put "12+" between 1 and 2. Now `nil` comes first (a blank option, as before), then the numbers in numeric order, then everything else as text; equal values keep their order. This corrects 8.1.85's "Numbers now sort as numbers", which held only for lists of numbers alone.
+
+### Documentation
+
+- **`order: :relation` reads a limited window** (README, `InlineForms::Suggestions`): at most 10 pages of 4 × `limit` matching rows per column (480 at the default 12), one query each, and stops there. A value that fills those rows hides the values after it (480 × "Ada" hide "Adam", which A-Z finds). 8.1.86 did not say so.
+- **A suggestion action outside `InlineFormsController` is not authorized by the engine.** `load_and_authorize_resource` checks the action's ability only in `InlineFormsController`; elsewhere the app authorizes the action itself. Records and columns are still limited to what the user may read (README, `SuggestionsConcern`).
+- **Vendoring an archived element (`archived/README.md`): make the module's methods private.** Included into `InlineFormsController`, a public module made `<name>_show`, `_edit` and `_update` controller actions again, which 8.1.83 stopped for the engine's own. The example now shows the module. The page no longer calls the archived-element check a boot check: since 8.1.85 it runs on each code reload in development.
+- README: the tabs section's code (`link_options: …`, `<a>`, `<turbo-frame …>`) and the suggestions section's `order: :relation` render as code. 8.1.85 said the first did; RDoc's `+…+` does not mark text with spaces or markup, so it showed the plus signs.
+
+### Tests
+
+- The Trix file refusal's listener, dropping `<template>` and `<noscript>`, `order: :relation` with a CanCan rule that hides records, and the `order: :relation` window.
+
 ## [8.1.86] - 2026-11-25
 
 From the third RACVS / yavetracker ladder prompt (`ladder/inline_forms-PROMPT-3-2026-11-25.md`).

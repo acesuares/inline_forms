@@ -404,22 +404,32 @@ module InlineFormsHelper
       values.to_a.each do |k, v|
         temp << [ k, inline_forms_value_label(v) ]
       end
-      values = temp.sort { |a, b| inline_forms_compare_values(a[0], b[0]) }
+      values = inline_forms_sort_values(temp) { |pair| pair[0] }
     else
       temp = Array.new
       values.to_a.each_index do |i|
         temp << [ i, inline_forms_value_label(values.to_a[i]) ]
       end
-      values = temp.sort { |a, b| inline_forms_compare_values(a[1], b[1]) }
+      values = inline_forms_sort_values(temp) { |pair| pair[1] }
     end
     values
   end
 
-  # Numbers in numeric order, anything else as text: a list that mixes
-  # numbers and strings ([1, 2, "many"]) raised ArgumentError in 8.1.83,
-  # once labels stopped being the strings t() returned.
-  def inline_forms_compare_values(a, b)
-    (a <=> b) || (a.to_s <=> b.to_s)
+  # nil first (a blank option), then numbers in numeric order, then anything
+  # else as text, equal ones in their given order. One key for every value: a pairwise fallback
+  # ((a <=> b) || (a.to_s <=> b.to_s), 8.1.85) contradicted itself on a mixed
+  # list ([10, 9, "1a"] put 10 before 9). A list that mixes numbers and
+  # strings ([1, 2, "many"]) raised ArgumentError in 8.1.83, once labels
+  # stopped being the strings t() returned.
+  def inline_forms_sort_values(pairs)
+    pairs.each_with_index.sort_by { |pair, index| [ inline_forms_value_sort_key(yield(pair)), index ] }.map(&:first)
+  end
+
+  def inline_forms_value_sort_key(value)
+    if value.nil? then [ 0, 0, "" ]
+    elsif value.is_a?(Numeric) && value.real? then [ 1, value, "" ]
+    else [ 2, 0, value.to_s ]
+    end
   end
 
   # A value as text for the screen: a Date as dd-mm-yyyy (since Rails 7.1 a

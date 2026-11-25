@@ -16,7 +16,9 @@
 # rails-jquery-autocomplete's `autocomplete` macro used), which answers
 # GET …?term=… with a JSON array of at most `limit` (12) names: see
 # InlineForms::Suggestions for `match:` (:contains, :start, :word) and the
-# order. The app adds the route and the ability, as for any other action:
+# order. The app adds the route and the ability, as for any other action
+# (outside InlineFormsController, whose load_and_authorize_resource checks
+# it, the app authorizes the action itself):
 #
 #   resources :clients do
 #     get :autocomplete_client_last_name, on: :collection
