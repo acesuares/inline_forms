@@ -513,11 +513,24 @@ class InlineFormsController < ApplicationController
     suffix == "update" ? respond_to?(name, true) : helpers.respond_to?(name, true)
   end
 
-  # The element's show helper is the engine's own, not an app's vendored copy
-  # of the same name (InlineForms::FormElements::*).
+  # The element is the engine's own, not an app's copy of the same name:
+  # its _show, _edit and _update, in the view and on the controller, are all
+  # defined in the engine's lib/inline_forms/form_elements/. An app that
+  # overrides any one of them (only the _update with its own checks, say)
+  # keeps the delegate away. By file, not owner: `private` on an included
+  # helper (the controller makes them private, 8.1.83) gives a stub whose
+  # owner is InlineFormsController but whose source is still the engine's.
+  ENGINE_FORM_ELEMENTS_DIR = File.expand_path("../../lib/inline_forms/form_elements", __dir__) + File::SEPARATOR
+  private_constant :ENGINE_FORM_ELEMENTS_DIR
+
   def engine_form_element?(form_element)
-    owner = helpers.method(:"#{form_element}_show").owner
-    owner.name.to_s.start_with?("InlineForms::FormElements::")
+    %w[show edit update].all? do |suffix|
+      name = :"#{form_element}_#{suffix}"
+      [ helpers, self ].all? do |target|
+        !target.respond_to?(name, true) ||
+          target.method(name).source_location&.first.to_s.start_with?(ENGINE_FORM_ELEMENTS_DIR)
+      end
+    end
   rescue NameError
     false
   end

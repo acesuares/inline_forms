@@ -262,7 +262,7 @@ Two rules hold for every pattern:
 - *The model keeps an instance +inline_forms_attribute_list+ with the rows of every tab.* Each field request (edit, update, a field's show) is checked against the record's list since 8.1.76, not against the tab's +@inline_forms_attribute_list+ of the page that linked to it. A model whose rows live only in a class-level structure raises +InlineForms::MissingAttributeListError+, naming the model; give it e.g. <tt>def inline_forms_attribute_list = @inline_forms_attribute_list ||= self.class.tab_fields.values.flatten(1)</tt>.
 - *A +show+ override hands field requests to the engine with <tt>return super if params[:form_element] || …</tt>*, as above. Since 8.1.84 +show+ returns true after it has answered, a refusal included, so the older <tt>super and return if …</tt> works too; before, a refused request (400) fell through to the override's own render (DoubleRenderError).
 
-In every case the Turbo wiring is the same:+link_options: { data: { turbo_frame: @update_span } }+ on the +<a>+, surrounding +<turbo-frame id="<%= @update_span %>">+ in the show view, and a controller that picks the active tab via +set_tab+ + +params[:tab]+. The +InlineForms::TurboTabsBuilder+ choice is independent of which partial layout you adopt.
+In every case the Turbo wiring is the same: +link_options: { data: { turbo_frame: @update_span } }+ on the +<a>+, surrounding +<turbo-frame id="<%= @update_span %>">+ in the show view, and a controller that picks the active tab via +set_tab+ + +params[:tab]+. The +InlineForms::TurboTabsBuilder+ choice is independent of which partial layout you adopt.
 
 == Generated application +rails-i18n+
 

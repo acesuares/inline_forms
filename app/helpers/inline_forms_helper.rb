@@ -404,15 +404,22 @@ module InlineFormsHelper
       values.to_a.each do |k, v|
         temp << [ k, inline_forms_value_label(v) ]
       end
-      values = temp.sort { |a, b| a[0]<=>b[0] }
+      values = temp.sort { |a, b| inline_forms_compare_values(a[0], b[0]) }
     else
       temp = Array.new
       values.to_a.each_index do |i|
         temp << [ i, inline_forms_value_label(values.to_a[i]) ]
       end
-      values = temp.sort { |a, b| a[1]<=>b[1] }
+      values = temp.sort { |a, b| inline_forms_compare_values(a[1], b[1]) }
     end
     values
+  end
+
+  # Numbers in numeric order, anything else as text: a list that mixes
+  # numbers and strings ([1, 2, "many"]) raised ArgumentError in 8.1.83,
+  # once labels stopped being the strings t() returned.
+  def inline_forms_compare_values(a, b)
+    (a <=> b) || (a.to_s <=> b.to_s)
   end
 
   # A value as text for the screen: a Date as dd-mm-yyyy (since Rails 7.1 a

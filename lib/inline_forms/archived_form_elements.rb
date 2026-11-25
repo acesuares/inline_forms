@@ -85,7 +85,8 @@ module InlineForms
       meta = ARCHIVED_FORM_ELEMENTS[key]
       version = meta[:archived_in_version] || meta[:removed_in_version]
       hint = if meta[:archive_path]
-        "Vendor it into your app: define #{key}_show (and _edit, _update) in an app helper " \
+        "Vendor it into your app: define #{key}_show, _edit and _update in a module and " \
+          "include it into InlineFormsHelper and InlineFormsController in a to_prepare " \
           "(#{meta[:archive_path]}/README.md, archived/README.md)."
       else
         "See archived/README.md and CHANGELOG #{version}."

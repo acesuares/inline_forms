@@ -8,6 +8,29 @@ All notable changes to this project are documented in this file.
 
 - Known issues, parked (local note `stuff/2026-10-31-dropdown-rule-3-parked.md`) with dropdown order rule 3: `includes`, `group` or `select` in `inline_forms_list` make `dropdown` and `dropdown_with_other` raise while `/index` works, so 8.1.65's fix for a list order on a joined table holds only for `joins`, `left_joins` and `eager_load`; a has_many join gives duplicate options. Present since 8.1.60. No host's list scope has these today. Parked; not changed.
 
+## [8.1.85] - 2026-11-25
+
+From a review of 8.1.81 to 8.1.84 (local note `stuff/reviews/2026-11-25-review-8.1.81-8.1.84.md`).
+
+### Security
+
+- **`form_element=rich_text` on a `:text_area` row is refused when the app overrides any of `text_area_show`, `_edit` or `_update`**, in its helpers or on the controller. 8.1.84 looked only at `text_area_show` in the view helpers, so an app that replaced only `text_area_update` (where its checks are) or included its override only into the controller was still sent around to the engine's `rich_text_update`, and the raw HTML was saved. The same holds for `:plain_text_area` delegating to `:plain_text`. This corrects 8.1.84's Security note, which said an app's own `text_area_*` helpers were covered. No host overrides these.
+
+### Fixed
+
+- **The archived-element check runs after the app's own `to_prepare` blocks.** It was the engine's `config.to_prepare`, which runs before the application's, so on a reload in development it did not yet see a vendored element's helpers that the app includes into `InlineFormsHelper` in its own `to_prepare` (yavetracker's `geo_code_curacao`). It is now registered on the app's reloader from `after_initialize` (`InlineForms.validate_loaded_models!`), after the app's blocks. The boot's own first prepare, which ran before eager loading and saw almost no models, is no longer checked; every reload is, as before. This is what 8.1.84's "yavetracker's boot exception can go now" needed: the private-helper fix alone did not change the order.
+- **A values list that mixes numbers and strings works again.** Since 8.1.83 kept numbers as numbers, `[1, 2, "many"]` (or a `nil` entry) raised `ArgumentError: comparison of Array with Array failed` in every element that lists the values (dropdown_with_values, radio_button, scale, slider, check_box, dropdown_with_integers). Numbers now sort as numbers and anything else as text.
+
+### Documentation
+
+- **Vendoring an archived element:** `archived/README.md` and the boot check's hint said to put `<name>_update` in an app helper. The save calls it on the controller, which does not get the app's helpers, so such a field showed and edited but every save was refused (400; a 500 before 8.1.84). Include the module into both `InlineFormsHelper` and `InlineFormsController` in a `to_prepare`, as the README now shows (yavetracker already does).
+- **8.1.83, not mentioned then:** a values list given as an integer Range (`0..12`) is in numeric order since 8.1.83 (0, 1, 2 … 12; it was 0, 1, 10, 11, 12, 2 …). yavetracker's `0..40`, `0..7` and `1..8` dropdowns change order.
+- README: the tabs section's `+link_options+` renders as code again.
+
+### Tests
+
+- The engine header's logout link is a Turbo DELETE; an `update` override written `super and return` stops after a refusal; `MissingAttributeListError` on a field's show and save, not only on edit.
+
 ## [8.1.84] - 2026-11-24
 
 From the second RACVS / yavetracker ladder prompt (`ladder/inline_forms-PROMPT-2-2026-11-24.md`).

@@ -339,6 +339,24 @@ module InlineForms
     attribute.to_s
   end
 
+  # Every loaded model's attribute list: no archived element the app has not
+  # vendored, and plain_text columns present. Run on every reload, after the
+  # app's own to_prepare blocks (see the engine).
+  def self.validate_loaded_models!
+    return unless defined?(ActiveRecord::Base)
+
+    ActiveRecord::Base.descendants.each do |klass|
+      validate_no_archived_form_elements_for!(klass)
+      validate_plain_text_configuration_for!(klass)
+    rescue PlainTextColumnMissingError, ArchivedFormElementError
+      raise
+    rescue StandardError
+      # Some descendants might be abstract or temporarily unresolved while
+      # the app boots/reloads; runtime checks in controllers still enforce
+      # plain_text column presence for active resources.
+    end
+  end
+
   def self.validate_plain_text_configuration_for!(klass)
     return unless klass.respond_to?(:table_exists?) &&
                   klass.respond_to?(:column_names) &&
@@ -466,21 +484,18 @@ module InlineForms
       ]
     end
 
-    config.to_prepare do
-      next unless defined?(ActiveRecord::Base)
-
-      ActiveRecord::Base.descendants.each do |klass|
-        begin
-          InlineForms.validate_no_archived_form_elements_for!(klass)
-          InlineForms.validate_plain_text_configuration_for!(klass)
-        rescue InlineForms::PlainTextColumnMissingError, InlineForms::ArchivedFormElementError
-          raise
-        rescue StandardError
-          # Some descendants might be abstract or temporarily unresolved while
-          # the app boots/reloads; runtime checks in controllers still enforce
-          # plain_text column presence for active resources.
-        end
-      end
+    # The checks of the loaded models run after the app's own to_prepare
+    # blocks (8.1.85): an app that includes a vendored element's helpers into
+    # InlineFormsHelper in its config/initializers' to_prepare must have done
+    # so before the archived-element check asks for <name>_show. A plain
+    # config.to_prepare here ran first, before the app's (engine blocks are
+    # registered before the application's), so on a reload in development
+    # the check did not see the app's helper. Registered from after_initialize,
+    # so it lands after the app's blocks; it then runs on every reload, as
+    # before. (The boot's own first prepare, before eager loading, saw almost
+    # no models; it is no longer checked.)
+    config.after_initialize do |app|
+      app.reloader.to_prepare { InlineForms.validate_loaded_models! }
     end
 
     # .rb too: inline_forms_titles.rb holds the title keys as lambdas.

@@ -43,11 +43,27 @@ Active form elements load from `app/helpers/form_elements/*.rb` only (top-level 
 
 An app can keep using an archived element without changing the gem: put its
 helper methods (`<name>_show`, `<name>_edit`, `<name>_update`, and `_info` if it
-has one) in a module under the app's own `app/helpers/`, plus the models,
-controllers, views, routes and assets its README lists. Since 8.1.81 the boot
-check (`InlineForms.validate_no_archived_form_elements_for!`) skips an archived
+has one) in a module, plus the models, controllers, views, routes and assets
+its README lists. The views call `_show` and `_edit`, but the save calls
+`_update` on the controller, which does not get the app's helpers. So include
+the module into both, in a `to_prepare` (both are reloadable engine
+constants):
+
+```ruby
+# config/initializers/inline_forms_vendored_form_elements.rb
+require Rails.root.join("lib/form_elements/geo_code_curacao").to_s
+
+Rails.application.config.to_prepare do
+  [InlineFormsHelper, InlineFormsController].each { |target| target.include(GeoCodeCuracaoHelper) }
+end
+```
+
+A module only under `app/helpers/` shows and edits, but every save is refused
+(400). Since 8.1.81 the boot check
+(`InlineForms.validate_no_archived_form_elements_for!`) skips an archived
 symbol when the app's helpers (`ApplicationController.helpers`) answer
-`<name>_show`, so the element is then the app's. The archived files are
+`<name>_show`, so the element is then the app's. Since 8.1.85 that check runs
+after the app's own `to_prepare` blocks, so the include above is seen. The archived files are
 written in the old top-level `def` style; wrap them in a helper module
 (`module GeoCodeCuracaoHelper … end`) and replace any jQuery/UJS they use.
 
