@@ -339,6 +339,40 @@ Note: generated apps also depend on ActiveStorage transitively because the +:ric
 
 Since 8.1.25/8.1.26 the date/time widgets are native HTML inputs — +:date_select+ renders +<input type="date">+, +:time_select+ +<input type="time">+, +:month_year_picker+ +<input type="month">+, +:slider_with_values+ +<input type="range">+, +:dropdown_with_other+ an +<input list>+ + +<datalist>+ combobox, and the new +:color_field+ (8.1.32) +<input type="color">+. jQuery UI, its themes and the +jquery-ui-rails+ / +rails-jquery-autocomplete+ / +jquery-timepicker-rails+ gems are gone; jQuery itself remains only because Foundation 6's JS requires it.
 
+== Search suggestions (+suggest_field_tag+, +suggest_names+)
+
+A search field with suggestions is a text field with the browser's own <tt><datalist></tt>, filled while the user types from a JSON action (no jQuery UI; it replaces rails-jquery-autocomplete's +autocomplete_field_tag+ and +autocomplete+ macro):
+
+ <%= suggest_field_tag "search", params[:search], autocomplete_client_last_name_clients_path, placeholder: "last name" %>
+
+The action comes from +suggest_names+ in the controller. +InlineFormsController+ includes +SuggestionsConcern+; any other controller may include it too, with +CancanConcern+ for +suggest_names+ and the scope and column helpers below (+render_inline_forms_suggestions+ alone needs nothing).
+
+ class ClientsController < InlineFormsController
+   suggest_names :client, :last_name                         # the term anywhere, A-Z
+   suggest_names :client, :first_name, match: :start         # :contains, :start or :word
+   suggest_names :document, :subject, scope: :incoming,      # a named scope, or a lambda
+                                      order: :relation       # the scope's order, not A-Z
+ end
+
+Each defines <tt>autocomplete_<model>_<column></tt>, answering <tt>GET …?term=…</tt> with at most 12 values (+limit:+), each once. The app adds the route and the ability:
+
+ resources :clients do
+   get :autocomplete_client_last_name, on: :collection
+ end
+ can :autocomplete_client_last_name, Client
+
+Only values of records the user may read (+accessible_by+) and of a column the user may read (<tt>can?(:read, Model, :column)</tt>). +order: :relation+ (8.1.86) keeps the relation's own order (a +default_scope+, or a scope that orders documents newest first) instead of A-Z.
+
+An action of your own uses the same private helpers, which are supported API:
+
+ def autocomplete_word_name
+   words = inline_forms_suggestion_scope(Word).where(language: current_language)  # records the user may read
+   columns = inline_forms_readable_columns(Word, [ :name ])                       # columns the user may read
+   render_inline_forms_suggestions InlineForms::Suggestions.values(words, columns, params[:term], match: :start)
+ end
+
+The engine's own search box suggests too, for a model that declares it: <tt>inline_forms_search_on :name, :email, suggest: { on: :name }</tt>.
+
 == Per-user themes, colors and locale
 
 Generated apps let each user pick, on their own user panel:

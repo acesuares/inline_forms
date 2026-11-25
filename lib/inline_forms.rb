@@ -38,20 +38,41 @@ module InlineForms
   # expression()); href keeps only safe protocols. The stored value is not
   # changed. An Action Text value is not passed through here: Action Text
   # sanitizes it itself.
+  #
+  # Since 8.1.86 also CKEditor's <font> with color, face and size (RACVS has
+  # tens of thousands of values with it), and kbd, samp, tt, var.
   RICH_TEXT_DISPLAY_TAGS = %w[
-    a b strong i em u s strike del ins sub sup small big
-    p div span br hr blockquote pre code
+    a b strong i em u s strike del ins sub sup small big font
+    p div span br hr blockquote pre code kbd samp tt var
     h1 h2 h3 h4 h5 h6 ul ol li dl dt dd
     table thead tbody tfoot tr th td caption colgroup col
     figure figcaption
   ].freeze
   RICH_TEXT_DISPLAY_ATTRIBUTES = %w[
     href title style align valign width border cellpadding cellspacing colspan rowspan
+    color face size
   ].freeze
 
+  # One sanitizer for every call (a list page calls this once per row); it
+  # keeps no state between calls.
+  def self.rich_text_display_sanitizer
+    @rich_text_display_sanitizer ||= Rails::HTML::Sanitizer.best_supported_vendor.safe_list_sanitizer.new
+  end
+
+  # Elements whose content is not text for the reader: dropped with what is
+  # in them. The allowlist alone strips a tag and keeps its content, so a
+  # stored <script>alert(1)</script> showed as the text "alert(1)".
+  RICH_TEXT_DISPLAY_DROPPED = %w[script style template noscript].freeze
+
   def self.rich_text_display_html(html)
-    Rails::HTML::Sanitizer.best_supported_vendor.safe_list_sanitizer.new.sanitize(
-      html.to_s, tags: RICH_TEXT_DISPLAY_TAGS, attributes: RICH_TEXT_DISPLAY_ATTRIBUTES
+    html = html.to_s
+    if RICH_TEXT_DISPLAY_DROPPED.any? { |tag| html.match?(/<#{tag}\b/i) }
+      fragment = Rails::HTML::Sanitizer.html5_support? ? Loofah.html5_fragment(html) : Loofah.fragment(html)
+      fragment.css(RICH_TEXT_DISPLAY_DROPPED.join(",")).each(&:remove)
+      html = fragment.to_html
+    end
+    rich_text_display_sanitizer.sanitize(
+      html, tags: RICH_TEXT_DISPLAY_TAGS, attributes: RICH_TEXT_DISPLAY_ATTRIBUTES
     ).to_s.html_safe
   end
 

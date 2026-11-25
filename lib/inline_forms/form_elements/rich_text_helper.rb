@@ -7,19 +7,24 @@ module InlineForms
     
     def rich_text_show(object, attribute)
       rich = object.respond_to?(attribute) ? object.public_send(attribute) : nil
-      is_blank =
-        rich.nil? ||
-        (rich.respond_to?(:blank?) && rich.blank?) ||
-        (rich.respond_to?(:to_plain_text) && rich.to_plain_text.to_s.strip.empty?)
       # A plain column's HTML goes through the display allowlist; Action Text
-      # sanitizes its own (InlineForms.rich_text_display_html).
+      # sanitizes its own (InlineForms.rich_text_display_html). Blank is
+      # decided on what is shown: a value the allowlist empties (only an
+      # <img>, a <script>, an empty <p>) gets the plus, or the link would be
+      # empty and the field could not be opened.
+      shown = rich.is_a?(String) ? InlineForms.rich_text_display_html(rich) : rich
+      is_blank =
+        shown.nil? ||
+        (shown.respond_to?(:blank?) && shown.blank?) ||
+        (shown.respond_to?(:to_plain_text) && shown.to_plain_text.to_s.strip.empty?) ||
+        (shown.is_a?(String) && strip_tags(shown).gsub(/[[:space:]]|&nbsp;/, "").empty?)
       display_value =
         if is_blank
           "<i class='fi-plus'></i>".html_safe
-        elsif rich.is_a?(String)
-          InlineForms.rich_text_display_html(rich)
+        elsif shown.is_a?(String)
+          shown
         else
-          rich.to_s.html_safe
+          shown.to_s.html_safe
         end
       link_to_inline_edit object, attribute, display_value, from_callee: __callee__
     end

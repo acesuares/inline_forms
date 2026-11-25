@@ -8,6 +8,28 @@ All notable changes to this project are documented in this file.
 
 - Known issues, parked (local note `stuff/2026-10-31-dropdown-rule-3-parked.md`) with dropdown order rule 3: `includes`, `group` or `select` in `inline_forms_list` make `dropdown` and `dropdown_with_other` raise while `/index` works, so 8.1.65's fix for a list order on a joined table holds only for `joins`, `left_joins` and `eager_load`; a has_many join gives duplicate options. Present since 8.1.60. No host's list scope has these today. Parked; not changed.
 
+## [8.1.86] - 2026-11-25
+
+From the third RACVS / yavetracker ladder prompt (`ladder/inline_forms-PROMPT-3-2026-11-25.md`).
+
+### Added
+
+- **`suggest_names … order: :relation`** keeps the relation's own order (a `default_scope`'s, a scope's: documents newest first) instead of A-Z, with `LOWER(value)` A-Z after it and each value once. Default stays `:alphabetical`. `InlineForms::Suggestions.values` takes the same `order:`. RACVS's `ListOrderSuggestions` concern can go.
+- **`suggest_names … scope: :incoming`**: a named scope as a Symbol, besides a lambda. Either must give a relation (ArgumentError otherwise).
+
+### Fixed
+
+- **CKEditor's `<font>` keeps its colour, face and size** on a plain column under `:rich_text`: `font` with `color`, `face` and `size` is in the display allowlist, and so are `kbd`, `samp`, `tt` and `var`. RACVS's own `rich_text_show` can go.
+- **A plain column holding only what the allowlist drops shows the plus.** Blank was decided on the stored value, before the allowlist: a value of only an `<img>`, an empty `<p>` or a `<script>` gave a link with no text (40 blanks) instead of the plus.
+- **The contents of `<script>`, `<style>`, `<template>` and `<noscript>` are not shown.** The allowlist removed the tag and kept its text, so a stored `<script>alert(1)</script>` showed as the text `alert(1)` (escaped; it never ran).
+- **A file dropped or pasted into a plain-column Trix editor is refused** (`trix-file-accept`), not inserted with nowhere to go. 8.1.84 only hid the attach button. RACVS's own listener can go.
+- **The field request check asks for the helper of the engine action that runs** (`show`, `edit`, `update` pass it), not one read from `action_name`: an app action of another name that hands over to `edit` was checked for `_show`.
+- The display sanitizer is built once, not once per value.
+
+### Documentation
+
+- README: a section on search suggestions (`suggest_field_tag`, `suggest_names`, an action of your own). `inline_forms_suggestion_scope`, `inline_forms_readable_columns` and `render_inline_forms_suggestions` are named as supported API (private helpers), and any controller may include `SuggestionsConcern`.
+
 ## [8.1.85] - 2026-11-25
 
 From a review of 8.1.81 to 8.1.84 (local note `stuff/reviews/2026-11-25-review-8.1.81-8.1.84.md`).

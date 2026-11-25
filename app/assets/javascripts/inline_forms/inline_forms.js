@@ -46,6 +46,16 @@ if (!window.inlineFormsBooted) {
     initInlineFormsWidgets(root);
   });
 
+  // A :rich_text editor on a plain column (no has_rich_text) cannot store a
+  // file: the attach button is hidden (CSS), and a dropped or pasted file is
+  // refused here, so nothing is inserted.
+  document.addEventListener("trix-file-accept", function(event) {
+    var editor = event.target;
+    if (editor && editor.classList && editor.classList.contains("inline_forms-trix-no-files")) {
+      event.preventDefault();
+    }
+  });
+
   // get rid of translation_missing tooltips
   document.addEventListener("mouseover", function(event) {
     var el = event.target.closest && event.target.closest(".translation_missing");

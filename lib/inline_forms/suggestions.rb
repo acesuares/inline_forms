@@ -17,10 +17,16 @@ module InlineForms
   #              ("marc" finds Jean-Marc, "brien" O'Brien and O’Brien)
   #
   # The answer: at most `limit` values, each once (compared stripped and in any
-  # case, the first in A-Z order kept), in case-insensitive A-Z order. An empty
-  # term gives [].
+  # case), in the order `order:` names. An empty term gives [].
+  #
+  #   :alphabetical  case-insensitive A-Z, the first spelling in that order kept
+  #                  (the default)
+  #   :relation      the relation's own order (a default_scope's, a scope's:
+  #                  documents newest first), LOWER(value) A-Z after it; the
+  #                  first record's spelling kept (8.1.86)
   module Suggestions
     MATCHES = %i[contains start word].freeze
+    ORDERS = %i[alphabetical relation].freeze
     # What starts a word for match: :word, besides the start of the value.
     WORD_STARTS = [ " ", "-", "'", "’" ].freeze
     LIMIT = 12
@@ -35,6 +41,14 @@ module InlineForms
       raise ArgumentError, "match: must be one of #{MATCHES.map(&:inspect).join(', ')}, not #{match.inspect}"
     end
 
+    # Raises ArgumentError for an unknown order; returns it as a Symbol.
+    def check_order!(order)
+      order = order.to_sym
+      return order if ORDERS.include?(order)
+
+      raise ArgumentError, "order: must be one of #{ORDERS.map(&:inspect).join(', ')}, not #{order.inspect}"
+    end
+
     def check_limit!(limit)
       return limit if limit.is_a?(Integer) && limit.positive?
 
@@ -42,19 +56,53 @@ module InlineForms
     end
 
     # relation: what the user may see (already `accessible_by`, scoped, …).
-    def values(relation, columns, term, match: :contains, limit: LIMIT)
+    def values(relation, columns, term, match: :contains, limit: LIMIT, order: :alphabetical)
       match = check_match!(match)
       limit = check_limit!(limit)
+      order = check_order!(order)
       term = term.to_s.strip
       return [] if term.empty?
 
       columns = Array(columns)
+      if order == :relation
+        # Column after column, each in the relation's order.
+        found = columns.flat_map { |column| relation_ordered_values(relation, column, term, match, limit) }
+        return found.uniq(&:downcase).first(limit)
+      end
+
       found = columns.flat_map { |column| column_values(relation, column, term, match, limit) }
       found = found.map(&:to_s).reject(&:empty?)
       # One column: the database's order (its collation, e.g. accents with
       # their letter). Several: merged here.
       found = found.sort_by { |value| [ value.downcase, value ] } if columns.size > 1
       found.uniq(&:downcase).first(limit)
+    end
+
+    # The relation's own order kept, so no GROUP BY (its ORDER BY columns
+    # would have to be grouped or aggregated): rows in that order, LOWER(value)
+    # A-Z after it, a page at a time, each value once (stripped, any case),
+    # until `limit` values or PAGES pages.
+    PAGES = 10
+
+    def relation_ordered_values(relation, column, term, match, limit)
+      model = relation.model
+      attribute = model.arel_table[column.to_s]
+      lowered = Arel::Nodes::NamedFunction.new("LOWER", [ attribute ])
+      condition = patterns(model, term, match).map { |pattern|
+        lowered.matches(Arel::Nodes::NamedFunction.new("LOWER", [ Arel::Nodes.build_quoted(pattern) ]), "\\", true)
+      }.reduce(:or)
+      rows = relation.where(condition).unscope(:select).order(lowered.asc)
+      page_size = limit * 4
+      found = {}
+      PAGES.times do |page|
+        batch = rows.offset(page * page_size).limit(page_size).pluck(attribute)
+        batch.each do |value|
+          value = value.to_s.strip
+          found[value.downcase] ||= value unless value.empty?
+        end
+        break if found.size >= limit || batch.size < page_size
+      end
+      found.values.first(limit)
     end
 
     # SELECT MIN(TRIM(value)) … GROUP BY LOWER(TRIM(value)) ORDER BY that:

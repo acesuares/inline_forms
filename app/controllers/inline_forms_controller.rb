@@ -150,7 +150,7 @@ class InlineFormsController < ApplicationController
     @form_element = params[:form_element]
     @sub_id = params[:sub_id]
     @update_span = params[:update]
-    return true unless field_request_permitted?(:update)
+    return true unless field_request_permitted?(:update, "edit")
     return true unless file_replace_permitted?
     respond_to do |format|
       format.html { render_turbo_field(:field_edit) }
@@ -229,7 +229,7 @@ class InlineFormsController < ApplicationController
     @form_element = params[:form_element]
     @sub_id = params[:sub_id]
     @update_span = params[:update]
-    return true unless field_request_permitted?(:update)
+    return true unless field_request_permitted?(:update, "update")
     return true unless file_replace_permitted?
     # Defense-in-depth: the UI renders a pending field as a read-only
     # placeholder (never links to edit/update), but a hand-crafted request
@@ -282,7 +282,7 @@ class InlineFormsController < ApplicationController
     close = params[:close] || false
     # Single-field show (cancel link, post-update render): same whitelist as
     # edit/update.
-    return true if @attribute && !field_request_permitted?(:read)
+    return true if @attribute && !field_request_permitted?(:read, "show")
     @update_span = params[:update]
     if @attribute.nil?
       respond_to do |format|
@@ -478,11 +478,14 @@ class InlineFormsController < ApplicationController
   # are lists, not fields, and have no `<element>_show` (a listed :associated
   # row requested through show raised NoMethodError, a 500). A delegated name (form_element=rich_text on a
   # :text_area row) only counts while the row's element is the engine's own.
-  def field_request_permitted?(action)
+  # +helper+ is the helper the calling engine action uses (show, edit,
+  # update), passed by that action rather than read from action_name, so an
+  # app action of another name that calls super is checked for the right one.
+  def field_request_permitted?(action, helper)
     attributes = @inline_forms_attribute_list || inline_forms_attribute_list_of!(@object)
     row = InlineForms.attribute_list_row_for(attributes, @attribute, @form_element,
       delegate_allowed: ->(declared) { engine_form_element?(declared) })
-    unless row && form_element_helper?(@form_element, FIELD_REQUEST_HELPER_SUFFIX.fetch(action_name, "show"))
+    unless row && form_element_helper?(@form_element, helper)
       head :bad_request
       return false
     end
@@ -490,8 +493,6 @@ class InlineFormsController < ApplicationController
     true
   end
 
-  FIELD_REQUEST_HELPER_SUFFIX = { "edit" => "edit", "update" => "update", "show" => "show" }.freeze
-  private_constant :FIELD_REQUEST_HELPER_SUFFIX
 
   # The record's attribute list, or an error that names the model. Field
   # requests are checked against it (8.1.76); a model whose rows live only in
